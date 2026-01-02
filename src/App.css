@@ -10,6 +10,20 @@ body{
   font-style: normal;
 }
 
+.css-kf85qm-JoyInput-root:not([data-skip-inverted-colors]) {
+  --Input-focusedHighlight: var(--_Input-focusedHighlight, var(--joy-palette-focusVisible, var(--joy-palette-primary-500, none))) !important;
+    border: none;
+    box-shadow: none;
+}
+
+.css-1cquhrj-JoyTextarea-root:not([data-inverted-colors="false"]) {
+  --Textarea-focusedHighlight: var(--_Textarea-focusedHighlight, var(--joy-palette-focusVisible, var(--joy-palette-primary-500, none))) !important;
+}
+.css-ukor9l-JoyInput-root:not([data-skip-inverted-colors]) {
+  --Input-focusedHighlight: var(--_Input-focusedHighlight, var(--joy-palette-focusVisible, var(--joy-palette-primary-500, none))) !important;
+    border: none;
+    box-shadow: none;
+}
 .text{
   font-family: "BBH Bartle", sans-serif !important;
 

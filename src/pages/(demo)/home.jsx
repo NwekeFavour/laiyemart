@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import HeroSection from '../components/hero';
-import ValuePropsSection from '../components/card';
-import MarqueeSection from '../components/marq';
+import HeroSection from '../../components/hero';
+import ValuePropsSection from '../../components/card';
+import MarqueeSection from '../../components/marq';
 import { Box, Sheet, Typography , Button} from "@mui/joy";
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import Footer from '../components/footer';
-import Account from './admin(demo)/account';
+import Footer from '../../components/footer';
+import Account from '../admin(demo)/account';
+import NewArrivalsSlider from '../../components/newArrivals';
 
 
-function Home(props) {
+function DemoHome(props) {
     const [openIndex, setOpenIndex] = useState(null);
     const [mode, setMode] = useState(false);
 
@@ -98,7 +99,7 @@ function Home(props) {
             {!mode&& 
                 (<div>
                     <HeroSection onCreateStore={()=> setMode(!mode)} />
-                    <ValuePropsSection/>
+                    <NewArrivalsSlider/>
                     <MarqueeSection/>
                     <Box
                     component="section"
@@ -457,4 +458,4 @@ function Home(props) {
     );
 }
 
-export default Home;
+export default DemoHome;
