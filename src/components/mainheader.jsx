@@ -61,7 +61,7 @@ export default function OwnerHeader() {
 
         {/* Right Section */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <IconButton variant="plain" color="neutral">
+          <IconButton className="hover:bg-transparent!" variant="plain" color="neutral">
             <Bell size={20} />
           </IconButton>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, cursor: "pointer" }}>
