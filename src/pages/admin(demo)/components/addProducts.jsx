@@ -269,7 +269,7 @@ export default function AddProductForm({ createProductMode }) {
               onChange={(e) => setCategoryInput(e.target.value)}
               sx={{ flex: 1 }}
             />
-            <Button className="bg-gray-900!" onClick={handleAddCategory}>
+            <Button className="bg-[#555e68]!" onClick={handleAddCategory}>
               Add
             </Button>
           </Box>
