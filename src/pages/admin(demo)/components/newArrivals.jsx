@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Typography, Rating, Stack, IconButton } from '@mui/material';
+import { Box, Typography, Rating, Stack, IconButton, useTheme, useMediaQuery  } from '@mui/material';
 import { motion, useAnimation } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 
@@ -7,6 +7,8 @@ const NewArrivalsSlider = () => {
   const [width, setWidth] = useState(0);
   const carousel = useRef();
   const controls = useAnimation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Updated effect to calculate scrollable area
   useEffect(() => {
@@ -25,7 +27,7 @@ const NewArrivalsSlider = () => {
       {/* Header Section */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 4 }}>
         <Box>
-          <Typography variant="h4" fontWeight="800" sx={{ letterSpacing: '-1px' }}>NEW ARRIVALS</Typography>
+          <Typography className='lg:text-[34px]! md:text-[30px]! text-[26px]!' variant="h4" fontWeight="800" sx={{ letterSpacing: '-1px' }}>NEW ARRIVALS</Typography>
           <Typography variant="body2" color="text.secondary">Discover the latest ready-to-wear dresses.</Typography>
           
           <Stack direction="row" spacing={3} mt={3}>
@@ -35,36 +37,49 @@ const NewArrivalsSlider = () => {
         </Box>
 
         {/* Navigation Buttons */}
-        <Stack direction="row" spacing={1}>
-          <IconButton onClick={() => controls.start({ x: 0 })} sx={{ border: '1px solid #ddd' }}>
-            <ChevronLeft />
-          </IconButton>
-          <IconButton onClick={handleNext} sx={{ border: '1px solid #ddd' }}>
-            <ChevronRight />
-          </IconButton>
-        </Stack>
+        {!isMobile && (
+          <Stack direction="row" spacing={1}>
+            <IconButton onClick={() => controls.start({ x: 0 })} sx={{ border: '1px solid #ddd' }}>
+              <ChevronLeft />
+            </IconButton>
+            <IconButton onClick={handleNext} sx={{ border: '1px solid #ddd' }}>
+              <ChevronRight />
+            </IconButton>
+          </Stack>
+        )}
+
       </Box>
 
-      {/* The Viewport (Visible Area) */}
-      <Box 
-        component={motion.div} 
+      {/* Viewport */}
+      <Box
+        component={motion.div}
         ref={carousel}
-        sx={{ overflow: 'hidden', cursor: 'grab', '&:active': { cursor: 'grabbing' } }}
+        sx={{
+          overflow: isMobile ? 'visible' : 'hidden',
+          cursor: isMobile ? 'default' : 'grab',
+        }}
       >
-        {/* The Track (Moving Part) */}
         <motion.div
-          drag="x"
+          drag={isMobile ? false : 'x'}
           animate={controls}
-          dragConstraints={{ right: 0, left: -width }}
-          whileTap={{ cursor: "grabbing" }}
-          style={{ display: 'flex', gap: '20px' }}
+          dragConstraints={isMobile ? false : { right: 0, left: -width }}
+          whileTap={{ cursor: isMobile ? 'default' : 'grabbing' }}
+          style={{
+            display: isMobile ? 'block' : 'flex',
+            gap: isMobile ? 0 : '16px',
+          }}
         >
           {PRODUCTS.map((product) => (
-            <motion.div 
-              key={product.id} 
-              style={{ minWidth: '300px', flexShrink: 0 }}
+            <motion.div
+              key={product.id}
+              style={{
+                minWidth: isMobile ? '100%' : '240px',
+                marginBottom: isMobile ? '32px' : 0,
+                flexShrink: 0,
+              }}
             >
-              <Box sx={{ position: 'relative', bgcolor: '#f5f5f5', aspectRatio: '3/4', mb: 2 }}>
+
+              <Box sx={{ position: 'relative', bgcolor: '#f5f5f5', aspectRatio: '3/4', mb: 2, maxWidth: isMobile ? '100%' : '240px' }}>
                 {/* Product Image */}
                 <img
                   src={product.image}
