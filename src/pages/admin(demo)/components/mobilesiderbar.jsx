@@ -64,7 +64,7 @@ export default function MobileSidebar({ isDark, mobileOpen, setMobileOpen, activ
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-slate-700">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-md bg-red-500" />
-            <span className={`font-bold text-lg ${isDark ? "text-slate-200" : "text-gray-900"}`}>METRONIC</span>
+            <span  className={`font-bold text text-[13px] ${isDark ? "text-slate-200" : "text-gray-900"}`}>LAIYEMART</span>
           </div>
           <button onClick={() => setMobileOpen(false)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <X size={20} className={isDark ? "text-slate-200" : "text-gray-900"} />
@@ -81,35 +81,14 @@ export default function MobileSidebar({ isDark, mobileOpen, setMobileOpen, activ
             onClick={() => handleSelect("dashboard")}
           />
 
-          <MenuItem icon={Boxes} label="Inventory" isDark={isDark}>
-            <button
-              className="block hover:text-blue-400 w-full text-left"
-              onClick={() => handleSelect("inventory")}
-            >
-              Inventory List
-            </button>
-            <button
-              className="block hover:text-blue-400 w-full text-left"
-              onClick={() => handleSelect("stock")}
-            >
-              Stock Logs
-            </button>
-          </MenuItem>
+          <SimpleMenuItem
+            icon={Package}
+            label="Products"
+            isDark={isDark}
+            active={activePage === "products"}
+            onClick={() => handleSelect("products")}
+          />
 
-          <MenuItem icon={Package} label="Products" isDark={isDark}>
-            <button
-              className="block hover:text-blue-400 w-full text-left"
-              onClick={() => handleSelect("products")}
-            >
-              All Products
-            </button>
-            <button
-              className="block hover:text-blue-400 w-full text-left"
-              onClick={() => handleSelect("createProduct")}
-            >
-              Create Product
-            </button>
-          </MenuItem>
 
           <MenuItem icon={Layers} label="Categories" isDark={isDark}>
             <button

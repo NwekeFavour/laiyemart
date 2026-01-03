@@ -48,6 +48,12 @@ export default function Sidebar({ isDark, collapsed: parentCollapsed, setCollaps
 
   return (
     <aside
+      onMouseEnter={() => {
+        if (!mobileOpen) setCollapsedState(false);
+      }}
+      onMouseLeave={() => {
+        if (!mobileOpen) setCollapsedState(true);
+      }}
       className={`
         h-screen flex flex-col transition-all duration-300
         ${collapsed ? "w-20" : "w-64"} 
@@ -90,15 +96,8 @@ export default function Sidebar({ isDark, collapsed: parentCollapsed, setCollaps
       <nav className="pt-5 px-3 space-y-3 text-sm">
         <SimpleMenuItem icon={LayoutGrid} label="Dashboard" collapsed={collapsed} isDark={isDark} onClick={() => onSelect("dashboard")} />
 
-        <MenuItem icon={Boxes} label="Inventory" collapsed={collapsed} isDark={isDark}>
-          <div onClick={() => onSelect("inventory")} className="py-1 cursor-pointer hover:text-blue-400">Inventory List</div>
-          <div onClick={() => onSelect("stock")} className="py-1 cursor-pointer hover:text-blue-400">Stock Logs</div>
-        </MenuItem>
 
-        <MenuItem icon={Package} label="Products" collapsed={collapsed} isDark={isDark}>
-          <div onClick={() => onSelect("products")} className="block py-1 cursor-pointer hover:text-blue-400">All Products</div>
-          <div onClick={() => onSelect("createProduct")} className="block py-1 cursor-pointer hover:text-blue-400">Create Product</div>
-        </MenuItem>
+        <SimpleMenuItem icon={Package} label="Products" collapsed={collapsed} isDark={isDark} onClick={() => onSelect("products")} />
 
         <MenuItem icon={Layers} label="Categories" collapsed={collapsed} isDark={isDark}>
           <div onClick={() => onSelect("categories")} className="block py-1 cursor-pointer hover:text-blue-400">All Categories</div>

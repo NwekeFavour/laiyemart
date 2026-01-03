@@ -1,12 +1,16 @@
 // Topbar.js
 import React, { useState } from "react";
-import { Bell, User2, Moon, Settings, BellRing, Laptop, Gift, Download, HelpCircle, LogOut } from "lucide-react";
-import { Menu, MenuItem, Avatar, Switch, IconButton } from "@mui/material";
+import { Bell, User2, Moon, Settings, BellRing, Laptop, Gift, Download, HelpCircle, LogOut, X, ImageIcon} from "lucide-react";
+import { Menu, MenuItem, Avatar, Switch, IconButton, Popover } from "@mui/material";
 import { Divider } from "@mui/joy";
 
 export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOpen }) {
   const [profileAnchor, setProfileAnchor] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
 
+  const handleOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null); 
   return (
     <header className={`sticky top-0 z-20 flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16 transition
       ${isDark ? "bg-slate-950 border-slate-700" : "bg-white border-gray-200"} border-b`}>
@@ -18,13 +22,7 @@ export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOp
         </svg>
       </button>
 
-      {/* Breadcrumb */}
-      <div className={`flex items-center gap-2 sm:gap-3 text-sm ${isDark ? "text-slate-400" : "text-gray-500"}`}>
-        <span className="hidden sm:inline">Dashboards</span>
-        <span className="hidden sm:inline">›</span>
-        <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Default</span>
-      </div>
-
+      <div></div>
       {/* Right Section */}
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Search */}
@@ -36,9 +34,99 @@ export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOp
         />
 
         {/* Notification */}
-        <IconButton className={`w-9 h-9 rounded-full ${isDark ? "hover:bg-slate-800" : "hover:bg-gray-100"}`}>
+        <div 
+          onClick={handleOpen}
+          className={`w-9 h-9 rounded-full flex items-center justify-center cursor-pointer transition-colors 
+            ${open ? 'bg-blue-50' : 'hover:bg-gray-100'}`}
+        >
           <Bell size={20} className={isDark ? "text-slate-400" : "text-gray-600"} />
-        </IconButton>
+        </div>
+
+        <Popover
+          open={open}
+          anchorEl={anchorEl}
+          onClose={handleClose}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          PaperProps={{
+            className:
+              "mt-2 w-[360px] rounded-xl shadow-2xl border border-gray-100 overflow-hidden bg-white",
+          }}
+        >
+          {/* Header */}
+          <div className="px-4 py-3 flex items-center justify-between border-b border-slate-200">
+            <h2 className="text-sm font-bold text-gray-900">Notifications</h2>
+            <X
+              size={16}
+              className="text-gray-400 cursor-pointer hover:text-gray-600"
+              onClick={handleClose}
+            />
+          </div>
+
+          {/* Filters */}
+          <div className="flex px-3 border-b border-slate-100 text-xs font-medium">
+            <button className="px-3 py-2 border-b-2 border-blue-500 text-blue-600">
+              All
+            </button>
+            <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
+              Mentions
+            </button>
+            <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
+              Team
+            </button>
+            <button className="ml-auto px-2 text-gray-400 hover:text-gray-600">
+              <Settings size={14} />
+            </button>
+          </div>
+
+          {/* Notification List */}
+          <div className="max-h-105 overflow-y-auto divide-y">
+            {/* Notification Item */}
+            <div className="px-4 border-b border-slate-100 py-3 flex gap-3 hover:bg-gray-50 cursor-pointer">
+              <div className="relative">
+                <Avatar sx={{ width: 34, height: 34, fontSize: 12 }}>JL</Avatar>
+                <span className="absolute bottom-0 right-0 w-2 h-2 bg-blue-500 rounded-full border border-white" />
+              </div>
+
+              <div className="flex-1">
+                <p className="text-[13px] text-gray-700 leading-snug">
+                  <span className="font-semibold text-gray-900">Joe Lincoln</span>{" "}
+                  mentioned you in{" "}
+                  <span className="text-blue-600">Latest Trends</span>
+                </p>
+                <p className="text-[11px] text-gray-400 mt-0.5">
+                  18 minutes ago
+                </p>
+              </div>
+            </div>
+
+            {/* Another Notification */}
+            <div className="px-4 py-3 flex gap-3 hover:bg-gray-50 cursor-pointer border-b border-slate-100">
+              <Avatar sx={{ width: 34, height: 34, fontSize: 12 }}>GH</Avatar>
+              <div className="flex-1">
+                <p className="text-[13px] text-gray-700 leading-snug">
+                  <span className="font-semibold text-gray-900">Guy Hawkins</span>{" "}
+                  requested access to{" "}
+                  <span className="text-blue-600">AirSpace</span>
+                </p>
+                <p className="text-[11px] text-gray-400 mt-0.5">
+                  14 hours ago
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="px-4 py-3 flex justify-between text-xs font-medium">
+            <button className="text-gray-500 hover:text-gray-700">
+              Mark all as read
+            </button>
+            <button className="text-blue-600 hover:text-blue-700">
+              View all
+            </button>
+          </div>
+        </Popover>
+
 
         {/* Profile */}
         <IconButton className={`w-9 h-9 rounded-full ${isDark ? "hover:bg-slate-800" : "hover:bg-gray-100"}`} onClick={e => setProfileAnchor(e.currentTarget)}>
