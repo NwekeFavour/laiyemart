@@ -3,7 +3,7 @@ import Sidebar from "./sidebar";
 import Topbar from "./topbar";
 import MobileSidebar from "./mobilesiderbar";
 
-export default function DashboardLayout({ children,  activePage, setActivePage }) {
+export default function DashboardLayout({ children, activePage, setActivePage, demo, setDemo }) {
   const contentRef = useRef(null);
 
   // Sidebar state
@@ -11,7 +11,6 @@ export default function DashboardLayout({ children,  activePage, setActivePage }
   const [mobileOpen, setMobileOpen] = useState(false); // mobile toggle
 
   const [isDark, setIsDark] = useState(false); // Dark mode state
-  // Dark mode toggle
   const toggleDarkMode = () => setIsDark(prev => !prev);
 
   return (
@@ -24,20 +23,19 @@ export default function DashboardLayout({ children,  activePage, setActivePage }
         setCollapsed={setCollapsed}
         mobileOpen={mobileOpen}
         onSelect={page => {
-          setActivePage(page); // update from Account
+          setActivePage(page);
           setMobileOpen(false);
         }}
       />
 
       {/* Mobile Sidebar */}
-    <MobileSidebar
+      <MobileSidebar
         isDark={isDark}
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
-        activePage={activePage}          // pass activePage
-        setActivePage={setActivePage}    // pass setter!
+        activePage={activePage}
+        setActivePage={setActivePage}
       />
-
 
       {/* Main area */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -45,9 +43,10 @@ export default function DashboardLayout({ children,  activePage, setActivePage }
           scrollRef={contentRef}
           isDark={isDark}
           toggleDarkMode={toggleDarkMode}
-          setSidebarOpen={setMobileOpen} // mobile hamburger
+          setSidebarOpen={setMobileOpen}
+          demo={demo}           
+          setDemo={setDemo}    
         />
-
 
         {/* Scrollable Content */}
         <main ref={contentRef} className="flex-1 hide-scrollbar overflow-y-auto p-5 md:p-6">

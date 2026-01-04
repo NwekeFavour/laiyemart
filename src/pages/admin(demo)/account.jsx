@@ -311,7 +311,6 @@
 //     </Box>
 //   );
 // }
-
 import React, { useState } from 'react';
 import DashboardLayout from './components/dashboardlayout';
 import SalesActivity from './components/sales';
@@ -320,37 +319,48 @@ import ProductsTable from './components/products';
 import Analytics from './components/analytics';
 import CategoriesTable from './components/categories';
 import OrderListComponent from './components/orderComp';
+import DemoHome from '../(demo)/home';
 
 export default function Account() {
-  const [isDark, setIsDark] = useState(false);
-  const [activePage, setActivePage] = useState('dashboard'); // state lifted here
+  const [activePage, setActivePage] = useState('dashboard'); 
+  const [demo, setDemo] = useState(false); // demo mode state
 
   return (
-    <DashboardLayout
-      activePage={activePage}
-      setActivePage={setActivePage}
-    >
-      {activePage === 'products' ? (
-        <ProductsTable isDark={isDark} />
-      ) : activePage === 'dashboard' ? (
-          <Analy isDark={isDark} />
-      ) : activePage === 'categories' ? (
-        <CategoriesTable isDark={isDark}/>
-      ) : activePage === 'orders' ? (
-        <OrderListComponent isDark={isDark} />
-      ) : null}
-    </DashboardLayout>
+    <div className="min-h-screen bg-gray-100">
+
+      {/* Demo overlay: outside DashboardLayout */}
+      {demo && (
+        <div className="md:m-10 m-3 shadow-lg">
+          <DemoHome />
+        </div>
+      )}
+
+      {/* Normal dashboard layout */}
+      {!demo && (
+        <DashboardLayout 
+          activePage={activePage} 
+          setActivePage={setActivePage} 
+          demo={demo} 
+          setDemo={setDemo}   // pass demo toggler to Topbar
+        >
+          {activePage === 'products' && <ProductsTable />}
+          {activePage === 'dashboard' && <Analy />}
+          {activePage === 'categories' && <CategoriesTable />}
+          {activePage === 'orders' && <OrderListComponent />}
+        </DashboardLayout>
+      )}
+
+   
+    </div>
   );
 }
 
-
-
-function Analy({ isDark }) {
+function Analy() {
   return (
-    <div className={`p-4 mb-6 rounded-lg ${isDark ? 'bg-slate-800 text-slate-200' : 'bg-white text-gray-900'}`}>
-        <Analytics isDark={isDark} />
-          <SalesActivity isDark={isDark} />
-          <RecentOrders isDark={isDark} />
+    <div className="p-4 mb-6 rounded-lg bg-white text-gray-900 dark:bg-slate-800 dark:text-slate-200">
+      <Analytics />
+      <SalesActivity />
+      <RecentOrders />
     </div>
   );
 }
