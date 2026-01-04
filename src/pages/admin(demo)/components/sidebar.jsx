@@ -32,7 +32,7 @@ const SimpleMenuItem = ({ icon: Icon, label, collapsed, isDark, onClick }) => (
   <button
     onClick={onClick}
     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm font-medium
-      ${isDark ? "hover:bg-slate-700 text-slate-200" : "hover:bg-gray-100 text-gray-900"}`}
+      ${isDark ? "hover:bg-slate-700 text-slate-200" : "hover:bg-gray-100 hover:text-blue-600 text-gray-900"}`}
   >
     <Icon size={18} />
     {!collapsed && <span>{label}</span>}
@@ -99,20 +99,11 @@ export default function Sidebar({ isDark, collapsed: parentCollapsed, setCollaps
 
         <SimpleMenuItem icon={Package} label="Products" collapsed={collapsed} isDark={isDark} onClick={() => onSelect("products")} />
 
-        <MenuItem icon={Layers} label="Categories" collapsed={collapsed} isDark={isDark}>
-          <div onClick={() => onSelect("categories")} className="block py-1 cursor-pointer hover:text-blue-400">All Categories</div>
-          <div onClick={() => onSelect("createCategory")} className="block py-1 cursor-pointer hover:text-blue-400">Create Category</div>
-        </MenuItem>
+        <SimpleMenuItem icon={Layers} label="All Categories" collapsed={collapsed} isDark={isDark} onClick={() => onSelect("categories")} />
 
-        <MenuItem icon={ShoppingCart} label="Orders" collapsed={collapsed} isDark={isDark}>
-          <div onClick={() => onSelect("orders")} className="py-1 cursor-pointer hover:text-blue-400">Order List</div>
-          <div onClick={() => onSelect("orderDetails")} className="py-1 cursor-pointer hover:text-blue-400">Order Details</div>
-        </MenuItem>
+        <SimpleMenuItem icon={ShoppingCart} label="Orders" collapsed={collapsed} isDark={isDark} onClick={() => onSelect("orders")} />
 
-        <MenuItem icon={Users} label="Customer" collapsed={collapsed} isDark={isDark}>
-          <div onClick={() => onSelect("customers")} className="py-1 cursor-pointer hover:text-blue-400">Customers</div>
-          <div onClick={() => onSelect("customerDetails")} className="py-1 cursor-pointer hover:text-blue-400">Customer Details</div>
-        </MenuItem>
+        <SimpleMenuItem icon={Users} label="Customers" collapsed={collapsed} isDark={isDark} onClick={() => onSelect("customers")} />
 
         <MenuItem icon={Settings} label="Settings" collapsed={collapsed} isDark={isDark}>
           <div onClick={() => onSelect("settings")} className="py-1 cursor-pointer hover:text-blue-400">General</div>

@@ -50,7 +50,7 @@ export default function DashboardLayout({ children,  activePage, setActivePage }
 
 
         {/* Scrollable Content */}
-        <main ref={contentRef} className="flex-1 overflow-y-auto p-6">
+        <main ref={contentRef} className="flex-1 hide-scrollbar overflow-y-auto p-5 md:p-6">
           {React.Children.map(children, (child) =>
             React.isValidElement(child)
               ? React.cloneElement(child, { isDark, activePage })

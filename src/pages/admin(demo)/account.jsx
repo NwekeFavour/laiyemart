@@ -318,6 +318,8 @@ import SalesActivity from './components/sales';
 import RecentOrders from './components/order-table';
 import ProductsTable from './components/products';
 import Analytics from './components/analytics';
+import CategoriesTable from './components/categories';
+import OrderListComponent from './components/orderComp';
 
 export default function Account() {
   const [isDark, setIsDark] = useState(false);
@@ -330,9 +332,13 @@ export default function Account() {
     >
       {activePage === 'products' ? (
         <ProductsTable isDark={isDark} />
-      ) : (
+      ) : activePage === 'dashboard' ? (
           <Analy isDark={isDark} />
-      )}
+      ) : activePage === 'categories' ? (
+        <CategoriesTable isDark={isDark}/>
+      ) : activePage === 'orders' ? (
+        <OrderListComponent isDark={isDark} />
+      ) : null}
     </DashboardLayout>
   );
 }

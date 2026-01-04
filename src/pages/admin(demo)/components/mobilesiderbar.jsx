@@ -90,50 +90,22 @@ export default function MobileSidebar({ isDark, mobileOpen, setMobileOpen, activ
           />
 
 
-          <MenuItem icon={Layers} label="Categories" isDark={isDark}>
-            <button
-              className="block hover:text-blue-400 w-full text-left"
-              onClick={() => handleSelect("categories")}
-            >
-              All Categories
-            </button>
-            <button
-              className="block hover:text-blue-400 w-full text-left"
-              onClick={() => handleSelect("createCategory")}
-            >
-              Create Category
-            </button>
-          </MenuItem>
+          <SimpleMenuItem
+            icon={Layers}
+            label="All Categories"
+            isDark={isDark}
+            active={activePage === "categories"}
+            onClick={() => handleSelect("categories")}
+          />
 
-          <MenuItem icon={ShoppingCart} label="Orders" isDark={isDark}>
-            <button
-              className="block hover:text-blue-400 w-full text-left"
-              onClick={() => handleSelect("orders")}
-            >
-              Order List
-            </button>
-            <button
-              className="block hover:text-blue-400 w-full text-left"
-              onClick={() => handleSelect("orderDetails")}
-            >
-              Order Details
-            </button>
-          </MenuItem>
+          <SimpleMenuItem 
+            icon={ShoppingCart} 
+            label="Orders"  
+            isDark={isDark} 
+            active={activePage === "orders"} 
+            onClick={() => handleSelect("orders")} />
 
-          <MenuItem icon={Users} label="Customer" isDark={isDark}>
-            <button
-              className="block hover:text-blue-400 w-full text-left"
-              onClick={() => handleSelect("customers")}
-            >
-              Customers
-            </button>
-            <button
-              className="block hover:text-blue-400 w-full text-left"
-              onClick={() => handleSelect("customerDetails")}
-            >
-              Customer Details
-            </button>
-          </MenuItem>
+          <SimpleMenuItem icon={Users} label="Customers"  isDark={isDark} active={activePage === "customers"} onClick={() => handleSelect("customers")} />
 
           <MenuItem icon={Settings} label="Settings" isDark={isDark}>
             <button
