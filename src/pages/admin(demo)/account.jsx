@@ -386,7 +386,7 @@ export default function Account() {
 function DashboardAnalytics({ isDark }) {
   return (
     <div
-      className={`p-4 mb-6 rounded-lg ${
+      className={` mb-6 rounded-lg ${
         isDark ? "bg-slate-800 text-slate-200" : "bg-white text-gray-900"
       }`}
     >

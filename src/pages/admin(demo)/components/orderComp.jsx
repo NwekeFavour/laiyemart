@@ -70,7 +70,7 @@ const itemsPerPage = 5;
       {/* Header Section */}
       <div className="flex flex-wrap items-center  justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">Order List</h1>
+          <h1 className="md:text-[20px] text-[17px] font-bold">Order List</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {filteredOrders.length} orders found. <span className={`${isDark ? "text-slate-200" : "text-gray-900"} font-medium`}>62 orders need your attention.</span>
           </p>
@@ -93,8 +93,8 @@ const itemsPerPage = 5;
       <div className={`rounded-xl border ${borderColor} ${isDark ? 'bg-slate-900' : 'bg-white'} overflow-hidden shadow-sm`}>
         
         {/* Tabs and Search Header */}
-        <div className={`lg:flex justify-between items-center px-4 py-3 border-b ${borderColor} ${isDark ? 'bg-slate-800/50' : 'bg-white'}`}>
-          <div className="flex gap-6">
+        <div className={`sm:flex justify-between items-center px-4 py-3 border-b ${borderColor} ${isDark ? 'bg-slate-800/50' : 'bg-white'}`}>
+          <div className="flex flex-wrap gap-6">
             {["All", "In Transit", "Delivered", "Returns", "Canceled"].map((tab) => (
               <button
                 key={tab}

@@ -157,8 +157,8 @@ const columnMapping = {
 
       {/* Table Container */}
       <div className={`rounded-xl border ${borderColor} ${isDark ? 'bg-slate-900' : 'bg-white'} overflow-hidden`}>
-        <div className={`${isDark ? "border-slate-700" : ""} flex border-b border-slate-100 justify-between items-center px-3 py-3  `}>
-            <h1 className="text-xl font-bold">Customers</h1>
+        <div className={`${isDark ? "border-slate-700" : ""} sm:flex border-b border-slate-100 justify-between items-center px-3 py-3  `}>
+            <h1 className="lg:text-[20px] text-[17px] font-bold">Customers</h1>
             <div className="flex gap-3">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2  text-gray-400" size={16} />

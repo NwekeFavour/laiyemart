@@ -475,7 +475,7 @@ export default function ProductsTable({ isDark }) {
 
         <div className="flex flex-col gap-1">
 
-          <h1 className="text-xl font-bold text-foreground">Product List</h1>
+          <h1 className="md:text-[20px] text-[17px] font-bold text-foreground">Product List</h1>
 
           <span className="text-sm text-muted-foreground">1424 products found. 83% are active.</span>
 
