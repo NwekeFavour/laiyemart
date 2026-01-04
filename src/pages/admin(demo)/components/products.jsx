@@ -55,12 +55,13 @@ const CreateProductModal = ({ isOpen, onClose, isDark }) => {
   const [showVariantForm, setShowVariantForm] = useState(false);
   const [images, setImages] = useState([]);
   const fileInputRef = useRef(null);
+const intervalsRef = useRef({});
   if (!isOpen) return null;
 
+  // --- Image Upload Logic ---
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     
-    // Limit to 5 images total
     if (images.length + files.length > 5) {
       alert("You can only upload a maximum of 5 images.");
       return;
@@ -69,9 +70,8 @@ const CreateProductModal = ({ isOpen, onClose, isDark }) => {
     files.forEach((file) => {
       if (file.type.startsWith("image/")) {
         const reader = new FileReader();
-        
-        // Create a temporary object for the "uploading" state
         const fileId = Math.random().toString(36).substr(2, 9);
+        
         const newFile = { 
           id: fileId, 
           name: file.name, 
@@ -83,13 +83,12 @@ const CreateProductModal = ({ isOpen, onClose, isDark }) => {
         setImages((prev) => [...prev, newFile]);
 
         reader.onloadstart = () => {
-          // Simulate progress bar filling up
           let prog = 0;
           const interval = setInterval(() => {
             prog += 10;
             setImages((prev) =>
               prev.map((img) =>
-                img.id === fileId ? { ...img, progress: prog } : img
+                img.id === fileId ? { ...img, progress: Math.min(prog, 100) } : img
               )
             );
             if (prog >= 100) clearInterval(interval);
@@ -97,9 +96,14 @@ const CreateProductModal = ({ isOpen, onClose, isDark }) => {
         };
 
         reader.onloadend = () => {
+          // Clear the interval early if file loads fast
+          clearInterval(intervalsRef.current[fileId]);
+          
           setImages((prev) =>
             prev.map((img) =>
-              img.id === fileId ? { ...img, url: reader.result, progress: 100 } : img
+              img.id === fileId 
+                ? { ...img, url: reader.result, progress: 100 } 
+                : img
             )
           );
         };
@@ -114,36 +118,57 @@ const CreateProductModal = ({ isOpen, onClose, isDark }) => {
 
   const handleBrowseClick = () => fileInputRef.current.click();
 
-  // Theme-based classes
-  const panelBg = isDark ? "bg-[#1e293b] text-slate-200" : "bg-white text-gray-900";
-  const sectionBg = isDark ? "bg-[#0f172a]/50" : "bg-gray-50/50";
+  // --- Dynamic Theme Classes ---
+  const panelBg = isDark ? "bg-[#0f172a] text-slate-100" : "bg-white text-gray-900";
+  const sectionBg = isDark ? "bg-[#1e293b]/30" : "bg-gray-50";
+  const cardBg = isDark ? "bg-[#1e293b] border-slate-700 shadow-none" : "bg-white border-slate-100 shadow-sm";
+  const headerBg = isDark ? "bg-slate-800/50" : "bg-slate-200/30";
+  const borderColor = isDark ? "border-slate-700" : "border-slate-100";
+  
   const inputBase = `w-full px-3 py-2 text-sm rounded-md border outline-none transition-all ${
-    isDark ? "bg-slate-800 border-slate-700 focus:border-blue-500" : "bg-white border-gray-200 focus:border-blue-400"
+    isDark 
+      ? "bg-slate-900 border-slate-700 focus:border-blue-500 text-slate-200 placeholder:text-slate-500" 
+      : "bg-white border-gray-200 focus:border-blue-400 text-gray-900 placeholder:text-gray-400"
   }`;
-  const labelStyle = "block text-[13px] font-semibold mb-1.5 text-gray-700 dark:text-slate-300";
+
+  const labelStyle = `block text-[12px] font-bold uppercase tracking-wider mb-1.5 ${
+    isDark ? "text-slate-400" : "text-gray-500"
+  }`;
+
+  // MUI Select Styles
+  const selectSx = {
+    width: '100%',
+    backgroundColor: isDark ? '#0f172a' : '#fff',
+    borderColor: isDark ? '#334155' : '#e2e8f0',
+    color: isDark ? '#f1f5f9' : '#1e293b',
+    fontSize: '0.875rem',
+    '&:hover': {
+      borderColor: isDark ? '#475569' : '#cbd5e1',
+      backgroundColor: isDark ? '#0f172a' : '#fff',
+    },
+  };
 
   return (
     <div 
-      className="fixed inset-0 z-100 p-10 flex justify-end bg-black/40 backdrop-blur-[2px]"
+      className="fixed inset-0 z-[100] p-4 md:p-10 flex justify-end bg-black/60 backdrop-blur-[2px]"
       onClick={onClose}
     >
-      {/* Slide-in Panel from Right */}
       <div 
         onClick={(e) => e.stopPropagation()} 
-        className={`relative h-full w-full max-w-250 shadow-2xl flex flex-col 
-          animate-in slide-in-from-right duration-300 ease-in-out ${panelBg}`}
+        className={`relative h-full w-full max-w-[1100px] shadow-2xl flex flex-col rounded-xl overflow-hidden
+          animate-in slide-in-from-right duration-300 ease-in-out ${panelBg} border-l ${borderColor}`}
       >
         
         {/* Top Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center dark:border-slate-700">
+        <div className={`px-6 py-4 border-b flex justify-between items-center ${borderColor}`}>
           <h2 className="font-bold text-[16px]">Create New Product</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </button>
         </div>
 
-        {/* Sub-Header (Select Status & Read About) */}
-        <div className="px-6 py-4 md:flex justify-between items-center bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+        {/* Action Bar */}
+        <div className={`px-6 py-4 md:flex justify-between items-center border-b ${borderColor} ${isDark ? 'bg-slate-900/50' : 'bg-white'}`}>
           <div className="w-48">
              <select className={inputBase}>
                 <option>Select Status</option>
@@ -151,249 +176,171 @@ const CreateProductModal = ({ isOpen, onClose, isDark }) => {
                 <option>Draft</option>
              </select>
           </div>
-          <div className="md:flex md:space-x-0 space-x-2  items-center gap-4 text-sm">
+          <div className="flex flex-wrap items-center gap-4 text-sm mt-4 md:mt-0">
              <span className="text-gray-500">Read about <a href="#" className="text-blue-500 hover:underline">How to Create Product</a></span>
-             <button onClick={onClose} className="px-4 md:mt-0 mt-4 py-1.5 border rounded-md font-medium hover:bg-gray-50 dark:border-slate-700">Cancel</button>
-             <button className="px-4 py-1.5 bg-black text-white md:mt-0 mt-4 rounded-md font-medium dark:bg-white dark:text-black">Create</button>
+             <button onClick={onClose} className={`px-4 py-1.5 border rounded-md font-medium transition-colors ${isDark ? 'border-slate-700 hover:bg-slate-800' : 'hover:bg-gray-50'}`}>Cancel</button>
+             <button className={`px-4 py-1.5 rounded-md font-medium transition-colors ${isDark ? 'bg-white text-black hover:bg-slate-200' : 'bg-black text-white hover:bg-zinc-800'}`}>Create</button>
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className={`flex-1 overflow-y-auto p-8 md:flex gap-8 ${sectionBg}`}>
+        {/* Content Area */}
+        <div className={`flex-1 overflow-y-auto p-6 md:p-8 md:flex gap-8 ${sectionBg}`}>
           
-          {/* Left Column (Form Fields) */}
           <div className="flex-1 space-y-6">
-            <div className="bg-white border-slate-100 dark:bg-slate-800  rounded-lg border dark:border-slate-700 shadow-sm">
-              <div className="flex justify-between items-center  bg-slate-200/30 px-4 pt-3 border-b border-slate-100 pb-4 dark:border-slate-700">
+            {/* Basic Info Card */}
+            <div className={`rounded-lg border overflow-hidden ${cardBg}`}>
+              <div className={`flex justify-between items-center px-4 py-3 border-b ${headerBg} ${borderColor}`}>
                 <h3 className="font-bold text-sm">Basic Info</h3>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-gray-500">Featured</span>
                   <Switch
                     color="neutral"
                     sx={{
-                      '--Switch-trackBackground': '#475569', // slate-600
-                      '--Switch-thumbBackground': '#e5e7eb', // slate-200
+                      '--Switch-trackBackground': isDark ? '#334155' : '#cbd5e1',
                       '&.Mui-checked': {
-                        '--Switch-trackBackground': '#000', // slate-700
+                        '--Switch-trackBackground': isDark ? '#3b82f6' : '#000',
                       },
                     }}
                   />
                 </div>
               </div>
 
-              <div className="space-y-4 p-6">
+              <div className="p-6 space-y-4">
                 <div>
                   <label className={labelStyle}>Product Name</label>
-                  <input placeholder="Product Name" className={inputBase} />
+                  <input placeholder="e.g. Air Jordan 1" className={inputBase} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className={labelStyle}>SKU</label>
-                    <input placeholder="SKU" className={inputBase} />
+                    <input placeholder="SKU-882" className={inputBase} />
                   </div>
                   <div>
                     <label className={labelStyle}>Barcode</label>
-                    <input placeholder="Barcode" className={inputBase} />
+                    <input placeholder="001234567" className={inputBase} />
                   </div>
                 </div>
                 <div>
                   <label className={labelStyle}>Product Description</label>
-                  <textarea rows={6} placeholder="Product Description" className={inputBase} />
+                  <textarea rows={5} placeholder="Write something about the product..." className={inputBase} />
                 </div>
               </div>
             </div>
-            
-            <div className="bg-white border-slate-100 dark:bg-slate-800  rounded-lg border dark:border-slate-700 shadow-sm">
-              <div className="flex justify-between items-center  bg-slate-200/30 px-4 pt-3 border-b border-slate-100 pb-4 dark:border-slate-700">
+
+            {/* Category Card */}
+            <div className={`rounded-lg border overflow-hidden ${cardBg}`}>
+              <div className={`px-4 py-3 border-b ${headerBg} ${borderColor}`}>
                 <h3 className="font-bold text-sm">Category & Brand</h3>
               </div>
-              <div className="space-y-4 p-6 ">
-                <div className="space-y-4">
-                  
-                  {/* Product Category */}
-                  <div>
-                    <label className={labelStyle}>Product Category</label>
-                    <Select
-                      placeholder="Select Category"
-                      indicator={<KeyboardArrowDown />}
-                      sx={{
-                        width: '100%',
-                        backgroundColor: isDark ? '#1e293b' : '#fff',
-                        borderColor: isDark ? '#334155' : '#e2e8f0',
-                        fontSize: '0.875rem',
-                        '&:hover': {
-                          borderColor: isDark ? '#475569' : '#cbd5e1',
-                        },
-                      }}
-                    >
-                      <Option value="sneakers">Sneakers</Option>
-                      <Option value="apparel">Apparel</Option>
-                      <Option value="accessories">Accessories</Option>
-                    </Select>
-                  </div>
-
-                  {/* Product Brand */}
-                  <div>
-                    <label className={labelStyle}>Product Brand</label>
-                    <Select
-                      placeholder="Select Brand"
-                      indicator={<KeyboardArrowDown />}
-                      sx={{
-                        width: '100%',
-                        backgroundColor: isDark ? '#1e293b' : '#fff',
-                        borderColor: isDark ? '#334155' : '#e2e8f0',
-                        fontSize: '0.875rem',
-                        '&:hover': {
-                          borderColor: isDark ? '#475569' : '#cbd5e1',
-                        },
-                      }}
-                    >
-                      <Option value="nike">Nike</Option>
-                      <Option value="adidas">Adidas</Option>
-                      <Option value="puma">Puma</Option>
-                      <Option value="reebok">Reebok</Option>
-                    </Select>
-                  </div>
-
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className={labelStyle}>Product Category</label>
+                  <Select placeholder="Select Category" indicator={<KeyboardArrowDown />} sx={selectSx}>
+                    <Option value="sneakers">Sneakers</Option>
+                    <Option value="apparel">Apparel</Option>
+                  </Select>
+                </div>
+                <div>
+                  <label className={labelStyle}>Product Brand</label>
+                  <Select placeholder="Select Brand" indicator={<KeyboardArrowDown />} sx={selectSx}>
+                    <Option value="nike">Nike</Option>
+                    <Option value="adidas">Adidas</Option>
+                  </Select>
                 </div>
               </div>
             </div>
 
-            {!showVariantForm ? (
-                 <div className="py-10 text-center">
-                    <p className="font-bold text-sm mb-1">No variants to display</p>
-                    <p className="text-xs text-gray-500 mb-6">Set up different options for this product</p>
-                    <button 
-                      onClick={() => setShowVariantForm(true)}
-                      className="bg-black text-white dark:bg-white dark:text-black px-4 py-2 rounded-md text-xs font-bold flex items-center gap-2 mx-auto"
-                    >
-                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14m-7-7v14"/></svg>
-                       Add Variant
-                    </button>
-                 </div>
-               ) : (
-                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                    <div className="grid grid-cols-2 gap-4">
-                       <div>
-                          <label className={labelStyle}>Variant Price (₦)</label>
-                          <input type="number" placeholder="0.00" className={inputBase} />
-                       </div>
-                       <div>
-                          <label className={labelStyle}>Stock Quantity</label>
-                          <input type="number" placeholder="0" className={inputBase} />
-                       </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                       <div>
-                          <label className={labelStyle}>Color</label>
-                          <input placeholder="e.g. Red" className={inputBase} />
-                       </div>
-                    </div>
-                    <button 
-                      onClick={() => setShowVariantForm(false)}
-                      className="text-xs underline text-red-500 font-bold hover:underline"
-                    >
-                      Remove Variant
-                    </button>
-                 </div>
-              )}  
+            {/* Variant Form Section */}
+            <div className={`rounded-lg border-2 border-dashed p-8 text-center ${isDark ? 'border-slate-700 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+              {!showVariantForm ? (
+                <div className="animate-in fade-in zoom-in-95">
+                  <p className="font-bold text-sm mb-1">No variants to display</p>
+                  <p className="text-xs text-gray-500 mb-6">Set up different colors or sizes</p>
+                  <button 
+                    onClick={() => setShowVariantForm(true)}
+                    className={`px-6 py-2 rounded-md text-xs font-bold flex items-center gap-2 mx-auto ${isDark ? 'bg-white text-black' : 'bg-black text-white'}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14m-7-7v14"/></svg>
+                    Add Variant
+                  </button>
+                </div>
+              ) : (
+                <div className="text-left space-y-4 animate-in slide-in-from-top-2">
+                   <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelStyle}>Price (₦)</label>
+                        <input type="number" placeholder="0.00" className={inputBase} />
+                      </div>
+                      <div>
+                        <label className={labelStyle}>Stock</label>
+                        <input type="number" placeholder="0" className={inputBase} />
+                      </div>
+                   </div>
+                   <button onClick={() => setShowVariantForm(false)} className="text-xs font-bold text-red-500 hover:underline">Remove Variant</button>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Right Column (Upload & Tags) */}
-          <div className="md:w-[320px] space-y-6">
-            <div className="md:w-[320px] space-y-6">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                multiple // Allow selecting multiple files
-                className="hidden"
-              />
-
-              {/* Upload Dropzone */}
-              <div 
-                className={`bg-white dark:bg-slate-800 p-6 rounded-lg border-2 border-dashed transition-all ${
-                  isDark ? "border-slate-600 hover:border-blue-500" : "border-gray-300 hover:border-blue-400"
-                } text-center`}
-              >
-                <div className="flex justify-center mb-3">
-                  <div className="w-10 h-10 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
-                  </div>
-                </div>
-                <p className="text-[13px] font-bold dark:text-slate-200">Choose files or drag & drop here.</p>
-                <p className="text-[11px] text-gray-400 mb-4">JPEG, PNG, up to 5 images.</p>
-                <button 
-                  onClick={handleBrowseClick}
-                  type="button"
-                  disabled={images.length >= 5}
-                  className="px-4 py-1.5 border rounded-md text-[12px] font-bold dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors"
-                >
-                  Browse Files
-                </button>
+          {/* Right Sidebar */}
+          <div className="md:w-[320px] space-y-6 mt-6 md:mt-0">
+            {/* Upload Area */}
+            <div 
+              className={`p-6 rounded-lg border-2 border-dashed transition-all text-center ${
+                isDark ? "bg-slate-800 border-slate-700 hover:border-blue-500" : "bg-white border-gray-300 hover:border-blue-400"
+              }`}
+            >
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" multiple className="hidden" />
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${isDark ? 'bg-slate-900' : 'bg-gray-100'}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
               </div>
+              <p className="text-[13px] font-bold">Upload product images</p>
+              <p className="text-[11px] text-gray-400 mb-4">PNG, JPG up to 5 images</p>
+              <button onClick={handleBrowseClick} className={`px-4 py-1.5 border rounded-md text-[12px] font-bold ${isDark ? 'border-slate-700 hover:bg-slate-700' : 'hover:bg-gray-50'}`}>Browse Files</button>
+            </div>
 
-              {/* Progress List Section (Matches your screenshot) */}
-              <div className="space-y-3">
-                {images.map((img) => (
-                  <div key={img.id} className="bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-xl p-4 shadow-sm">
-                    <div className="flex items-center gap-3">
-                      {/* Icon / Preview Thumbnail */}
-                      <div className="w-10 h-10 flex-shrink-0 bg-gray-100 dark:bg-slate-700 rounded-lg flex items-center justify-center overflow-hidden">
-                        {img.url ? (
-                          <img src={img.url} className="w-full h-full object-cover" alt="thumb" />
-                        ) : (
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                        )}
-                      </div>
-
-                      {/* File Info & Progress */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-center mb-1">
-                          <p className="text-sm font-medium truncate pr-2 dark:text-slate-200">{img.name}</p>
-                          <button onClick={() => removeImage(img.id)} className="text-gray-400 hover:text-red-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
-                          </button>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] text-gray-400 tabular-nums">{img.size}</span>
-                          {/* Progress Bar Container */}
-                          <div className="flex-1 h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-black dark:bg-white transition-all duration-300 ease-out" 
-                              style={{ width: `${img.progress}%` }}
-                            />
-                          </div>
-                        </div>
+            {/* Image Progress List */}
+            <div className="space-y-3">
+              {images.map((img) => (
+                <div key={img.id} className={`p-3 rounded-xl border flex items-center gap-3 ${cardBg} animate-in fade-in slide-in-from-right-4`}>
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-900 overflow-hidden flex-shrink-0">
+                    {img.url ? <img src={img.url} className="w-full h-full object-cover" alt="preview" /> : <div className="w-full h-full bg-slate-200 dark:bg-slate-700 animate-pulse" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center mb-1">
+                      <p className="text-xs font-bold truncate pr-4">{img.name}</p>
+                      <button onClick={() => removeImage(img.id)} className="text-gray-400 hover:text-red-500"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg></button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-gray-500">{img.size}</span>
+                      <div className={`flex-1 h-1 rounded-full overflow-hidden ${isDark ? 'bg-slate-900' : 'bg-gray-100'}`}>
+                        <div className={`h-full transition-all duration-300 ${isDark ? 'bg-blue-500' : 'bg-black'}`} style={{ width: `${img.progress}%` }} />
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
 
-             {/* Tags Box */}
-            <div>
-              <label className={labelStyle}>Tags</label>
-              <input placeholder="Add tags (press Enter or comma)" className={`${inputBase} h-11`} />
+            {/* Tags Input */}
+            <div className={`p-6 rounded-lg border ${cardBg}`}>
+              <label className={labelStyle}>Product Tags</label>
+              <input placeholder="Add tags..." className={`${inputBase} h-11`} />
             </div>
           </div>
           
         </div>
-        {/* Bottom Footer (Static) */}
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-between items-center bg-white dark:bg-slate-900 dark:border-slate-800">
-           <div className="w-48">
-              <select className={inputBase}>
-                 <option>Select Status</option>
-              </select>
+
+        {/* Static Footer */}
+        <div className={`px-6 py-4 border-t flex justify-between items-center ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+           <div className="hidden sm:block w-48">
+              <select className={inputBase}><option>Draft</option><option>Active</option></select>
            </div>
-           <div className="flex gap-3">
-              <button onClick={onClose} className="px-6 py-2 border rounded-md font-bold text-sm hover:bg-gray-50 dark:border-slate-700">Cancel</button>
-              <button className="px-6 py-2 bg-black text-white rounded-md font-bold text-sm dark:bg-white dark:text-black">Create</button>
+           <div className="flex gap-3 w-full sm:w-auto">
+              <button onClick={onClose} className={`flex-1 sm:flex-none px-8 py-2 border rounded-md font-bold text-sm ${isDark ? 'border-slate-700 hover:bg-slate-800' : 'hover:bg-gray-50'}`}>Cancel</button>
+              <button className={`flex-1 sm:flex-none px-8 py-2 rounded-md font-bold text-sm ${isDark ? 'bg-white text-black hover:bg-slate-200' : 'bg-black text-white hover:bg-zinc-800'}`}>Create Product</button>
            </div>
         </div>
       </div>

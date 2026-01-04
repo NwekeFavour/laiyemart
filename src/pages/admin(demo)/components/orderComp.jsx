@@ -68,14 +68,14 @@ const itemsPerPage = 5;
     <div className={`p-2 md:p-6 min-h-screen ${isDark ? "bg-slate-950 text-slate-200" : " text-gray-900"}`}>
       
       {/* Header Section */}
-      <div className="md:flex justify-between items-start mb-8">
+      <div className="flex flex-wrap items-center  justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold">Order List</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {filteredOrders.length} orders found. <span className={`${isDark ? "text-slate-200" : "text-gray-900"} font-medium`}>62 orders need your attention.</span>
           </p>
         </div>
-        <div className="md:flex md:mt-0 mt-3 gap-3">
+        <div className="md:flex lg:mt-0 mt-3 gap-3">
           <button className={`${inputBase} px-3 py-1.5 flex items-center gap-2 font-medium`}>
             <Calendar size={16} className="opacity-60" />
             <span>Dec 05 - Jan 04, 2026</span>

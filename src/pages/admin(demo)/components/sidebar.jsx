@@ -39,9 +39,11 @@ const SimpleMenuItem = ({ icon: Icon, label, collapsed, isDark, onClick }) => (
   </button>
 );
 
-export default function Sidebar({ isDark, collapsed: parentCollapsed, setCollapsed, mobileOpen, setMobileOpen, onSelect }) {
+export default function Sidebar({ isDark, collapsed: parentCollapsed, setCollapsed, mobileOpen, setMobileOpen, onSelect, demo, setDemo }) {
   const [collapsed, setCollapsedState] = useState(false);
 
+  // Toggle demo mode
+  const handleDemoToggle = () => setDemo(!demo);
   useEffect(() => {
     setCollapsedState(parentCollapsed);
   }, [parentCollapsed]);
@@ -55,18 +57,19 @@ export default function Sidebar({ isDark, collapsed: parentCollapsed, setCollaps
         if (!mobileOpen) setCollapsedState(true);
       }}
       className={`
-        h-screen flex flex-col transition-all duration-300
+        relative  
+        h-screen flex flex-col z-24 transition-all duration-300
         ${collapsed ? "w-20" : "w-64"} 
         ${isDark ? "bg-slate-900 border-slate-700" : "bg-white border-r border-gray-300"}
         ${mobileOpen ? "absolute z-30 left-0 top-0 w-64" : "hidden lg:flex"}
       `}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4">
+      <div className="flex items-center justify-between z-0 px-4 py-4">
         {!collapsed && (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-md bg-red-500" />
-            <span className={`font-bold text text-[13px] ${isDark ? "text-slate-200" : "text-gray-900"}`}>LAIYEMART</span>
+            <span className={`font-bold text text-[13px] ${isDark ? "text-slate-200" : "text-gray-900"}`}>LAYEMART</span>
           </div>
         )}
 
@@ -81,6 +84,18 @@ export default function Sidebar({ isDark, collapsed: parentCollapsed, setCollaps
               className={`transition-transform ${collapsed ? "rotate-180" : ""} ${isDark ? "text-slate-200" : "text-gray-900"}`}
             />
           </button>
+
+                {/* Demo toggle button */}
+          <div className="absolute top-4   left-full ml-2">
+            <button
+              className="bg-slate-700 z-90!  cursor-pointer! text-white text-xs px-3 py-2 rounded-lg shadow-md hover:bg-slate-600 transition whitespace-nowrap"
+              onClick={() => {
+                handleDemoToggle();
+              }}
+            >
+              {demo ? 'Go Back to Store' : 'Store Front'}
+            </button>
+          </div>
 
           {/* Mobile close */}
           <button

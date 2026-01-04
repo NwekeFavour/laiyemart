@@ -56,55 +56,95 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
         }`}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center dark:border-slate-700">
+        <div className={`${isDark ? "border-slate-700": ""} px-6 py-4 border-b border-slate-100 flex justify-between items-center dark:border-slate-700`}>
           <h2 className="font-bold text-[16px]">Add Category</h2>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Image Upload Area */}
-          <div className={`aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center relative overflow-hidden ${isDark ? "border-slate-700 bg-slate-800/50" : "border-gray-200 bg-gray-50"}`}>
+        <div className="flex-1 overflow-y-auto  p-6 space-y-6">
+        {/* Image Upload Area */}
+        <div 
+            className={`aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center relative overflow-hidden transition-colors ${
+            isDark ? "border-slate-700 bg-slate-800/50" : "border-gray-200 bg-gray-50"
+            }`}
+        >
             {categoryImage ? (
-              <img src={categoryImage} className="w-full h-full object-cover" alt="Category" />
+            <img src={categoryImage} className="w-full h-full object-cover" alt="Category" />
             ) : (
-              <div className="text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-gray-400 mx-auto mb-2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-              </div>
+            <div className="text-center">
+                <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="40" 
+                height="40" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="1" 
+                className={isDark ? "text-slate-600" : "text-gray-400"}
+                >
+                <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                </svg>
+            </div>
             )}
-            <button className="absolute bottom-4 right-4 bg-white dark:bg-slate-700 text-xs font-bold px-4 py-1.5 border dark:border-slate-600 rounded-md shadow-sm">
-              Upload
+            <button className={`absolute bottom-4 right-4 text-xs font-bold px-4 py-1.5 border rounded-md shadow-sm transition-colors ${
+            isDark 
+                ? "bg-slate-700 text-slate-200 border-slate-600 hover:bg-slate-600" 
+                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+            }`}>
+            Upload
             </button>
-          </div>
+        </div>
 
-          {/* Category Name */}
-          <div>
+        {/* Category Name */}
+        <div>
             <label className={labelStyle}>Category Name</label>
-            <input placeholder="Category Name" className={inputBase} />
-          </div>
+            <input 
+            placeholder="e.g. Running Shoes" 
+            className={inputBase} 
+            />
+        </div>
 
-          {/* Status Select (Joy UI) */}
-          <div>
+        {/* Status Select (Joy UI with Dark Mode SX) */}
+        <div>
             <label className={labelStyle}>Status</label>
             <Select 
-                placeholder="Select Status" 
-                indicator={<KeyboardArrowDown />}
-                sx={{ width: '100%', height: '40px' }}
+            placeholder="Select Status" 
+            indicator={<KeyboardArrowDown className={isDark ? "text-slate-400" : "text-gray-500"} />}
+            sx={{ 
+                width: '100%', 
+                height: '40px',
+                // Dynamic Dark Mode Styles
+                backgroundColor: isDark ? '#1e293b' : '#fff', 
+                color: isDark ? '#cbd5e1' : '#1f2937',
+                borderColor: isDark ? '#334155' : '#d1d5db',
+                '&:hover': {
+                backgroundColor: isDark ? '#334155' : '#f9fafb',
+                borderColor: isDark ? '#475569' : '#9ca3af',
+                },
+                '& .MuiSelect-listbox': {
+                backgroundColor: isDark ? '#1e293b' : '#fff',
+                color: isDark ? '#cbd5e1' : '#1f2937',
+                }
+            }}
             >
-              <Option value="active">Active</Option>
-              <Option value="inactive">Inactive</Option>
+            <Option value="active" sx={isDark ? { '&:hover': { bgcolor: '#334155' } } : {}}>Active</Option>
+            <Option value="inactive" sx={isDark ? { '&:hover': { bgcolor: '#334155' } } : {}}>Inactive</Option>
             </Select>
-          </div>
+        </div>
 
-          {/* Description */}
-          <div>
+        {/* Description */}
+        <div>
             <label className={labelStyle}>Description</label>
-            <textarea rows={4} className={inputBase} />
-          </div>
+            <textarea 
+            rows={4} 
+            placeholder="Describe this category..."
+            className={`${inputBase} resize-none`} 
+            />
+        </div>
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-slate-100 flex justify-end gap-3 dark:border-slate-700">
-          <button onClick={onClose} className="px-6 py-2 text-sm font-bold hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md transition-colors">Close</button>
+        <div className="p-6  border-slate-100 flex justify-end gap-3 dark:border-slate-700">
+          <button onClick={onClose} className={` ${isDark ? "hover:bg-slate-700" : ""} px-6 py-2 text-sm font-bold hover:bg-slate-200 rounded-md transition-colors`}>Close</button>
           <button className="px-6 py-2 bg-black text-white dark:bg-white dark:text-black rounded-md font-bold text-sm shadow-lg hover:opacity-90 transition-opacity">Create</button>
         </div>
       </div>
@@ -199,7 +239,7 @@ export default function CategoriesTable({ isDark = false }) {
 
         <div className={`rounded-xl border ${isDark ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'} overflow-hidden`}>
             
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto hide-scrollbar">
                 <div className="p-4 flex flex-col sm:flex-row justify-between gap-4">
                     <div className="flex gap-2">
                         <div className="relative flex items-center">

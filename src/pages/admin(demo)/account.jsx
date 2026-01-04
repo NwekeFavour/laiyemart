@@ -311,56 +311,88 @@
 //     </Box>
 //   );
 // }
-import React, { useState } from 'react';
-import DashboardLayout from './components/dashboardlayout';
-import SalesActivity from './components/sales';
-import RecentOrders from './components/order-table';
-import ProductsTable from './components/products';
-import Analytics from './components/analytics';
-import CategoriesTable from './components/categories';
-import OrderListComponent from './components/orderComp';
-import DemoHome from '../(demo)/home';
+import React, { useState } from "react";
+import DashboardLayout from "./components/dashboardlayout";
+import SalesActivity from "./components/sales";
+import RecentOrders from "./components/order-table";
+import ProductsTable from "./components/products";
+import Analytics from "./components/analytics";
+import CategoriesTable from "./components/categories";
+import OrderListComponent from "./components/orderComp";
+import DemoHome from "../(demo)/home";
+import CustomerList from "./components/customerList";
 
 export default function Account() {
-  const [activePage, setActivePage] = useState('dashboard'); 
-  const [demo, setDemo] = useState(false); // demo mode state
+  const [isDark, setIsDark] = useState(false);
+  const [activePage, setActivePage] = useState("dashboard");
+  const [demo, setDemo] = useState(false); // ✅ FIX: missing state
 
   return (
-    <div className="min-h-screen bg-gray-100">
-
-      {/* Demo overlay: outside DashboardLayout */}
+    <div className="min-h-screen ">
+      {/* Demo overlay */}
       {demo && (
-        <div className="md:m-10 m-3 shadow-lg">
+        <div className=" my-2 shadow-lg" >
+          <div className="flex items-center gap-2 mb-2 ms-3" >
+            <div className="w-8 h-8 rounded-md bg-red-500" />
+            <span className={`font-bold text text-[13px] ${isDark ? "text-slate-200" : "text-gray-900"}`}>LAYEMART</span>
+          </div>
           <DemoHome />
         </div>
       )}
 
-      {/* Normal dashboard layout */}
+      {/* Normal dashboard */}
       {!demo && (
-        <DashboardLayout 
-          activePage={activePage} 
-          setActivePage={setActivePage} 
-          demo={demo} 
-          setDemo={setDemo}   // pass demo toggler to Topbar
+        <DashboardLayout
+          demo={demo}
+          setDemo={setDemo}
+          activePage={activePage}
+          setActivePage={setActivePage}
         >
-          {activePage === 'products' && <ProductsTable />}
-          {activePage === 'dashboard' && <Analy />}
-          {activePage === 'categories' && <CategoriesTable />}
-          {activePage === 'orders' && <OrderListComponent />}
+          {activePage === "dashboard" && <DashboardAnalytics isDark={isDark} />}
+          {activePage === "products" && <ProductsTable isDark={isDark} />}
+          {activePage === "categories" && <CategoriesTable isDark={isDark} />}
+          {activePage === "orders" && <OrderListComponent isDark={isDark} />}
+          {activePage === "customers" && <CustomerList isDark={isDark} /> }
         </DashboardLayout>
       )}
 
-   
+
+      {demo  && (
+        <div>
+          <div className="fixed bottom-3 left-2  z-20 lg:block hidden">
+            <button
+              onClick={() => setDemo(false)}
+              className="bg-slate-700 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-slate-600"
+            >
+              {demo ? 'Go Back to Dashboard' : 'Store Front'}
+            </button>
+          </div>
+          <div className="fixed bottom-3 left-2  z-20 lg:hidden! block!">
+            <button
+              onClick={() => setDemo(false)}
+              className="bg-slate-700 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-slate-600"
+            >
+              {demo ? 'Dashboard' : 'Store Front'}
+            </button>
+          </div>
+        </div>
+
+    )}
     </div>
   );
 }
 
-function Analy() {
+/* ✅ Renamed for clarity */
+function DashboardAnalytics({ isDark }) {
   return (
-    <div className="p-4 mb-6 rounded-lg bg-white text-gray-900 dark:bg-slate-800 dark:text-slate-200">
-      <Analytics />
-      <SalesActivity />
-      <RecentOrders />
+    <div
+      className={`p-4 mb-6 rounded-lg ${
+        isDark ? "bg-slate-800 text-slate-200" : "bg-white text-gray-900"
+      }`}
+    >
+      <Analytics isDark={isDark} />
+      <SalesActivity isDark={isDark} />
+      <RecentOrders isDark={isDark} />
     </div>
   );
 }

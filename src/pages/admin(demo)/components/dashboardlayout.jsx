@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Sidebar from "./sidebar";
 import Topbar from "./topbar";
 import MobileSidebar from "./mobilesiderbar";
@@ -11,8 +11,15 @@ export default function DashboardLayout({ children, activePage, setActivePage, d
   const [mobileOpen, setMobileOpen] = useState(false); // mobile toggle
 
   const [isDark, setIsDark] = useState(false); // Dark mode state
-  const toggleDarkMode = () => setIsDark(prev => !prev);
+  const toggleDarkMode = () => setIsDark(prev => !prev, localStorage.removeItem("theme"));
 
+  useEffect(() => {
+    if(localStorage.getItem("theme") === "dark"){
+      setIsDark(true);
+    } else {
+      setIsDark(false);
+    }
+  }, [isDark]);
   return (
     <div className={`flex h-screen ${isDark ? "bg-slate-950 text-slate-100" : "bg-white text-gray-900"}`}>
       
@@ -26,6 +33,8 @@ export default function DashboardLayout({ children, activePage, setActivePage, d
           setActivePage(page);
           setMobileOpen(false);
         }}
+        demo={demo}
+        setDemo={setDemo}
       />
 
       {/* Mobile Sidebar */}

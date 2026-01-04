@@ -53,7 +53,7 @@ export default function MobileSidebar({ isDark, mobileOpen, setMobileOpen, activ
   return (
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setMobileOpen(false)} />
+      <div className="fixed inset-0 bg-black/50 z-1" onClick={() => setMobileOpen(false)} />
 
       {/* Sidebar drawer */}
       <aside
