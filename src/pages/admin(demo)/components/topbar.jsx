@@ -36,14 +36,6 @@ export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOp
 
       </div>
 
-       {goBack && (
-          <button
-            onClick={goBack}
-            className="px-2 py-1 text-sm rounded bg-gray-200 dark:bg-slate-700 dark:text-white hover:bg-gray-300 dark:hover:bg-slate-600 transition"
-          >
-            Go Back
-          </button>
-        )}
 
       {/* Right Section */}
       <div className="flex items-center gap-2 sm:gap-3">
