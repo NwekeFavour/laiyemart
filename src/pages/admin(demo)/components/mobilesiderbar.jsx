@@ -43,8 +43,6 @@ const SimpleMenuItem = ({ icon: Icon, label, isDark, onClick, active }) => (
 );
 
 export default function MobileSidebar({ isDark, mobileOpen, setMobileOpen, activePage, setActivePage }) {
-  if (!mobileOpen) return null;
-
   const handleSelect = (page) => {
     setActivePage(page);      // update parent activePage
     setMobileOpen(false);     // close drawer
@@ -53,12 +51,17 @@ export default function MobileSidebar({ isDark, mobileOpen, setMobileOpen, activ
   return (
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 bg-black/50 z-1" onClick={() => setMobileOpen(false)} />
-
+      <div 
+        className={`fixed inset-0 bg-black/50 z-1 transition-opacity duration-300 ease-in-out
+          ${mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`} 
+        onClick={() => setMobileOpen(false)} 
+      />
       {/* Sidebar drawer */}
       <aside
-        className={`fixed top-0 left-0 h-screen w-64 z-50 flex flex-col
-          ${isDark ? "bg-slate-900 text-slate-100" : "bg-white text-gray-900"} shadow-lg`}
+        className={`fixed top-0 left-0 h-screen w-64 z-50 flex flex-col shadow-xl
+          ${isDark ? "bg-slate-900 text-slate-100" : "bg-white text-gray-900"} 
+          transition-transform duration-300 ease-in-out transform
+          ${mobileOpen ? "translate-x-0" : "-translate-x-full "}`}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-slate-700">

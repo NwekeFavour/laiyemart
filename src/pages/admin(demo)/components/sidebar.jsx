@@ -66,6 +66,9 @@ export default function Sidebar({ isDark, collapsed: parentCollapsed, setCollaps
     >
       {/* Header */}
       <div className="flex items-center justify-between z-0 px-4 py-4">
+        {collapsed && (
+          <div className="w-10! h-8 rounded-md bg-red-500" />
+        )}
         {!collapsed && (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-md bg-red-500" />

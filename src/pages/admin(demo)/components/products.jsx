@@ -469,8 +469,6 @@ export default function ProductsTable({ isDark }) {
 
   return (
     <div>
-      {/* Header Section... (Omitted for brevity, keep your existing header) */}
-
       <div className="flex mb-4 items-center flex-wrap dap-2.5 justify-between">
 
         <div className="flex flex-col gap-1">
