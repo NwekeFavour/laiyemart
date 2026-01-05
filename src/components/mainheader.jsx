@@ -177,6 +177,8 @@ export default function SaaSHeader() {
             ))}
 
             <Button
+              className="bg-slate-900/90!"
+
               variant="solid"
               color="primary"
               startDecorator={<Rocket size={16} />}

@@ -14,9 +14,9 @@ export default function Hero({onCreateStore}) {
       {/* Content Layer (Ensure it stays on top with relative z-10) */}
       <div className="hero-content relative z-10">
         <Header />
-        <div className='flex items-center justify-center md:pt-16 pt-28 lg:pt-40 md:mx-10'>
+        <div className='flex items-center justify-center md:pt-30 pt-28 lg:pt-40 md:mx-10'>
           <div className="max-w-7xl px-4">
-            <h1 className="m-0 text-center font-bold lg:text-[36px] md:text-[48px] sm:text-[32px] text text-[17px] text-slate-900 leading-tight">
+            <h1 className="m-0 text-center font-bold lg:text-[36px] md:text-[24px] sm:text-[20px] text text-[17px] text-slate-900 leading-tight">
               Build ecommerce stores <br className="hidden md:block"/> 
               that <span className="text-slate-600 lg:text-[36px] text">sell</span>, without the hassle.
             </h1>
