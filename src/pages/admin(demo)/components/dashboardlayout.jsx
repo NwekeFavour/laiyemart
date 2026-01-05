@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Sidebar from "./sidebar";
 import Topbar from "./topbar";
 import MobileSidebar from "./mobilesiderbar";
+import PurchaseButton from "./purchaseButton";
 
 export default function DashboardLayout({ children, activePage, setActivePage, demo, setDemo }) {
   const contentRef = useRef(null);
@@ -41,9 +42,13 @@ export default function DashboardLayout({ children, activePage, setActivePage, d
       <MobileSidebar
         isDark={isDark}
         mobileOpen={mobileOpen}
+        collapsed={collapsed}
         setMobileOpen={setMobileOpen}
         activePage={activePage}
         setActivePage={setActivePage}
+        setCollapsed={setCollapsed}
+        demo={demo}
+        setDemo={setDemo}
       />
 
       {/* Main area */}
@@ -56,6 +61,9 @@ export default function DashboardLayout({ children, activePage, setActivePage, d
           demo={demo}           
           setDemo={setDemo}    
         />
+
+        {/* <PurchaseButton isDark={isDark} onClick={() => console.log("Purchase clicked")} /> */}
+
 
         {/* Scrollable Content */}
         <main ref={contentRef} className="flex-1 hide-scrollbar overflow-y-auto p-5 md:p-6">

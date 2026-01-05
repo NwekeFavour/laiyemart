@@ -6,7 +6,7 @@ import {
   Drawer,
   Sheet,
 } from "@mui/joy";
-import { Menu, X, Moon, Zap, LayoutGrid, Rocket } from "lucide-react";
+import { Menu, X, Moon, Zap, LayoutGrid, Rocket, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -25,10 +25,7 @@ const navItems = [
     label: "Pricing",
     href: "#pricing",
   },
-  {
-    label: "Docs",
-    href: "#docs",
-  },
+
 ];
 
 export default function SaaSHeader() {
@@ -154,41 +151,125 @@ export default function SaaSHeader() {
       </Sheet>
 
       {/* Mobile Navigation */}
-      <Drawer open={open} onClose={() => setOpen(false)}>
-        <Sheet sx={{ p: 3, height: "100%" }}>
-          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <IconButton onClick={() => setOpen(false)}>
-              <X size={20} />
-            </IconButton>
+<Drawer 
+      open={open} 
+      onClose={() => setOpen(false)}
+      slotProps={{
+        backdrop: {
+          sx: { backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.2)' }
+        }
+      }}
+    >
+      <Sheet 
+        sx={{ 
+          p: 0, 
+          height: "100%", 
+          width: 280,
+          display: 'flex',
+          flexDirection: 'column',
+          bgcolor: 'white'
+        }}
+      >
+        {/* Header Section */}
+        <Box sx={{ 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "space-between", 
+          px: 3, 
+          py: 2.5,
+          borderBottom: '1px solid',
+          borderColor: 'gray.100'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <div className="w-8 h-8 rounded-md bg-red-500" />
+            <Typography className="text" sx={{ fontWeight: 800, fontSize: '14px', letterSpacing: '0.02em', color: '#0f172a' }}>
+              LAIYEMART
+            </Typography>
           </Box>
+          <IconButton 
+            variant="plain" 
+            color="neutral"
+            onClick={() => setOpen(false)}
+            sx={{ borderRadius: '50%' }}
+          >
+            <X size={20} />
+          </IconButton>
+        </Box>
 
-          <Box sx={{ mt: 4, display: "flex", flexDirection: "column", gap: 2 }}>
-            {navItems.map((item) => (
-              <Button
-                key={item.label}
-                variant="plain"
-                component={Link}
-                to={item.href}
-                onClick={() => setOpen(false)}
-                sx={{ justifyContent: "flex-start" }}
-              >
-                {item.label}
-              </Button>
-            ))}
-
+        {/* Navigation Section */}
+        <Box sx={{ flex: 1, px: 2, mt: 3, display: "flex", flexDirection: "column", gap: 0.5 }}>
+          <Typography sx={{ px: 1.5, mb: 1, fontWeight: 700, color: 'neutral.400', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            Main Menu
+          </Typography>
+          
+          {navItems.map((item) => (
             <Button
-              className="bg-slate-900/90!"
-
-              variant="solid"
-              color="primary"
-              startDecorator={<Rocket size={16} />}
-              sx={{ mt: 2 }}
+              key={item.label}
+              variant="plain"
+              component={Link}
+              to={item.href}
+              onClick={() => setOpen(false)}
+              startDecorator={item.icon}
+              sx={{ 
+                justifyContent: "flex-start",
+                fontWeight: 600,
+                fontSize: '14px',
+                py: 1.2,
+                borderRadius: 'xl',
+                color: '#475569', // slate-600
+                '&:hover': {
+                  bgcolor: 'neutral.softBg',
+                  color: '#0f172a', // slate-900
+                },
+                '& .MuiButton-startDecorator': { color: 'neutral.400' }
+              }}
             >
-              Launch Store
+              {item.label}
             </Button>
+          ))}
+        </Box>
+
+        {/* Footer Section */}
+        <Box sx={{ p: 2.5, borderTop: '1px solid', borderColor: 'gray.100' }}>
+          {/* Upgrade Card */}
+          <Box sx={{ 
+            p: 2, 
+            mb: 2, 
+            borderRadius: 'xl', 
+            bgcolor: '#f8fafc', // slate-50
+            border: '1px solid',
+            borderColor: '#f1f5f9',
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 2 
+          }}>
+            <Box sx={{ p: 1, borderRadius: 'lg', bgcolor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', color: '#3b82f6' }}>
+              <Sparkles size={18} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 700, fontSize: '13px', color: '#1e293b' }}>Growth Plan</Typography>
+              <Typography sx={{ fontSize: '11px', color: '#64748b' }}>Manage unlimited stores</Typography>
+            </Box>
           </Box>
-        </Sheet>
-      </Drawer>
+
+          <Button
+            fullWidth
+            size="lg"
+            variant="solid"
+            startDecorator={<Rocket size={18} />}
+            sx={{ 
+              py: 1.5,
+              borderRadius: 'xl',
+              bgcolor: '#0f172a', // slate-900
+              fontWeight: 600,
+              '&:hover': { bgcolor: '#1e293b' }
+            }}
+          >
+            Launch Store
+          </Button>
+        </Box>
+      </Sheet>
+    </Drawer>
     </>
   );
 }

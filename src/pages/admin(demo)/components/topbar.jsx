@@ -20,7 +20,7 @@ export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOp
       ${isDark ? "bg-slate-950 border-slate-700" : "bg-white border-gray-200"} border-b`}>
       
       {/* Hamburger for mobile */}
-      <button className="lg:hidden mr-2 p-1 rounded hover:bg-gray-200" onClick={() => setSidebarOpen(prev => !prev)}>
+      <button className="lg:hidden mr-2 p-1 rounded hover:bg-gray-200" onClick={() => setSidebarOpen(true)}>
         <svg className="w-6 h-6" fill="none" stroke={isDark ? "white" : "black"} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
@@ -54,79 +54,87 @@ export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOp
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           PaperProps={{
-            className:
-              "mt-2 w-[360px] rounded-xl shadow-2xl border border-gray-100 overflow-hidden bg-white",
+            className: `mt-2 w-[360px] rounded-xl shadow-2xl border overflow-hidden transition-colors duration-200
+              ${isDark 
+                ? "bg-slate-900 border-slate-700 shadow-black/50" 
+                : "bg-white border-gray-100 shadow-2xl"
+              }`,
           }}
         >
           {/* Header */}
-          <div className="px-4 py-3 flex items-center justify-between border-b border-slate-200">
-            <h2 className="text-sm font-bold text-gray-900">Notifications</h2>
+          <div className={`px-4 py-3 flex items-center justify-between border-b 
+            ${isDark ? " bg-slate-950" : "border-slate-200"}`}>
+            <h2 className={`text-sm font-bold ${isDark ? "text-slate-100" : "text-gray-900"}`}>
+              Notifications
+            </h2>
             <X
               size={16}
-              className="text-gray-400 cursor-pointer hover:text-gray-600"
+              className={`cursor-pointer transition-colors 
+                ${isDark ? "text-slate-500 hover:text-slate-300" : "text-gray-400 hover:text-gray-600"}`}
               onClick={handleClose}
             />
           </div>
 
           {/* Filters */}
-          <div className="flex px-3 border-b border-slate-100 text-xs font-medium">
-            <button className="px-3 py-2 border-b-2 border-blue-500 text-blue-600">
+          <div className={`flex px-3 border-b text-xs font-medium 
+            ${isDark ? "border-slate-800 bg-slate-950" : "border-slate-100"}`}>
+            <button className={`px-3 py-2 border-b-2 transition-colors
+              ${isDark ? "border-blue-500 text-blue-400" : "border-blue-500 text-blue-600"}`}>
               All
             </button>
-            <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
+            <button className={`px-3 py-2 transition-colors
+              ${isDark ? "text-slate-400 hover:text-slate-200" : "text-gray-500 hover:text-gray-700"}`}>
               Mentions
             </button>
-            <button className="px-3 py-2 text-gray-500 hover:text-gray-700">
+            <button className={`px-3 py-2 transition-colors
+              ${isDark ? "text-slate-400 hover:text-slate-200" : "text-gray-500 hover:text-gray-700"}`}>
               Team
             </button>
-            <button className="ml-auto px-2 text-gray-400 hover:text-gray-600">
+            <button className={`ml-auto px-2 transition-colors
+              ${isDark ? "text-slate-500 hover:text-slate-300" : "text-gray-400 hover:text-gray-600"}`}>
               <Settings size={14} />
             </button>
           </div>
 
           {/* Notification List */}
-          <div className="max-h-105 overflow-y-auto divide-y">
+          <div className={`max-h-105 overflow-y-auto divide-y ${isDark ? "divide-slate-800 border-b border-slate-800 bg-slate-950" : "divide-gray-100"}`}>
             {/* Notification Item */}
-            <div className="px-4 border-b border-slate-100 py-3 flex gap-3 hover:bg-gray-50 cursor-pointer">
+            <div className={`px-4 py-3 flex gap-3 cursor-pointer transition-colors
+              ${isDark ? "hover:bg-slate-800/50" : "hover:bg-gray-50"}`}>
               <div className="relative">
-                <Avatar sx={{ width: 34, height: 34, fontSize: 12 }}>JL</Avatar>
-                <span className="absolute bottom-0 right-0 w-2 h-2 bg-blue-500 rounded-full border border-white" />
+                <Avatar sx={{ 
+                  width: 34, 
+                  height: 34, 
+                  fontSize: 12,
+                  bgcolor: isDark ? '#334155' : '#e2e8f0', // slate-700 or slate-200
+                  color: isDark ? '#f1f5f9' : '#475569' 
+                }}>JL</Avatar>
+                <span className={`absolute bottom-0 right-0 w-2 h-2 bg-blue-500 rounded-full border 
+                  ${isDark ? "border-slate-900" : "border-white"}`} />
               </div>
 
               <div className="flex-1">
-                <p className="text-[13px] text-gray-700 leading-snug">
-                  <span className="font-semibold text-gray-900">Joe Lincoln</span>{" "}
+                <p className={`text-[13px] leading-snug ${isDark ? "text-slate-300" : "text-gray-700"}`}>
+                  <span className={`font-semibold ${isDark ? "text-slate-100" : "text-gray-900"}`}>Joe Lincoln</span>{" "}
                   mentioned you in{" "}
-                  <span className="text-blue-600">Latest Trends</span>
+                  <span className="text-blue-500 font-medium">Latest Trends</span>
                 </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">
+                <p className={`text-[11px] mt-0.5 ${isDark ? "text-slate-500" : "text-gray-400"}`}>
                   18 minutes ago
-                </p>
-              </div>
-            </div>
-
-            {/* Another Notification */}
-            <div className="px-4 py-3 flex gap-3 hover:bg-gray-50 cursor-pointer border-b border-slate-100">
-              <Avatar sx={{ width: 34, height: 34, fontSize: 12 }}>GH</Avatar>
-              <div className="flex-1">
-                <p className="text-[13px] text-gray-700 leading-snug">
-                  <span className="font-semibold text-gray-900">Guy Hawkins</span>{" "}
-                  requested access to{" "}
-                  <span className="text-blue-600">AirSpace</span>
-                </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">
-                  14 hours ago
                 </p>
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="px-4 py-3 flex justify-between text-xs font-medium">
-            <button className="text-gray-500 hover:text-gray-700">
+          <div className={`px-4 py-3 border-slate-200 border-t  flex justify-between text-xs font-medium 
+            ${isDark ? "bg-slate-950 border-none" : "bg-white"}`}>
+            <button className={`transition-colors 
+              ${isDark ? "text-slate-400 hover:text-slate-200" : "text-gray-500 hover:text-gray-700"}`}>
               Mark all as read
             </button>
-            <button className="text-blue-600 hover:text-blue-700">
+            <button className={`transition-colors 
+              ${isDark ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-700"}`}>
               View all
             </button>
           </div>

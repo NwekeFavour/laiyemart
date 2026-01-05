@@ -58,17 +58,13 @@ export default function Sidebar({ isDark, collapsed: parentCollapsed, setCollaps
       }}
       className={`
         relative  
-        h-screen flex flex-col z-24 transition-all duration-300
+        h-screen lg:block hidden flex-col z-24 transition-all duration-300
         ${collapsed ? "w-20" : "w-64"} 
         ${isDark ? "bg-slate-900 border-slate-700" : "bg-white border-r border-gray-300"}
-        ${mobileOpen ? "absolute z-30 left-0 top-0 w-64" : "hidden lg:flex"}
       `}
     >
       {/* Header */}
       <div className="flex items-center justify-between z-0 px-4 py-4">
-        {collapsed && (
-          <div className="w-10! h-8 rounded-md bg-red-500" />
-        )}
         {!collapsed && (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-md bg-red-500" />
@@ -96,7 +92,7 @@ export default function Sidebar({ isDark, collapsed: parentCollapsed, setCollaps
                 handleDemoToggle();
               }}
             >
-              {demo ? 'Go Back to Store' : 'Store Front'}
+              {demo ? 'Go Back to Store' : 'Online Store'}
             </button>
           </div>
 

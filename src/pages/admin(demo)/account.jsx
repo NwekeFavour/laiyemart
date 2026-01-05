@@ -321,6 +321,7 @@ import CategoriesTable from "./components/categories";
 import OrderListComponent from "./components/orderComp";
 import DemoHome from "../(demo)/home";
 import CustomerList from "./components/customerList";
+import { ArrowLeftFromLine } from "lucide-react";
 
 export default function Account() {
   const [isDark, setIsDark] = useState(false);
@@ -333,8 +334,13 @@ export default function Account() {
       {demo && (
         <div className=" my-2 shadow-lg" >
           <div className="flex items-center gap-2 mb-2 ms-3" >
+                        <button
+              onClick={() => setDemo(false)}
+            >
+              {demo && <ArrowLeftFromLine size={20} className="inline-block me-2" />}
+            </button>
             <div className="w-8 h-8 rounded-md bg-red-500" />
-            <span className={`font-bold text text-[13px] ${isDark ? "text-slate-200" : "text-gray-900"}`}>LAYEMART</span>
+            <span className={`font-bold text text-[13px] ${isDark ? "text-slate-200" : "text-gray-900"}`}>LAYEMART ONLINE STORE</span>
           </div>
           <DemoHome />
         </div>
