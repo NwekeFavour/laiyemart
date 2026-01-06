@@ -638,7 +638,7 @@ function Home(props) {
                         {/* Left Column - Contact Info */}
                             <div className="space-y-8">
                                 <div>
-                                <h3 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
+                                    <h3 className="text-gray-800 text-3xl">
                                     Let's Start a Conversation
                                 </h3>
                                 <p className="text-muted-foreground mb-8">
