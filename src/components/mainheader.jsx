@@ -35,7 +35,7 @@ export default function SaaSHeader() {
     <>
       {/* Header */}
       <Sheet
-        className="bg-transparent!"
+        className="bg-slate-100/40!"
         variant="plain"
         sx={{
           position: "fixed",
@@ -104,7 +104,8 @@ export default function SaaSHeader() {
                 sx={{
                   fontSize: 14,
                   fontWeight: 500,
-                  color: "neutral.700",
+                  color: "neutral.900",
+                  backgroundColor: "transparent",
                   position: "relative",
                   "&:hover": { color: "primary.600" },
                   "&::after": {
