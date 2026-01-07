@@ -95,7 +95,7 @@ export default function SuperAdminLayout({ children }) {
         </Sheet>
 
         {/* Dynamic Page Content */}
-        <Box sx={{ p: { xs: 2, md: 4 } }}>
+        <Box sx={{ p: { xs: 1 } }}>
           {children}
         </Box>
       </Box>

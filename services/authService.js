@@ -26,6 +26,27 @@ export const loginStoreOwner = async (email, password) => {
   return data;
 };
 
+export const registerStoreOwner = async ({
+  email,
+  password,
+  storeName,
+  subdomain,
+}) => {
+  const res = await fetch(`${VITE_BACKEND_URL}/api/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, storeName, subdomain }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Registration failed");
+  }
+
+  return data;
+};
+
 
 export const fetchMe = async () => {
   const { token } = useAuthStore.getState();

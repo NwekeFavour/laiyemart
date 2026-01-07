@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Input, Checkbox, Typography, Divider, Box, Sheet, IconButton } from '@mui/joy';
 import { Mail, Lock, Eye, EyeOff, Chrome, Github, MailCheck } from 'lucide-react';
 import { Google } from '@mui/icons-material';
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from '../../store/useAuthStore';
 import { loginStoreOwner } from '../../../services/authService';
 export default function LoginPage() {
@@ -66,24 +66,15 @@ export default function LoginPage() {
             </Box>
 
             {/* Social Login */}
-            <Box sx={{ display: 'block', gap: 2, mt: 1 }}>
-            <Button 
-                variant="outlined" 
-                color="neutral" 
-                fullWidth 
-                startDecorator={<Google size={18} />}
-                sx={{ borderRadius: '12px', fontWeight: 600 }}
-            >
-                Sign In With Google
-            </Button>
+            <Box sx={{ display: 'block', gap: 2}}>
             <Button 
                 variant="outlined" 
                 color="neutral" 
                 fullWidth 
                 startDecorator={<MailCheck size={18} />}
-                sx={{ borderRadius: '12px', marginTop: 1, fontWeight: 600 }}
+                sx={{ borderRadius: '12px', fontWeight: 600 }}
             >
-                Sign In With Email Only
+                Continue with Email
             </Button>
             </Box>
 
@@ -104,13 +95,27 @@ export default function LoginPage() {
                 e.preventDefault();
                 setLoading(true);
                 try {
-                await loginStoreOwner(email, password);
-                navigate("/dashboard")
-                setLoading(false);
+                    const data = await loginStoreOwner(email, password);
+                    console.log(data);
+                        if (data?.user.role === "SUPER_ADMIN") {
+                        navigate("/dashboard");
+                        } else if(data.user.role === "OWNER") {
+                        navigate("/dashboard/beta");
+                        } else {
+                        return null;
+                        }
+                    setLoading(false);
                 } catch (err) {
                     setLoading(false);
+                    if(err?.message === "Failed to fetch"){
+                        setError("Network error: Unable to reach the server.");
+                        return;
+                    }
                     setError(err?.message);
                     console.error(err.message);
+                    setTimeout(() => {
+                        setError(null);
+                    }, 3000);
                 }
             }}
             >            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
@@ -246,7 +251,9 @@ export default function LoginPage() {
                 '&:hover': { textDecoration: 'underline' } 
                 }}
             >
-                Create store
+                <Link to="/auth/sign-up"> 
+                    Create store
+                </Link>
             </Typography>
             </Typography>
         </Sheet>

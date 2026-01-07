@@ -1,9 +1,19 @@
 import React, { useState } from 'react';
 import { Mail, Lock, User, Store, ArrowRight, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { registerStoreOwner } from '../../../services/authService';
 
 export default function SignUpPage() {
-  const [showPassword, setShowPassword] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [fullName, setFullName] = useState("");
+    const [storeName, setStoreName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
 
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-[#f3f4ff] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Decorative Background Blobs */}
@@ -59,7 +69,40 @@ export default function SignUpPage() {
             </div>
             </div>
 
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form
+            className="space-y-4"
+            onSubmit={async (e) => {
+                e.preventDefault();
+                setLoading(true);
+
+                try {
+                await registerStoreOwner({
+                    email,
+                    password,
+                    storeName,
+                    subdomain: storeName.toLowerCase().replace(/\s+/g, "-"),
+                });
+
+                navigate("/auth/sign-in");
+                } catch (err) {
+                setError(
+                    err?.message === "Failed to fetch"
+                    ? "Network error: Unable to reach the server."
+                    : err.message
+                );
+
+                setTimeout(() => setError(null), 3000);
+                } finally {
+                setLoading(false);
+                }
+            }}
+            >
+                {error && (
+                <div className="bg-red-100 text-red-700 px-4 py-2 rounded-md text-sm mb-2">
+                    {error}
+                </div>
+                )}
+
             {/* Full Name */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-semibold text-slate-600 ml-0.5">Full Name</label>
@@ -67,6 +110,8 @@ export default function SignUpPage() {
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-500" size={18} />
                 <input 
                   type="text" 
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   placeholder="John Doe"
                   className="w-full py-3 pl-11 pr-4 border border-slate-200 rounded-xl outline-none focus:border-slate-500 focus:ring-4 focus:ring-slate-400/15 transition-all" 
                 />
@@ -75,15 +120,25 @@ export default function SignUpPage() {
 
             {/* Store Name */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[13px] font-semibold text-slate-600 ml-0.5">Store Name</label>
-              <div className="relative group">
+            <label className="text-[13px] font-semibold text-slate-600 ml-0.5">Store Name</label>
+            <div className="relative group">
                 <Store className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-500" size={18} />
                 <input 
-                  type="text" 
-                  placeholder="My Amazing Store"
-                  className="w-full py-3 pl-11 pr-4 border border-slate-200 rounded-xl outline-none focus:border-slate-500 focus:ring-4 focus:ring-slate-400/15 transition-all" 
+                type="text" 
+                placeholder="My Amazing Store"
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
+                className="w-full py-3 pl-11 pr-4 border border-slate-200 rounded-xl outline-none focus:border-slate-500 focus:ring-4 focus:ring-slate-400/15 transition-all" 
                 />
-              </div>
+            </div>
+            
+            {/* Live Link Disclaimer */}
+            <p className="text-[11px] text-slate-400 mt-1 ml-1">
+                Your store will be live at: 
+                <span className="text-blue-600 font-medium lowercase">
+                {" "}{storeName ? storeName.replace(/\s+/g, '-').toLowerCase() : "your-store"}.layemart.shop
+                </span>
+            </p>
             </div>
 
             {/* Email */}
@@ -92,8 +147,10 @@ export default function SignUpPage() {
               <div className="relative group">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-500" size={18} />
                 <input 
-                  type="email" 
-                  placeholder="name@company.com"
+                    type="email" 
+                    placeholder="name@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   className="w-full py-3 pl-11 pr-4 border border-slate-200 rounded-xl outline-none focus:border-slate-500 focus:ring-4 focus:ring-slate-400/15 transition-all" 
                 />
               </div>
@@ -105,8 +162,10 @@ export default function SignUpPage() {
               <div className="relative group">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-500" size={18} />
                 <input 
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
                   className="w-full py-3 pl-11 pr-11 border border-slate-200 rounded-xl outline-none focus:border-slate-500 focus:ring-4 focus:ring-slate-400/15 transition-all" 
                 />
                 <button
@@ -120,10 +179,14 @@ export default function SignUpPage() {
             </div>
 
             {/* Free Trial CTA Button */}
-            <button className="w-full mt-4 bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 group">
-              Start My 14-Day Free Trial
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            <button
+            disabled={loading}
+            className="w-full mt-4 bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 group disabled:opacity-60"
+            >
+            {loading ? "Creating Store..." : "Start My 14-Day Free Trial"}
+            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
+
 
             <p className="text-center text-xs text-slate-400 mt-4 px-6">
               By clicking the button above, you agree to our 

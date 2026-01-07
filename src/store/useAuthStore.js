@@ -3,10 +3,7 @@ import { persist } from "zustand/middleware";
 
 export const useAuthStore = create(
   persist(
-    (set) => ({
-      //
-      // STATE
-      //
+    (set, get) => ({
       token: null,
       user: null,
       store: null,
@@ -23,18 +20,14 @@ export const useAuthStore = create(
           isAuthenticated: true,
         }),
 
-      logout: () =>
-        set({
-          token: null,
-          user: null,
-          store: null,
-          isAuthenticated: false,
-        }),
-
-      setStore: (store) => set({ store }),
+        logout: () => {
+            set({ token: null, user: null, store: null, isAuthenticated: false });
+            localStorage.removeItem("layemart-auth")
+        },
+      setStore: (store) => set({ store })
     }),
     {
-      name: "layemart-auth",
+        name: "layemart-auth",
     }
   )
 );
