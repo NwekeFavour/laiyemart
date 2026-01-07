@@ -134,7 +134,7 @@ export default function SaaSHeader() {
 
             <Link
               to={'/auth/sign-up'}
-              className="bg-slate-900/90! py-2 cursor-pointer! z-1 text-white font-semibold px-4 rounded-lg hover:bg-slate-800/90! transition-all shadow-lg shadow-slate-200/20!"
+              className="bg-slate-900/90! lg:block hidden py-2 cursor-pointer! z-1 text-white font-semibold px-4 rounded-lg hover:bg-slate-800/90! transition-all shadow-lg shadow-slate-200/20!"
             >
               Launch Your Store
             </Link>
@@ -150,125 +150,117 @@ export default function SaaSHeader() {
       </Sheet>
 
       {/* Mobile Navigation */}
-<Drawer 
-      open={open} 
-      onClose={() => setOpen(false)}
-      slotProps={{
-        backdrop: {
-          sx: { backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.2)' }
-        }
-      }}
-    >
-      <Sheet 
-        sx={{ 
-          p: 0, 
-          height: "100%", 
-          width: 280,
-          display: 'flex',
-          flexDirection: 'column',
-          bgcolor: 'white'
+      <Drawer 
+        open={open} 
+        onClose={() => setOpen(false)}
+        slotProps={{
+          backdrop: {
+            sx: { backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.2)' }
+          }
         }}
       >
-        {/* Header Section */}
-        <Box sx={{ 
-          display: "flex", 
-          alignItems: "center", 
-          justifyContent: "space-between", 
-          px: 3, 
-          py: 2.5,
-          borderBottom: '1px solid',
-          borderColor: 'gray.100'
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <div className="w-8 h-8 rounded-md bg-red-500" />
-            <Typography className="text" sx={{ fontWeight: 800, fontSize: '14px', letterSpacing: '0.02em', color: '#0f172a' }}>
-              LAIYEMART
-            </Typography>
-          </Box>
-          <IconButton 
-            variant="plain" 
-            color="neutral"
-            onClick={() => setOpen(false)}
-            sx={{ borderRadius: '50%' }}
-          >
-            <X size={20} />
-          </IconButton>
-        </Box>
-
-        {/* Navigation Section */}
-        <Box sx={{ flex: 1, px: 2, mt: 3, display: "flex", flexDirection: "column", gap: 0.5 }}>
-          <Typography sx={{ px: 1.5, mb: 1, fontWeight: 700, color: 'neutral.400', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-            Main Menu
-          </Typography>
-          
-          {navItems.map((item) => (
-            <Button
-              key={item.label}
-              variant="plain"
-              component={Link}
-              to={item.href}
-              onClick={() => setOpen(false)}
-              startDecorator={item.icon}
-              sx={{ 
-                justifyContent: "flex-start",
-                fontWeight: 600,
-                fontSize: '14px',
-                py: 1.2,
-                borderRadius: 'xl',
-                color: '#475569', // slate-600
-                '&:hover': {
-                  bgcolor: 'neutral.softBg',
-                  color: '#0f172a', // slate-900
-                },
-                '& .MuiButton-startDecorator': { color: 'neutral.400' }
-              }}
-            >
-              {item.label}
-            </Button>
-          ))}
-        </Box>
-
-        {/* Footer Section */}
-        <Box sx={{ p: 2.5, borderTop: '1px solid', borderColor: 'gray.100' }}>
-          {/* Upgrade Card */}
+        <Sheet 
+          sx={{ 
+            p: 0, 
+            height: "100%", 
+            width: 280,
+            display: 'flex',
+            flexDirection: 'column',
+            bgcolor: 'white'
+          }}
+        >
+          {/* Header Section */}
           <Box sx={{ 
-            p: 2, 
-            mb: 2, 
-            borderRadius: 'xl', 
-            bgcolor: '#f8fafc', // slate-50
-            border: '1px solid',
-            borderColor: '#f1f5f9',
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "space-between", 
+            px: 3, 
+            py: 2.5,
+            borderBottom: '1px solid',
+            borderColor: 'gray.100'
           }}>
-            <Box sx={{ p: 1, borderRadius: 'lg', bgcolor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', color: '#3b82f6' }}>
-              <Sparkles size={18} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <div className="w-8 h-8 rounded-md bg-red-500" />
+              <Typography className="text" sx={{ fontWeight: 800, fontSize: '14px', letterSpacing: '0.02em', color: '#0f172a' }}>
+                LAIYEMART
+              </Typography>
             </Box>
-            <Box>
-              <Typography sx={{ fontWeight: 700, fontSize: '13px', color: '#1e293b' }}>Growth Plan</Typography>
-              <Typography sx={{ fontSize: '11px', color: '#64748b' }}>Manage unlimited stores</Typography>
-            </Box>
+            <IconButton 
+              variant="plain" 
+              color="neutral"
+              onClick={() => setOpen(false)}
+              sx={{ borderRadius: '50%' }}
+            >
+              <X size={20} />
+            </IconButton>
           </Box>
 
-          <Button
-            fullWidth
-            size="lg"
-            variant="solid"
-            startDecorator={<Rocket size={18} />}
-            sx={{ 
-              py: 1.5,
-              borderRadius: 'xl',
-              bgcolor: '#0f172a', // slate-900
-              fontWeight: 600,
-              '&:hover': { bgcolor: '#1e293b' }
-            }}
-          >
-            Launch Store
-          </Button>
-        </Box>
-      </Sheet>
-    </Drawer>
+          {/* Navigation Section */}
+          <Box sx={{ flex: 1, px: 2, mt: 3, display: "flex", flexDirection: "column", gap: 0.5 }}>
+            <Typography sx={{ px: 1.5, mb: 1, fontWeight: 700, color: 'neutral.400', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              Main Menu
+            </Typography>
+            
+            {navItems.map((item) => (
+              <Button
+                key={item.label}
+                variant="plain"
+                component={Link}
+                to={item.href}
+                onClick={() => setOpen(false)}
+                startDecorator={item.icon}
+                sx={{ 
+                  justifyContent: "flex-start",
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  py: 1.2,
+                  borderRadius: 'xl',
+                  color: '#475569', // slate-600
+                  '&:hover': {
+                    bgcolor: 'neutral.softBg',
+                    color: '#0f172a', // slate-900
+                  },
+                  '& .MuiButton-startDecorator': { color: 'neutral.400' }
+                }}
+              >
+                {item.label}
+              </Button>
+            ))}
+          </Box>
+
+          {/* Footer Section */}
+          <Box sx={{ p: 2.5, borderTop: '1px solid', borderColor: 'gray.100' }}>
+            {/* Upgrade Card */}
+            <Box sx={{ 
+              p: 2, 
+              mb: 2, 
+              borderRadius: 'xl', 
+              bgcolor: '#f8fafc', // slate-50
+              border: '1px solid',
+              borderColor: '#f1f5f9',
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2 
+            }}>
+              <Box sx={{ p: 1, borderRadius: 'lg', bgcolor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', color: '#3b82f6' }}>
+                <Sparkles size={18} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: '13px', color: '#1e293b' }}>Growth Plan</Typography>
+                <Typography sx={{ fontSize: '11px', color: '#64748b' }}>Manage unlimited stores</Typography>
+              </Box>
+            </Box>
+
+            <Link
+              to={'/auth/sign-up'}
+              className="bg-slate-900/90! lg:hidden flex items-center gap-2 py-2 cursor-pointer! z-1 text-white font-semibold px-4 rounded-lg hover:bg-slate-800/90! transition-all shadow-lg shadow-slate-200/20! "
+            >
+              <Rocket size={18}/>
+              Launch Your Store
+            </Link>
+          </Box>
+        </Sheet>
+      </Drawer>
     </>
   );
 }

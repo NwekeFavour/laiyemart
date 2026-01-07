@@ -19,7 +19,7 @@ export default function StoreOwnerLayout({ children }) {
 
     const handleLogout = () => {
         logout();          // clear Zustand state + localStorage
-        navigate("/login"); // redirect to login page
+        navigate("/auth/sign-in"); // redirect to login page
     }
 
     useEffect(() => {

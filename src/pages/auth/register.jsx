@@ -58,7 +58,7 @@ export default function SignUpPage() {
         <div className="p-8 lg:p-12 flex flex-col justify-center">
             <div className="mb-8">
             <h1 className="text-2xl font-extrabold text-slate-900">Create your store account</h1>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex flex-wrap md:mt-0 mt-2 items-center gap-2 mt-1">
                 {/* Small badge to indicate early access */}
                 <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-blue-100">
                 Early Access
