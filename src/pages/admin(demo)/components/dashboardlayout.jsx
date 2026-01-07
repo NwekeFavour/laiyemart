@@ -62,7 +62,7 @@ export default function DashboardLayout({ children, activePage, setActivePage, d
           setDemo={setDemo}    
         />
 
-        <PurchaseButton isDark={isDark} onClick={() => console.log("Purchase clicked")} />
+        <PurchaseButton isDark={isDark}  />
 
 
         {/* Scrollable Content */}

@@ -1,15 +1,6 @@
 import React from 'react';
 import Header from './mainheader';
 import { Button } from '@mui/joy';
-
-// const AVATARS = [
-//   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80",
-//   "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=100&h=100&q=80",
-//   "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&h=100&q=80",
-//   "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&q=80",
-//   "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&h=100&q=80",
-// ];
-
 export default function Hero({ onCreateStore }) {
   return (
     <section className="relative overflow-hidden bg-[#f3f4ff] lg:min-h-screen rounded-b-4xl">
@@ -38,9 +29,9 @@ export default function Hero({ onCreateStore }) {
               <Button
                 onClick={onCreateStore}
                 size="lg"
-                className="bg-slate-900! text-[16px]! hover:bg-slate-800! text-white lg:px-10! px-5 py-3 lg:py-4! rounded-xl transition-all shadow-xl shadow-slate-200"
+                className="bg-slate-900/90! text-[16px]! hover:bg-slate-800! text-white lg:px-8! px-5 py-3 lg:py-3! rounded-xl transition-all shadow-xl shadow-slate-200"
               >
-                Create Your Store
+                Quick Preview
               </Button>
             </div>
 

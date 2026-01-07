@@ -1,0 +1,48 @@
+import { useAuthStore } from "../src/store/useAuthStore";
+
+
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
+export const loginStoreOwner = async (email, password) => {
+  const res = await fetch(`${VITE_BACKEND_URL}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Login failed");
+  }
+
+  // ✅ Update Zustand here
+  useAuthStore.getState().login({
+    token: data.token,
+    user: data.user,
+    store: null, // fetched later
+  });
+
+  return data;
+};
+
+
+export const fetchMe = async () => {
+  const { token } = useAuthStore.getState();
+
+  const res = await fetch(`${VITE_BACKEND_URL}/api/auth/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) throw new Error("Unauthorized");
+
+  const data = await res.json();
+
+  useAuthStore.getState().login({
+    token,
+    user: data.user,
+    store: data.store,
+  });
+};

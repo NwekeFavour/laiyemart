@@ -334,7 +334,7 @@ export default function Account() {
       {demo && (
         <div className=" my-2 shadow-lg" >
           <div className="flex items-center gap-2 mb-2 ms-3" >
-                        <button
+            <button
               onClick={() => setDemo(false)}
             >
               {demo && <ArrowLeftFromLine size={20} className="inline-block me-2" />}

@@ -132,14 +132,12 @@ export default function SaaSHeader() {
               <Moon size={18} />
             </IconButton>
 
-            <Button
-              className="bg-slate-900/90!"
-              variant="solid"
-              color="primary"
-              sx={{ display: { xs: "none", md: "inline-flex" } }}
+            <Link
+              to={'/auth/sign-up'}
+              className="bg-slate-900/90! py-2 cursor-pointer! z-1 text-white font-semibold px-4 rounded-lg hover:bg-slate-800/90! transition-all shadow-lg shadow-slate-200/20!"
             >
               Launch Your Store
-            </Button>
+            </Link>
 
             <IconButton
               onClick={() => setOpen(true)}

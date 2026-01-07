@@ -361,7 +361,7 @@ function Home(props) {
 
                             <div className="flex items-start justify-between mb-8">
                                 <div className="size-12 rounded-full flex items-center justify-center bg-emerald-100/40 dark:bg-emerald-950/40 group-hover:scale-110 transition-all duration-500">
-                                <svg className="size-5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <svg className="size-5 text-emerald-600 flex! items-center! justify-center!" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                     <circle cx="9" cy="7" r="4" />
                                     <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>
                                 </svg>
@@ -620,7 +620,7 @@ function Home(props) {
                         </h1>
 
                         <button
-                        className="pointer-events-auto rounded-lg bg-white px-6 py-3 text-sm font-medium text-black hover:bg-gray-200 transition"
+                        className="pointer-events-auto rounded-lg outline-none! bg-white px-6 py-3 text-sm font-medium text-black hover:bg-gray-200 transition"
                         onClick={() => console.log("clicked")}
                         >
                         Get started for free
@@ -638,7 +638,7 @@ function Home(props) {
                         {/* Left Column - Contact Info */}
                             <div className="space-y-8">
                                 <div>
-                                    <h3 className="text-gray-800 text-3xl">
+                                    <h3 className="text-gray-800 font-semibold! md:mb-0 mb-2  text-xl md:text-3xl">
                                     Let's Start a Conversation
                                 </h3>
                                 <p className="text-muted-foreground mb-8">
@@ -798,7 +798,7 @@ function Home(props) {
                                         id="message"
                                         name="message"
                                         placeholder="Tell us more about your project or question..."
-                                        className="border-input  flex h-9 w-full  md:h-[120px] rounded-md border border-slate-100 bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:border-slate-300 focus-visible:shadow-md"
+                                        className="border-input  flex h-24 w-full   md:h-30] rounded-md border border-slate-100 bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:border-slate-300 focus-visible:shadow-md"
                                         />
                                     </div>
 

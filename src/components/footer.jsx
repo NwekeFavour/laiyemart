@@ -59,6 +59,9 @@ export default function Footer() {
           <Link to="/contact" className="text-sm text-gray-600 hover:underline">
             Contact
           </Link>
+          <Link to="/auth/sign-in" className="text-sm text-gray-600 hover:underline">
+            Login
+          </Link>
         </div>
       </div>
 
