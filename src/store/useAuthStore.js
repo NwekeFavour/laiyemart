@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useProductStore } from "../../services/productService";
 
 export const useAuthStore = create(
   persist(
@@ -23,6 +24,7 @@ export const useAuthStore = create(
         logout: () => {
             set({ token: null, user: null, store: null, isAuthenticated: false });
             localStorage.removeItem("layemart-auth")
+            useProductStore.getState().resetProducts();
         },
       setStore: (store) => set({ store })
     }),

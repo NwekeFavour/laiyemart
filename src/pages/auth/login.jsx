@@ -5,6 +5,7 @@ import { Google } from '@mui/icons-material';
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from '../../store/useAuthStore';
 import { loginStoreOwner } from '../../../services/authService';
+import { toast } from 'react-toastify';
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
@@ -16,7 +17,7 @@ export default function LoginPage() {
 
     useEffect(() => {
         if(localStorage.getItem("layemart-auth")){
-            navigate("/dashboard")
+            navigate("/auth/redirect")
         }
     }, []);
     return (
@@ -91,34 +92,56 @@ export default function LoginPage() {
                 )}
             {/* Form Fields */}
             <form
-            onSubmit={async (e) => {
-                e.preventDefault();
-                setLoading(true);
-                try {
-                    const data = await loginStoreOwner(email, password);
-                    console.log(data);
+                onSubmit={async (e) => {
+                    e.preventDefault();
+                    setLoading(true);
+                    setError(null); // Clear any previous errors
+
+                    try {
+                        const data = await loginStoreOwner(email, password);
+                        console.log(data);
+
                         if (data?.user.role === "SUPER_ADMIN") {
-                        navigate("/dashboard");
-                        } else if(data.user.role === "OWNER") {
-                        navigate("/dashboard/beta");
+                            toast.success(`Welcome back, Admin!`);
+                            navigate("/dashboard");
+                        } else if (data?.user.role === "OWNER") {
+                            toast.success("Logged In Successfully!");
+                            navigate("/dashboard/beta");
                         } else {
-                        return null;
+                            toast.error("Unauthorized access: Unknown role.");
+                            setLoading(false);
+                            return;
                         }
-                    setLoading(false);
-                } catch (err) {
-                    setLoading(false);
-                    if(err?.message === "Failed to fetch"){
-                        setError("Network error: Unable to reach the server.");
-                        return;
+                        
+                        // Note: setLoading(false) isn't strictly needed here as navigation unmounts the page
+                    } catch (err) {
+                        setLoading(false);
+                        
+                        // 1. Determine the actual error message
+                        const errorMessage = err?.response?.data?.message || err?.message || "Login failed";
+                        
+                        // 2. Handle specific Network Error
+                        if (errorMessage === "Failed to fetch") {
+                            const netMsg = "Network error: Unable to reach the server.";
+                            setError(netMsg);
+                            toast.error(netMsg);
+                            return;
+                        }
+
+                        // 3. Set standard error and show toast
+                        setError(errorMessage);
+                        toast.error(errorMessage);
+                        
+                        console.error("Login Error:", errorMessage);
+
+                        // Auto-clear the inline error state
+                        setTimeout(() => {
+                            setError(null);
+                        }, 5000);
                     }
-                    setError(err?.message);
-                    console.error(err.message);
-                    setTimeout(() => {
-                        setError(null);
-                    }, 3000);
-                }
-            }}
-            >            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                }}
+            >           
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                 <div className="flex flex-col gap-1.5 w-full">
                 {/* Standard Label */}
                 <label 

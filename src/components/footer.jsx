@@ -1,8 +1,10 @@
 import { Box, Typography } from "@mui/joy";
 import { Link } from "react-router-dom";
 import { Twitter, Github, Linkedin } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
 
 export default function Footer() {
+  const {isAuthenticated, user} = useAuthStore();
   return (
     <Box
       component="footer"
@@ -59,9 +61,25 @@ export default function Footer() {
           <Link to="/contact" className="text-sm text-gray-600 hover:underline">
             Contact
           </Link>
-          <Link to="/auth/sign-in" className="text-sm text-gray-600 hover:underline">
-            Login
-          </Link>
+          {!isAuthenticated ? (
+            <Link to="/auth/sign-in" className="text-sm text-gray-600 hover:underline">
+              Login
+            </Link>
+          ) : (
+            <Link
+              to={
+                user.role === "SUPER_ADMIN"
+                  ? "/dashboard"
+                  : user.role === "OWNER"
+                  ? "/dashboard/beta"
+                  : "/"
+              }
+              className="text-sm text-gray-600 hover:underline"
+            >
+              Dashboard
+            </Link>
+          )}
+
         </div>
       </div>
 

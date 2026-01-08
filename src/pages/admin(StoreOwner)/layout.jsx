@@ -4,22 +4,40 @@ import {
   Package, Users, BarChart3, Settings, LogOut, ChevronLeft, ChevronRight 
 } from "lucide-react";
 import { Box, IconButton, Button, Sheet, Badge, Typography } from "@mui/joy";
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { fetchMe } from '../../../services/authService';
 import { useAuthStore } from '../../store/useAuthStore';
+import { toast } from 'react-toastify';
 
 export default function StoreOwnerLayout({ children }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
     const logout = useAuthStore((state) => state.logout);
+    const [loading, setLoading] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { user, store } = useAuthStore();
   const [hoveredItem, setHoveredItem] = useState(null);
   const navigate = useNavigate();
-
-
+const location = useLocation();
     const handleLogout = () => {
-        logout();          // clear Zustand state + localStorage
-        navigate("/auth/sign-in"); // redirect to login page
+        // 1. Clear state and storage
+        logout(); 
+        
+        // 2. Trigger a well-designed success toast
+        toast.success("Signed out successfully", {
+            position: "top-right",
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+            // Optional: Custom icon for logout
+            icon: "👋" 
+        });
+
+        // 3. Redirect to login page
+        navigate("/auth/sign-in"); 
     }
 
     useEffect(() => {
@@ -36,12 +54,12 @@ export default function StoreOwnerLayout({ children }) {
   
       loadUser();
     }, []);
-  const navItems = [
-    { id: 'ov', label: "Dashboard", icon: <LayoutGrid size={20} />, active: true },
-    { id: 'or', label: "Orders", icon: <ShoppingBag size={20} /> },
-    { id: 'pr', label: "Products", icon: <Package size={20} /> },
-    { id: 'st', label: "Settings", icon: <Settings size={20} /> },
-  ];
+const navItems = [
+  { id: 'ov', label: "Dashboard", icon: <LayoutGrid size={20} />, path: '/dashboard/beta' },
+  { id: 'or', label: "Orders", icon: <ShoppingBag size={20} />, path: '/dashboard/orders' },
+  { id: 'pr', label: "Products", icon: <Package size={20} />, path: '/dashboard/products' },
+  { id: 'st', label: "Settings", icon: <Settings size={20} />, path: '/dashboard/settings' },
+];
   useEffect(() => {
     if(!localStorage.getItem("layemart-auth")) {
         navigate("/auth/sign-in")
@@ -123,48 +141,149 @@ export default function StoreOwnerLayout({ children }) {
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f8fafc' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh'}}>
       
       {/* 1. Desktop Sidebar Wrapper */}
       <Box sx={{ 
-        display: { xs: 'none', lg: 'block' }, 
+        display: { xs: 'none', lg: 'flex' }, // Changed to flex for internal layout
+        flexDirection: 'column',
         width: isCollapsed ? 80 : 280, 
         transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         position: 'fixed',
         height: '100vh',
         bgcolor: 'white',
         borderRight: '1px solid #e2e8f0',
-        zIndex: 100
+        zIndex: 100,
+        overflowX: 'hidden'
       }}>
-        {/* Collapse Toggle Button */}
+        
+        {/* 2. Collapse Toggle Button */}
         <IconButton
           onClick={() => setIsCollapsed(!isCollapsed)}
           sx={{
-            position: 'absolute', right: -12, top: 28, width: 24, height: 24,
+            position: 'absolute', right: -12, top: 32, width: 20, height: 20,
             bgcolor: 'white', border: '1px solid #e2e8f0', borderRadius: '50%',
-            zIndex: 110, boxShadow: 'sm', '&:hover': { bgcolor: '#f1f5f9' }
+            zIndex: 110, boxShadow: 'sm', '&:hover': { bgcolor: '#f8fafc' }
           }}
         >
           {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </IconButton>
-        
-        <NavigationMenu isMobile={false} />
+
+        {/* 3. Brand Section */}
+        <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ width: 32, height: 32, borderRadius: '6px', bgcolor: '#ef4444', flexShrink: 0 }} />
+          {!isCollapsed && (
+            <Typography className="text lg:text-[17px] text-[13px]!" sx={{ fontWeight: 800, fontSize: '16px', color: '#0f172a', whiteSpace: 'nowrap' }}>
+              LAIYEMART
+            </Typography>
+          )}
+        </Box>
+
+            {/* navigation menu */}
+        <Box sx={{ px: 2, flex: 1, mt: 2 }}>
+          {navItems.map((item) => {
+            // Check if current path matches the item path
+            const isActive = location.pathname === item.path;
+
+            return (
+              <Box
+                key={item.id}
+                onMouseEnter={() => setHoveredItem(item.id)}
+                onMouseLeave={() => setHoveredItem(null)}
+                sx={{ position: 'relative', mb: 0.5 }}
+              >
+                <Button
+                  variant={isActive ? "soft" : "plain"} // Changes look if active
+                  onClick={() => navigate(item.path)}
+                  startDecorator={item.icon}
+                  sx={{
+                    width: '100%',
+                    justifyContent: isCollapsed ? 'center' : 'flex-start',
+                    borderRadius: '12px',
+                    py: 1.5,
+                    // Priority color: Active > Hovered > Default
+                    color: isActive || hoveredItem === item.id ? '#0f172a' : '#64748b',
+                    bgcolor: isActive ? '#f1f5f9' : (hoveredItem === item.id ? '#f8fafc' : 'transparent'),
+                    
+                    '& .MuiButton-startDecorator': { 
+                      margin: isCollapsed ? 0 : '',
+                      color: isActive || hoveredItem === item.id ? '#3b82f6' : 'inherit' 
+                    },
+                    '&:hover': {
+                      bgcolor: isActive ? '#f1f5f9' : '#f8fafc'
+                    }
+                  }}
+                >
+                  {!isCollapsed && (
+                    <Typography sx={{ 
+                      fontWeight: isActive ? 700 : 600, // Thicker font if active
+                      fontSize: '14px', 
+                      ml: 1,
+                      color: 'inherit'
+                    }}>
+                      {item.label}
+                    </Typography>
+                  )}
+                </Button>
+                
+                {/* Active/Hover Indicator Bar */}
+                <Box sx={{
+                  position: 'absolute', 
+                  left: -8, 
+                  top: '20%', 
+                  height: '60%', 
+                  width: 4,
+                  bgcolor: '#3b82f6', 
+                  borderRadius: '0 4px 4px 0',
+                  // Stay visible if active OR hovered
+                  opacity: isActive || hoveredItem === item.id ? 1 : 0,
+                  transition: 'all 0.2s ease'
+                }} />
+              </Box>
+            );
+          })}
+        </Box>
+
+        {/* 5. Bottom Logout Section */}
+        <Box sx={{ p: 2, mt: 'auto', borderTop: '1px solid #f1f5f9' }}>
+          <Button
+            variant="plain"
+            color="danger"
+            onClick={handleLogout}
+            startDecorator={<LogOut size={20} />}
+            sx={{
+              width: '100%',
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
+              borderRadius: '12px',
+              py: 1.5,
+              '&:hover': { bgcolor: '#fff1f2' },
+              '& .MuiButton-startDecorator': { margin: isCollapsed ? 0 : '' }
+            }}
+          >
+            {!isCollapsed && (
+              <Typography sx={{ fontWeight: 600, fontSize: '14px', ml: 1 }}>
+                Log out
+              </Typography>
+            )}
+          </Button>
+        </Box>
       </Box>
 
       {/* 2. Main Content Area */}
-      <Box sx={{ 
+      <Box className="hide-scrollbar" sx={{ 
         flex: 1, 
         ml: { lg: isCollapsed ? '80px' : '280px' },
         transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
         display: 'flex',
         flexDirection: 'column',
-        minWidth: 0 
+        minWidth: 0 ,
+        height: "100vh"
       }}>
         
         {/* Top Header */}
         <Sheet sx={{ 
           height: 70, display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
-          px: { xs: 2, md: 4 }, bgcolor: 'white', borderBottom: '1px solid #e2e8f0',
+          px: { xs: 2, md: 4 }, py: 4, bgcolor: 'white', borderBottom: '1px solid #e2e8f0',
           position: 'sticky', top: 0, zIndex: 50
         }}>
           <IconButton variant="plain" sx={{ display: { lg: 'none' } }} onClick={() => setIsMobileOpen(true)}>
@@ -190,7 +309,16 @@ export default function StoreOwnerLayout({ children }) {
         </Sheet>
 
         {/* Dynamic Page Content */}
-        <Box sx={{ p: { xs: 2 } }}>
+        <Box className="hide-scrollbar" sx={{ 
+          p: { xs: 2 },  
+          overflowY: 'auto', // Ensure it is scrollable
+          /* Target the scrollbar specifically */
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+          msOverflowStyle: 'none',  /* IE and Edge */
+          scrollbarWidth: 'none',
+          }}>
           {children}
         </Box>
       </Box>

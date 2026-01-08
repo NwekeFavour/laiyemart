@@ -14,7 +14,6 @@ import { Box, Typography, Button, Grid, Sheet } from "@mui/joy";
 import SuperAdminLayout from './layout';
 
 export default function SuperAdminDashboard() {
-  
   // High-level ecosystem stats
   const stats = [
     { label: "Total Stores", value: "1,284", grow: "+12%", icon: <Store size={20} className="text-blue-500" /> },

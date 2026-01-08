@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, LayoutGrid, Store, Users, CreditCard, Activi
 import { Box, Typography, Button, IconButton, Divider } from "@mui/joy";
 import { useAuthStore } from '../store/useAuthStore';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const [hoveredItem, setHoveredItem] = useState(null);
@@ -17,10 +18,26 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   ];
 
   const handleLogout = () => {
-    logout();
-    navigate("/auth/sign-in");
-    // Add your auth logic here (e.g., clearing tokens, redirecting)
-  };
+      // 1. Clear state and storage
+      logout(); 
+      
+      // 2. Trigger a well-designed success toast
+      toast.success("Signed out successfully", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+          // Optional: Custom icon for logout
+          icon: "👋" 
+      });
+
+      // 3. Redirect to login page
+      navigate("/auth/sign-in"); 
+  }
 
   return (
     <Box sx={{ 
