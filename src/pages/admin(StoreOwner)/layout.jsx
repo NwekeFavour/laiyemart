@@ -187,9 +187,12 @@ const navItems = [
         {/* 3. Brand Section */}
         <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box sx={{ width: 32, height: 32, borderRadius: '6px', bgcolor: '#ef4444', flexShrink: 0 }} />
-          {!isCollapsed && (
-            <Typography className="text lg:text-[17px] text-[13px]!" sx={{ fontWeight: 800, fontSize: '16px', color: '#0f172a', whiteSpace: 'nowrap' }}>
-              LAIYEMART
+          {(!isCollapsed) && (
+            <Typography 
+              className="text lg:text-[17px] text-[13px]!" 
+              sx={{ color: '#0f172a', whiteSpace: 'nowrap' }}
+            >
+              LAIYE<span className='text' style={{ color: '#ef4444' }}>MART</span>
             </Typography>
           )}
         </Box>

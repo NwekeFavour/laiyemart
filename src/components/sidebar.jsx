@@ -1,129 +1,104 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, LayoutGrid, Store, Users, CreditCard, Activity, LogOut } from "lucide-react"; // Changed to Lucide LogOut
-import { Box, Typography, Button, IconButton, Divider } from "@mui/joy";
+import { 
+  ChevronLeft, LayoutGrid, Store, Users, 
+  CreditCard, Activity, LogOut, X 
+} from "lucide-react";
+import { Box, Typography, Button, IconButton } from "@mui/joy";
 import { useAuthStore } from '../store/useAuthStore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-export default function Sidebar({ isCollapsed, setIsCollapsed }) {
+export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }) {
   const [hoveredItem, setHoveredItem] = useState(null);
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
+  const location = useLocation();
+
   const navItems = [
-    { id: 'ov', label: "Overview", icon: <LayoutGrid size={20} /> },
-    { id: 'st', label: "Store Management", icon: <Store size={20} /> },
-    { id: 'us', label: "User Accounts", icon: <Users size={20} /> },
-    { id: 'sb', label: "Subscriptions", icon: <CreditCard size={20} /> },
-    { id: 'sy', label: "System Health", icon: <Activity size={20} /> },
+    { id: 'ov', label: "Overview", path: "/dashboard", icon: <LayoutGrid size={20} /> },
+    { id: 'st', label: "Store Management", path: "/stores", icon: <Store size={20} /> },
+    { id: 'us', label: "User Accounts", path: "/users", icon: <Users size={20} /> },
+    { id: 'sb', label: "Subscriptions", path: "/billing", icon: <CreditCard size={20} /> },
+    { id: 'sy', label: "System Health", path: "/health", icon: <Activity size={20} /> },
   ];
 
   const handleLogout = () => {
-      // 1. Clear state and storage
-      logout(); 
-      
-      // 2. Trigger a well-designed success toast
-      toast.success("Signed out successfully", {
-          position: "top-right",
-          autoClose: 2000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-          // Optional: Custom icon for logout
-          icon: "👋" 
-      });
+    logout();
+    toast.success("Signed out successfully", { theme: "colored", icon: "👋" });
+    navigate("/auth/sign-in");
+  };
 
-      // 3. Redirect to login page
-      navigate("/auth/sign-in"); 
-  }
-
-  return (
-    <Box sx={{ 
-      width: isCollapsed ? 80 : 280, 
-      transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      position: 'relative',
-      height: '100vh',
-      bgcolor: 'white',
-      borderRight: '1px solid #e2e8f0',
-      display: 'flex',
-      flexDirection: 'column',
-      overflowX: 'hidden',
-    }}>
-      
-      {/* Collapse Toggle Arrow */}
-      <IconButton
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        sx={{
-          position: 'absolute',
-          right: -12, // Adjusted so it sits on the border
-          top: 32,
-          width: 24,
-          height: 24,
-          bgcolor: 'white',
-          border: '1px solid #e2e8f0',
-          borderRadius: '50%',
-          zIndex: 10,
-          boxShadow: 'sm',
-          display: { xs: 'none', lg: 'flex' },
-          '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' }
-        }}
-      >
-        {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-      </IconButton>
-
-      {/* Brand Logo Section */}
+  /**
+   * Internal Menu Component to reuse logic between Desktop and Mobile
+   */
+  const NavigationMenu = ({ isMobile = false }) => (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Brand Section */}
       <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <div className="w-8 h-8 rounded-md bg-red-500 flex-shrink-0" />
-        {!isCollapsed && (
-          <Typography sx={{ fontWeight: 800, fontSize: '16px', color: '#0f172a', whiteSpace: 'nowrap' }}>
-            LAIYEMART
+        <Box sx={{ width: 32, height: 32, borderRadius: '6px', bgcolor: '#ef4444', flexShrink: 0 }} />
+        {(!isCollapsed || isMobile) && (
+          <Typography 
+            className="text lg:text-[17px] text-[13px]!" 
+            sx={{ color: '#0f172a', whiteSpace: 'nowrap' }}
+          >
+            LAIYE<span className='text' style={{ color: '#ef4444' }}>MART</span>
           </Typography>
         )}
       </Box>
 
-      {/* Main Nav Items */}
+      {/* Nav Items */}
       <Box sx={{ px: 2, flex: 1, mt: 2 }}>
-        {navItems.map((item) => (
-          <Box
-            key={item.id}
-            onMouseEnter={() => setHoveredItem(item.id)}
-            onMouseLeave={() => setHoveredItem(null)}
-            sx={{ position: 'relative', mb: 0.5 }}
-          >
-            <Button
-              variant="plain"
-              startDecorator={item.icon}
-              sx={{
-                width: '100%',
-                justifyContent: isCollapsed ? 'center' : 'flex-start',
-                borderRadius: '12px',
-                py: 1.5,
-                color: hoveredItem === item.id ? '#0f172a' : '#64748b',
-                bgcolor: hoveredItem === item.id ? '#f1f5f9' : 'transparent',
-                '& .MuiButton-startDecorator': { 
-                    margin: isCollapsed ? 0 : '',
-                    color: hoveredItem === item.id ? '#3b82f6' : 'inherit' 
-                }
-              }}
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          const isHovered = hoveredItem === item.id;
+
+          return (
+            <Box
+              key={item.id}
+              onMouseEnter={() => setHoveredItem(item.id)}
+              onMouseLeave={() => setHoveredItem(null)}
+              sx={{ position: 'relative', mb: 0.5 }}
             >
-              {!isCollapsed && <span className="font-semibold text-[14px]">{item.label}</span>}
-            </Button>
-            
-            {/* Hover Indicator */}
-            <Box sx={{
-              position: 'absolute', left: -8, top: '20%', height: '60%', width: 4,
-              bgcolor: '#3b82f6', borderRadius: '0 4px 4px 0',
-              opacity: hoveredItem === item.id ? 1 : 0,
-              transition: 'all 0.2s ease'
-            }} />
-          </Box>
-        ))}
+              <Button
+                variant={isActive ? "soft" : "plain"}
+                onClick={() => {
+                  navigate(item.path);
+                  if (isMobile) setIsMobileOpen(false);
+                }}
+                startDecorator={item.icon}
+                sx={{
+                  width: '100%',
+                  justifyContent: (isCollapsed && !isMobile) ? 'center' : 'flex-start',
+                  borderRadius: '12px',
+                  py: 1.5,
+                  color: isActive || isHovered ? '#0f172a' : '#64748b',
+                  bgcolor: isActive ? '#f1f5f9' : (isHovered ? '#f8fafc' : 'transparent'),
+                  '& .MuiButton-startDecorator': { 
+                    margin: (isCollapsed && !isMobile) ? 0 : '',
+                    color: isActive || isHovered ? '#3b82f6' : 'inherit' 
+                  },
+                }}
+              >
+                {(!isCollapsed || isMobile) && (
+                  <Typography sx={{ fontWeight: isActive ? 700 : 600, fontSize: '14px', ml: 1, color: 'inherit' }}>
+                    {item.label}
+                  </Typography>
+                )}
+              </Button>
+              
+              <Box sx={{
+                position: 'absolute', left: -8, top: '20%', height: '60%', width: 4,
+                bgcolor: '#3b82f6', borderRadius: '0 4px 4px 0',
+                opacity: isActive || isHovered ? 1 : 0,
+                transition: 'all 0.2s ease'
+              }} />
+            </Box>
+          );
+        })}
       </Box>
 
-      {/* Dedicated Logout Section at the bottom */}
-      <Box sx={{ p: 2, mt: 'auto', borderTop: '1px solid #f1f5f9' }}>
+      {/* Logout Section */}
+      <Box sx={{ p: 2, borderTop: '1px solid #f1f5f9' }}>
         <Button
           variant="plain"
           color="danger"
@@ -131,18 +106,94 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           startDecorator={<LogOut size={20} />}
           sx={{
             width: '100%',
-            justifyContent: isCollapsed ? 'center' : 'flex-start',
+            justifyContent: (isCollapsed && !isMobile) ? 'center' : 'flex-start',
             borderRadius: '12px',
             py: 1.5,
-            fontWeight: 600,
-            fontSize: '14px',
-            '&:hover': { bgcolor: '#fff1f2' }, // Light red hover
-            '& .MuiButton-startDecorator': { margin: isCollapsed ? 0 : '' }
+            '&:hover': { bgcolor: '#fff1f2' },
+            '& .MuiButton-startDecorator': { margin: (isCollapsed && !isMobile) ? 0 : '' }
           }}
         >
-          {!isCollapsed && "Log out"}
+          {(!isCollapsed || isMobile) && (
+            <Typography sx={{ fontWeight: 600, fontSize: '14px', ml: 1 }}>Log out</Typography>
+          )}
         </Button>
       </Box>
     </Box>
+  );
+
+  return (
+    <>
+      {/* 1. Desktop Sidebar Wrapper */}
+      <Box 
+        onMouseEnter={() => setIsCollapsed(false)}
+        onMouseLeave={() => setIsCollapsed(true)}
+        sx={{
+          display: { xs:"flex" },
+          flexDirection: "column",
+          width: isCollapsed ? 100 : 280,
+          transition: "width 0.3s ease",
+          position: "fixed",
+          height: "100vh",
+          bgcolor: "white",
+          borderRight: "1px solid #e2e8f0",
+          zIndex: 100,
+          overflowX: "hidden",
+        }}
+      >
+        <IconButton
+          className='hover:bg-transparent!'
+          onClick={() => setIsCollapsed((p) => !p)}
+          sx={{
+            position: "absolute", right: -2, top: 20, width: 24, height: 24,
+            bgcolor: "white", zIndex: 10
+          }}
+        >
+          <ChevronLeft
+            size={16}
+            style={{
+              transform: isCollapsed ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s ease",
+            }}
+          />
+        </IconButton>
+        
+        <NavigationMenu isMobile={false} />
+      </Box>
+
+      {/* 2. Mobile Sidebar Overlay & Drawer */}
+      <Box 
+        sx={{ 
+          position: 'fixed', inset: 0, zIndex: 1000,
+          visibility: isMobileOpen ? 'visible' : 'hidden', 
+          display: { lg: 'none' },
+          transition: 'visibility 0.3s'
+        }}
+      >
+        {/* Backdrop overlay */}
+        <Box 
+          onClick={() => setIsMobileOpen(false)}
+          sx={{ 
+            position: 'absolute', inset: 0, bgcolor: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'blur(4px)', opacity: isMobileOpen ? 1 : 0, transition: 'opacity 0.3s'
+          }}
+        />
+        
+        {/* Drawer content */}
+        <Box 
+          sx={{ 
+            position: 'absolute', left: 0, top: 0, bottom: 0, width: 280, bgcolor: 'white',
+            transform: isMobileOpen ? 'translateX(0)' : 'translateX(-100%)',
+            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        >
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1, position: 'absolute', right: 0, top: 0, zIndex: 10 }}>
+            <IconButton variant="plain" onClick={() => setIsMobileOpen(false)}>
+              <X size={20} />
+            </IconButton>
+          </Box>
+          <NavigationMenu isMobile={true} />
+        </Box>
+      </Box>
+    </>
   );
 }
