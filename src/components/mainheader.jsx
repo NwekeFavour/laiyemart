@@ -35,7 +35,7 @@ export default function SaaSHeader() {
     <>
       {/* Header */}
       <Sheet
-        className="bg-slate-100/40!"
+        className="bg-slate-100/40! m-3 rounded-full!"
         variant="plain"
         sx={{
           position: "fixed",
