@@ -124,6 +124,9 @@ export default function LoginPage() {
                         if (errorMessage === "Failed to fetch") {
                             const netMsg = "Network error: Unable to reach the server.";
                             setError(netMsg);
+                            setTimeout(() => {
+                                setError("")
+                            }, 4000)
                             toast.error(netMsg);
                             return;
                         }

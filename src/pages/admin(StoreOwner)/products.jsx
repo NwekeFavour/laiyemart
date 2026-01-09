@@ -1,31 +1,51 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Box, Typography, Button, Input, Sheet, Table, 
   Checkbox, Chip, Link, IconButton 
 } from "@mui/joy";
 import { Search, ChevronDown, Plus, Edit, Trash2, ExternalLink } from "lucide-react";
 import StoreOwnerLayout from './layout';
+import { useProductStore } from '../../../services/productService';
 
 export default function ProductsPage() {
   // Mock Data matching your "Laiyemart" schema
-  const products = [
-    { id: "PROD-001", name: "Premium Wireless Headphones", category: "Electronics", price: "$299.00", stock: 45, status: "In Stock" },
-    { id: "PROD-002", name: "Leather Messenger Bag", category: "Accessories", price: "$150.00", stock: 0, status: "Out of Stock" },
-    { id: "PROD-003", name: "Organic Cotton T-Shirt", category: "Apparel", price: "$35.00", stock: 120, status: "In Stock" },
-    { id: "PROD-004", name: "Smart Watch Series 5", category: "Electronics", price: "$399.00", stock: 8, status: "Low Stock" },
-  ];
+    const { products, fetchMyProducts, loading } = useProductStore();
+    const [error, setError] = useState(null)
+    const [page, setPage] = useState(1);
+    const [search, setSearch] = useState("");
+    const PAGE_SIZE = 10;
+    useEffect(() => {
+        fetchMyProducts().catch(err => {
+        setError(err.message || "Failed to load products");
+        });
+    }, []);
 
-  const getStockStatus = (status) => {
-    switch (status) {
-      case 'In Stock': return 'success';
-      case 'Low Stock': return 'warning';
-      case 'Out of Stock': return 'danger';
-      default: return 'neutral';
-    }
-  };
+    const getStockStatus = (inventory) => {
+    if (inventory === 0) return { label: "Out of Stock", color: "danger" };
+    if (inventory <= 5) return { label: "Low Stock", color: "warning" };
+    return { label: "In Stock", color: "success" };
+    };
+    // console.log(products)
+    const hoverRow = 'hover:bg-gray-50!';
+    const filteredProducts = products.filter(product => {
+    const query = search.toLowerCase();
+    return (
+        product.name.toLowerCase().includes(query) ||
+        product.category?.toLowerCase().includes(query) ||
+        product._id.toLowerCase().includes(query)
+    );
+    });
 
-  const hoverRow = 'hover:bg-gray-50!';
+    const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
 
+    const paginatedProducts = filteredProducts.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+    );
+
+    useEffect(() => {
+    setPage(1);
+    }, [search]);
   return (
     <StoreOwnerLayout>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, p:{xs: 2}}}>
@@ -36,12 +56,6 @@ export default function ProductsPage() {
             <Typography level="h2" sx={{ fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>Products</Typography>
             <Typography level="body-sm" sx={{ color: '#64748b' }}>Manage your inventory and product listings</Typography>
             </Box>
-            <Button 
-            startDecorator={<Plus size={20} />} 
-            sx={{ bgcolor: '#0f172a', borderRadius: 'xl', '&:hover': { bgcolor: '#1e293b' } }}
-            >
-            Add Product
-            </Button>
         </Box>
 
         {/* 2. Search & Export Bar */}
@@ -52,8 +66,25 @@ export default function ProductsPage() {
                 <Input 
                 size="sm"
                 placeholder="Search products..." 
+                onChange={(e) => setSearch(e.target.value)}
                 startDecorator={<Search size={16} />}
-                sx={{ borderRadius: 'md', width: { xs: '100%', sm: 250 }, bgcolor: '#f8fafc' }}
+                sx={{ 
+                    borderRadius: 'md', 
+                    width: { xs: '100%', sm: 250 }, 
+                    bgcolor: '#f8fafc', 
+                    "&::before": {
+                        display: 'none',
+                    },
+                        // 2. Remove the default focus border/shadow
+                    "&:focus-within": {
+                        outline: 'none',
+                        border: 'none',
+                    },
+                    // 3. Optional: keep a subtle background change instead of a ring
+                    '&:hover': {
+                        bgcolor: 'neutral.100',
+                    }
+                }}
                 />
                 <Button variant="outlined" color="neutral" size="sm" sx={{ borderRadius: 'md', fontWeight: 600 }}>
                 Export
@@ -109,42 +140,152 @@ export default function ProductsPage() {
                 </tr>
             </thead>
             <tbody>
-                {products.map((item) => (
-                <tr 
-                className={`${hoverRow}`}
-                 key={item.id}>
-                    <td style={{ textAlign: 'center' }}><Checkbox size="sm" /></td>
-                    <td><Typography sx={{ fontWeight: 700, fontSize: '14px', color: '#475569' }}>{item.id}</Typography></td>
-                    <td>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Box sx={{ width: 32, height: 32, bgcolor: '#f1f5f9', borderRadius: 'md' }} /> {/* Product Image Placeholder */}
-                        <Typography sx={{ fontWeight: 600, fontSize: '14px', color: '#0f172a' }}>{item.name}</Typography>
-                    </Box>
+                {loading ? (
+                    <tr>
+                    <td colSpan={8}>
+                        <Box sx={{ py: 6, textAlign: "center" }}>
+                        <Typography level="body-sm">Loading products…</Typography>
+                        </Box>
                     </td>
-                    <td><Typography sx={{ fontSize: '14px', color: '#64748b' }}>{item.category}</Typography></td>
-                    <td><Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '14px' }}>{item.price}</Typography></td>
-                    <td><Typography sx={{ fontSize: '14px', color: '#64748b' }}>{item.stock} units</Typography></td>
-                    <td>
-                    <Chip 
-                        variant="soft" 
-                        size="sm" 
-                        color={getStockStatus(item.status)}
-                        sx={{ fontWeight: 700, borderRadius: 'md', textTransform: 'uppercase', fontSize: '10px' }}
-                    >
-                        {item.status}
-                    </Chip>
+                    </tr>
+                ) : products.length === 0 ? (
+                    <tr>
+                    <td colSpan={8}>
+                        <Box sx={{ py: 6, textAlign: "center" }}>
+                        <Typography level="body-sm">
+                            No products yet. Add your first product 🚀
+                        </Typography>
+                        </Box>
                     </td>
-                    <td>
-                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                        <IconButton size="sm" variant="plain" color="neutral"><Edit size={16} /></IconButton>
-                        <IconButton size="sm" variant="plain" color="neutral"><ExternalLink size={16} /></IconButton>
-                        <IconButton size="sm" variant="plain" color="danger"><Trash2 size={16} /></IconButton>
-                    </Box>
+                    </tr>
+                ) : (
+                    paginatedProducts.map((item) => {
+                    const stock = getStockStatus(item.inventory);
+
+                    return (
+                        <tr key={item._id} className={hoverRow}>
+                    <td style={{ textAlign: "center" }}>
+                        <Checkbox size="sm" />
                     </td>
-                </tr>
-                ))}
+
+                    <td>
+                        <Typography sx={{ fontWeight: 700, fontSize: "14px", color: "#475569" }}>
+                        PROD - {item._id.slice(-6).toUpperCase()}
+                        </Typography>
+                    </td>
+
+                    <td>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                        <Box
+                            sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "md",
+                            bgcolor: "#f1f5f9",
+                            overflow: "hidden",
+                            }}
+                        >
+                            {item.images?.[0]?.url && (
+                            <img
+                                src={item.images[0].url}
+                                alt={item.name}
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                            )}
+                        </Box>
+
+                        <Typography sx={{ fontWeight: 600, fontSize: "14px", color: "#0f172a" }}>
+                            {item.name}
+                        </Typography>
+                        </Box>
+                    </td>
+
+                    <td>
+                        <Typography sx={{ fontSize: "14px", color: "#64748b" }}>
+                        {item.category || "—"}
+                        </Typography>
+                    </td>
+
+                    <td>
+                        <Typography sx={{ fontWeight: 800, color: "#0f172a", fontSize: "14px" }}>
+                        ₦{item.price.toLocaleString()}
+                        </Typography>
+                    </td>
+
+                    <td>
+                        <Typography sx={{ fontSize: "14px", color: "#64748b" }}>
+                        {item.inventory} units
+                        </Typography>
+                    </td>
+
+                    <td>
+                        <Chip
+                        variant="soft"
+                        size="sm"
+                        color={stock.color}
+                        sx={{ fontWeight: 700, borderRadius: "md", fontSize: "10px" }}
+                        >
+                        {stock.label}
+                        </Chip>
+                    </td>
+
+                    <td>
+                        <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
+                        <IconButton size="sm" variant="plain">
+                            <Edit size={16} />
+                        </IconButton>
+                        <IconButton size="sm" variant="plain">
+                            <ExternalLink size={16} />
+                        </IconButton>
+                        <IconButton size="sm" variant="plain" color="danger">
+                            <Trash2 size={16} />
+                        </IconButton>
+                        </Box>
+                    </td>
+                    </tr>
+                );
+                }))}
+
             </tbody>
             </Table>
+
+            {!loading && products.length > 0 && (
+            <Box
+                className="p-3!"
+                sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mt: 2,
+                px: 1,
+                }}
+            >
+                <Typography level="body-sm" sx={{ color: "#64748b" }}>
+                Page {page} of {totalPages}
+                </Typography>
+
+                <Box sx={{ display: "flex", gap: 1 }}>
+                <Button
+                    size="sm"
+                    variant="outlined"
+                    disabled={page <= 1}
+                    onClick={() => setPage((p) => p - 1)}
+                >
+                    Previous
+                </Button>
+
+                <Button
+                    size="sm"
+                    variant="outlined"
+                    disabled={page >= totalPages}
+                    onClick={() => setPage((p) => p + 1)}
+                >
+                    Next
+                </Button>
+                </Box>
+            </Box>
+            )}
+
         </Sheet>
         </Box>
     </StoreOwnerLayout>

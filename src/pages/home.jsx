@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp, MousePointerClick, PencilRuler, CheckCircle2, Rocket } from "lucide-react";
 import Footer from '../components/footer';
 import Account from './admin(demo)/account';
+import { Link } from 'react-router-dom';
 
 
 function Home(props) {
@@ -279,7 +280,7 @@ function Home(props) {
                                 })}
                             </div>
                         </div>
-                        <div className="text-center mt-16"><p className="text-muted-foreground sm:w-full w-[300px]  mx-auto mb-4">Ready to get started? It takes less than 5 minutes.</p><a data-slot="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none bg-slate-900/90 text-white focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-10 rounded-md px-6 has-[&gt;svg]:px-4" href="#cta">Start Your Journey</a></div>
+                        <div className="text-center mt-16"><p className="text-muted-foreground sm:w-full w-[300px]  mx-auto mb-4">Ready to get started? It takes less than 5 minutes.</p><Link data-slot="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none bg-slate-900/90 text-white focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-10 rounded-md px-6 has-[&gt;svg]:px-4" to={"/auth/sign-up"}>Start Your Journey</Link></div>
                     </Box>
                     <section id="features" className="py-24 bg-background">
                     <div className="container mx-auto px-6">

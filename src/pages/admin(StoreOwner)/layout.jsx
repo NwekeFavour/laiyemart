@@ -144,30 +144,45 @@ const navItems = [
     <Box sx={{ display: 'flex', minHeight: '100vh'}}>
       
       {/* 1. Desktop Sidebar Wrapper */}
-      <Box sx={{ 
-        display: { xs: 'none', lg: 'flex' }, // Changed to flex for internal layout
-        flexDirection: 'column',
-        width: isCollapsed ? 80 : 280, 
-        transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        position: 'fixed',
-        height: '100vh',
-        bgcolor: 'white',
-        borderRight: '1px solid #e2e8f0',
-        zIndex: 100,
-        overflowX: 'hidden'
-      }}>
+      <Box   
+        onMouseEnter={() => setIsCollapsed(false)}
+        onMouseLeave={() => setIsCollapsed(true)}
+        sx={{
+          display: { xs: "none", lg: "flex" },
+          flexDirection: "column",
+          width: isCollapsed ? 100 : 280,
+          transition: "width 0.3s ease",
+          position: "fixed",
+          height: "100vh",
+          bgcolor: "white",
+          borderRight: "1px solid #e2e8f0",
+          zIndex: 100,
+          overflowX: "hidden",
+        }}
+      >
         
         {/* 2. Collapse Toggle Button */}
         <IconButton
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={() => setIsCollapsed((p) => !p)}
+          className='hover:bg-transparent!'
           sx={{
-            position: 'absolute', right: -12, top: 32, width: 20, height: 20,
-            bgcolor: 'white', border: '1px solid #e2e8f0', borderRadius: '50%',
-            zIndex: 110, boxShadow: 'sm', '&:hover': { bgcolor: '#f8fafc' }
+            position: "absolute",
+            right: -4,
+            top: 20,
+            width: 20,
+            height: 20,
+            bgcolor: "white",
           }}
         >
-          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+          <ChevronLeft
+            size={16}
+            style={{
+              transform: isCollapsed ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s ease",
+            }}
+          />
         </IconButton>
+
 
         {/* 3. Brand Section */}
         <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>

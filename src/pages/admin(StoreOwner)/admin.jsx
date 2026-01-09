@@ -310,6 +310,7 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
                 </Box>
             </Sheet>
             )}
+            
         {/* Trial Countdown Header */}
         <Sheet 
             className="bg-slate-900/90! text-white! shadow-lg shadow-slate-200/20! lg:items-center! items-end! flex! justify-between! flex-wrap!"
@@ -674,7 +675,7 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
                     onChange={(e) => setName(e.target.value)} 
                     placeholder="e.g. Vintage Denim Jacket" 
                     variant="soft" 
-                                        sx={{ 
+                    sx={{ 
                         borderRadius: 'lg',
                         // 1. Remove the focus ring pseudo-element
                         "&::before": {
