@@ -8,6 +8,7 @@ export const useAuthStore = create(
       token: null,
       user: null,
       store: null,
+      isEmailVerified: false,
       isAuthenticated: false,
 
       //

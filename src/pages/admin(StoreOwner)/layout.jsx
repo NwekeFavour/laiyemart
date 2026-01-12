@@ -15,6 +15,7 @@ export default function StoreOwnerLayout({ children }) {
     const [loading, setLoading] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { user, store } = useAuthStore();
+  const [error, setError] = useState("")
   const [hoveredItem, setHoveredItem] = useState(null);
   const navigate = useNavigate();
 const location = useLocation();
@@ -76,7 +77,7 @@ const navItems = [
         <div className="w-8 h-8 rounded-lg bg-slate-900 flex-shrink-0" />
         {(!isCollapsed || isMobile) && (
           <Typography className="text" sx={{ fontWeight: 800, fontSize: '16px', color: '#0f172a', letterSpacing: '-0.02em' }}>
-            {store ? store?.subdomain : "LAIYEMART"}
+            {store ? store?.subdomain : "LAYEMART"}
           </Typography>
         )}
       </Box>

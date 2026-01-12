@@ -26,6 +26,16 @@ export const loginStoreOwner = async (email, password) => {
   return data;
 };
 
+export const verifyOTP = async ({ email, otp }) => {
+  const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/verify-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, otp }),
+  });
+  if (!res.ok) throw await res.json();
+  return res.json();
+};
+
 export const registerStoreOwner = async ({
   email,
   password,
@@ -65,5 +75,6 @@ export const fetchMe = async () => {
     token,
     user: data.user,
     store: data.store,
+    isEmailVerified: data.isEmailVerified
   });
 };

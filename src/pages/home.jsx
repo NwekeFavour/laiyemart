@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import HeroSection from '../components/hero';
 import ValuePropsSection from '../components/card';
 import MarqueeSection from '../components/marq';
@@ -8,6 +8,7 @@ import { ChevronDown, ChevronUp, MousePointerClick, PencilRuler, CheckCircle2, R
 import Footer from '../components/footer';
 import Account from './admin(demo)/account';
 import { Link } from 'react-router-dom';
+import { useAuthStore } from '../store/useAuthStore';
 
 
 function Home(props) {
@@ -17,10 +18,29 @@ function Home(props) {
     const rows = 10;
     const cols = 20;
 
+
+
+
     const toggleIndex = (index) => {
         setOpenIndex(openIndex === index ? null : index);
     };
 
+    useEffect(() => {
+    // This runs only when the page is refreshed/initially loaded
+    localStorage.removeItem("demo");
+    }, [])
+
+    const handleCreateStore = () => {
+    // 1. Toggle the mode
+    setMode((prev) => !prev);
+    
+    // 2. Set the localStorage key with a value
+    // I'm assuming you want 'demo' to be 'true'
+    localStorage.setItem("demo", "true");
+    
+    // 3. Optional: Sync the 'demo' state if you have one
+    if (setDemo) setDemo(true);
+    };
 
     const steps = [
     {
@@ -107,7 +127,7 @@ function Home(props) {
         <div>
             {!mode&& 
                 (<div>
-                    <HeroSection onCreateStore={()=> setMode(!mode)} />
+                    <HeroSection onCreateStore={handleCreateStore} />
                     {/* <ValuePropsSection/> */}
                     {/* <MarqueeSection/> */}
                     {/* <Box
@@ -469,6 +489,7 @@ function Home(props) {
                             {/* Starter */}
                             <PricingCard
                                 title="Starter"
+                                plan={"Starter"}
                                 description="For new store owners just getting started"
                                 monthly="₦29"
                                 yearly="₦25"
@@ -484,6 +505,7 @@ function Home(props) {
                             {/* Professional */}
                             <PricingCard
                                 title="Professional"
+                                plan={"Professional"}
                                 description="For growing online stores"
                                 monthly="₦99"
                                 yearly="₦79"
@@ -859,10 +881,9 @@ function DiamondCell() {
   );
 }
 
-
-
 function PricingCard({
   title,
+  plan,
   description,
   monthly,
   yearly,
@@ -870,49 +891,107 @@ function PricingCard({
   billing,
   mostPopular = false,
 }) {
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+  const handlePay = async (selectedPlan) => {
+    try {
+      const { user, token, store } = useAuthStore.getState();
+
+      // 🔐 Must be logged in
+      if (!token || !user) {
+        window.location.href = "/auth/sign-in";
+        return;
+      }
+
+      // 🏪 Must have an active store
+      if (!store?._id) {
+        alert("No active store selected");
+        return;
+      }
+
+      const amount =
+        selectedPlan === "Starter"
+          ? 29000
+          : selectedPlan === "Professional"
+          ? 99000
+          : 299000;
+
+      const res = await fetch(`${BACKEND_URL}/api/payments/init`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: user.email,
+          plan: selectedPlan && "PAID",
+          amount,
+          storeId: store._id, // ✅ REQUIRED
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Payment failed");
+      console.log(data)
+      // 🚀 Redirect to Paystack
+      window.location.href = data.url;
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div
-      className={`bg-card text-card-foreground flex flex-col gap-6 rounded-xl border border-slate-100 py-6 shadow-sm h-full relative transition-all duration-300 group border-border hover:border-indigo-500 ${
-        mostPopular ? "shadow-2xl! scale-105 border-indigo-500!" : ""
+      className={`bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm h-full relative transition-all duration-300 group hover:border-indigo-500 ${
+        mostPopular ? "shadow-2xl scale-105 border-indigo-500" : "border-slate-100"
       }`}
     >
       {mostPopular && (
         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-          <span className="inline-flex items-center justify-center rounded-md border text-xs font-medium bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-2.5 py-1">
+          <span className="inline-flex items-center justify-center rounded-md text-xs font-medium bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-2.5 py-1">
             Most Popular
           </span>
         </div>
       )}
+
       <div className="text-center px-6 py-6">
         <div className="text-2xl font-bold">{title}</div>
         <div className="text-sm text-muted-foreground mb-5">{description}</div>
+
         <div className="flex items-end justify-center">
-          <div className="relative h-16 flex items-end">
-            <span className="text-5xl font-bold! bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              {billing === "monthly" ? monthly : yearly}
-            </span>
-          </div>
+          <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            {billing === "monthly" ? monthly : yearly}
+          </span>
           <span className="text-muted-foreground ms-1 mb-1">/month</span>
         </div>
       </div>
-      <div className="px-6 space-y-4">
+
+      <div className="px-6 space-y-4 flex-1">
         <ul className="space-y-3">
           {features.map((feature, idx) => (
-            <li key={idx} className="flex items-center">
+            <li key={idx} className="flex items-center text-sm">
               <svg
-                className="lucide-check h-5 w-5 text-green-500 mr-3"
+                className="h-5 w-5 text-green-500 mr-3"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth={2}
               >
-                <path d="M20 6 9 17l-5-5"></path>
+                <path d="M20 6 9 17l-5-5" />
               </svg>
               {feature}
             </li>
           ))}
         </ul>
+
         <div className="pt-6">
-          <button className={`${mostPopular && "bg-black text-white"} w-full h-10 rounded-md px-6 bg-background border border-slate-200 shadow-xs hover:bg-accent hover:text-accent-foreground text-sm font-medium`}>
+          <button
+            onClick={() => handlePay(plan)}
+            className={`w-full h-10 rounded-md font-semibold transition ${
+              mostPopular
+                ? "bg-black text-white hover:bg-slate-900"
+                : "border border-slate-200 hover:bg-slate-50"
+            }`}
+          >
             Get Started
           </button>
         </div>
@@ -920,3 +999,4 @@ function PricingCard({
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { Box, Typography, IconButton, Badge, Link } from "@mui/joy";
+import { Box, Typography, IconButton, Badge } from "@mui/joy";
 import { motion } from "framer-motion";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
@@ -7,11 +7,18 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { useState } from "react";
 import Drawer from "@mui/joy/Drawer";
 import Divider from "@mui/joy/Divider";
+import { Link, useParams } from "react-router-dom";
+import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
 
 const MotionBox = motion(Box);
 
 export default function Header() {
     const [open, setOpen] = useState(false);
+    // 1. Get store from URL (e.g., /mystore/shop -> store = "mystore")
+    const { storeSlug } = useParams();
+    
+    // 2. Check auth status from your store
+    const { isAuthenticated, customer } = useCustomerAuthStore();
   return (
     <Box sx={{ width: "100%", position: "sticky", top: 0, zIndex: 1000 }}>
       
@@ -92,18 +99,9 @@ export default function Header() {
 
 
             {/* ===== Logo ===== */}
-            <Typography
-            level="h4"
-            sx={{
-                justifySelf: "center",
-                fontFamily: "serif",
-                letterSpacing: 2,
-                fontWeight: 700,
-            }}
-            className="text md:text-[20px]! sm:text-[16px]! text-[13px]!"
-            >
-            LAIYEMART
-            </Typography>
+            <Typography className="text lg:text-[16px]! text-[13px]!" sx={{ fontWeight: 800, fontSize: '22px', letterSpacing: '-0.02em' }}>
+                    LAYE<span className='text text-[#f8fafc]' style={{ color: '#ef4444' }}>MART</span>
+                </Typography>
 
             {/* ===== Right Actions ===== */}
             <Box
@@ -115,13 +113,25 @@ export default function Header() {
             }}
             >
             {/* Desktop-only login */}
-            <Typography
-                level="body-sm"
-                sx={{ display: { xs: "none", md: "block" } }}
-            >
-                LOGIN
+            <Typography level="body-sm" sx={{ display: { xs: "none", md: "block" } }}>
+                {/* 1. If it's a Demo, show a placeholder login link */}
+                {localStorage.getItem("demo") ? (
+                <Link to="#" style={{ color: 'white', textDecoration: 'none', opacity: 0.7 }}>
+                    LOGIN (DEMO)
+                </Link>
+                ) : 
+                /* 2. If Not Demo, check if Customer is Authenticated */
+                isAuthenticated ? (
+                <Link to={`/account`} style={{ color: 'white', textDecoration: 'none' }}>
+                    HI, {customer?.name?.toUpperCase() || 'ACCOUNT'}
+                </Link>
+                ) : (
+                /* 3. Not Demo and Not Authenticated: Show real Login link */
+                <Link to={`/login`} style={{ color: 'black', textDecoration: 'none' }}>
+                    LOGIN
+                </Link>
+                )}
             </Typography>
-
             <IconButton variant="plain" color="neutral">
                 <SearchIcon />
             </IconButton>
@@ -157,7 +167,7 @@ export default function Header() {
             }}
             >
             <Typography level="h4" sx={{ fontWeight: 700 }}>
-                LaiyeMart
+                LayeMart
             </Typography>
 
             <IconButton onClick={() => setOpen(false)}>✕</IconButton>

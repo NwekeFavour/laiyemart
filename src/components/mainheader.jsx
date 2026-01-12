@@ -182,7 +182,7 @@ export default function SaaSHeader() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <div className="w-8 h-8 rounded-md bg-red-500" />
               <Typography className="text" sx={{ fontWeight: 800, fontSize: '14px', letterSpacing: '0.02em', color: '#0f172a' }}>
-                LAIYEMART
+                LAYEMART
               </Typography>
             </Box>
             <IconButton 

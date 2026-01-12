@@ -11,7 +11,7 @@ import { Box, Typography, Button, Grid, Sheet, LinearProgress, Drawer, ModalClos
 import StoreOwnerLayout from './layout';
 import { fetchMe } from '../../../services/authService';
 import { useAuthStore } from '../../store/useAuthStore';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useProductStore } from '../../../services/productService';
 import { toast } from 'react-toastify';
 export default function StoreOwnerTrialDashboard() {
@@ -35,7 +35,7 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [inventory, setInventory] = useState(1);
     const [images, setImages] = useState([]); // Array of { id, url, progress, isUploading }
     const MAX_IMAGES = 4;
-
+    const BACKEND_URL= import.meta.env.VITE_BACKEND_URL
     const stats = useMemo(() => {
     const totalProducts = products.length;
 
@@ -176,7 +176,7 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
         console.log("Full Error Object:", err);
         const errorMsg = err.response?.data?.message || "Failed to create product"; 
     // Extract the specific message: "Product limit reached"
-    const errorMessage = 
+      const errorMessage = 
         err.response?.data?.message || 
         err.response?.data?.error ||   // Some APIs use 'error' key
         err.message ||                 // Axios default (e.g., "Network Error")
@@ -190,16 +190,57 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
         } else {
             toast.error(errorMsg);
         }
-    setError(errorMessage);
+      setError(errorMessage);
 
-    // If it's a limit issue, don't clear it too fast so they can read it
-    const displayTime = errorMessage.includes("limit") ? 8000 : 4000;
-    setTimeout(() => setError(""), displayTime);
+      // If it's a limit issue, don't clear it too fast so they can read it
+      const displayTime = errorMessage.includes("limit") ? 8000 : 4000;
+      setTimeout(() => setError(""), displayTime);
 
     } finally {
     setSubmitting(false);
     }
   };
+
+    const handlePay = async () => {
+      try {
+        const { user, token, store } = useAuthStore.getState();
+  
+        // 🔐 Must be logged in
+        if (!token || !user) {
+          window.location.href = "/auth/sign-in";
+          return;
+        }
+  
+        // 🏪 Must have an active store
+        if (!store?._id) {
+          alert("No active store selected");
+          return;
+        }
+  
+        const amount = 5000
+        const res = await fetch(`${BACKEND_URL}/api/payments/init`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            email: user.email,
+            plan: "PAID",
+            amount,
+            storeId: store._id, // ✅ REQUIRED
+          }),
+        });
+  
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Payment failed");
+        console.log(data)
+        // 🚀 Redirect to Paystack
+        window.location.href = data.url;
+      } catch (err) {
+        alert(err.message);
+      }
+    };
 
     const StatSkeleton = () => (
     <Sheet
@@ -312,30 +353,33 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
             )}
             
         {/* Trial Countdown Header */}
-        <Sheet 
-            className="bg-slate-900/90! text-white! shadow-lg shadow-slate-200/20! lg:items-center! items-end! flex! justify-between! flex-wrap!"
-            variant="solid" 
-            sx={{ 
-            mb: 4, p: 2, borderRadius: '20px', 
-            }}
-        >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <div className="bg-amber-400 p-2 rounded-lg">
-                <Zap size={20} className="text-slate-900" />
-            </div>
-            <Box>
+        { store?.plan === "TRIAL" &&
+          <Sheet 
+              className="bg-slate-900/90! text-white! shadow-lg shadow-slate-200/20! lg:items-center! items-end! flex! justify-between! flex-wrap!"
+              variant="solid" 
+              sx={{ 
+              mb: 4, p: 2, borderRadius: '20px', 
+              }}
+          >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <div className="bg-amber-400 p-2 rounded-lg">
+                  <Zap size={20} className="text-slate-900" />
+              </div>
+              <Box>
                 <Typography sx={{ color: 'white', fontWeight: 700 }}>You're on the Free Trial</Typography>
                 <Typography className="text-slate-200!" sx={{ fontSize: '12px' }}>Upgrade now to unlock unlimited products and custom domains.</Typography>
-            </Box>
-            </Box>
-            <Button 
-            className='md:mt-0 mt-4!'
-            size="sm" 
-            sx={{ bgcolor: 'white', color: '#0f172a', '&:hover': { bgcolor: '#f1f5f9' }, borderRadius: 'lg' }}
-            >
-            Upgrade to Pro
-            </Button>
-        </Sheet>
+              </Box>
+              </Box>
+              <Button 
+              onClick={handlePay}
+              className='md:mt-0 mt-4!'
+              size="sm" 
+              sx={{ bgcolor: 'white', color: '#0f172a', '&:hover': { bgcolor: '#f1f5f9' }, borderRadius: 'lg' }}
+              >
+              Upgrade to Pro
+              </Button>
+          </Sheet>
+        }
 
         {/* Header Section */}
         <Box className="flex! flex-wrap!" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 4 }}>
@@ -346,7 +390,19 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
             <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <Typography level="body-md" sx={{ color: 'neutral.500' }}>Your store is currently live at:</Typography>
                 <Typography sx={{ color: 'blue.600', fontWeight: 600, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                {store?.subdomain ? `${store.subdomain}.layemart.shop` : "mystore.layemart.shop"} <ExternalLink size={14} />
+                  <a 
+                    href={
+                      store?.subdomain 
+                        ? `http://${store.subdomain}.${window.location.hostname.replace('www.', '')}${window.location.port ? ':' + window.location.port : ''}`
+                        : "#"
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-slate-600 hover:text-blue-600 hover:underline transition-colors"
+                  >
+                    {store?.subdomain ? `${store.subdomain}.layemart.com` : "mystore.layemart.com"}
+                    <ExternalLink size={14} className="mb-0.5" />
+                  </a>
                 </Typography>
             </div>
             </Box>

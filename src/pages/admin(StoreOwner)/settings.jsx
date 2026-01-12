@@ -5,16 +5,20 @@ import {
 } from "@mui/joy";
 import { User, Store, Bell, Shield, Save, Globe, Mail } from "lucide-react";
 import StoreOwnerLayout from './layout';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState('profile');
-
+  const [storeDits, setStoreDits] = useState("")
+    const {store, user} = useAuthStore()
   const menuItems = [
     { id: 'profile', label: 'Store Profile', icon: <Store size={18} /> },
     { id: 'account', label: 'Account Info', icon: <User size={18} /> },
     { id: 'notifications', label: 'Notifications', icon: <Bell size={18} /> },
     { id: 'security', label: 'Security', icon: <Shield size={18} /> },
   ];
+
+//   console.log(user)
 
   return (
     <StoreOwnerLayout>
@@ -85,14 +89,16 @@ export default function SettingsPage() {
 
                 <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
                     <FormLabel sx={{ minWidth: 140 }}>Store Name</FormLabel>
-                    <Input placeholder="Laiyemart Store" sx={{ flex: 1, maxWidth: 400 }} />
+                    <Input className='placeholder:capitalize!' value={store.name} disabled placeholder="Layemart Store" sx={{ flex: 1, maxWidth: 400 }} />
                 </FormControl>
 
                 <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
                     <FormLabel sx={{ minWidth: 140 }}>Subdomain</FormLabel>
                     <Input 
+                    value={store.subdomain}
+                    disabled
                     startDecorator={<Globe size={16} />} 
-                    endDecorator={<Typography level="body-xs">.laiyemart.com</Typography>}
+                    endDecorator={<Typography level="body-xs">.layemart.com</Typography>}
                     placeholder="mystore" 
                     sx={{ flex: 1, maxWidth: 400 }} 
                     />
@@ -100,7 +106,7 @@ export default function SettingsPage() {
 
                 <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
                     <FormLabel sx={{ minWidth: 140 }}>Support Email</FormLabel>
-                    <Input startDecorator={<Mail size={16} />} placeholder="support@laiyemart.com" sx={{ flex: 1, maxWidth: 400 }} />
+                    <Input value={user.email} startDecorator={<Mail size={16} />} placeholder="support@layemart.com" sx={{ flex: 1, maxWidth: 400 }} />
                 </FormControl>
 
                 <Divider />
@@ -135,6 +141,114 @@ export default function SettingsPage() {
                 ))}
                 </Stack>
             )}
+
+            {activeSection === 'account' && (
+                <Stack gap={3}>
+                    <Box>
+                    <Typography level="h4" sx={{ fontWeight: 700 }}>
+                        Account Information
+                    </Typography>
+                    <Typography level="body-sm">
+                        Manage your personal account details and security.
+                    </Typography>
+                    </Box>
+
+                    <Divider />
+
+                    {/* Email */}
+                    <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
+                    <FormLabel sx={{ minWidth: 140 }}>Email Address</FormLabel>
+                    <Input
+                        value={user?.email || ""}
+                        disabled
+                        startDecorator={<Mail size={16} />}
+                        sx={{ flex: 1, maxWidth: 400 }}
+                    />
+                    </FormControl>
+
+                    {/* Role */}
+                    <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
+                    <FormLabel sx={{ minWidth: 140 }}>Account Role</FormLabel>
+                    <Input
+                        value={user?.role === "OWNER" ? "Store Owner" : user?.role}
+                        disabled
+                        sx={{ flex: 1, maxWidth: 400 }}
+                    />
+                    </FormControl>
+
+                    {/* Email Verification Status */}
+                    <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
+                    <FormLabel sx={{ minWidth: 140 }}>Email Status</FormLabel>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Typography
+                        level="body-sm"
+                        sx={{
+                            fontWeight: 600,
+                            color: user?.isEmailVerified ? "success.600" : "warning.600",
+                        }}
+                        >
+                        {user?.isEmailVerified ? "Verified" : "Not Verified"}
+                        </Typography>
+
+                        {!user?.isEmailVerified && (
+                        <Button
+                            variant="soft"
+                            size="sm"
+                            color="warning"
+                        >
+                            Verify Email
+                        </Button>
+                        )}
+                    </Box>
+                    </FormControl>
+
+                    <Divider />
+
+                    {/* Password Section */}
+                    <Box>
+                    <Typography level="title-md" sx={{ fontWeight: 700 }}>
+                        Password
+                    </Typography>
+                    <Typography level="body-xs">
+                        Change your account password.
+                    </Typography>
+                    </Box>
+
+                    <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
+                    <FormLabel sx={{ minWidth: 140 }}>New Password</FormLabel>
+                    <Input
+                        type="password"
+                        placeholder="••••••••"
+                        sx={{ flex: 1, maxWidth: 400 }}
+                    />
+                    </FormControl>
+
+                    <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
+                    <FormLabel sx={{ minWidth: 140 }}>Confirm Password</FormLabel>
+                    <Input
+                        type="password"
+                        placeholder="••••••••"
+                        sx={{ flex: 1, maxWidth: 400 }}
+                    />
+                    </FormControl>
+
+                    <Divider />
+
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+                    <Button variant="plain" color="neutral">
+                        Cancel
+                    </Button>
+                    <Button
+                        startDecorator={<Save size={18} />}
+                        sx={{ bgcolor: "#0f172a", borderRadius: "lg" }}
+                        className="hover:bg-slate-800/90!"
+                    >
+                        Save Changes
+                    </Button>
+                    </Box>
+                </Stack>
+            )}
+
             </Sheet>
         </Box>
         </Box>

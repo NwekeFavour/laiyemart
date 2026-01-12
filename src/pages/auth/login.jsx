@@ -189,47 +189,47 @@ export default function LoginPage() {
                 </Typography>
                     <div className="flex flex-col gap-1.5 w-full">
                     {/* Input Container */}
-                    <div className="relative group">
-                        {/* Start Icon (Lock) */}
-                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <Lock 
-                            size={18} 
-                            className="text-slate-400 group-focus-within:text-slate-500 transition-colors" 
-                        />
+                        <div className="relative group">
+                            {/* Start Icon (Lock) */}
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <Lock 
+                                size={18} 
+                                className="text-slate-400 group-focus-within:text-slate-500 transition-colors" 
+                            />
+                            </div>
+
+                            {/* Standard Input */}
+                            <input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            className="
+                                w-full block bg-white text-slate-900 text-sm py-3 pl-11 pr-11
+                                border border-slate-200 rounded-xl
+                                placeholder:text-slate-400
+                                transition-all duration-200
+                                outline-none
+                                focus:border-slate-500 
+                                focus:ring-4 
+                                focus:ring-slate-400/15
+                            "
+                            />
+
+                            {/* End Decorator (Eye Toggle) */}
+                            <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                            {showPassword ? (
+                                <EyeOff size={18} strokeWidth={2.5} />
+                            ) : (
+                                <Eye size={18} strokeWidth={2.5} />
+                            )}
+                            </button>
                         </div>
-
-                        {/* Standard Input */}
-                        <input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="
-                            w-full block bg-white text-slate-900 text-sm py-3 pl-11 pr-11
-                            border border-slate-200 rounded-xl
-                            placeholder:text-slate-400
-                            transition-all duration-200
-                            outline-none
-                            focus:border-slate-500 
-                            focus:ring-4 
-                            focus:ring-slate-400/15
-                        "
-                        />
-
-                        {/* End Decorator (Eye Toggle) */}
-                        <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
-                        >
-                        {showPassword ? (
-                            <EyeOff size={18} strokeWidth={2.5} />
-                        ) : (
-                            <Eye size={18} strokeWidth={2.5} />
-                        )}
-                        </button>
-                    </div>
                     </div>
                 </Box>
 

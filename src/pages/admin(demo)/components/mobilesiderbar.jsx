@@ -1,161 +1,199 @@
-// MobileSidebar.js
-import { LayoutGrid, Boxes, Package, Layers, ShoppingCart, Users, Settings, ChevronDown, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { 
+  LayoutGrid, Package, Layers, ShoppingCart, 
+  Users, Settings, ChevronDown, X, LogOut, ExternalLink 
+} from "lucide-react";
+import { Box, Typography, Button, IconButton, Divider } from "@mui/joy";
 
-// Collapsible menu for submenus
-const MenuItem = ({ icon: Icon, label, children, isDark }) => {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div>
-      <button
-        onClick={() => setOpen(!open)}
-        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors
-          ${isDark ? "hover:bg-slate-700 text-slate-200" : "hover:bg-gray-100 text-gray-900"}`}
-      >
-        <div className="flex items-center gap-3">
-          <Icon size={18} />
-          <span className="font-medium">{label}</span>
-        </div>
-        <ChevronDown size={16} className={`transition-transform ease-out ${open ? "rotate-180" : ""}`} />
-      </button>
-
-      <div
-        className={`ml-6 overflow-hidden transition-all duration-300 ease-out
-          ${open ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"}`}
-      >
-        <div className={`space-y-1 text-sm ${isDark ? "text-slate-400" : "text-gray-500"}`}>
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Simple menu item
-const SimpleMenuItem = ({ icon: Icon, label, isDark, onClick, active }) => (
-  <button
-    onClick={onClick}
-    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm font-medium
-      ${active ? (isDark ? "bg-slate-700" : "bg-gray-200") : ""}
-      ${isDark ? "hover:bg-slate-700 text-slate-200" : "hover:bg-gray-100 text-gray-900"}`}
-  >
-    <Icon size={18} />
-    <span>{label}</span>
-  </button>
-);
-
-export default function MobileSidebar({ isDark, collapsed: parentCollapsed, demo, setDemo, setCollapsed, mobileOpen, setMobileOpen, activePage, setActivePage }) {
+export default function MobileSidebar({ 
+  isDark, 
+  mobileOpen, 
+  setMobileOpen, 
+  activePage, 
+  setActivePage, 
+  demo, 
+  setDemo 
+}) {
+  const [openSettings, setOpenSettings] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [collapsed, setCollapsedState] = useState(false);
 
-  const handleSelect = (page) => {
-    setActivePage(page);      // update parent activePage
-    setMobileOpen(false);     // close drawer
-  };
-
-  const handleDemoToggle = () => setDemo(!demo);
-    useEffect(() => {
-      setCollapsedState(parentCollapsed);
-  }, [parentCollapsed]);
-  
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  
+  const handleSelect = (page) => {
+    setActivePage(page);
+    setMobileOpen(false); // Close drawer after selection
+  };
+
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: <LayoutGrid size={20} /> },
+    { id: 'products', label: 'Products', icon: <Package size={20} /> },
+    { id: 'categories', label: 'Categories', icon: <Layers size={20} /> },
+    { id: 'orders', label: 'Orders', icon: <ShoppingCart size={20} /> },
+    { id: 'customers', label: 'Customers', icon: <Users size={20} /> },
+  ];
+
+  if (!mounted) return null;
 
   return (
     <>
-      {/* Overlay */}
-    <div 
-        className={`fixed inset-0 bg-black/50 z-1 transition-opacity duration-300 ease-in-out
-          ${mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`} 
-        onClick={() => setMobileOpen(false)} 
+      {/* --- Backdrop / Overlay --- */}
+      <Box
+        onClick={() => setMobileOpen(false)}
+        sx={{
+          position: "fixed",
+          inset: 0,
+          bgcolor: "rgba(15, 23, 42, 0.4)",
+          backdropFilter: "blur(4px)",
+          zIndex: 1000,
+          opacity: mobileOpen ? 1 : 0,
+          visibility: mobileOpen ? "visible" : "hidden",
+          transition: "all 0.3s ease-in-out",
+          display: { lg: "none" },
+        }}
       />
-      {/* Sidebar drawer */}
-      <aside
-        className={`fixed lg:hidden block top-0 left-0 h-screen w-64 z-50 flex flex-col
-          transform transition-transform duration-300 ease-out
-          ${mounted ? "transition-transform duration-300 ease-out" : ""}
-          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
-          ${isDark ? "bg-slate-900 text-slate-100" : "bg-white text-gray-900"}
-          shadow-lg`}
+
+      {/* --- Sidebar Drawer --- */}
+      <Box
+        component="aside"
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          bottom: 0,
+          width: 280,
+          zIndex: 1001,
+          display: "flex",
+          flexDirection: "column",
+          bgcolor: isDark ? "#0f172a" : "white",
+          transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          boxShadow: "xl",
+        }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-slate-700">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-md bg-red-500" />
-            <span  className={`font-bold text text-[13px] ${isDark ? "text-slate-200" : "text-gray-900"}`}>LAIYEMART</span>
-          </div>
-          <button onClick={() => setMobileOpen(false)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
-            <X size={20} className={isDark ? "text-slate-200" : "text-gray-900"} />
-          </button>
-        </div>
-
-        <div className=" flex items-end justify-end me-5 mt-3">
-          <button
-            className="bg-slate-400  cursor-pointer! text-white text-xs px-3 py-2 rounded-lg shadow-md hover:bg-slate-600 transition whitespace-nowrap"
-            onClick={() => {
-            handleDemoToggle();
-            }}
+        <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '80px' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ 
+              width: 32, height: 32, borderRadius: '6px', 
+              bgcolor: '#ef4444', flexShrink: 0,
+              boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)' 
+            }} />
+            <Typography className="text md:text-[13px]! text-[12px]!" sx={{ fontWeight: 800, fontSize: '16px', color: isDark ? 'white' : '#0f172a' }}>
+              LAYE<span className="text" style={{ color: '#ef4444' }}>MART</span>
+            </Typography>
+          </Box>
+          <IconButton 
+            variant="plain" 
+            onClick={() => setMobileOpen(false)}
+            sx={{ color: isDark ? '#94a3b8' : '#64748b' }}
           >
-            {demo ? 'Go Back to Store' : 'Online Store'}
-          </button>
-        </div>
+            <X size={20} />
+          </IconButton>
+        </Box>
 
-        {/* Menu */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-2 text-sm">
-          <SimpleMenuItem
-            icon={LayoutGrid}
-            label="Dashboard"
-            isDark={isDark}
-            active={activePage === "dashboard"}
-            onClick={() => handleSelect("dashboard")}
-          />
+        {/* Navigation Menu */}
+        <Box sx={{ px: 2, flex: 1, mt: 1, overflowY: 'auto' }}>
+          {navItems.map((item) => {
+            const isActive = activePage === item.id;
+            return (
+              <Box key={item.id} sx={{ position: 'relative' }}>
+                <Button
+                  variant={isActive ? "soft" : "plain"}
+                  startDecorator={item.icon}
+                  onClick={() => handleSelect(item.id)}
+                  sx={{
+                    width: '100%',
+                    justifyContent: 'flex-start',
+                    borderRadius: '12px',
+                    py: 1.5, px: 1.5, mb: 0.5,
+                    color: isActive ? (isDark ? '#fff' : '#0f172a') : (isDark ? '#94a3b8' : '#64748b'),
+                    bgcolor: isActive ? (isDark ? '#1e293b' : '#f1f5f9') : 'transparent',
+                    '& .MuiButton-startDecorator': { 
+                      color: isActive ? '#3b82f6' : 'inherit' 
+                    },
+                  }}
+                >
+                  <Typography sx={{ fontWeight: isActive ? 700 : 600, fontSize: '14px', ml: 1, color: 'inherit' }}>
+                    {item.label}
+                  </Typography>
+                </Button>
+                {/* Active Indicator Strip */}
+                {isActive && (
+                  <Box sx={{ 
+                    position: 'absolute', left: -8, top: '20%', height: '60%', width: 4, 
+                    bgcolor: '#3b82f6', borderRadius: '0 4px 4px 0' 
+                  }} />
+                )}
+              </Box>
+            );
+          })}
 
-          <SimpleMenuItem
-            icon={Package}
-            label="Products"
-            isDark={isDark}
-            active={activePage === "products"}
-            onClick={() => handleSelect("products")}
-          />
-
-
-          <SimpleMenuItem
-            icon={Layers}
-            label="All Categories"
-            isDark={isDark}
-            active={activePage === "categories"}
-            onClick={() => handleSelect("categories")}
-          />
-
-          <SimpleMenuItem 
-            icon={ShoppingCart} 
-            label="Orders"  
-            isDark={isDark} 
-            active={activePage === "orders"} 
-            onClick={() => handleSelect("orders")} />
-
-          <SimpleMenuItem icon={Users} label="Customers"  isDark={isDark} active={activePage === "customers"} onClick={() => handleSelect("customers")} />
-
-          <MenuItem icon={Settings} label="Settings" isDark={isDark}>
-            <button
-              className="block hover:text-blue-400 w-full text-left"
-              onClick={() => handleSelect("settings")}
+          {/* Settings Section */}
+          <Box sx={{ mt: 1 }}>
+            <Button
+              variant="plain"
+              startDecorator={<Settings size={20} />}
+              endDecorator={<ChevronDown size={16} style={{ transition: '0.2s', transform: openSettings ? 'rotate(180deg)' : '' }} />}
+              onClick={() => setOpenSettings(!openSettings)}
+              sx={{
+                width: '100%',
+                justifyContent: 'flex-start',
+                borderRadius: '12px',
+                py: 1.5, px: 1.5,
+                color: isDark ? '#94a3b8' : '#64748b',
+                '&:hover': { bgcolor: isDark ? '#1e293b' : '#f8fafc' }
+              }}
             >
-              General
-            </button>
-            <button
-              className="block hover:text-blue-400 w-full text-left"
-              onClick={() => handleSelect("security")}
-            >
-              Security
-            </button>
-          </MenuItem>
-        </nav>
-      </aside>
+              <Typography sx={{ fontWeight: 600, fontSize: '14px', ml: 1, flex: 1, textAlign: 'left', color: 'inherit' }}>
+                Settings
+              </Typography>
+            </Button>
+            
+            {openSettings && (
+              <Box sx={{ ml: 4.5, mt: 0.5, borderLeft: '1px solid', borderColor: isDark ? '#1e293b' : '#f1f5f9', pl: 1 }}>
+                {['settings', 'security'].map(sub => (
+                  <Typography 
+                    key={sub} 
+                    onClick={() => handleSelect(sub)}
+                    sx={{ 
+                      p: 1.5, cursor: 'pointer', fontSize: '13px', borderRadius: '8px',
+                      color: activePage === sub ? '#3b82f6' : (isDark ? '#94a3b8' : '#64748b'),
+                      fontWeight: activePage === sub ? 700 : 500,
+                      '&:hover': { color: '#3b82f6', bgcolor: isDark ? '#1e293b' : '#f8fafc' } 
+                    }}
+                  >
+                    {sub.charAt(0).toUpperCase() + sub.slice(1)}
+                  </Typography>
+                ))}
+              </Box>
+            )}
+          </Box>
+        </Box>
+
+        {/* Footer Actions */}
+        <Box sx={{ p: 2, borderTop: '1px solid', borderColor: isDark ? '#1e293b' : '#f1f5f9' }}>
+          <Button
+            variant="soft"
+            color={demo ? "neutral" : "primary"}
+            startDecorator={<ExternalLink size={18} />}
+            onClick={() => setDemo(!demo)}
+            sx={{ width: '100%', mb: 1, borderRadius: '12px', justifyContent: 'flex-start' }}
+          >
+            {demo ? 'Back to Store' : 'Online Store'}
+          </Button>
+
+          <Button
+            variant="plain"
+            color="danger"
+            startDecorator={<LogOut size={20} />}
+            sx={{ width: '100%', borderRadius: '12px', justifyContent: 'flex-start' }}
+          >
+            Sign Out
+          </Button>
+        </Box>
+      </Box>
     </>
   );
 }

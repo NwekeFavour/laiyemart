@@ -3,6 +3,7 @@ import Sidebar from "./sidebar";
 import Topbar from "./topbar";
 import MobileSidebar from "./mobilesiderbar";
 import PurchaseButton from "./purchaseButton";
+import { Box } from "@mui/joy";
 
 export default function DashboardLayout({ children, activePage, setActivePage, demo, setDemo }) {
   const contentRef = useRef(null);
@@ -30,6 +31,7 @@ export default function DashboardLayout({ children, activePage, setActivePage, d
         collapsed={collapsed}
         setCollapsed={setCollapsed}
         mobileOpen={mobileOpen}
+        activeTab={activePage}
         onSelect={page => {
           setActivePage(page);
           setMobileOpen(false);
@@ -52,7 +54,13 @@ export default function DashboardLayout({ children, activePage, setActivePage, d
       />
 
       {/* Main area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className={`
+          flex-1 flex flex-col min-w-0 
+          transition-[margin] duration-300 ease-in-out
+          ${collapsed ? "lg:ml-[100px]" : "lg:ml-[280px]"}
+        `}
+        /* REMOVED the inline style marginLeft logic as Tailwind handles it more reactively above */
+      >
         <Topbar
           scrollRef={contentRef}
           isDark={isDark}
@@ -64,14 +72,14 @@ export default function DashboardLayout({ children, activePage, setActivePage, d
 
         <PurchaseButton isDark={isDark}  />
 
-
-        {/* Scrollable Content */}
         <main ref={contentRef} className="flex-1 hide-scrollbar overflow-y-auto p-5 md:p-6">
-          {React.Children.map(children, (child) =>
-            React.isValidElement(child)
-              ? React.cloneElement(child, { isDark, activePage })
-              : child
-          )}
+          <Box sx={{ maxWidth: '1600px', mx: 'auto', width: '100%' }}>
+            {React.Children.map(children, (child) =>
+              React.isValidElement(child)
+                ? React.cloneElement(child, { isDark, activePage })
+                : child
+            )}
+          </Box>
         </main>
       </div>
     </div>

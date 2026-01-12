@@ -103,7 +103,7 @@ export default function SuperAdminDashboard() {
               System Overview
             </Typography>
             <Typography level="body-md" sx={{ color: "text.tertiary" }}>
-              Real-time monitoring of the Laiyemart ecosystem.
+              Real-time monitoring of the Layemart ecosystem.
             </Typography>
           </Box>
           <Button

@@ -16,11 +16,33 @@ import RoleRedirect from './components/redirect';
 import OrdersPage from './pages/admin(StoreOwner)/orders';
 import ProductsPage from './pages/admin(StoreOwner)/products';
 import SettingsPage from './pages/admin(StoreOwner)/settings';
+import DemoHome from './pages/(demo)/home';
+import AuthPage from './pages/admin(StoreOwner)/auth/login';
+import PaymentSuccess from './pages/paymentSuccess';
+import CustomerSignUp from './pages/admin(StoreOwner)/auth/register';
+import StoreResolver, { getSubdomain } from '../storeResolver';
+
 
 function App() {
+  const subdomain = getSubdomain();
+  if (subdomain) {
+    return (
+      <div className='hide-scrollbar'>
+        <Routes>
+          {/* All store-front related routes go here */}
+          <Route path='/' element={<DemoHome storeSlug={subdomain}/>}/>
+          <Route path='/login' element={<AuthPage/>}/>
+          <Route path='/register' element={<CustomerSignUp/>}/>
+          <Route path='*' element={<div>Store Page Not Found</div>}/>
+        </Routes>
+        <ToastContainer theme="colored" />
+      </div>
+    );
+  }
   return (
     <div className='hide-scrollbar'>
 
+      
       <Routes>
         {/* Public Routes */}
         <Route path='/' element={<Home/>}/>
@@ -28,7 +50,7 @@ function App() {
         <Route path='/auth/sign-up' element={<SignUpPage/>}/>
         <Route path='/unauthorized' element={<Unauthorized/>}/>
         <Route path="/auth/redirect" element={<RoleRedirect />} />
-
+        <Route path='/payment/success' element={<PaymentSuccess/>}/>
         {/* Super Admin Only */}
         <Route element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']} />}>
           <Route path='/dashboard' element={<SuperAdminDashboard/>}/>
