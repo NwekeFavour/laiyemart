@@ -21,6 +21,9 @@ import AuthPage from './pages/admin(StoreOwner)/auth/login';
 import PaymentSuccess from './pages/paymentSuccess';
 import CustomerSignUp from './pages/admin(StoreOwner)/auth/register';
 import StoreResolver, { getSubdomain } from '../storeResolver';
+import ForgotPassword from './pages/forgotPassword';
+import ResetPassword from './pages/resetPassword';
+import CategoriesTable from './pages/admin(StoreOwner)/category';
 
 
 function App() {
@@ -48,6 +51,8 @@ function App() {
         <Route path='/' element={<Home/>}/>
         <Route path='/auth/sign-in' element={<LoginPage/>}/>
         <Route path='/auth/sign-up' element={<SignUpPage/>}/>
+        <Route path='/auth/forgot-password' element={<ForgotPassword/>}/>
+        <Route path='/reset-password' element={<ResetPassword/>}/>
         <Route path='/unauthorized' element={<Unauthorized/>}/>
         <Route path="/auth/redirect" element={<RoleRedirect />} />
         <Route path='/payment/success' element={<PaymentSuccess/>}/>
@@ -68,6 +73,9 @@ function App() {
         </Route>
         <Route element={<ProtectedRoute allowedRoles={['OWNER', 'SUPER_ADMIN']} />}>
           <Route path='/dashboard/settings' element={<SettingsPage/>}/>
+        </Route>
+        <Route element={<ProtectedRoute allowedRoles={['OWNER', 'SUPER_ADMIN']} />}>
+          <Route path='/dashboard/categories' element={<CategoriesTable/>}/>
         </Route>
         <Route path='*' element={<div className='flex items-center justify-center h-screen text-3xl font-semibold'>404 - Page Not Found</div>}/>
       </Routes>

@@ -8,7 +8,8 @@ import CategoriesTable from "./components/categories";
 import OrderListComponent from "./components/orderComp";
 import DemoHome from "../(demo)/home";
 import CustomerList from "./components/customerList";
-import { ArrowLeftFromLine } from "lucide-react";
+import { ArrowLeftFromLine, ExternalLink, Plus } from "lucide-react";
+import { Box, Button, Typography } from "@mui/joy";
 
 export default function Account() {
   const [isDark, setIsDark] = useState(false);
@@ -83,6 +84,27 @@ function DashboardAnalytics({ isDark }) {
         isDark ? " text-slate-200" : "bg-white text-gray-900"
       }`}
     >
+      <Box className={`${isDark ? "text-white!": ""} flex! flex-wrap! `} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 4 }}>
+        <Box>
+          <Typography className={`${isDark ? "text-slate-100!": ""}  lg:text-[30px]! md:text-[24px]! text-[22px]!`} level="h2" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+            Welcome, Store Owner!
+          </Typography>
+          <div className={`  flex items-center gap-2 mt-1 flex-wrap`}>
+            <Typography className={`${isDark ? "text-slate-200!": ""}`} level="body-md" sx={{ color: 'neutral.500' }}>Your store is currently live at:</Typography>
+            <Typography  sx={{ color: 'blue.600', fontWeight: 600, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <a 
+                href={"#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${isDark ? "text-slate-100!": ""} flex items-center gap-1 text-slate-600 hover:text-blue-600 hover:underline transition-colors`}
+              >
+                {`mystore.layemart.com` }
+                <ExternalLink size={14} className="mb-0.5" />
+              </a>
+            </Typography>
+          </div>
+        </Box>
+      </Box>
       <Analytics isDark={isDark} />
       <SalesActivity isDark={isDark} />
       <RecentOrders isDark={isDark} />

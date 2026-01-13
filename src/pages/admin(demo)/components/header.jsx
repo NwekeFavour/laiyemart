@@ -116,13 +116,13 @@ export default function Header() {
             <Typography level="body-sm" sx={{ display: { xs: "none", md: "block" } }}>
                 {/* 1. If it's a Demo, show a placeholder login link */}
                 {localStorage.getItem("demo") ? (
-                <Link to="#" style={{ color: 'white', textDecoration: 'none', opacity: 0.7 }}>
+                <Link to="#" style={{ color: 'black', textDecoration: 'none', opacity: 0.7 }}>
                     LOGIN (DEMO)
                 </Link>
                 ) : 
                 /* 2. If Not Demo, check if Customer is Authenticated */
                 isAuthenticated ? (
-                <Link to={`/account`} style={{ color: 'white', textDecoration: 'none' }}>
+                <Link to={`/account`} style={{ color: 'black', textDecoration: 'none' }}>
                     HI, {customer?.name?.toUpperCase() || 'ACCOUNT'}
                 </Link>
                 ) : (

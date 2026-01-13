@@ -79,8 +79,7 @@ export const useProductStore = create((set, get) => ({
 
   // Delete product
   deleteProduct: async (productId) => {
-    const { token } = useAuthStore.getState();
-
+    const {token} = useAuthStore.getState();
     set({ loading: true, error: null });
 
     try {
@@ -112,6 +111,58 @@ export const useProductStore = create((set, get) => ({
       throw err;
     }
   },
+
+  fetchStoreProducts: async (subdomain) => {
+    set({ loading: true, error: null });
+    try {
+      // Note: No token needed for public view
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products/public/${subdomain}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        set({ products: data.products, loading: false });
+        // console.log(data)
+      } else {
+        throw new Error(data.message || "Failed to fetch");
+      }
+    } catch (err) {
+      set({ error: err.message, loading: false, products: [] });
+    }
+  },
+
+   updateProduct: async (productId, formData, token) => {
+    try {
+      set({ loading: true, error: null });
+
+      const res = await fetch(
+        `${VITE_BACKEND_URL}/api/products/${productId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      set(state => ({
+        products: state.products.map(p =>
+          p._id === productId ? data.product : p
+        ),
+        loading: false,
+      }));
+
+      return data.product;
+    } catch (err) {
+      set({ error: err.message, loading: false });
+      throw err;
+    }
+  },
+  // Set local products (for the Demo mode)
+  setLocalProducts: (items) => set({ products: items, loading: false }),
 
   // Reset store on logout
   resetProducts: () => {

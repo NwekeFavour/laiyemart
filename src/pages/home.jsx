@@ -14,6 +14,7 @@ import { useAuthStore } from '../store/useAuthStore';
 function Home(props) {
     const [openIndex, setOpenIndex] = useState(null);
     const [mode, setMode] = useState(false);
+    const [demo, setDemo] = useState(null)
     const [billing, setBilling] = useState("yearly");
     const rows = 10;
     const cols = 20;
@@ -642,12 +643,12 @@ function Home(props) {
                         Start your free trial today.
                         </h1>
 
-                        <button
+                        <Link
                         className="pointer-events-auto rounded-lg outline-none! bg-white px-6 py-3 text-sm font-medium text-black hover:bg-gray-200 transition"
-                        onClick={() => console.log("clicked")}
+                        to={'/auth/sign-in'}
                         >
                         Get started for free
-                        </button>
+                        </Link>
                     </div>
                     </section>
                     <section className="py-24 bg-background! xl:px-0 lg:px-6 px-4">

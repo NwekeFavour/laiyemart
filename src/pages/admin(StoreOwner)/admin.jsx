@@ -14,6 +14,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { Link, useNavigate } from 'react-router-dom';
 import { useProductStore } from '../../../services/productService';
 import { toast } from 'react-toastify';
+import { useCategoryStore } from '../../../services/categoryService';
 export default function StoreOwnerTrialDashboard() {
   // Stats reflecting a brand new store
 const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -23,6 +24,7 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const total_orders = 0
     const [loading, setLoading] = useState(false)
     const { products, fetchMyProducts, createProduct } = useProductStore();
+    const {categories, getCategories} = useCategoryStore();
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
     const [previewImage, setPreviewImage] = useState(null);
@@ -31,7 +33,11 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [name, setName] = useState("");
     const [price, setPrice] = useState("");
     const [description, setDescription] = useState("");
-    const [category, setCategory] = useState("");
+
+    useEffect(() => {
+      getCategories()
+    }, [])
+    const [category, setCategory] = useState(categories);
     const [inventory, setInventory] = useState(1);
     const [images, setImages] = useState([]); // Array of { id, url, progress, isUploading }
     const MAX_IMAGES = 4;
@@ -144,62 +150,72 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const removeImage = (id) => {
     setImages(prev => prev.filter(img => img.id !== id));
     };
+    
 
     const handleCreateProduct = async () => {
-    if (!name || !price || images.length === 0) {
-      alert("Please provide at least a name, price, and cover image.");
-      return;
+      if (!name || !price || images.length === 0) {
+        toast.error("Please provide at least a name, price, and cover image.");
+        return;
+      }
+
+      const isTrialExpired = store?.plan === "TRIAL" &&  (new Date(store.trialEndsAt) - new Date() <= 0);
+      if (isTrialExpired) {
+        toast.error("Access Denied: Your trial has expired. Please upgrade to continue.", {
+            icon: "🚫",
+            style: { borderRadius: '12px' }
+        });
+        return; // Stop execution
     }
 
-    try {
-      setSubmitting(true);
-        const formData = new FormData();
-        formData.append("name", name);
-        formData.append("price", Number(price) || 0);       // ✅ ensure number
-        formData.append("description", description);
-        formData.append("category", category);
-        formData.append("inventory", Number(inventory) || 0); // ✅ ensure number      
-        images.forEach((img) => {
-        formData.append("images", img.file);
-      });
+      try {
+        setSubmitting(true);
+          const formData = new FormData();
+          formData.append("name", name);
+          formData.append("price", Number(price) || 0);       // ✅ ensure number
+          formData.append("description", description);
+          formData.append("category", category);
+          formData.append("inventory", Number(inventory) || 0); // ✅ ensure number      
+          images.forEach((img) => {
+          formData.append("images", img.file);
+        });
 
-    // for (let [key, value] of formData.entries()) {
-    //   console.log(key, value);
-    // }
-    await createProduct(formData) 
-      
-      // Reset Form
-      setIsDrawerOpen(false);
-      setName(""); setPrice(""); setDescription(""); setCategory(""); setImages([]); setInventory("");
-      fetchMyProducts(); // Refresh list
-    } catch (err) {
-        console.log("Full Error Object:", err);
-        const errorMsg = err.response?.data?.message || "Failed to create product"; 
-    // Extract the specific message: "Product limit reached"
-      const errorMessage = 
-        err.response?.data?.message || 
-        err.response?.data?.error ||   // Some APIs use 'error' key
-        err.message ||                 // Axios default (e.g., "Network Error")
-        "Failed to create product";
+      // for (let [key, value] of formData.entries()) {
+      //   console.log(key, value);
+      // }
+      await createProduct(formData) 
+        
+        // Reset Form
+        setIsDrawerOpen(false);
+        setName(""); setPrice(""); setDescription(""); setCategory(""); setImages([]); setInventory("");
+        fetchMyProducts(); // Refresh list
+      } catch (err) {
+          console.log("Full Error Object:", err);
+          const errorMsg = err.response?.data?.message || "Failed to create product"; 
+      // Extract the specific message: "Product limit reached"
+        const errorMessage = 
+          err.response?.data?.message || 
+          err.response?.data?.error ||   // Some APIs use 'error' key
+          err.message ||                 // Axios default (e.g., "Network Error")
+          "Failed to create product";
 
-        if (errorMsg.includes("limit")) {
-            toast.error("🚀 Product limit reached! Please upgrade your plan.", {
-                icon: "⚠️",
-                style: { borderRadius: '12px' }
-            });
-        } else {
-            toast.error(errorMsg);
-        }
-      setError(errorMessage);
+          if (errorMsg.includes("limit")) {
+              toast.error("🚀 Product limit reached! Please upgrade your plan.", {
+                  icon: "⚠️",
+                  style: { borderRadius: '12px' }
+              });
+          } else {
+              toast.error(errorMsg);
+          }
+        setError(errorMessage);
 
-      // If it's a limit issue, don't clear it too fast so they can read it
-      const displayTime = errorMessage.includes("limit") ? 8000 : 4000;
-      setTimeout(() => setError(""), displayTime);
+        // If it's a limit issue, don't clear it too fast so they can read it
+        const displayTime = errorMessage.includes("limit") ? 8000 : 4000;
+        setTimeout(() => setError(""), displayTime);
 
-    } finally {
-    setSubmitting(false);
-    }
-  };
+      } finally {
+      setSubmitting(false);
+      }
+    };
 
     const handlePay = async () => {
       try {
@@ -384,7 +400,7 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
         {/* Header Section */}
         <Box className="flex! flex-wrap!" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 4 }}>
             <Box>
-            <Typography level="h2" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+            <Typography className="lg:text-[30px]! md:text-[24px]! text-[22px]!" level="h2" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
                 Welcome, Store Owner!
             </Typography>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -411,7 +427,7 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
                 onClick={() => setIsDrawerOpen(true)}
             variant="solid" 
             startDecorator={<Plus size={18} />}
-            sx={{ bgcolor: '#0f172a', borderRadius: 'xl', height: 48, px: 3 }}
+            sx={{ bgcolor: '#0f172b', borderRadius: 'xl', height: 48, px: 3 }}
             >
             Add Product
             </Button>
@@ -666,17 +682,40 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
                     <Stack spacing={1.5}>
                     {/* Cover Image */}
                     <Box sx={{ position: 'relative', borderRadius: 'xl', border: '2px dashed #cbd5e1', overflow: 'hidden' }}>
-                        <AspectRatio ratio="16/9">
-                        {images.length > 0 ? (
-                            <img src={images[0].url} style={{ objectFit: 'cover' }} alt="Cover"/>
-                        ) : (
-                            <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-                            <UploadCloud size={24} />
-                            <Typography level="body-xs" sx={{ mt: 1 }}>Upload Cover</Typography>
-                            <input type="file" hidden accept="image/*" multiple onChange={handleMultiFileChange} />
-                            </label>
-                        )}
-                        </AspectRatio>
+                      <AspectRatio ratio="16/9">
+                          {images.length > 0 ? (
+                              <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+                                  <img 
+                                      src={images[0].url} 
+                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                      alt="Cover"
+                                  />
+                                  {/* Remove button for the Cover Image */}
+                                  <IconButton 
+                                      size="md" 
+                                      color="danger" 
+                                      variant="solid" 
+                                      onClick={() => removeImage(images[0].id)} 
+                                      sx={{ 
+                                          position: 'absolute', 
+                                          top: 10, 
+                                          right: 10, 
+                                          borderRadius: '50%', 
+                                          boxShadow: 'sm',
+                                          zIndex: 10 
+                                      }}
+                                  >
+                                      <X size={18}/>
+                                  </IconButton>
+                              </Box>
+                          ) : (
+                              <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+                                  <UploadCloud size={24} />
+                                  <Typography level="body-xs" sx={{ mt: 1 }}>Upload Cover</Typography>
+                                  <input type="file" hidden accept="image/*" multiple onChange={handleMultiFileChange} />
+                              </label>
+                          )}
+                      </AspectRatio>
                     </Box>
 
                     {/* Thumbnails Grid */}
@@ -778,69 +817,74 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
                 </FormControl>
               </Stack>
               <Stack spacing={2.5}>
-  {/* PRICE CONTROL */}
-  <FormControl required>
-    <FormLabel sx={{ fontWeight: 600 }}>Price</FormLabel>
-    <Input
-      type="number"
-      value={price}
-      onChange={(e) => setPrice(e.target.value)}
-      placeholder="0.00"
-      startDecorator={<Typography sx={{ fontWeight: 'bold', color: 'neutral.500' }}>₦</Typography>}
-      variant="soft"
-      sx={{
-        borderRadius: 'lg',
-        "&::before": { display: 'none' },
-        "&:focus-within": { outline: 'none', border: 'none' },
-        '&:hover': { bgcolor: 'neutral.100' }
-      }}
-    />
-  </FormControl>
+              {/* PRICE CONTROL */}
+              <FormControl required>
+                <FormLabel sx={{ fontWeight: 600 }}>Price</FormLabel>
+                <Input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="0.00"
+                  startDecorator={<Typography sx={{ fontWeight: 'bold', color: 'neutral.500' }}>₦</Typography>}
+                  variant="soft"
+                  sx={{
+                    borderRadius: 'lg',
+                    "&::before": { display: 'none' },
+                    "&:focus-within": { outline: 'none', border: 'none' },
+                    '&:hover': { bgcolor: 'neutral.100' }
+                  }}
+                />
+              </FormControl>
 
-  {/* CATEGORY CONTROL */}
-  <FormControl required>
-    <FormLabel sx={{ fontWeight: 600 }}>Category</FormLabel>
-    <Select
-      placeholder="Select a category"
-      value={category}
-      onChange={(_, newValue) => setCategory(newValue)}
-      variant="soft"
-      sx={{
-        borderRadius: 'lg',
-        "&::before": { display: 'none' },
-        "&:focus-within": { outline: 'none', border: 'none' },
-      }}
-    >
-      <Option value="electronics">Electronics</Option>
-      <Option value="fashion">Fashion & Apparel</Option>
-      <Option value="home">Home & Kitchen</Option>
-      <Option value="beauty">Beauty & Health</Option>
-      <Option value="other">Other</Option>
-    </Select>
-  </FormControl>
+              {/* CATEGORY CONTROL */}
+              <FormControl required>
+                <FormLabel sx={{ fontWeight: 600 }}>Category</FormLabel>
+                <Select
+                  placeholder="Select a category"
+                  value={category}
+                  onChange={(_, newValue) => setCategory(newValue)}
+                  variant="soft"
+                  sx={{
+                    borderRadius: 'lg',
+                    "&::before": { display: 'none' },
+                    "&:focus-within": { outline: 'none', border: 'none' },
+                  }}
+                >
+                  {/* Dynamic mapping starts here */}
+                  {categories && categories.length > 0 ? (
+                    categories.map((cat) => (
+                      <Option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </Option>
+                    ))
+                  ) : (
+                    <Option value="" disabled>No categories found</Option>
+                  )}
+                </Select>
+              </FormControl>
 
-  {/* INVENTORY CONTROL */}
-  <FormControl required>
-    <FormLabel sx={{ fontWeight: 600 }}>Inventory / Stock</FormLabel>
-    <Input
-      type="number"
-      value={inventory}
-      onChange={(e) => setInventory(e.target.value)}
-      placeholder="Quantity available"
-      endDecorator={<Typography level="body-xs" sx={{ color: 'neutral.500' }}>units</Typography>}
-      variant="soft"
-      sx={{
-        borderRadius: 'lg',
-        "&::before": { display: 'none' },
-        "&:focus-within": { outline: 'none', border: 'none' },
-        '&:hover': { bgcolor: 'neutral.100' }
-      }}
-    />
-    <Typography level="body-xs" sx={{ mt: 0.5, color: 'neutral.500' }}>
-      Low stock alerts will trigger when below 5 units.
-    </Typography>
-  </FormControl>
-</Stack>
+              {/* INVENTORY CONTROL */}
+              <FormControl required>
+                <FormLabel sx={{ fontWeight: 600 }}>Inventory / Stock</FormLabel>
+                <Input
+                  type="number"
+                  value={inventory}
+                  onChange={(e) => setInventory(e.target.value)}
+                  placeholder="Quantity available"
+                  endDecorator={<Typography level="body-xs" sx={{ color: 'neutral.500' }}>units</Typography>}
+                  variant="soft"
+                  sx={{
+                    borderRadius: 'lg',
+                    "&::before": { display: 'none' },
+                    "&:focus-within": { outline: 'none', border: 'none' },
+                    '&:hover': { bgcolor: 'neutral.100' }
+                  }}
+                />
+                <Typography level="body-xs" sx={{ mt: 0.5, color: 'neutral.500' }}>
+                  Low stock alerts will trigger when below 5 units.
+                </Typography>
+              </FormControl>
+            </Stack>
             </DialogContent>
 
             <Box sx={{ p: 3, borderTop: '1px solid #eee', bgcolor: 'white' }}>
@@ -849,7 +893,6 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
                 fullWidth 
                 size="lg" 
                 loading={submitting}
-                loadingPosition="start"
                 startDecorator={!submitting && <Plus size={18} />}
                 onClick={handleCreateProduct}
                 sx={{ borderRadius: 'xl', height: 50 }}

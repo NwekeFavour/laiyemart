@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { 
   Bell, Search, Menu, X, LayoutGrid, ShoppingBag, 
-  Package, Users, BarChart3, Settings, LogOut, ChevronLeft, ChevronRight 
+  Package, Users, BarChart3, Settings, LogOut, ChevronLeft, ChevronRight, 
+  Layers
 } from "lucide-react";
 import { Box, IconButton, Button, Sheet, Badge, Typography } from "@mui/joy";
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -55,12 +56,14 @@ const location = useLocation();
   
       loadUser();
     }, []);
-const navItems = [
-  { id: 'ov', label: "Dashboard", icon: <LayoutGrid size={20} />, path: '/dashboard/beta' },
-  { id: 'or', label: "Orders", icon: <ShoppingBag size={20} />, path: '/dashboard/orders' },
-  { id: 'pr', label: "Products", icon: <Package size={20} />, path: '/dashboard/products' },
-  { id: 'st', label: "Settings", icon: <Settings size={20} />, path: '/dashboard/settings' },
-];
+    
+  const navItems = [
+    { id: 'ov', label: "Dashboard", icon: <LayoutGrid size={20} />, path: '/dashboard/beta' },
+    { id: 'or', label: "Orders", icon: <ShoppingBag size={20} />, path: '/dashboard/orders' },
+    { id: 'pr', label: "Products", icon: <Package size={20} />, path: '/dashboard/products' },
+    { id: 'ca', label: "Categories", icon: <Layers size={20} />, path: '/dashboard/categories' },
+    { id: 'st', label: "Settings", icon: <Settings size={20} />, path: '/dashboard/settings' },
+  ];
   useEffect(() => {
     if(!localStorage.getItem("layemart-auth")) {
         navigate("/auth/sign-in")
@@ -309,7 +312,7 @@ const navItems = [
             <Menu />
           </IconButton>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, maxW: 400, ml: { lg: 0, xs: 2 } }}>
+          <Box sx={{ display: 'flex', justifyContent: "end", alignItems: 'center', gap: 2, flex: 1, maxW: 400, ml: { lg: 0, xs: 2 } }}>
              <div className="relative w-full max-w-sm hidden md:block">
                 <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input 

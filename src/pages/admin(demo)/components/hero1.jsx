@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@mui/joy';
 import Header from './header';
 
-export default function Hero({ onCreateStore }) {
+export default function Hero({ onCreateStore, storeName }) {
   return (
     <section className="hero">
       <div className="hero-content">

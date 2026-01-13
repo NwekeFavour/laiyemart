@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from '../../store/useAuthStore';
 import { loginStoreOwner } from '../../../services/authService';
 import { toast } from 'react-toastify';
+import { CircularProgress } from '@mui/material';
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
@@ -92,179 +93,199 @@ export default function LoginPage() {
                 )}
             {/* Form Fields */}
             <form
-                onSubmit={async (e) => {
-                    e.preventDefault();
-                    setLoading(true);
-                    setError(null); // Clear any previous errors
+            onSubmit={async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError(null);
 
-                    try {
-                        const data = await loginStoreOwner(email, password);
-                        console.log(data);
+                try {
+                const data = await loginStoreOwner(email, password);
 
-                        if (data?.user.role === "SUPER_ADMIN") {
-                            toast.success(`Welcome back, Admin!`);
-                            navigate("/dashboard");
-                        } else if (data?.user.role === "OWNER") {
-                            toast.success("Logged In Successfully!");
-                            navigate("/dashboard/beta");
-                        } else {
-                            toast.error("Unauthorized access: Unknown role.");
-                            setLoading(false);
-                            return;
-                        }
-                        
-                        // Note: setLoading(false) isn't strictly needed here as navigation unmounts the page
-                    } catch (err) {
-                        setLoading(false);
-                        
-                        // 1. Determine the actual error message
-                        const errorMessage = err?.response?.data?.message || err?.message || "Login failed";
-                        
-                        // 2. Handle specific Network Error
-                        if (errorMessage === "Failed to fetch") {
-                            const netMsg = "Network error: Unable to reach the server.";
-                            setError(netMsg);
-                            setTimeout(() => {
-                                setError("")
-                            }, 4000)
-                            toast.error(netMsg);
-                            return;
-                        }
+                if (!data?.user?.role) {
+                    throw new Error("Invalid server response");
+                }
 
-                        // 3. Set standard error and show toast
-                        setError(errorMessage);
-                        toast.error(errorMessage);
-                        
-                        console.error("Login Error:", errorMessage);
+                if (data.user.role === "SUPER_ADMIN") {
+                    toast.success("Welcome back, Admin!");
+                    navigate("/dashboard");
+                } else if (data.user.role === "OWNER") {
+                    toast.success("Logged in successfully!");
+                    navigate("/dashboard/beta");
+                } else {
+                    throw new Error("Unauthorized role");
+                }
+                } catch (err) {
+                let message = "Something went wrong. Please try again.";
 
-                        // Auto-clear the inline error state
-                        setTimeout(() => {
-                            setError(null);
-                        }, 5000);
+                // 🔹 1. Server responded with error (4xx / 5xx)
+                if (err.response) {
+                    const { status, data } = err.response;
+
+                    switch (status) {
+                    case 400:
+                        message = data?.message || "Invalid request.";
+                        break;
+                    case 401:
+                        message = "Invalid email or password.";
+                        break;
+                    case 403:
+                        message = "You are not authorized to access this account.";
+                        break;
+                    case 404:
+                        message = "Login service not found.";
+                        break;
+                    case 500:
+                        message = "Server error. Please try again later.";
+                        break;
+                    default:
+                        message = data?.message || "Unexpected server error.";
                     }
-                }}
-            >           
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                <div className="flex flex-col gap-1.5 w-full">
-                {/* Standard Label */}
-                <label 
-                    htmlFor="email" 
-                    className="text-[13px] font-semibold! text-slate-600 ml-0.5"
-                >
-                    Email Address
-                </label>
+                }
 
-                {/* Input Container */}
-                <div className="relative group">
-                    {/* Icon Layer */}
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Mail size={18} className="text-slate-400 group-focus-within:text-slate-500 transition-colors" />
-                    </div>
+                // 🔹 2. Request made but no response (network / CORS / server down)
+                else if (err.request) {
+                    message = "Network error. Please check your internet connection.";
+                }
 
-                    {/* Standard Input */}
-                    <input
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    type="email"
-                    placeholder="name@company.com"
-                    className="
-                        w-full block bg-white text-slate-900 text-sm py-3 pl-11 pr-4
-                        border border-slate-200 rounded-xl
-                        placeholder:text-slate-400
-                        transition-all duration-200
-                        outline-none
-                        /* This is the magic part: Slate focus instead of blue */
-                        focus:border-slate-500 
-                        focus:ring-4 
-                        focus:ring-slate-400/20
-                    "
-                    />
-                </div>
-                </div>
+                // 🔹 3. JS or unknown error
+                else if (err.message) {
+                    message = err.message;
+                }
 
-                <Box>
-                <Typography level="body-sm" sx={{ mb: 1, fontWeight: 600, color: '#475569' }}>
-                    Password
-                </Typography>
+                setError(message);
+                toast.error(message);
+                console.error("Login Error:", err);
+
+                // Auto-clear inline error
+                setTimeout(() => setError(null), 5000);
+                } finally {
+                setLoading(false);
+                }
+            }}
+            >
+          
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                     <div className="flex flex-col gap-1.5 w-full">
+                    {/* Standard Label */}
+                    <label 
+                        htmlFor="email" 
+                        className="text-[13px] font-semibold! text-slate-600 ml-0.5"
+                    >
+                        Email Address
+                    </label>
+
                     {/* Input Container */}
-                        <div className="relative group">
-                            {/* Start Icon (Lock) */}
-                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <Lock 
-                                size={18} 
-                                className="text-slate-400 group-focus-within:text-slate-500 transition-colors" 
-                            />
-                            </div>
-
-                            {/* Standard Input */}
-                            <input
-                            id="password"
-                            type={showPassword ? "text" : "password"}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            className="
-                                w-full block bg-white text-slate-900 text-sm py-3 pl-11 pr-11
-                                border border-slate-200 rounded-xl
-                                placeholder:text-slate-400
-                                transition-all duration-200
-                                outline-none
-                                focus:border-slate-500 
-                                focus:ring-4 
-                                focus:ring-slate-400/15
-                            "
-                            />
-
-                            {/* End Decorator (Eye Toggle) */}
-                            <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
-                            >
-                            {showPassword ? (
-                                <EyeOff size={18} strokeWidth={2.5} />
-                            ) : (
-                                <Eye size={18} strokeWidth={2.5} />
-                            )}
-                            </button>
+                    <div className="relative group">
+                        {/* Icon Layer */}
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <Mail size={18} className="text-slate-400 group-focus-within:text-slate-500 transition-colors" />
                         </div>
+
+                        {/* Standard Input */}
+                        <input
+                        id="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        type="email"
+                        placeholder="name@company.com"
+                        className="
+                            w-full block bg-white text-slate-900 text-sm py-3 pl-11 pr-4
+                            border border-slate-200 rounded-xl
+                            placeholder:text-slate-400
+                            transition-all duration-200
+                            outline-none
+                            /* This is the magic part: Slate focus instead of blue */
+                            focus:border-slate-500 
+                            focus:ring-4 
+                            focus:ring-slate-400/20
+                        "
+                        />
                     </div>
-                </Box>
+                    </div>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Checkbox label="Remember me" size="sm" sx={{ fontWeight: 500 }} />
-                <Typography 
-                    level="body-sm" 
-                    sx={{ 
-                    color: '#3b82f6', 
-                    fontWeight: 600, 
-                    cursor: 'pointer',
-                    '&:hover': { textDecoration: 'underline' } 
+                    <Box>
+                    <Typography level="body-sm" sx={{ mb: 1, fontWeight: 600, color: '#475569' }}>
+                        Password
+                    </Typography>
+                        <div className="flex flex-col gap-1.5 w-full">
+                        {/* Input Container */}
+                            <div className="relative group">
+                                {/* Start Icon (Lock) */}
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <Lock 
+                                    size={18} 
+                                    className="text-slate-400 group-focus-within:text-slate-500 transition-colors" 
+                                />
+                                </div>
+
+                                {/* Standard Input */}
+                                <input
+                                id="password"
+                                type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="
+                                    w-full block bg-white text-slate-900 text-sm py-3 pl-11 pr-11
+                                    border border-slate-200 rounded-xl
+                                    placeholder:text-slate-400
+                                    transition-all duration-200
+                                    outline-none
+                                    focus:border-slate-500 
+                                    focus:ring-4 
+                                    focus:ring-slate-400/15
+                                "
+                                />
+
+                                {/* End Decorator (Eye Toggle) */}
+                                <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                                >
+                                {showPassword ? (
+                                    <EyeOff size={18} strokeWidth={2.5} />
+                                ) : (
+                                    <Eye size={18} strokeWidth={2.5} />
+                                )}
+                                </button>
+                            </div>
+                        </div>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Checkbox label="Remember me" size="sm" sx={{ fontWeight: 500 }} />
+                    <Typography 
+                        level="body-sm" 
+                        sx={{ 
+                        color: '#3b82f6', 
+                        cursor: 'pointer',
+                        '&:hover': { textDecoration: 'underline' } 
+                        }}
+                    >
+                        <Link className='font-semibold!' to={"/auth/forgot-password"}>
+                            Forgot password?
+                        </Link>
+                    </Typography>
+                    </Box>
+
+                    <Button
+                    type="submit"
+                    size="lg"
+                    loading={loading}
+                    disabled={loading}
+                    sx={{
+                        bgcolor: '#0f172a',
+                        borderRadius: '12px',
+                        py: 1.5,
+                        fontWeight: 600,
+                        mt: 1,
+                        '&:hover': { bgcolor: '#1e293b' }
                     }}
-                >
-                    Forgot password?
-                </Typography>
+                    >
+                    {loading ? <CircularProgress size={24} color="inherit" /> : "Sign In to Dashboard"}
+                    </Button>
                 </Box>
-
-                <Button
-                type="submit"
-                size="lg"
-                loading={loading}
-                disabled={loading}
-                sx={{
-                    bgcolor: '#0f172a',
-                    borderRadius: '12px',
-                    py: 1.5,
-                    fontWeight: 600,
-                    mt: 1,
-                    '&:hover': { bgcolor: '#1e293b' }
-                }}
-                >
-                Sign In to Dashboard
-                </Button>
-            </Box>
             </form>
 
             <Typography level="body-sm" sx={{ textAlign: 'center', mt: 1 }}>

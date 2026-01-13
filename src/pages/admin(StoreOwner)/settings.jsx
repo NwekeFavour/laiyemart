@@ -6,11 +6,14 @@ import {
 import { User, Store, Bell, Shield, Save, Globe, Mail } from "lucide-react";
 import StoreOwnerLayout from './layout';
 import { useAuthStore } from '../../store/useAuthStore';
+import { toast } from 'react-toastify';
 
 export default function SettingsPage() {
-  const [activeSection, setActiveSection] = useState('profile');
-  const [storeDits, setStoreDits] = useState("")
+    const [activeSection, setActiveSection] = useState('profile');
+    const [passwords, setPasswords] = useState({ newPassword: '', confirmPassword: '' });
+    const [storeDits, setStoreDits] = useState("")
     const {store, user} = useAuthStore()
+    const [isUpdating, setIsUpdating] = useState(false);
   const menuItems = [
     { id: 'profile', label: 'Store Profile', icon: <Store size={18} /> },
     { id: 'account', label: 'Account Info', icon: <User size={18} /> },
@@ -18,6 +21,56 @@ export default function SettingsPage() {
     { id: 'security', label: 'Security', icon: <Shield size={18} /> },
   ];
 
+    const handlePasswordUpdate = async () => {
+        // 1. Validation
+        if (!passwords.newPassword) {
+            toast.error("Please enter a new password");
+            return;
+        }
+        
+        if (passwords.newPassword !== passwords.confirmPassword) {
+            toast.error("Passwords do not match!");
+            return;
+        }
+
+        // 2. State & Token Retrieval
+        // Using getState() here is fine inside the handler to get the current snapshot
+        const token = useAuthStore.getState().token;
+        
+        if (!token) {
+            toast.error("Session expired. Please login again.");
+            return;
+        }
+
+        setIsUpdating(true);
+        
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/update-password`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({ newPassword: passwords.newPassword }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                toast.success("Password updated successfully!");
+                // Clear the form fields after success
+                setPasswords({ newPassword: '', confirmPassword: '' });
+            } else {
+                toast.error(data.message || "Update failed");
+            }
+        } catch (error) {
+            console.error("Error updating password:", error);
+            // Error is an object; toast.error needs a string
+            toast.error("Network error. Please try again.");
+        } finally {
+            setIsUpdating(false);
+        }
+    };
 //   console.log(user)
 
   return (
@@ -145,106 +198,90 @@ export default function SettingsPage() {
             {activeSection === 'account' && (
                 <Stack gap={3}>
                     <Box>
-                    <Typography level="h4" sx={{ fontWeight: 700 }}>
-                        Account Information
-                    </Typography>
-                    <Typography level="body-sm">
-                        Manage your personal account details and security.
-                    </Typography>
+                        <Typography level="h4" sx={{ fontWeight: 700 }}>
+                            Account Information
+                        </Typography>
+                        <Typography level="body-sm">
+                            Manage your personal account details and security.
+                        </Typography>
                     </Box>
 
                     <Divider />
 
-                    {/* Email */}
+                    {/* Email & Role (Disabled as per your code) */}
                     <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
-                    <FormLabel sx={{ minWidth: 140 }}>Email Address</FormLabel>
-                    <Input
-                        value={user?.email || ""}
-                        disabled
-                        startDecorator={<Mail size={16} />}
-                        sx={{ flex: 1, maxWidth: 400 }}
-                    />
+                        <FormLabel sx={{ minWidth: 140 }}>Email Address</FormLabel>
+                        <Input
+                            value={user?.email || ""}
+                            disabled
+                            startDecorator={<Mail size={16} />}
+                            sx={{ flex: 1, maxWidth: 400 }}
+                        />
                     </FormControl>
 
-                    {/* Role */}
                     <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
-                    <FormLabel sx={{ minWidth: 140 }}>Account Role</FormLabel>
-                    <Input
-                        value={user?.role === "OWNER" ? "Store Owner" : user?.role}
-                        disabled
-                        sx={{ flex: 1, maxWidth: 400 }}
-                    />
-                    </FormControl>
-
-                    {/* Email Verification Status */}
-                    <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
-                    <FormLabel sx={{ minWidth: 140 }}>Email Status</FormLabel>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Typography
-                        level="body-sm"
-                        sx={{
-                            fontWeight: 600,
-                            color: user?.isEmailVerified ? "success.600" : "warning.600",
-                        }}
-                        >
-                        {user?.isEmailVerified ? "Verified" : "Not Verified"}
-                        </Typography>
-
-                        {!user?.isEmailVerified && (
-                        <Button
-                            variant="soft"
-                            size="sm"
-                            color="warning"
-                        >
-                            Verify Email
-                        </Button>
-                        )}
-                    </Box>
+                        <FormLabel sx={{ minWidth: 140 }}>Account Role</FormLabel>
+                        <Input
+                            value={user?.role === "OWNER" ? "Store Owner" : user?.role}
+                            disabled
+                            sx={{ flex: 1, maxWidth: 400 }}
+                        />
                     </FormControl>
 
                     <Divider />
 
                     {/* Password Section */}
                     <Box>
-                    <Typography level="title-md" sx={{ fontWeight: 700 }}>
-                        Password
-                    </Typography>
-                    <Typography level="body-xs">
-                        Change your account password.
-                    </Typography>
+                        <Typography level="title-md" sx={{ fontWeight: 700 }}>
+                            Password
+                        </Typography>
+                        <Typography level="body-xs">
+                            Change your account password.
+                        </Typography>
                     </Box>
 
                     <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
-                    <FormLabel sx={{ minWidth: 140 }}>New Password</FormLabel>
-                    <Input
-                        type="password"
-                        placeholder="••••••••"
-                        sx={{ flex: 1, maxWidth: 400 }}
-                    />
+                        <FormLabel sx={{ minWidth: 140 }}>New Password</FormLabel>
+                        <Input
+                            type="password"
+                            placeholder="••••••••"
+                            value={passwords.newPassword}
+                            onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
+                            sx={{ flex: 1, maxWidth: 400 }}
+                        />
                     </FormControl>
 
                     <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
-                    <FormLabel sx={{ minWidth: 140 }}>Confirm Password</FormLabel>
-                    <Input
-                        type="password"
-                        placeholder="••••••••"
-                        sx={{ flex: 1, maxWidth: 400 }}
-                    />
+                        <FormLabel sx={{ minWidth: 140 }}>Confirm Password</FormLabel>
+                        <Input
+                            type="password"
+                            placeholder="••••••••"
+                            value={passwords.confirmPassword}
+                            onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
+                            error={passwords.confirmPassword !== "" && passwords.newPassword !== passwords.confirmPassword}
+                            sx={{ flex: 1, maxWidth: 400 }}
+                        />
                     </FormControl>
 
                     <Divider />
 
                     <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-                    <Button variant="plain" color="neutral">
-                        Cancel
-                    </Button>
-                    <Button
-                        startDecorator={<Save size={18} />}
-                        sx={{ bgcolor: "#0f172a", borderRadius: "lg" }}
-                        className="hover:bg-slate-800/90!"
-                    >
-                        Save Changes
-                    </Button>
+                        <Button 
+                            variant="plain" 
+                            color="neutral"
+                            onClick={() => setPasswords({ newPassword: '', confirmPassword: '' })}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            loading={isUpdating}
+                            onClick={handlePasswordUpdate}
+                            startDecorator={<Save size={18} />}
+                            sx={{ bgcolor: "#0f172a", borderRadius: "lg" }}
+                            className="hover:bg-slate-800/90!"
+                        >
+                            Save Changes
+                        </Button>
                     </Box>
                 </Stack>
             )}

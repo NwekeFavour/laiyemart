@@ -12,10 +12,10 @@ import StoreOwnerLayout from './layout';
 export default function OrdersPage() {
   // Mock Data
   const orders = [
-    { id: "#ORD-7281", customer: "John Doe", date: "Jan 14, 2026", total: "$120.00", status: "Delivered", method: "Mastercard" },
-    { id: "#ORD-7282", customer: "Sarah Smith", date: "Jan 13, 2026", total: "$45.50", status: "Processing", method: "PayPal" },
-    { id: "#ORD-7283", customer: "Mike Johnson", date: "Jan 13, 2026", total: "$210.00", status: "Shipped", method: "Visa" },
-    { id: "#ORD-7284", customer: "Elena Rodriguez", date: "Jan 12, 2026", total: "$89.00", status: "Cancelled", method: "Bank Transfer" },
+    { id: "#ORD-7281", customer: "John Doe", date: "Jan 14, 2026", total: "₦120.00", status: "Delivered", method: "Mastercard" },
+    { id: "#ORD-7282", customer: "Sarah Smith", date: "Jan 13, 2026", total: "₦45.50", status: "Processing", method: "PayPal" },
+    { id: "#ORD-7283", customer: "Mike Johnson", date: "Jan 13, 2026", total: "₦210.00", status: "Shipped", method: "Visa" },
+    { id: "#ORD-7284", customer: "Elena Rodriguez", date: "Jan 12, 2026", total: "₦89.00", status: "Cancelled", method: "Bank Transfer" },
   ];
 
   const getStatusColor = (status) => {
@@ -53,7 +53,7 @@ export default function OrdersPage() {
           { label: "Total Orders", value: "452", icon: <PackageCheck className="text-blue-500" /> },
           { label: "Pending", value: "12", icon: <Clock className="text-amber-500" /> },
           { label: "In Transit", value: "28", icon: <Truck className="text-indigo-500" /> },
-          { label: "Revenue", value: "$12,402", icon: <Typography sx={{color: 'green', fontWeight: 700}}>$</Typography> },
+          { label: "Revenue", value: "₦12,402", icon: <Typography sx={{color: 'green', fontWeight: 700}}>₦</Typography> },
         ].map((stat, i) => (
           <Sheet className="border-slate-100!" key={i} variant="outlined" sx={{ p: 2, borderRadius: 'xl', display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{ p: 1, bgcolor: '#f1f5f9', borderRadius: 'lg' }}>{stat.icon}</Box>
@@ -136,7 +136,7 @@ export default function OrdersPage() {
                 <th key={head.label} style={{ width: head.width }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     {head.label}
-                    <ChevronDown size={14} className="text-slate-400" />
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevrons-up-down size-[0.7rem]! mt-px" aria-hidden="true"><path d="m7 15 5 5 5-5"></path><path d="m7 9 5-5 5 5"></path></svg>      
                     </Box>
                 </th>
                 ))}

@@ -43,7 +43,7 @@ function DemoHome({ storeSlug }) {
     }, [storeSlug]);
 
     // 1. Loading State
-    if (loading) {
+    if (loading && !localStorage.getItem("demo")) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: 2 }}>
                 <CircularProgress color="danger" thickness={4} />
@@ -56,6 +56,8 @@ function DemoHome({ storeSlug }) {
     if (error) {
         return <StoreNotFound />;
     }
+
+    const hasProducts = storeData?.products && storeData.products.length > 0;
 
     // 3. Success State (Store Exists)
     const phrases = ["Wear Your Identity", "Bold Fits Only", "Street-Ready Essentials"];
@@ -88,3 +90,31 @@ function DemoHome({ storeSlug }) {
 }
 
 export default DemoHome;
+
+const EmptyStoreState = ({ storeName }) => (
+  <Box sx={{ 
+    py: 10, 
+    textAlign: 'center', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    alignItems: 'center', 
+    gap: 2 
+  }}>
+    <Box sx={{ 
+      width: 80, 
+      height: 80, 
+      bgcolor: 'neutral.100', 
+      borderRadius: '50%', 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center',
+      mb: 1
+    }}>
+      <Typography sx={{ fontSize: '2rem' }}>📦</Typography>
+    </Box>
+    <Typography level="h3" sx={{ fontWeight: 700 }}>Setting Up Shop</Typography>
+    <Typography level="body-md" sx={{ color: 'text.secondary', maxWidth: 400 }}>
+      {storeName} is currently preparing their catalog. Check back soon to see our latest arrivals!
+    </Typography>
+  </Box>
+);
