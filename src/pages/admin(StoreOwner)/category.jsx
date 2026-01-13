@@ -319,7 +319,7 @@ export default function CategoriesTable({ isDark = false }) {
                             <input type="checkbox" checked={selected.includes(cat._id)} onChange={() => {}} className="rounded-sm accent-blue-600" />
                         </td>
                         
-                        <td className={` border-none! ${tdStyle}`}>
+                        <td className={` border-r! ${tdStyle}`}>
                             <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded border overflow-hidden bg-gray-100 shrink-0">
                                 {cat.image ? <img src={cat.image} className="w-full border-none h-full object-cover" alt="" /> : <div className="flex items-center justify-center h-full">📦</div>}
@@ -328,12 +328,15 @@ export default function CategoriesTable({ isDark = false }) {
                             </div>
                         </td>
                         
-                        <td className={tdStyle}>{cat.products?.length || 0}</td>
+                        <td  className={tdStyle}>
+                          {cat.products?.length || 0}</td>
                         <td className={`${tdStyle} font-medium`}>
                         ₦
-                        {cat.products
-                            ?.reduce((total, product) => total + (product.price || 0), 0)
-                            .toLocaleString()}
+                        {cat.products && cat.products.length > 0
+                        ? cat.products
+                            .reduce((total, product) => total + (Number(product.price) || 0), 0)
+                            .toLocaleString()
+                        : "0"}
                         </td>
                         <td className={tdStyle}>
                             <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${cat.isActive !== false ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>

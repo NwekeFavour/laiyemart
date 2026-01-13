@@ -145,6 +145,7 @@ export default function ProductsPage() {
             console.error("Update Error:", err);
 
         } finally {
+            toast.dismiss(toastId)
             setSubmitting(false);
         }
     };
@@ -399,7 +400,7 @@ export default function ProductsPage() {
                             </Box>
                         </td>
                         </tr>
-                    ) : products.length === 0 ? (
+                    ) : products?.length === 0 ? (
                         <tr>
                         <td colSpan={8}>
                             <Box sx={{ py: 6, textAlign: "center" }}>
@@ -513,7 +514,7 @@ export default function ProductsPage() {
                     );
                     }))}
                     {/* Inside your Table or Grid container */}
-                    {!filteredProducts.length && (
+                    {search.trim() !=="" && (
                     <tr>
                         <td colSpan={7}> {/* Replace 6 with the number of columns in your table */}
                         <Box
@@ -543,7 +544,7 @@ export default function ProductsPage() {
                 </tbody>
                 </Table>
             </Sheet>
-                            {!loading && products.length > 0 && (
+            {!loading && products.length > 0 && (
                 <Box
                     className="p-3!"
                     sx={{
@@ -816,6 +817,8 @@ export default function ProductsPage() {
                             const msg = error.response?.data?.message || error.message || "Delete failed";
                             toast.error(msg, { id: toastId });
                             console.error("Delete error:", error);
+                        } finally{
+                            toast.dismiss(toastId)
                         }
                     }}
                     sx={{ borderRadius: 'lg' }}

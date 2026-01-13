@@ -114,31 +114,57 @@ const NewArrivalsSlider = () => {
         component={motion.div}
         ref={carousel}
         sx={{
-          overflow: isMobile ? 'visible' : 'hidden',
+          overflowX: isMobile ? 'auto' : 'hidden',
+          overflowY: 'hidden',
           cursor: isMobile ? 'default' : 'grab',
+          WebkitOverflowScrolling: 'touch', // Smooth scroll for iOS
+          '&::-webkit-scrollbar': { display: 'none' }, // Hide scrollbar
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none',
+          px: isMobile ? 2 : 0, // Add padding so items don't touch screen edges
+          mx: isMobile ? -4 : 0,
+        }}
+      >
+      {/* Viewport Container */}
+      <Box
+        ref={carousel}
+        sx={{
+          overflow: 'hidden', // Keep hidden to allow Framer Motion to manage the translate
+          cursor: 'grab',
+          mx: { xs: -2, sm: 0 }, // Negative margin on mobile to allow "bleed" to edges
+          px: { xs: 2, sm: 0 },
+          '&:active': { cursor: 'grabbing' }
         }}
       >
         <motion.div
-          drag={isMobile ? false : 'x'}
+          drag="x"
           animate={controls}
-          dragConstraints={isMobile ? false : { right: 0, left: -width }}
-          whileTap={{ cursor: isMobile ? 'default' : 'grabbing' }}
+          dragConstraints={{ right: 0, left: -width }}
           style={{
-            display: isMobile ? 'block' : 'flex',
-            gap: isMobile ? 0 : '16px',
-            width: 'max-content' 
+            display: 'flex',
+            gap: '16px',
+            width: 'max-content',
           }}
         >
           {products.map((product) => (
             <motion.div
               key={product._id || product.id}
               style={{
-                minWidth: isMobile ? '100%' : '240px',
-                marginBottom: isMobile ? '32px' : 0,
+                // Responsive widths: 
+                // Mobile: ~85% of view width so the next card peeks in
+                // Tablet/Desktop: Fixed 240px
+                width: isMobile ? 'calc(85vw - 32px)' : '240px',
                 flexShrink: 0,
               }}
             >
-              <Box sx={{ position: 'relative', bgcolor: '#f5f5f5', aspectRatio: '3/4', mb: 2, maxWidth: isMobile ? '100%' : '240px' }}>
+              <Box sx={{ 
+                position: 'relative', 
+                bgcolor: '#f5f5f5', 
+                aspectRatio: '3/4', 
+                mb: 2,
+                borderRadius: '8px',
+                overflow: 'hidden'
+              }}>
                 <img
                   src={product.images?.[0]?.url || product.image || 'https://via.placeholder.com/400'}
                   alt={product.name}
@@ -146,7 +172,6 @@ const NewArrivalsSlider = () => {
                 />
                 
                 <Box sx={{ position: 'absolute', top: 12, left: 12, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                  {/* Badge Logic: prioritize API data, fallback to dummy */}
                   {(product.isNew || product.status === 'active') && (
                     <Box sx={{ bgcolor: '#E67E22', color: 'white', px: 1, py: 0.3, fontSize: '10px', fontWeight: 'bold', borderRadius: '4px' }}>NEW</Box>
                   )}
@@ -156,20 +181,25 @@ const NewArrivalsSlider = () => {
                 </Box>
               </Box>
 
-              <Typography variant="caption" color="text.secondary" fontWeight="bold">{product.brand || 'OFFICIAL'}</Typography>
-              <Typography variant="body2" fontWeight="bold" noWrap>{product.name}</Typography>
-              <Typography variant="body2" fontWeight="bold" sx={{ mt: 0.5 }}>
-                ${(product.price || 0).toFixed(2)}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {product.colors ? `Available in ${product.colors} colors` : 'Limited Edition'}
-              </Typography>
-              <Box sx={{ mt: 1 }}>
-                <Rating value={5} size="small" readOnly sx={{ color: '#E67E22' }} />
-              </Box>
+              <Stack spacing={0.5}>
+                <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                  {product.brand || 'OFFICIAL'}
+                </Typography>
+                <Typography variant="body2" fontWeight="bold" noWrap>
+                  {product.name}
+                </Typography>
+                <Typography variant="body2" fontWeight="bold">
+                  ₦{(product.price || 0).toFixed(2)}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {product.colors ? `Available in ${product.colors} colors` : 'Limited Edition'}
+                </Typography>
+                <Rating value={5} size="small" readOnly sx={{ color: '#E67E22', mt: 0.5 }} />
+              </Stack>
             </motion.div>
           ))}
         </motion.div>
+      </Box>
       </Box>
     </Box>
   );
