@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Box, Typography, Button, Input, Sheet, 
   Divider, FormControl, FormLabel, Avatar, Stack, Switch
@@ -7,19 +7,69 @@ import { User, Store, Bell, Shield, Save, Globe, Mail } from "lucide-react";
 import StoreOwnerLayout from './layout';
 import { useAuthStore } from '../../store/useAuthStore';
 import { toast } from 'react-toastify';
+import { useStoreProfileStore } from '../../store/useStoreProfile';
 
 export default function SettingsPage() {
+    const { updateStoreProfile, loading } = useStoreProfileStore();
     const [activeSection, setActiveSection] = useState('profile');
     const [passwords, setPasswords] = useState({ newPassword: '', confirmPassword: '' });
     const [storeDits, setStoreDits] = useState("")
-    const {store, user} = useAuthStore()
+    const {store, user, token} = useAuthStore()
     const [isUpdating, setIsUpdating] = useState(false);
+    const [formEmail, setFormEmail] = useState(store?.email);
+    const [logoFile, setLogoFile] = useState(null);
+    useEffect(() => {
+    if (store?.logo?.url) {
+        setPreviewUrl(store.logo.url);
+        setLogoFile(null); // Clear the pending file since it's now saved
+    }
+    }, [store]);
+    const [previewUrl, setPreviewUrl] = useState(store.logo?.url || "");
+    console.log(store)
   const menuItems = [
     { id: 'profile', label: 'Store Profile', icon: <Store size={18} /> },
     { id: 'account', label: 'Account Info', icon: <User size={18} /> },
     { id: 'notifications', label: 'Notifications', icon: <Bell size={18} /> },
     { id: 'security', label: 'Security', icon: <Shield size={18} /> },
   ];
+
+    const handleSave = async () => {
+    // 1. Basic Validation
+    if (!formEmail) {
+        toast.error("Email is required");
+        return;
+    }
+
+    try {
+        // 2. Trigger the Zustand Action
+        // Note: Ensure your updateStoreProfile action returns the data
+        const result = await updateStoreProfile({ 
+        email: formEmail, 
+        logo: logoFile, 
+        token 
+        });
+
+        // 3. Handle Success Feedback
+        // If the email was changed, show a specific message about verification
+        if (formEmail !== store.email) {
+        toast.success("Profile updated! Please check your email to verify.", {
+            icon: '📩',
+            duration: 6000
+        });
+        } else {
+        toast.success("Store profile updated successfully");
+        }
+        console.log(store?.isEmailVerified)
+        // 4. Reset local file state now that upload is complete
+        setLogoFile(null);
+
+    } catch (err) {
+        // 5. Handle Error Feedback
+        // The 'err' here will be the thrown Error(data.message) from your store
+        console.error("Update Error:", err.message);
+        toast.error(err.message || "Failed to update store profile");
+    }
+    };
 
     const handlePasswordUpdate = async () => {
         // 1. Validation
@@ -135,10 +185,26 @@ export default function SettingsPage() {
                 <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
                     <FormLabel sx={{ minWidth: 140 }}>Store Logo</FormLabel>
                     <Stack direction="row" spacing={2} alignItems="center">
-                    <Avatar sx={{ '--Avatar-size': '64px', bgcolor: '#0f172a' }}>LM</Avatar>
-                    <Button variant="outlined" color="neutral" size="sm">Change Logo</Button>
+                        <Avatar 
+                            src={previewUrl}
+                            sx={{ '--Avatar-size': '64px', bgcolor: '#0f172a', border: '1px solid #e2e8f0' }} 
+                        />
+                        <Button component="label" variant="outlined" color="neutral" size="sm">
+                            Change Logo
+                            <input 
+                                type="file" 
+                                hidden 
+                                onChange={(e) => {
+                                    const file = e.target.files[0];
+                                    setLogoFile(file);
+                                    setPreviewUrl(URL.createObjectURL(file));
+                                }} 
+                            />
+                        </Button>
                     </Stack>
                 </FormControl>
+
+
 
                 <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
                     <FormLabel sx={{ minWidth: 140 }}>Store Name</FormLabel>
@@ -158,15 +224,59 @@ export default function SettingsPage() {
                 </FormControl>
 
                 <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
-                    <FormLabel sx={{ minWidth: 140 }}>Support Email</FormLabel>
-                    <Input value={user.email} startDecorator={<Mail size={16} />} placeholder="support@layemart.com" sx={{ flex: 1, maxWidth: 400 }} />
+                <FormLabel sx={{ minWidth: 140 }}>Support Email</FormLabel>
+                <Box sx={{ flex: 1, maxWidth: 400 }}>
+                    <Input 
+                    value={formEmail} 
+                    onChange={(e) => setFormEmail(e.target.value)}
+                    startDecorator={<Mail size={16} />} 
+                    endDecorator={
+                        store?.isEmailVerified ? (
+                        <Typography level="body-xs" color="success" sx={{ fontWeight: 'bold' }}>
+                            VERIFIED
+                        </Typography>
+                        ) : (
+                        <Typography level="body-xs" color="warning" sx={{ fontWeight: 'bold' }}>
+                            PENDING
+                        </Typography>
+                        )
+                    }
+                    />
+                    
+                    {/* This block detects the change immediately after the API call finishes */}
+                    {!store?.isEmailVerified && formEmail !== store.email && (
+                    <Typography 
+                        level="body-xs" 
+                        sx={{ 
+                        mt: 1, 
+                        color: 'orange',
+                        fontWeight: 500,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        // CSS Animation to make it pop in
+                        animation: 'fadeIn 0.4s ease-out' 
+                        }}
+                    >
+                        <span style={{ fontSize: '14px' }}>✉️</span> Check your inbox to verify <strong>{store?.email}</strong>
+                    </Typography>
+                    )}
+                </Box>
                 </FormControl>
 
                 <Divider />
 
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
                     <Button variant="plain" color="neutral">Cancel</Button>
-                    <Button className='hover:bg-slate-800/90!' startDecorator={<Save size={18} />} sx={{ bgcolor: '#0f172a', borderRadius: 'lg' }}>Save Changes</Button>
+                    <Button 
+                    loading={loading}
+                    onClick={handleSave}
+                    startDecorator={<Save size={18} />} 
+                    sx={{ bgcolor: '#0f172a', borderRadius: 'lg' }}
+                    className='hover:bg-slate-800/90!'
+                    >
+                    Save Changes
+                    </Button>
                 </Box>
                 </Stack>
             )}

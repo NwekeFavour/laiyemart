@@ -171,7 +171,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
 export default function CategoriesTable({ isDark = false }) {
   const { categories, getCategories } = useCategoryStore();
   const {store} = useAuthStore()
-  const storeId = store?._id
+  // const storeId = store?._id
   const [selected, setSelected] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -187,11 +187,9 @@ export default function CategoriesTable({ isDark = false }) {
     };
 
   useEffect(() => {
-    if (storeId) {
-      getCategories(storeId);
-    }
-  }, [storeId, getCategories]);
-  console.log(categories)
+      getCategories();
+  }, [getCategories]);
+  // console.log(categories)
   // Search Logic
     const filteredData = (categories || [])
     .filter(cat =>

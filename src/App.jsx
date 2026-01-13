@@ -24,6 +24,7 @@ import StoreResolver, { getSubdomain } from '../storeResolver';
 import ForgotPassword from './pages/forgotPassword';
 import ResetPassword from './pages/resetPassword';
 import CategoriesTable from './pages/admin(StoreOwner)/category';
+import VerifyStore from './pages/verifyStore';
 
 
 function App() {
@@ -77,6 +78,7 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={['OWNER', 'SUPER_ADMIN']} />}>
           <Route path='/dashboard/categories' element={<CategoriesTable/>}/>
         </Route>
+        <Route path='/verify-store-email/:token' element={<VerifyStore/>}/>
         <Route path='*' element={<div className='flex items-center justify-center h-screen text-3xl font-semibold'>404 - Page Not Found</div>}/>
       </Routes>
       {/* 2. Add ToastContainer with a clean, modern config */}

@@ -184,7 +184,7 @@ export default function SuperAdminDashboard() {
                   <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 'lg' }} />
                 ) : recentStores.length === 0 ? (
                   <Box sx={{ textAlign: 'center', py: 4 }}>
-                    <Store size={40} style={{ opacity: 0.2, marginBottom: '8px' }} />
+                    <Store className="w-25 mx-auto" size={40} style={{ opacity: 0.2, textAlign: "center", marginBottom: '8px' }} />
                     <Typography color="neutral">No stores found</Typography>
                   </Box>
                 ) : (

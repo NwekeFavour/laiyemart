@@ -16,7 +16,7 @@ export default function Hero({ onCreateStore }) {
           <div className="max-w-7xl w-full text-center">
             
             {/* Heading with styled accent word */}
-            <h1 className="m-0 font-extrabold text textt tracking-[-0.03em] lg:text-[42px] md:text-[26px] text-[18px] text-slate-900 leading-[1.05] font-['BBH_Bartle']">
+            <h1 className="m-0 font-extrabold text textt tracking-[-0.03em] lg:text-[32px] md:text-[26px] text-[18px] text-slate-900 leading-[1.05] font-['BBH_Bartle']">
               Build ecommerce stores 
               <br className="hidden md:block"/> 
               <span className="block md:inline mt-1 textt text">

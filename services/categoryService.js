@@ -53,17 +53,22 @@ export const useCategoryStore = create((set, get) => ({
   /* =======================
      GET ALL CATEGORIES
   ======================= */
-  getCategories: async (storeId) => {
+  getCategories: async () => {
     set({ loading: true, error: null });
     const {token} = useAuthStore.getState()
     try {
       const res = await fetch(
-        `${API_BASE}/api/category/store/${storeId}`);
+        `${API_BASE}/api/category/`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.message);
 
-      set({ categories: data.categories, loading: false });
+      set({ categories: data, loading: false });
     } catch (err) {
       set({ error: err.message, loading: false });
     }

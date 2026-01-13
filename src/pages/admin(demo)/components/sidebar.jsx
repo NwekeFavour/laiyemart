@@ -92,8 +92,8 @@ export default function Sidebar({
             boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)' 
           }} />
           {!collapsed && (
-            <Typography sx={{ fontWeight: 800, fontSize: '16px', color: isDark ? 'white' : '#0f172a' }}>
-              LAYE<span style={{ color: '#ef4444' }}>MART</span>
+            <Typography className="text" sx={{ fontWeight: 800, fontSize: '16px', color: isDark ? 'white' : '#0f172a' }}>
+              LAYE<span className='text' style={{ color: '#ef4444' }}>MART</span>
             </Typography>
           )}
         </Box>

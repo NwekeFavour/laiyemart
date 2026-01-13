@@ -90,10 +90,8 @@ export default function ProductsPage() {
     
 
   useEffect(() => {
-    if (storeId) {
-      getCategories(storeId);
-    }
-  }, [storeId, getCategories]);
+      getCategories();
+  }, [getCategories]);
     // console.log(categories)
 
     // Handle actual update
@@ -769,7 +767,7 @@ export default function ProductsPage() {
 
             <Box sx={{ p: 3, borderTop: '1px solid #eee', bgcolor: 'white' }}>
             <Button 
-                className='bg-blue-600! hover:bg-blue-700!'
+                className='bg-slate-900/90! hover:bg-slate-800!'
                 fullWidth 
                 size="lg" 
                 loading={submitting}
