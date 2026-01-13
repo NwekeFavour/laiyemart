@@ -84,3 +84,12 @@ body{
 .css-tti329{
   background-color: white;
 }
+
+
+@media screen and (max-width:360px) {
+  .text{
+    font-family: "DM Sans", sans-serif !important;
+    font-weight: bolder !important;
+    font-size: 26px;
+  }
+}

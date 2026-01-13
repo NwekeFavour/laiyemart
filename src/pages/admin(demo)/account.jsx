@@ -46,11 +46,6 @@ export default function Account() {
               </div>
             </div>
 
-            {/* Mock Browser URL Bar (Desktop only) */}
-            <div className="hidden md:flex items-center bg-slate-100 dark:bg-slate-800 px-4 py-1.5 rounded-full w-1/3 max-w-sm border border-transparent dark:border-slate-700">
-              <span className="text-[11px] text-slate-400 truncate">layemart.com/preview-mode</span>
-            </div>
-
             {/* Device Toggle Toggles (Aesthetic only) */}
             <div className="flex items-center gap-2">
               <div className="hidden sm:flex p-1 bg-slate-100 dark:bg-slate-800 rounded-md gap-1">
