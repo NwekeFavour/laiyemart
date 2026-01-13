@@ -6,7 +6,7 @@ export default function Hero({ onCreateStore, storeName }) {
   return (
     <section className="hero">
       <div className="hero-content">
-        <Header />
+        <Header storeName={storeName}/>
 
         <div className="flex items-center justify-center md:mt-16 mt-14 lg:mt-30 md:mx-10">
           <div>

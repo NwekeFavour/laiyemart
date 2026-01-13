@@ -1,13 +1,14 @@
 import React from "react";
 import { FaFacebookF, FaInstagram, FaTwitter, FaPinterest } from "react-icons/fa";
 
-const Footer = () => {
+const Footer = ({storeName}) => {
+
   return (
     <footer className="bg-gray-900 text-gray-200 py-12">
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Logo & About */}
         <div>
-          <h3 className="text-2xl font-bold mb-3">BrandName</h3>
+          <h3 className="text-2xl font-bold mb-3 capitalize">{storeName}</h3>
           <p className="text-gray-400 text-sm">
             Premium clothing made for everyday style. Ethical and sustainable fashion.
           </p>
