@@ -247,7 +247,7 @@ function Home(props) {
                             <div className="py-1 text-indigo-600 font-semibold border-b-2 border-indigo-600 w-fit mx-auto mb-1.5">
                                 How it works
                             </div>
-                            <Typography className="text-neutral-600 text-3xl! md:text-5xl! font-bold mx- text-foreground!">
+                            <Typography className="text-neutral-600 text-[20px]! md:text-3xl! font-bold mx- text-foreground!">
                                 A simple, structured process designed <br/>for speed and clarity.
                             </Typography>
                             </motion.div>
@@ -311,7 +311,7 @@ function Home(props) {
                         <div className="py-1 text-indigo-600 font-semibold border-b-2 border-indigo-600 mb-1.5">
                             Platform Capabilities
                         </div>
-                        <h2 className="text-3xl md:text-5xl font-bold text-foreground">
+                        <h2 className="text-[22px] md:text-3xl font-bold text-foreground">
                             Everything You Need to Launch Your Store
                         </h2>
                         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -444,7 +444,7 @@ function Home(props) {
                             <div className="py-1 text-indigo-600 font-semibold border-b-2 border-indigo-600 mb-1.5">
                                 Pricing
                             </div>
-                            <h2 className="text-3xl md:text-5xl font-bold text-foreground">
+                            <h2 className="text-[22px] md:text-3xl font-bold text-foreground">
                                 Simple & Transparent Plans
                             </h2>
                             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -654,7 +654,7 @@ function Home(props) {
                     <section className="py-24 bg-background! xl:px-0 lg:px-6 px-4">
                         <div className="flex items-center justify-center flex-col text-center gap-5 mb-25" style={{opacity: "1", transform: "none"}}>
                             <div className="py-1 text-indigo-600 font-semibold border-b-2 border-indigo-600 mb-1.5">Get in Touch</div>
-                            <h2 className="text-3xl md:text-5xl font-bold text-foreground">Contact Us</h2>
+                            <h2 className="text-[20px] md:text-3xl font-bold text-foreground">Contact Us</h2>
                             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">Have questions or ready to get started with Metronic ? Send us a message and we'll respond as soon as possible.</p>
                         </div>
 

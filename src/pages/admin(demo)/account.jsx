@@ -8,7 +8,7 @@ import CategoriesTable from "./components/categories";
 import OrderListComponent from "./components/orderComp";
 import DemoHome from "../(demo)/home";
 import CustomerList from "./components/customerList";
-import { ArrowLeftFromLine, ExternalLink, Plus } from "lucide-react";
+import { ArrowLeftFromLine, ExternalLink, Monitor, Plus, Smartphone } from "lucide-react";
 import { Box, Button, Typography } from "@mui/joy";
 
 export default function Account() {
@@ -20,17 +20,51 @@ export default function Account() {
     <div className="min-h-screen ">
       {/* Demo overlay */}
       {demo && (
-        <div className=" my-2 shadow-lg" >
-          <div className="flex items-center gap-2 mb-2 ms-3" >
-            <button
-              onClick={() => setDemo(false)}
-            >
-              {demo && <ArrowLeftFromLine size={20} className="inline-block me-2" />}
-            </button>
-            <div className="w-8 h-8 rounded-md bg-red-500" />
-            <span className={`font-bold text text-[13px] ${isDark ? "text-slate-200" : "text-gray-900"}`}>LAYEMART ONLINE STORE</span>
+        <div className="fixed inset-0 z-[200] flex flex-col bg-slate-50 dark:bg-[#020617] animate-in fade-in duration-300">
+          {/* Top Navigation Bar / Browser Header */}
+          <div className={`flex items-center justify-between px-4 py-3 border-b ${isDark ? "bg-slate-900/50 border-slate-800" : "bg-white border-gray-200"}`}>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setDemo(false)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all text-sm font-semibold 
+                  ${isDark ? "hover:bg-slate-800 text-slate-300" : "hover:bg-gray-100 text-gray-600"}`}
+              >
+                <ArrowLeftFromLine size={18} />
+                <span>Exit Preview</span>
+              </button>
+              
+              <div className={`h-6 w-[1px] ${isDark ? "bg-slate-800" : "bg-gray-200"}`} />
+              
+              <div className="flex items-center gap-2">
+                <div className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </div>
+                <span className={`text-[12px] font-bold tracking-tight uppercase ${isDark ? "text-slate-400" : "text-gray-500"}`}>
+                  Live Demo: <span className={isDark ? "text-white" : "text-black"}>LAYEMART ONLINE STORE</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Mock Browser URL Bar (Desktop only) */}
+            <div className="hidden md:flex items-center bg-slate-100 dark:bg-slate-800 px-4 py-1.5 rounded-full w-1/3 max-w-sm border border-transparent dark:border-slate-700">
+              <span className="text-[11px] text-slate-400 truncate">layemart.com/preview-mode</span>
+            </div>
+
+            {/* Device Toggle Toggles (Aesthetic only) */}
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex p-1 bg-slate-100 dark:bg-slate-800 rounded-md gap-1">
+                <div className="p-1 rounded bg-white dark:bg-slate-700 shadow-sm"><Monitor size={14} className="text-slate-600 dark:text-slate-200" /></div>
+              </div>
+            </div>
           </div>
-          <DemoHome />
+
+          {/* The actual store content */}
+          <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-950">
+            <div className="max-w-[1440px] mx-auto shadow-2xl min-h-full">
+              <DemoHome />
+            </div>
+          </div>
         </div>
       )}
 
