@@ -5,7 +5,7 @@ import {
   Layers
 } from "lucide-react";
 import { Box, IconButton, Button, Sheet, Badge, Typography } from "@mui/joy";
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link as RouterLink} from 'react-router-dom';
 import { fetchMe } from '../../../services/authService';
 import { useAuthStore } from '../../store/useAuthStore';
 import { toast } from 'react-toastify';
@@ -77,11 +77,31 @@ const location = useLocation();
         display: 'flex', alignItems: 'center', gap: 1.5, px: 1, py: 2, mb: 2,
         justifyContent: (isCollapsed && !isMobile) ? 'center' : 'flex-start'
       }}>
-        <div className="w-8 h-8 rounded-lg bg-slate-900 flex-shrink-0" />
+        {/* <div className="w-8 h-8 rounded-lg bg-slate-900 flex-shrink-0" /> */}
         {(!isCollapsed || isMobile) && (
-          <Typography className="text" sx={{ fontWeight: 800, fontSize: '16px', color: '#0f172a', letterSpacing: '-0.02em' }}>
-            {store ? store?.subdomain : "LAYEMART"}
-          </Typography>
+          <div>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ width: 32, height: 32, borderRadius: '6px', bgcolor: '#ef4444', flexShrink: 0 }} />
+              {(!isCollapsed|| isMobile) && (
+                <Typography 
+                  className="text lg:text-[17px] text-[13px]!" 
+                  sx={{ color: '#0f172a', whiteSpace: 'nowrap' }}
+                >
+                  LAIYE<span className='text' style={{ color: '#ef4444' }}>MART</span>
+                </Typography>
+              )}
+            </Box>
+            {(!isCollapsed || isMobile) && (
+              <Box sx={{ py: 1.5, mb: 1 }}>
+                <Typography level="body-xs" sx={{ fontWeight: 700, letterSpacing: '0.1em', color: 'neutral.500', textTransform: 'uppercase' }}>
+                  Current Store
+                </Typography>
+                <Typography level="title-md" sx={{ color: '#0f172a', fontWeight: 800 }}>
+                  {store?.name || "Layemart Store"}
+                </Typography>
+              </Box>
+            )}
+          </div>
         )}
       </Box>
 
@@ -95,6 +115,8 @@ const location = useLocation();
             sx={{ position: 'relative' }}
           >
             <Button
+              component={RouterLink}
+              to={item.path} // Make sure your item object has a path
               variant={item.active ? "soft" : "plain"}
               startDecorator={item.icon}
               onClick={() => isMobile && setIsMobileOpen(false)}
@@ -104,16 +126,22 @@ const location = useLocation();
                 fontWeight: 600,
                 minHeight: 48,
                 width: '100%',
+                // Use active styles
                 color: item.active ? '#0f172a' : '#64748b',
                 bgcolor: item.active ? '#f1f5f9' : 'transparent',
                 transition: 'all 0.2s',
-                '& .MuiButton-startDecorator': { margin: (isCollapsed && !isMobile) ? 0 : '' },
-                '&:hover': { bgcolor: '#f8fafc', color: '#0f172a' }
+                '& .MuiButton-startDecorator': { 
+                  margin: (isCollapsed && !isMobile) ? 0 : '' 
+                },
+                '&:hover': { 
+                  bgcolor: '#f8fafc', 
+                  color: '#0f172a',
+                  textDecoration: 'none' // Prevents default link underline on hover
+                }
               }}
             >
               {(!isCollapsed || isMobile) && item.label}
             </Button>
-            
             {/* Hover Indicator Pill (Desktop Only) */}
             {!isMobile && !isCollapsed && hoveredItem === item.id && (
               <Box sx={{
@@ -189,15 +217,32 @@ const location = useLocation();
 
 
         {/* 3. Brand Section */}
-        <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ p: 3, display: 'flex', alignItems: 'start', justifyContent: "flex-start", gap: 2 }}>
           <Box sx={{ width: 32, height: 32, borderRadius: '6px', bgcolor: '#ef4444', flexShrink: 0 }} />
+
           {(!isCollapsed) && (
-            <Typography 
-              className="text lg:text-[17px] text-[13px]!" 
-              sx={{ color: '#0f172a', whiteSpace: 'nowrap' }}
-            >
-              LAIYE<span className='text' style={{ color: '#ef4444' }}>MART</span>
-            </Typography>
+                      <div>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {(!isCollapsed) && (
+                <Typography 
+                  className="text lg:text-[17px] text-[13px]!" 
+                  sx={{ color: '#0f172a', whiteSpace: 'nowrap' }}
+                >
+                  LAIYE<span className='text' style={{ color: '#ef4444' }}>MART</span>
+                </Typography>
+              )}
+            </Box>
+            {(!isCollapsed || isMobile) && (
+              <Box sx={{ py: 1.5, mb: 1 }}>
+                <Typography level="body-xs" sx={{ fontWeight: 700, letterSpacing: '0.1em', color: 'neutral.500', textTransform: 'uppercase' }}>
+                  Current Store
+                </Typography>
+                <Typography level="title-md" sx={{ color: '#0f172a', fontWeight: 800 }}>
+                  {store?.name || "Layemart Store"}
+                </Typography>
+              </Box>
+            )}
+          </div>
           )}
         </Box>
 
