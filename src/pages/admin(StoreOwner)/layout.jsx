@@ -5,7 +5,7 @@ import {
   Layers
 } from "lucide-react";
 import { Box, IconButton, Button, Sheet, Badge, Typography } from "@mui/joy";
-import { useLocation, useNavigate, Link as RouterLink} from 'react-router-dom';
+import { useLocation, useNavigate, Link} from 'react-router-dom';
 import { fetchMe } from '../../../services/authService';
 import { useAuthStore } from '../../store/useAuthStore';
 import { toast } from 'react-toastify';
@@ -104,34 +104,37 @@ const location = useLocation();
             onMouseLeave={() => setHoveredItem(null)}
             sx={{ position: 'relative' }}
           >
-            <Button
-              component={RouterLink}
-              to={item.path} // Make sure your item object has a path
-              variant={item.active ? "soft" : "plain"}
-              startDecorator={item.icon}
+            <Link
+              to={item.path}
               onClick={() => isMobile && setIsMobileOpen(false)}
-              sx={{
-                justifyContent: (isCollapsed && !isMobile) ? "center" : "flex-start",
-                borderRadius: 'xl',
-                fontWeight: 600,
-                minHeight: 48,
-                width: '100%',
-                // Use active styles
-                color: item.active ? '#0f172a' : '#64748b',
-                bgcolor: item.active ? '#f1f5f9' : 'transparent',
-                transition: 'all 0.2s',
-                '& .MuiButton-startDecorator': { 
-                  margin: (isCollapsed && !isMobile) ? 0 : '' 
-                },
-                '&:hover': { 
-                  bgcolor: '#f8fafc', 
-                  color: '#0f172a',
-                  textDecoration: 'none' // Prevents default link underline on hover
-                }
-              }}
+              style={{ textDecoration: "none", width: "100%" }}
             >
-              {(!isCollapsed || isMobile) && item.label}
-            </Button>
+              <Button
+                variant={item.active ? "soft" : "plain"}
+                startDecorator={item.icon}
+                sx={{
+                  justifyContent: (isCollapsed && !isMobile) ? "center" : "flex-start",
+                  borderRadius: "xl",
+                  fontWeight: 600,
+                  minHeight: 48,
+                  width: "100%",
+                  color: item.active ? "#0f172a" : "#64748b",
+                  bgcolor: item.active ? "#f1f5f9" : "transparent",
+                  transition: "all 0.2s",
+                  "& .MuiButton-startDecorator": {
+                    margin: (isCollapsed && !isMobile) ? 0 : undefined,
+                  },
+                  "&:hover": {
+                    bgcolor: "#f8fafc",
+                    color: "#0f172a",
+                    textDecoration: "none",
+                  },
+                }}
+              >
+                {(!isCollapsed || isMobile) && item.label}
+              </Button>
+            </Link>
+
             {/* Hover Indicator Pill (Desktop Only) */}
             {!isMobile && !isCollapsed && hoveredItem === item.id && (
               <Box sx={{

@@ -30,7 +30,7 @@ export default function CustomerList({ isDark }) {
     { id: "567890-ZA", name: "Hiroshi Tanaka", email: "hiroshi.tanaka@yahoo.co.jp",  orders: 156, totalSpent: 18750.00, avgSpent: 120.00, status: "Active", lastOrder: "25 May, 2024", },
     { id: "750163-DP", name: "Ethan Wilson", email: "ethan.wilson@usmail.com",  orders: 97, totalSpent: 4753.00, avgSpent: 49.00, status: "Inactive", lastOrder: "22 Jul, 2025", },
     { id: "508234-WS", name: "James Liu", email: "HC-9031", orders: 49, totalSpent: 4116.00, avgSpent: 84.00, status: "Active", lastOrder: "22 Jul, 2025", },
-    { id: "456789-EF", name: "Priya Sharma", email: "priya.sharma@rediffmail.com",  orders: 203, totalSpent: 24360.00, avgSpent: 120.00, status: "Active", lastOrder: "22 Feb, 2024",  },
+    { id:  "456789-EF", name: "Priya Sharma", email: "priya.sharma@rediffmail.com",  orders: 203, totalSpent: 24360.00, avgSpent: 120.00, status: "Active", lastOrder: "22 Feb, 2024",  },
     { id: "104761-BQ", name: "Liam Brown", email: "liam.brown@ukrmail.ua", orders: 35, totalSpent: 3465.00, avgSpent: 99.00, status: "Inactive", lastOrder: "20 Jan, 2025", },
     { id: "104761-BQ", name: "Liam Brown", email: "liam.brown@ukrmail.ua",  orders: 35, totalSpent: 3465.00, avgSpent: 99.00, status: "Inactive", lastOrder: "20 Jan, 2025"},
   ];
