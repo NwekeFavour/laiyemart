@@ -32,8 +32,10 @@ export default function SaaSHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <>
+    <div className="relative overflow-hidden">
       {/* Header */}
+            <div className="absolute top-[-5%] left-[-5%] w-[45%] h-[45%] rounded-full bg-blue-200 blur-[120px] opacity-60"></div>
+      <div className="absolute bottom-[5%] right-[-5%] w-[35%] h-[45%] rounded-full bg-indigo-200 blur-[130px] opacity-70"></div>
       <Sheet
         className="bg-slate-100/40! m-3 rounded-full!"
         variant="plain"
@@ -155,7 +157,7 @@ export default function SaaSHeader() {
         onClose={() => setOpen(false)}
         slotProps={{
           backdrop: {
-            sx: { backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.2)' }
+            sx: { backdropFilter: 'blur(4px)', backgroundColor: 'transparent' }
           }
         }}
       >
@@ -166,7 +168,6 @@ export default function SaaSHeader() {
             width: 280,
             display: 'flex',
             flexDirection: 'column',
-            bgcolor: 'white'
           }}
         >
           {/* Header Section */}
@@ -261,6 +262,6 @@ export default function SaaSHeader() {
           </Box>
         </Sheet>
       </Drawer>
-    </>
+    </div>
   );
 }

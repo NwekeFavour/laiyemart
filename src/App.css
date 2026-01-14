@@ -65,20 +65,43 @@ body{
 }
 
 
-/* Customizing React Toastify to match your UI */
+/* 1. Slim down the container */
+.Toastify__toast-container {
+  width: 280px !important; /* Narrower width */
+  padding: 4px !important;
+}
+
+/* 2. Turn them into "Floating Pills" */
 .Toastify__toast {
-  border-radius: 16px !important; /* Matches your 'xl' radius */
-  font-family: inherit;
-  font-weight: 500;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  min-height: 48px !important; /* Much shorter */
+  border-radius: 50px !important; /* Rounded pill shape */
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  padding: 8px 16px !important;
+  margin-bottom: 8px !important;
 }
 
-.Toastify__toast--success {
-  background: #0f172a !important; /* Slate-900 like your buttons */
+/* 3. Style the text */
+.Toastify__toast-body {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #1e293b !important;
 }
 
-.Toastify__toast--error {
-  background: linear-gradient(45deg, #dc2626 0%, #991b1b 100%) !important;
+/* 4. Small, clean icons */
+.Toastify__toast-icon {
+  width: 16px !important;
+  margin-inline-end: 10px !important;
+}
+
+/* 5. Hide the progress bar entirely for "Premium" feel */
+.Toastify__progress-bar {
+  display: none !important;
 }
 
 .css-tti329{

@@ -84,15 +84,13 @@ function App() {
       {/* 2. Add ToastContainer with a clean, modern config */}
       <ToastContainer 
         position="top-right"
-        autoClose={4000}
-        hideProgressBar={false}
+        autoClose={3000}
+        hideProgressBar // Highly recommended for a clean look
         newestOnTop
         closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
+        theme="light"
         pauseOnHover
-        theme="colored" // or "light" if you prefer a cleaner look
+        limit={3} // Prevents "Toast Spam" if the user clicks Save many times
       />
     </div>
   )

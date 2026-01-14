@@ -37,6 +37,7 @@ export const verifyOTP = async ({ email, otp }) => {
 };
 
 export const registerStoreOwner = async ({
+  fullName,
   email,
   password,
   storeName,
@@ -45,7 +46,7 @@ export const registerStoreOwner = async ({
   const res = await fetch(`${VITE_BACKEND_URL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, storeName, subdomain }),
+    body: JSON.stringify({ fullName, email, password, storeName, subdomain }),
   });
 
   const data = await res.json();

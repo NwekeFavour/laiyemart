@@ -11,13 +11,14 @@ export const useStoreProfileStore = create((set, get) => ({
   // ============================
   // UPDATE STORE PROFILE
   // ============================
-  updateStoreProfile: async ({ email, logo, token }) => {
+  updateStoreProfile: async ({ email, logo, storeType, token }) => {
     set({ loading: true, error: null, success: null });
 
     try {
       const formData = new FormData();
       if (email) formData.append("email", email);
       if (logo) formData.append("logo", logo);
+      if(storeType) formData.append("storeType", storeType);
 
       const res = await fetch(`${API_URL}/api/stores/profile`, {
         method: "PUT",

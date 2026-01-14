@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import DashboardLayout from "./components/dashboardlayout";
-import SalesActivity from "./components/sales";
 import RecentOrders from "./components/order-table";
 import ProductsTable from "./components/products";
 import Analytics from "./components/analytics";
@@ -135,7 +134,6 @@ function DashboardAnalytics({ isDark }) {
         </Box>
       </Box>
       <Analytics isDark={isDark} />
-      <SalesActivity isDark={isDark} />
       <RecentOrders isDark={isDark} />
     </div>
   );

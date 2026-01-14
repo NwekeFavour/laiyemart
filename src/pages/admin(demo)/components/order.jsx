@@ -37,32 +37,25 @@ export function OrdersCard({ isDark }) {
         </div>
 
         {/* Dummy Chart */}
-        <div className="flex-1 flex items-end">
-          <svg viewBox="0 0 300 120" className="w-full h-32" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M0 60 L30 50 L60 70 L90 45 L120 80 L150 40 L180 75 L210 55 L240 65 L270 50 L300 55 L300 120 L0 120 Z"
-              fill="url(#areaGradient)"
-            />
-            <path
-              d="M0 60 L30 50 L60 70 L90 45 L120 80 L150 40 L180 75 L210 55 L240 65 L270 50 L300 55"
-              fill="none"
-              stroke="#3b82f6"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
-        </div>
+        <ul className="space-y-2 text-sm">
+          {[
+            ["Nike Shift Runner", 4],
+            ["Puma Wace Strike", 7],
+            ["Adidas Xtreme High", 1],
+          ].map(([name, qty]) => (
+            <li
+              key={name}
+              className={`flex items-center justify-between rounded-lg px-3 py-2
+                ${isDark ? "bg-slate-800 text-slate-200" : "bg-gray-50 text-gray-900"}`}
+            >
+              <span>{name}</span>
+              <span className={`${isDark ? "text-slate-400" : "text-gray-500"}`}>
+                Qty: {qty} · <button className={`${isDark ? "text-blue-400" : "text-blue-600"}`}>Order</button>
+              </span>
+            </li>
+          ))}
+        </ul>
 
-        <div className="text-xs text-gray-400 mt-2 flex justify-between">
-          <span>Sep 8</span>
-          <span>Sep 23</span>
-        </div>
       </div>
     </div>
   );

@@ -76,6 +76,14 @@ export default function SignUpPage() {
         }
     };
 
+    const getStrength = (pass) => {
+        let score = 0;
+        if (pass.length > 7) score++;
+        if (/[A-Z]/.test(pass)) score++;
+        if (/[0-9]/.test(pass)) score++;
+        if (/[^A-Za-z0-9]/.test(pass)) score++;
+        return score;
+    };
     return (
         <div className="min-h-screen bg-[#f3f4ff] flex items-center justify-center p-4 relative overflow-hidden">
             {/* Background Blobs - Unchanged */}
@@ -129,6 +137,7 @@ export default function SignUpPage() {
                                     setLoading(true);
                                     try {
                                         await registerStoreOwner({
+                                            fullName,
                                             email,
                                             password,
                                             storeName,
@@ -178,14 +187,49 @@ export default function SignUpPage() {
                                 </div>
 
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-[13px] font-semibold text-slate-600 ml-0.5">Create Password</label>
+                                    <label className="text-[13px] font-semibold text-slate-600 ml-0.5">Password</label>
                                     <div className="relative group">
                                         <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                        <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full py-3 pl-11 pr-11 border border-slate-200 rounded-xl outline-none focus:border-slate-500 transition-all" />
+                                        <input 
+                                            type={showPassword ? "text" : "password"} 
+                                            value={password} 
+                                            required
+                                            onChange={(e) => setPassword(e.target.value)} 
+                                            placeholder="••••••••" 
+                                            className={`w-full py-3 pl-11 pr-11 border rounded-xl outline-none transition-all ${
+                                                password ? (getStrength(password) < 3 ? 'border-orange-300 focus:border-orange-500' : 'border-green-300 focus:border-green-500') : 'border-slate-200 focus:border-slate-500'
+                                            }`} 
+                                        />
                                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                         </button>
                                     </div>
+
+                                    {/* --- PASSWORD STRENGTH DISCLAIMER BANNER --- */}
+                                    {password.length > 0 && (
+                                        <div className={`mt-2 p-3 rounded-xl border transition-all ${getStrength(password) < 3 ? 'bg-orange-50 border-orange-100' : 'bg-green-50 border-green-100'}`}>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <div className="flex gap-1">
+                                                    {[1, 2, 3, 4].map((s) => (
+                                                        <div key={s} className={`h-1.5 w-6 rounded-full ${s <= getStrength(password) ? (getStrength(password) < 3 ? 'bg-orange-400' : 'bg-green-500') : 'bg-slate-200'}`} />
+                                                    ))}
+                                                </div>
+                                                <span className={`text-[10px] font-bold uppercase tracking-wider ${getStrength(password) < 3 ? 'text-orange-700' : 'text-green-700'}`}>
+                                                    {getStrength(password) < 3 ? "Weak" : "Secure"}
+                                                </span>
+                                            </div>
+                                            <ul className="text-[11px] space-y-1 text-slate-500 font-medium">
+                                                <li className="flex items-center gap-1.5">
+                                                    <div className={`w-1 h-1 rounded-full ${password.length >= 8 ? 'bg-green-500' : 'bg-slate-300'}`} />
+                                                    At least 8 characters
+                                                </li>
+                                                <li className="flex items-center gap-1.5">
+                                                    <div className={`w-1 h-1 rounded-full ${/[0-9!@#$%^&*]/.test(password) ? 'bg-green-500' : 'bg-slate-300'}`} />
+                                                    Include a number or special character
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <button disabled={loading} className="w-full mt-4 bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 group disabled:opacity-60">

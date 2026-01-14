@@ -25,18 +25,7 @@ const location = useLocation();
         logout(); 
         
         // 2. Trigger a well-designed success toast
-        toast.success("Signed out successfully", {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: true,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-            // Optional: Custom icon for logout
-            icon: "👋" 
-        });
+        toast.success("Signed out successfully")
 
         // 3. Redirect to login page
         navigate("/auth/sign-in"); 
@@ -59,9 +48,10 @@ const location = useLocation();
     
   const navItems = [
     { id: 'ov', label: "Dashboard", icon: <LayoutGrid size={20} />, path: '/dashboard/beta' },
-    { id: 'or', label: "Orders", icon: <ShoppingBag size={20} />, path: '/dashboard/orders' },
     { id: 'pr', label: "Products", icon: <Package size={20} />, path: '/dashboard/products' },
     { id: 'ca', label: "Categories", icon: <Layers size={20} />, path: '/dashboard/categories' },
+    { id: 'or', label: "Orders", icon: <ShoppingBag size={20} />, path: '/dashboard/orders' },
+    { id: 'cu', label: "Customers", icon: <Users size={20} />, path: '/dashboard/customers' },
     { id: 'st', label: "Settings", icon: <Settings size={20} />, path: '/dashboard/settings' },
   ];
   useEffect(() => {

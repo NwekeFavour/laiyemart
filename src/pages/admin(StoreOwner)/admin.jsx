@@ -15,6 +15,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useProductStore } from '../../../services/productService';
 import { toast } from 'react-toastify';
 import { useCategoryStore } from '../../../services/categoryService';
+import { InventoryCard } from '../../components/inventory';
 export default function StoreOwnerTrialDashboard() {
   // Stats reflecting a brand new store
 const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -400,8 +401,12 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
         {/* Header Section */}
         <Box className="flex! flex-wrap!" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 4 }}>
             <Box>
-            <Typography className="lg:text-[30px]! md:text-[24px]! text-[22px]!" level="h2" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
-                Welcome, Store Owner!
+            <Typography 
+              className="lg:text-[30px]! md:text-[24px]! text-[22px]!" 
+              level="h2" 
+              sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}
+            >
+              Welcome, {user?.fullName ? user.fullName.split(' ')[0] : "Store Owner"}!
             </Typography>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <Typography level="body-md" sx={{ color: 'neutral.500' }}>Your store is currently live at:</Typography>
@@ -473,6 +478,13 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
                 </Grid>
             ))}
         </Grid>
+
+        <div className='grid grid-cols-1 justify-items-center lg:my-5 my-3'>
+          <div>
+            <InventoryCard isDark={false} 
+            products={products}/>
+          </div>
+        </div>
 
         <Sheet
         sx={{

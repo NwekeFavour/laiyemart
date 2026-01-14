@@ -24,15 +24,15 @@ export default function CustomerList({ isDark }) {
   const [showMore, setShowMore] = useState(false);
   const itemsPerPage = 8;
     const INITIAL_CUSTOMERS = [
-    { id: "671452-VN", name: "Davis", email: "olivia.davis@canadamail.ca", country: "Canada", flag: "🇨🇦", orders: 732, totalSpent: 123808.00, avgSpent: 169.00, status: "Active", lastOrder: "29 Mar, 2025", image: "https://i.pravatar.cc/150?u=1" },
-    { id: "564738-PQ", name: "Emily Rodriguez", email: "emily.rodriguez@yahoo.com", country: "Spain", flag: "🇪🇸", orders: 12, totalSpent: 1680.00, avgSpent: 140.00, status: "Active", lastOrder: "28 Oct, 2024", image: "https://i.pravatar.cc/150?u=2" },
-    { id: "912048-MF", name: "Sophia Patel", email: "sophia.patel@indiamail.in", country: "India", flag: "🇮🇳", orders: 105, totalSpent: 24150.00, avgSpent: 230.00, status: "Active", lastOrder: "28 Apr, 2025", image: "https://i.pravatar.cc/150?u=3" },
-    { id: "567890-ZA", name: "Hiroshi Tanaka", email: "hiroshi.tanaka@yahoo.co.jp", country: "Japan", flag: "🇯🇵", orders: 156, totalSpent: 18750.00, avgSpent: 120.00, status: "Active", lastOrder: "25 May, 2024", image: "https://i.pravatar.cc/150?u=4" },
-    { id: "750163-DP", name: "Ethan Wilson", email: "ethan.wilson@usmail.com", country: "USA", flag: "🇺🇸", orders: 97, totalSpent: 4753.00, avgSpent: 49.00, status: "Inactive", lastOrder: "22 Jul, 2025", image: "https://i.pravatar.cc/150?u=5" },
-    { id: "508234-WS", name: "James Liu", email: "HC-9031", country: "Netherlands", flag: "🇳🇱", orders: 49, totalSpent: 4116.00, avgSpent: 84.00, status: "Active", lastOrder: "22 Jul, 2025", image: "https://i.pravatar.cc/150?u=6" },
-    { id: "456789-EF", name: "Priya Sharma", email: "priya.sharma@rediffmail.com", country: "India", flag: "🇮🇳", orders: 203, totalSpent: 24360.00, avgSpent: 120.00, status: "Active", lastOrder: "22 Feb, 2024", image: "https://i.pravatar.cc/150?u=7" },
-    { id: "104761-BQ", name: "Liam Brown", email: "liam.brown@ukrmail.ua", country: "Ukraine", flag: "🇺🇦", orders: 35, totalSpent: 3465.00, avgSpent: 99.00, status: "Inactive", lastOrder: "20 Jan, 2025", image: "https://i.pravatar.cc/150?u=8" },
-    { id: "104761-BQ", name: "Liam Brown", email: "liam.brown@ukrmail.ua", country: "Ukraine", flag: "🇺🇦", orders: 35, totalSpent: 3465.00, avgSpent: 99.00, status: "Inactive", lastOrder: "20 Jan, 2025", image: "https://i.pravatar.cc/150?u=8" },
+    { id: "671452-VN", name: "Davis", email: "olivia.davis@canadamail.ca",  orders: 732, totalSpent: 123808.00, avgSpent: 169.00, status: "Active", lastOrder: "29 Mar, 2025",  },
+    { id: "564738-PQ", name: "Emily Rodriguez", email: "emily.rodriguez@yahoo.com", orders: 12, totalSpent: 1680.00, avgSpent: 140.00, status: "Active", lastOrder: "28 Oct, 2024", },
+    { id: "912048-MF", name: "Sophia Patel", email: "sophia.patel@indiamail.in", orders: 105, totalSpent: 24150.00, avgSpent: 230.00, status: "Active", lastOrder: "28 Apr, 2025",  },
+    { id: "567890-ZA", name: "Hiroshi Tanaka", email: "hiroshi.tanaka@yahoo.co.jp",  orders: 156, totalSpent: 18750.00, avgSpent: 120.00, status: "Active", lastOrder: "25 May, 2024", },
+    { id: "750163-DP", name: "Ethan Wilson", email: "ethan.wilson@usmail.com",  orders: 97, totalSpent: 4753.00, avgSpent: 49.00, status: "Inactive", lastOrder: "22 Jul, 2025", },
+    { id: "508234-WS", name: "James Liu", email: "HC-9031", orders: 49, totalSpent: 4116.00, avgSpent: 84.00, status: "Active", lastOrder: "22 Jul, 2025", },
+    { id: "456789-EF", name: "Priya Sharma", email: "priya.sharma@rediffmail.com",  orders: 203, totalSpent: 24360.00, avgSpent: 120.00, status: "Active", lastOrder: "22 Feb, 2024",  },
+    { id: "104761-BQ", name: "Liam Brown", email: "liam.brown@ukrmail.ua", orders: 35, totalSpent: 3465.00, avgSpent: 99.00, status: "Inactive", lastOrder: "20 Jan, 2025", },
+    { id: "104761-BQ", name: "Liam Brown", email: "liam.brown@ukrmail.ua",  orders: 35, totalSpent: 3465.00, avgSpent: 99.00, status: "Inactive", lastOrder: "20 Jan, 2025"},
   ];
   const [customers, setCustomers] = useState(INITIAL_CUSTOMERS);
 
@@ -187,8 +187,8 @@ const columnMapping = {
                     </th>
                     
                     {[
-                        "User ID", "Customer", "Country", "Orders", 
-                        "Total Spent", "Avg. Spent", "Status", "Last Order"
+                        "User ID", "Customer", "Orders", 
+                        "Avg. Spent", "Status", "Last Order"
                     ].map((header) => (
                         <th 
                         key={header} 
@@ -218,7 +218,6 @@ const columnMapping = {
 
                         <td className={`px-6 py-4 border-b border-r ${borderColor} whitespace-nowrap`}>
                         <div className="flex items-center gap-3">
-                            <img src={customer.image} className="w-8 h-8 rounded-full border border-gray-200" alt="" />
                             <div className="leading-tight">
                             <div className={`font-bold ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>{customer.name}</div>
                             <div className="text-[11px] text-gray-500">{customer.email}</div>
@@ -226,22 +225,12 @@ const columnMapping = {
                         </div>
                         </td>
 
-                        <td className={`px-4 py-4 border-b border-r ${borderColor} whitespace-nowrap`}>
-                        <span className="flex items-center gap-2">
-                            <span className="text-lg">{customer.flag}</span> {customer.country}
-                        </span>
-                        </td>
-
                         <td className={`px-4 py-4 border-b border-r ${borderColor} text-center font-semibold whitespace-nowrap`}>
                         {customer.orders}
                         </td>
-
-                        <td className={`px-4 py-4 border-b border-r ${borderColor} font-bold whitespace-nowrap ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
-                        ${customer.totalSpent.toLocaleString()}
-                        </td>
-
+                       
                         <td className={`px-4 py-4 border-b border-r ${borderColor} whitespace-nowrap`}>
-                        ${customer.avgSpent.toFixed(2)}
+                        ₦{customer.avgSpent.toFixed(2)}
                         </td>
 
                         <td className={`px-4 py-4 border-b border-r ${borderColor} whitespace-nowrap`}>

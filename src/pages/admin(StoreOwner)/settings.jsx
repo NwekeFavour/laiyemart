@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { 
   Box, Typography, Button, Input, Sheet, 
-  Divider, FormControl, FormLabel, Avatar, Stack, Switch
+  Divider, FormControl, FormLabel, Avatar, Stack, Switch,
+  Select,
+  Option
 } from "@mui/joy";
 import { User, Store, Bell, Shield, Save, Globe, Mail } from "lucide-react";
 import StoreOwnerLayout from './layout';
@@ -13,19 +15,38 @@ export default function SettingsPage() {
     const { updateStoreProfile, loading } = useStoreProfileStore();
     const [activeSection, setActiveSection] = useState('profile');
     const [passwords, setPasswords] = useState({ newPassword: '', confirmPassword: '' });
-    const [storeDits, setStoreDits] = useState("")
     const {store, user, token} = useAuthStore()
+    const [storeDits, setStoreDits] = useState(store)
     const [isUpdating, setIsUpdating] = useState(false);
     const [formEmail, setFormEmail] = useState(store?.email);
+    const [otp, setOtp] = useState("");
+    const [fullName, setFullName] = useState(user?.fullName || "")
+    const [isOtpSent, setIsOtpSent] = useState(false);
+    const [loadingp, setLoading] = useState(false)
+    const [isSendingOtp, setIsSendingOtp] = useState(false);
     const [logoFile, setLogoFile] = useState(null);
-    useEffect(() => {
+    const [formStoreType, setFormStoreType] = useState(store.storeType)
+    const getPasswordStrength = (password) => {
+        let score = 0;
+        if (!password) return 0;
+        if (password.length >= 8) score += 1; // Length
+        if (/[A-Z]/.test(password)) score += 1; // Uppercase
+        if (/[0-9]/.test(password)) score += 1; // Numbers
+        if (/[^A-Za-z0-9]/.test(password)) score += 1; // Symbols
+        return score;
+    };
+
+    const strengthLabels = ["Very Weak", "Weak", "Fair", "Good", "Strong"];
+    const strengthColors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#15803d"];
+    const strengthScore = getPasswordStrength(passwords.newPassword);
+        useEffect(() => {
     if (store?.logo?.url) {
         setPreviewUrl(store.logo.url);
         setLogoFile(null); // Clear the pending file since it's now saved
     }
     }, [store]);
     const [previewUrl, setPreviewUrl] = useState(store.logo?.url || "");
-    console.log(store)
+    // console.log(store)
   const menuItems = [
     { id: 'profile', label: 'Store Profile', icon: <Store size={18} /> },
     { id: 'account', label: 'Account Info', icon: <User size={18} /> },
@@ -34,93 +55,172 @@ export default function SettingsPage() {
   ];
 
     const handleSave = async () => {
-    // 1. Basic Validation
-    if (!formEmail) {
-        toast.error("Email is required");
-        return;
-    }
-
-    try {
-        // 2. Trigger the Zustand Action
-        // Note: Ensure your updateStoreProfile action returns the data
-        const result = await updateStoreProfile({ 
-        email: formEmail, 
-        logo: logoFile, 
-        token 
-        });
-
-        // 3. Handle Success Feedback
-        // If the email was changed, show a specific message about verification
-        if (formEmail !== store.email) {
-        toast.success("Profile updated! Please check your email to verify.", {
-            icon: '📩',
-            duration: 6000
-        });
-        } else {
-        toast.success("Store profile updated successfully");
+        if (!formEmail) {
+            toast.error("Support email is required");
+            return;
         }
-        console.log(store?.isEmailVerified)
-        // 4. Reset local file state now that upload is complete
-        setLogoFile(null);
 
-    } catch (err) {
-        // 5. Handle Error Feedback
-        // The 'err' here will be the thrown Error(data.message) from your store
-        console.error("Update Error:", err.message);
-        toast.error(err.message || "Failed to update store profile");
-    }
+        try {
+            const result = await updateStoreProfile({ 
+                email: formEmail, 
+                storeType: formStoreType, 
+                logo: logoFile, 
+                token 
+            });
+
+            // 1. Update our local 'display' state with the response from server
+            // This ensures storeDits.isEmailVerified reflects the new 'false' status
+            setStoreDits(result);
+            // console.log(storeDits)
+
+            if (formEmail !== store.email) {
+                toast.success("Changes saved! Check your inbox to verify.", {
+                    icon: '📩',
+                    duration: 6000
+                });
+                // DO NOT setFormEmail(store.email) here, 
+                // otherwise the input jumps back to the old email!
+            } else {
+                toast.success("Store profile updated successfully");
+            }
+
+            setLogoFile(null);
+        } catch (err) {
+            toast.error(err.message || "Failed to update store profile");
+        }
     };
 
-    const handlePasswordUpdate = async () => {
-        // 1. Validation
-        if (!passwords.newPassword) {
-            toast.error("Please enter a new password");
-            return;
+    useEffect(() => {
+        if (store) {
+            setStoreDits(store);
         }
-        
-        if (passwords.newPassword !== passwords.confirmPassword) {
-            toast.error("Passwords do not match!");
+    }, [store]);
+
+    const handleRequestOtp = async () => {
+        const token = useAuthStore.getState().token;
+
+        if (!token) {
+            toast.error("Session expired. Please login again.");
             return;
         }
 
-        // 2. State & Token Retrieval
-        // Using getState() here is fine inside the handler to get the current snapshot
+
+        if (!passwords.newPassword || !passwords.confirmPassword) {
+            toast.error("Please enter and confirm your new password");
+            return;
+        }
+
+        if (passwords.newPassword !== passwords.confirmPassword) {
+            toast.error("Passwords do not match");
+            return;
+        }
+
+        setIsSendingOtp(true);
+
+        try {
+            const res = await fetch(
+                `${import.meta.env.VITE_BACKEND_URL}/api/auth/request/update-password`,
+                {
+                    method: "POST",
+                    headers: {  Authorization: `Bearer ${token}` },
+                }
+            );
+
+            const data = await res.json();
+
+            if (isOtpSent) {
+                toast.info("Verification code already sent");
+                return;
+            }
+            if (res.ok) {
+                toast.success("Verification code sent to your email");
+                setIsOtpSent(true);
+            } else {
+                toast.error(data.message || "Failed to send verification code");
+            }
+        } catch {
+            toast.error("Network error. Please try again.");
+        } finally {
+            setIsSendingOtp(false);
+        }
+    };
+
+
+
+    const handleFullNameUpdate = async () => {
+        if (!fullName || fullName.trim() === "") return toast.error("Full name cannot be empty");
+        setLoading(true)
         const token = useAuthStore.getState().token;
-        
+        if (!token) return toast.error("Session expired. Please login again");
+
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/update-profile`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ fullName }),
+            });
+
+            const data = await res.json();
+            setLoading(false)
+            if (res.ok) toast.success("Full name updated successfully");
+            else toast.error(data.message || "Failed to update name");
+        } catch (err) {
+            toast.error("Network error");
+        }
+    };
+
+
+
+    const handlePasswordUpdate = async () => {       
+
+        if (!otp) {
+            toast.error("Please enter the verification code sent to your email");
+            return;
+        }
+
+        const token = useAuthStore.getState().token;
+
         if (!token) {
             toast.error("Session expired. Please login again.");
             return;
         }
 
         setIsUpdating(true);
-        
+
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/update-password`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
-                },
-                body: JSON.stringify({ newPassword: passwords.newPassword }),
-            });
+            const response = await fetch(
+                `${import.meta.env.VITE_BACKEND_URL}/api/auth/update-password`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        newPassword: passwords.newPassword,
+                        otp,
+                    }),
+                }
+            );
 
             const data = await response.json();
 
             if (response.ok) {
                 toast.success("Password updated successfully!");
-                // Clear the form fields after success
-                setPasswords({ newPassword: '', confirmPassword: '' });
+                setPasswords({ newPassword: "", confirmPassword: "" });
+                setOtp("");
+                setIsOtpSent(false);
             } else {
                 toast.error(data.message || "Update failed");
             }
         } catch (error) {
-            console.error("Error updating password:", error);
-            // Error is an object; toast.error needs a string
+            console.error(error);
             toast.error("Network error. Please try again.");
         } finally {
             setIsUpdating(false);
         }
     };
+
 //   console.log(user)
 
   return (
@@ -175,109 +275,107 @@ export default function SettingsPage() {
             }}>
             {activeSection === 'profile' && (
                 <Stack gap={3}>
-                <Box>
-                    <Typography level="h4" sx={{ fontWeight: 700 }}>Store Profile</Typography>
-                    <Typography level="body-sm">This information will be displayed publicly to your customers.</Typography>
-                </Box>
-                
-                <Divider />
-
-                <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
-                    <FormLabel sx={{ minWidth: 140 }}>Store Logo</FormLabel>
-                    <Stack direction="row" spacing={2} alignItems="center">
-                        <Avatar 
-                            src={previewUrl}
-                            sx={{ '--Avatar-size': '64px', bgcolor: '#0f172a', border: '1px solid #e2e8f0' }} 
-                        />
-                        <Button component="label" variant="outlined" color="neutral" size="sm">
-                            Change Logo
-                            <input 
-                                type="file" 
-                                hidden 
-                                onChange={(e) => {
-                                    const file = e.target.files[0];
-                                    setLogoFile(file);
-                                    setPreviewUrl(URL.createObjectURL(file));
-                                }} 
-                            />
-                        </Button>
-                    </Stack>
-                </FormControl>
-
-
-
-                <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
-                    <FormLabel sx={{ minWidth: 140 }}>Store Name</FormLabel>
-                    <Input className='placeholder:capitalize!' value={store.name} disabled placeholder="Layemart Store" sx={{ flex: 1, maxWidth: 400 }} />
-                </FormControl>
-
-                <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
-                    <FormLabel sx={{ minWidth: 140 }}>Subdomain</FormLabel>
-                    <Input 
-                    value={store.subdomain}
-                    disabled
-                    startDecorator={<Globe size={16} />} 
-                    endDecorator={<Typography level="body-xs">.layemart.com</Typography>}
-                    placeholder="mystore" 
-                    sx={{ flex: 1, maxWidth: 400 }} 
-                    />
-                </FormControl>
-
-                <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
-                <FormLabel sx={{ minWidth: 140 }}>Support Email</FormLabel>
-                <Box sx={{ flex: 1, maxWidth: 400 }}>
-                    <Input 
-                    value={formEmail} 
-                    onChange={(e) => setFormEmail(e.target.value)}
-                    startDecorator={<Mail size={16} />} 
-                    endDecorator={
-                        store?.isEmailVerified ? (
-                        <Typography level="body-xs" color="success" sx={{ fontWeight: 'bold' }}>
-                            VERIFIED
-                        </Typography>
-                        ) : (
-                        <Typography level="body-xs" color="warning" sx={{ fontWeight: 'bold' }}>
-                            PENDING
-                        </Typography>
-                        )
-                    }
-                    />
+                    <Box>
+                        <Typography level="h4" sx={{ fontWeight: 700 }}>Store Profile</Typography>
+                        <Typography level="body-sm">This information will be displayed publicly to your customers.</Typography>
+                    </Box>
                     
-                    {/* This block detects the change immediately after the API call finishes */}
-                    {!store?.isEmailVerified && formEmail !== store.email && (
-                    <Typography 
-                        level="body-xs" 
-                        sx={{ 
-                        mt: 1, 
-                        color: 'orange',
-                        fontWeight: 500,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        // CSS Animation to make it pop in
-                        animation: 'fadeIn 0.4s ease-out' 
-                        }}
-                    >
-                        <span style={{ fontSize: '14px' }}>✉️</span> Check your inbox to verify <strong>{store?.email}</strong>
-                    </Typography>
-                    )}
-                </Box>
+                    <Divider />
+
+                    {/* LOGO SECTION */}
+                    <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
+                        <FormLabel sx={{ minWidth: 140 }}>Store Logo</FormLabel>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                            <Avatar 
+                                src={previewUrl}
+                                sx={{ '--Avatar-size': '64px', bgcolor: '#0f172a', border: '1px solid #e2e8f0' }} 
+                            />
+                            <Button component="label" variant="outlined" color="neutral" size="sm" disabled={loading}>
+                                Change Logo
+                                <input 
+                                    type="file" 
+                                    hidden 
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            setLogoFile(file);
+                                            setPreviewUrl(URL.createObjectURL(file));
+                                        }
+                                    }} 
+                                />
+                            </Button>
+                        </Stack>
+                    </FormControl>
+                    
+                <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
+
+                    <FormLabel sx={{ minWidth: 140 }}>Store Name</FormLabel>
+
+                    <Input className='placeholder:capitalize!' value={store.name} disabled placeholder="Layemart Store" sx={{ flex: 1, maxWidth: 400 }} />
+
                 </FormControl>
 
-                <Divider />
 
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                    <Button variant="plain" color="neutral">Cancel</Button>
-                    <Button 
-                    loading={loading}
-                    onClick={handleSave}
-                    startDecorator={<Save size={18} />} 
-                    sx={{ bgcolor: '#0f172a', borderRadius: 'lg' }}
-                    className='hover:bg-slate-800/90!'
-                    >
-                    Save Changes
-                    </Button>
-                </Box>
+
+                    {/* STORE TYPE SECTION */}
+                    <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
+                        <FormLabel sx={{ minWidth: 140 }}>Store Category</FormLabel>
+                        <Select
+                            value={formStoreType} 
+                            onChange={(e, newValue) => setFormStoreType(newValue)}
+                            sx={{ flex: 1, maxWidth: 400 }}
+                        >
+                            <Option value="General Store">General Store</Option>
+                            <Option value="Fashion">Fashion</Option>
+                            <Option value="Electronics">Electronics</Option>
+                            <Option value="Beauty & Health">Beauty & Health</Option>
+                            <Option value="Digital Products">Digital Products</Option>
+                        </Select>
+                    </FormControl>
+
+                    {/* SUPPORT EMAIL SECTION */}
+                    <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
+                        <FormLabel sx={{ minWidth: 140 }}>Support Email</FormLabel>
+                        <Box sx={{ flex: 1, maxWidth: 400 }}>
+                            <Input 
+                                value={formEmail} 
+                                onChange={(e) => setFormEmail(e.target.value)}
+                                startDecorator={<Mail size={16} />} 
+                                endDecorator={
+                                    // Use storeDits for both to keep them in sync
+                                    storeDits?.isEmailVerified ? (
+                                        <Typography level="body-xs" color="success" sx={{ fontWeight: 'bold' }}>VERIFIED</Typography>
+                                    ) : (
+                                        <Typography level="body-xs" color="warning" sx={{ fontWeight: 'bold' }}>PENDING</Typography>
+                                    )
+                                }
+                            />
+                            
+                            {/* Only show warning if the current display state is unverified */}
+                            {!storeDits?.isEmailVerified && (
+                                <Typography 
+                                    level="body-xs" 
+                                    sx={{ mt: 1, color: 'orange', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}
+                                >
+                                    <span>✉️</span> Check <strong>{storeDits?.pendingEmail || storeDits?.email}</strong> to verify.
+                                </Typography>
+                            )}
+                        </Box>
+                    </FormControl>
+                    <Divider />
+
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                        <Button variant="plain" color="neutral" onClick={() => setFormEmail(store.email)}>Cancel</Button>
+                        <Button 
+                            loading={loading}
+                            onClick={handleSave}
+                            startDecorator={<Save size={18} />} 
+                            sx={{ bgcolor: '#0f172a', borderRadius: 'lg' }}
+                        >
+                            Save Changes
+                        </Button>
+                    </Box>
                 </Stack>
             )}
 
@@ -318,7 +416,26 @@ export default function SettingsPage() {
 
                     <Divider />
 
-                    {/* Email & Role (Disabled as per your code) */}
+
+                    <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
+                        <FormLabel sx={{ minWidth: 140 }}>Full Name</FormLabel>
+                        <Input
+                            value={fullName || ""}
+                            onChange={(e) =>setFullName(e.target.value)}
+                            startDecorator={<Mail size={16} />}
+                            sx={{ flex: 1, maxWidth: 400 }}
+                        />
+                    </FormControl>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, mb: 2 }}>
+                        <Button
+                            onClick={handleFullNameUpdate}
+                            sx={{ bgcolor: "#0f172a", borderRadius: "lg" }}
+                            className="hover:bg-slate-800/90!"
+                        >
+                            {loadingp ? "Saving " : "Save Full Name"}
+                        </Button>
+                    </Box>
+                    {/* Email */}
                     <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
                         <FormLabel sx={{ minWidth: 140 }}>Email Address</FormLabel>
                         <Input
@@ -329,6 +446,7 @@ export default function SettingsPage() {
                         />
                     </FormControl>
 
+                    {/* Role */}
                     <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
                         <FormLabel sx={{ minWidth: 140 }}>Account Role</FormLabel>
                         <Input
@@ -340,13 +458,13 @@ export default function SettingsPage() {
 
                     <Divider />
 
-                    {/* Password Section */}
+                    {/* Password */}
                     <Box>
                         <Typography level="title-md" sx={{ fontWeight: 700 }}>
                             Password
                         </Typography>
                         <Typography level="body-xs">
-                            Change your account password.
+                            Change your account password. A verification code will be sent to your email.
                         </Typography>
                     </Box>
 
@@ -356,45 +474,102 @@ export default function SettingsPage() {
                             type="password"
                             placeholder="••••••••"
                             value={passwords.newPassword}
-                            onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
+                            onChange={(e) =>
+                                setPasswords({ ...passwords, newPassword: e.target.value })
+                            }
                             sx={{ flex: 1, maxWidth: 400 }}
                         />
                     </FormControl>
 
-                    <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
-                        <FormLabel sx={{ minWidth: 140 }}>Confirm Password</FormLabel>
+                    <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                    <FormLabel sx={{ minWidth: 140 }}>Confirm Password</FormLabel>
+                    <Box sx={{ flex: 1, maxWidth: 400 }}>
                         <Input
-                            type="password"
-                            placeholder="••••••••"
-                            value={passwords.confirmPassword}
-                            onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
-                            error={passwords.confirmPassword !== "" && passwords.newPassword !== passwords.confirmPassword}
-                            sx={{ flex: 1, maxWidth: 400 }}
+                        type="password"
+                        placeholder="••••••••"
+                        value={passwords.confirmPassword}
+                        onChange={(e) =>
+                            setPasswords({ ...passwords, confirmPassword: e.target.value })
+                        }
                         />
+                        
+                        {/* Password Strength Indicator */}
+                        {passwords.newPassword && (
+                        <Box sx={{ mt: 1.5 }}>
+                            <Box sx={{ display: 'flex', gap: 0.5, mb: 0.5 }}>
+                            {[...Array(4)].map((_, i) => (
+                                <Box
+                                key={i}
+                                sx={{
+                                    height: 4,
+                                    flex: 1,
+                                    borderRadius: '2px',
+                                    bgcolor: i < strengthScore ? strengthColors[strengthScore] : '#e2e8f0',
+                                    transition: 'background-color 0.3s'
+                                }}
+                                />
+                            ))}
+                            </Box>
+                            <Typography level="body-xs" sx={{ color: strengthColors[strengthScore], fontWeight: 600 }}>
+                            Strength: {strengthLabels[strengthScore]}
+                            </Typography>
+                        </Box>
+                        )}
+                    </Box>
                     </FormControl>
+
+                    {/* OTP INPUT (Appears After Sending OTP) */}
+                    {isOtpSent && (
+                        <FormControl sx={{ display: { sm: 'flex-row' }, gap: 2 }}>
+                            <FormLabel sx={{ minWidth: 140 }}>Verification Code</FormLabel>
+                            <Input
+                                placeholder="Enter 6-digit code"
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value)}
+                                sx={{ flex: 1, maxWidth: 200 }}
+                            />
+                        </FormControl>
+                    )}
 
                     <Divider />
 
                     <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-                        <Button 
-                            variant="plain" 
+                        <Button
+                            variant="plain"
                             color="neutral"
-                            onClick={() => setPasswords({ newPassword: '', confirmPassword: '' })}
+                            onClick={() => {
+                                setPasswords({ newPassword: "", confirmPassword: "" });
+                                setOtp("");
+                                setIsOtpSent(false);
+                            }}
                         >
                             Cancel
                         </Button>
-                        <Button
-                            loading={isUpdating}
-                            onClick={handlePasswordUpdate}
-                            startDecorator={<Save size={18} />}
-                            sx={{ bgcolor: "#0f172a", borderRadius: "lg" }}
-                            className="hover:bg-slate-800/90!"
-                        >
-                            Save Changes
-                        </Button>
+
+                        {!isOtpSent ? (
+                            <Button
+                                loading={isSendingOtp}
+                                onClick={handleRequestOtp}
+                                sx={{ bgcolor: "#0f172a", borderRadius: "lg" }}
+                                className="hover:bg-slate-800/90!"
+                            >
+                                Send Verification Code
+                            </Button>
+                        ) : (
+                            <Button
+                                loading={isUpdating}
+                                onClick={handlePasswordUpdate}
+                                startDecorator={<Save size={18} />}
+                                sx={{ bgcolor: "#0f172a", borderRadius: "lg" }}
+                                className="hover:bg-slate-800/90!"
+                            >
+                                Confirm Password Update
+                            </Button>
+                        )}
                     </Box>
                 </Stack>
             )}
+
 
             </Sheet>
         </Box>
