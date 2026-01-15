@@ -99,42 +99,35 @@ export const useCategoryStore = create((set, get) => ({
   /* =======================
      UPDATE CATEGORY
   ======================= */
-  updateCategory: async ({ categoryId, name, image, isFeatured }) => {
-    set({ loading: true, error: null });
-
+  updateCategory: async (categoryId, formData) => { // Accept id directly for easier calling
+    set({ submitting: true });
     try {
-      const formData = new FormData();
-      if (name) formData.append("name", name);
-      if (image) formData.append("image", image);
-      if (typeof isFeatured === "boolean") {
-        formData.append("isFeatured", isFeatured);
+      const {token} = useAuthStore.getState()
+      const res = await fetch(`${API_BASE}/api/category/${categoryId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await res.json(); // MUST await the json response
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to update category");
       }
 
-      const res = await fetch(
-        `${API_BASE}/categories/${categoryId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: formData,
-        }
+      // Fix: Use categoryId (the variable name) and data.category (from the response)
+      const updatedCategories = get().categories.map((cat) =>
+        cat._id === categoryId ? data.category : cat
       );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      set({ categories: updatedCategories, submitting: false });
+      return { success: true };
 
-      set((state) => ({
-        categories: state.categories.map((c) =>
-          c._id === categoryId ? data.category : c
-        ),
-        loading: false,
-      }));
-
-      return data.category;
     } catch (err) {
-      set({ error: err.message, loading: false });
-      throw err;
+      set({ submitting: false }); // Ensure submitting is turned off on error
+      return { success: false, error: err.message };
     }
   },
 
@@ -142,28 +135,24 @@ export const useCategoryStore = create((set, get) => ({
      DELETE CATEGORY
   ======================= */
   deleteCategory: async (categoryId) => {
-    set({ loading: true, error: null });
-
+    set({ submitting: true });
     try {
+      const {token} = useAuthStore.getState()
       const res = await fetch(
-        `${API_BASE}/categories/${categoryId}`,
+        `${API_BASE}/api/category/${categoryId}`, 
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
-      set((state) => ({
-        categories: state.categories.filter(
-          (c) => c._id !== categoryId
-        ),
-        loading: false,
-      }));
+    set((state) => ({
+      categories: state.categories.filter((cat) => cat._id !== categoryId),
+      submitting: false
+    }));
+    return { success: true };
     } catch (err) {
       set({ error: err.message, loading: false });
       throw err;

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCategoryStore } from "../../../services/categoryService";
-import { ChevronLeft, ChevronRight, Plus, Search, X, Loader2, ArrowUp, ArrowDown } from "lucide-react";
-import { Option, Select } from "@mui/joy";
+import { ChevronLeft, ChevronRight, Plus, Search, X, Loader2, ArrowUp, ArrowDown, Trash2, UploadCloud } from "lucide-react";
+import { AspectRatio, Box, Button, DialogContent, Divider, Drawer, FormControl, FormLabel, IconButton, Input, Modal, ModalClose, ModalDialog, Option, Select, Stack, Switch, Typography } from "@mui/joy";
 import { KeyboardArrowDown } from "@mui/icons-material";
 import StoreOwnerLayout from "./layout";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -169,13 +169,22 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
 
 /* ------------------ TABLE PAGE ------------------ */
 export default function CategoriesTable({ isDark = false }) {
-  const { categories, getCategories } = useCategoryStore();
+  const { categories, getCategories, submitting, updateCategory, deleteCategory } = useCategoryStore();
   const {store} = useAuthStore()
   // const storeId = store?._id
   const [selected, setSelected] = useState([]);
   const [search, setSearch] = useState("");
+  const [name, setName] = useState("")
+  const [image, setImage] = useState(null)
   const [currentPage, setCurrentPage] = useState(1);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false); 
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [preview, setPreview] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isFeatured, setIsFeatured] = useState(false)
+  const [id, setId] = useState("")
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  
   const rowsPerPage = 6;
     const thStyle = `px-4 py-3 font-semibold border-r ${isDark ? "border-slate-800" : "border-slate-100"}`;
     const tdStyle = `px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-300" : "border-slate-100 text-gray-700"}`;
@@ -186,6 +195,27 @@ export default function CategoriesTable({ isDark = false }) {
     setCurrentPage(1); // Reset to first page when sorting changes
     };
 
+    useEffect(() => {
+    if (selectedCategory) {
+      setName(selectedCategory.name || "");
+      setIsFeatured(selectedCategory.isFeatured || false);
+      setPreview(selectedCategory.image || "");
+      setImage(null); // Clear any pending file uploads from previous edits
+    }
+  }, [selectedCategory]);
+
+
+    const handleEditOpen = (selectedCategory) => {
+    if (selectedCategory) {
+      setName(selectedCategory.name);
+      setIsFeatured(selectedCategory.isFeatured);
+      setId(selectedCategory.id)
+      setPreview(selectedCategory.image); // URL from backend
+      setImage(null); // Reset file upload
+      setIsEditOpen(true)
+      console.log(selectedCategory)
+    }
+    };
   useEffect(() => {
       getCategories();
   }, [getCategories]);
@@ -216,6 +246,44 @@ export default function CategoriesTable({ isDark = false }) {
       ? [] 
       : filteredData.map(c => c._id)
   );
+
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+
+  const handleUpdate = async (id) => {
+    // if (!selectedCategory?._id) return;
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("isFeatured", isFeatured);
+    if (image) formData.append("image", image);
+    const result = await updateCategory(id, formData);
+    if (result.success) {
+      setIsEditOpen(false);
+    } else {
+      toast.error(result.error);
+    }
+  };
+  const handleDelete = async (categoryId) => {
+    // Confirmation is now handled by the UI Modal, so we just call the API
+    const result = await deleteCategory(categoryId);
+    if (result.success) {
+      toast.success("Category deleted successfully");
+      if (selectedCategory?._id === categoryId) {
+        setIsEditOpen(false);
+        setSelectedCategory(null);
+      }
+    } else {
+      toast.error(result.error || "Delete failed");
+    }
+  };
+
 
   return (
     <StoreOwnerLayout>
@@ -344,11 +412,28 @@ export default function CategoriesTable({ isDark = false }) {
                         <td className={tdStyle}>
                             <input type="checkbox" checked={cat.isFeatured} readOnly className="accent-blue-600" />
                         </td>
-                        <td className="px-4 py-3 text-center">
-                            <div className="flex justify-center gap-3">
-                            <button className="text-blue-500 font-semibold hover:underline">Edit</button>
-                            <button className="text-red-500 font-semibold hover:underline">Delete</button>
-                            </div>
+                       <td className="px-4 py-3 text-center">
+                          <div className="flex justify-center gap-3">
+                            <IconButton 
+                              size="sm" 
+                              variant="plain" 
+                              onClick={() => {
+                                  setSelectedCategory(cat); // Store the category object
+                                  setIsDeleteModalOpen(true); // Open modal
+                                }}       
+                              > 
+                              Edit
+                            </IconButton>
+                           <button 
+                              onClick={() => {
+                                setSelectedCategory(cat); // 1. Set the category context
+                                setIsDeleteModalOpen(true); // 2. Then open the modal
+                              }} 
+                              className="text-red-500 font-semibold hover:underline"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </td>
                         </tr>
                     ))
@@ -371,6 +456,123 @@ export default function CategoriesTable({ isDark = false }) {
         </div>
 
         <AddCategoryModal isOpen={isCategoryOpen} onClose={() => setIsCategoryOpen(false)} isDark={isDark} />
+
+        <Drawer
+          anchor="right"
+          open={isEditOpen}
+          onClose={() => !submitting && setIsEditOpen(false)}
+          slotProps={{ content: { sx: { width: { xs: '100%', sm: 450 }, p: 0 } } }}
+        >
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <Box sx={{ p: 3, borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
+              <Typography level="h4" sx={{ fontWeight: 800 }}>Edit Category</Typography>
+            </Box>
+
+            <DialogContent sx={{ p: 3 }}>
+              <Stack spacing={3}>
+                {/* IMAGE SECTION */}
+                <FormControl>
+                  <FormLabel sx={{ fontWeight: 600, mb: 1 }}>Category Image</FormLabel>
+                  <Box sx={{ position: 'relative', borderRadius: 'xl', border: '2px dashed #cbd5e1', overflow: 'hidden' }}>
+                    <AspectRatio ratio="16/9">
+                      {preview ? (
+                        <img src={preview} style={{ objectFit: 'cover' }} alt="Preview" />
+                      ) : (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                          <UploadCloud size={32} color="#64748b" />
+                          <Typography level="body-xs">Upload Image</Typography>
+                        </Box>
+                      )}
+                    </AspectRatio>
+                    
+                    {/* File Input Overlay */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      style={{ position: 'absolute', top: 0, left: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }}
+                    />
+
+                    {preview && (
+                      <IconButton 
+                        size="sm" color="danger" variant="solid" 
+                        onClick={() => {setPreview(""); setImage(null)}}
+                        sx={{ position: 'absolute', top: 10, right: 10 }}
+                      >
+                        <Trash2 size={14} />
+                      </IconButton>
+                    )}
+                  </Box>
+                </FormControl>
+
+                {/* NAME SECTION */}
+                <FormControl required>
+                  <FormLabel>Category Name</FormLabel>
+                  <Input 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)} 
+                    variant="soft" 
+                    sx={{ borderRadius: 'lg' }}
+                  />
+                </FormControl>
+
+                {/* FEATURED TOGGLE */}
+                <FormControl orientation="horizontal" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                  <FormLabel sx={{ fontWeight: 600 }}>Featured Category</FormLabel>
+                  <Switch 
+                    checked={isFeatured} 
+                    onChange={(e) => setIsFeatured(e.target.checked)}
+                    color={isFeatured ? 'success' : 'neutral'}
+                  />
+                </FormControl>
+              </Stack>
+            </DialogContent>
+
+            <Box sx={{ p: 3, borderTop: '1px solid #eee' }}>
+              <Button
+                className='bg-slate-900/90! hover:bg-slate-800!'
+                fullWidth 
+                size="lg" 
+                loading={submitting}
+                onClick={() => handleUpdate(id)}
+                sx={{ borderRadius: 'xl', height: 50 }}
+              >
+                Save Changes
+              </Button>
+            </Box>
+          </Box>
+        </Drawer>
+
+        <Modal open={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
+          <ModalDialog variant="outlined" role="alertdialog" sx={{ borderRadius: 'xl', maxWidth: 400 }}>
+            <Typography level="h4" startDecorator={<Trash2 color="red" />}>
+              Confirm Deletion
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <Typography level="body-md" sx={{ color: 'neutral.700' }}>
+              Are you sure you want to delete <b>{selectedCategory?.name}</b>? This action cannot be undone.
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, mt: 3, justifyContent: 'flex-end' }}>
+              <Button variant="plain" color="neutral" onClick={() => setIsDeleteModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="solid" 
+                color="danger" 
+                loading={submitting} 
+                onClick={async () => {
+                  if (selectedCategory?._id) {
+                    await handleDelete(selectedCategory._id);
+                    setIsDeleteModalOpen(false);
+                  }
+                }}
+                sx={{ borderRadius: 'lg' }}
+              >
+                Delete Category
+              </Button>
+            </Box>
+          </ModalDialog>
+        </Modal>     
       </div>
     </StoreOwnerLayout>
   );

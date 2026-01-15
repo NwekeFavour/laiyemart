@@ -25,6 +25,7 @@ import ForgotPassword from './pages/forgotPassword';
 import ResetPassword from './pages/resetPassword';
 import CategoriesTable from './pages/admin(StoreOwner)/category';
 import VerifyStore from './pages/verifyStore';
+import CustomerList from './pages/admin(StoreOwner)/customers';
 
 
 function App() {
@@ -35,12 +36,19 @@ function App() {
         <Routes>
           {/* All store-front related routes go here */}
           <Route path='/' element={<DemoHome storeSlug={subdomain}/>}/>
-          <Route path='/login' element={<AuthPage/>}/>
+          <Route path='/login' element={<AuthPage isDark={false}/>}/>
           <Route path='/register' element={<CustomerSignUp/>}/>
           <Route path='*' element={<div>Store Page Not Found</div>}/>
         </Routes>
-        <ToastContainer theme="colored" />
-      </div>
+        <ToastContainer 
+          containerId="STOREFRONT"
+          theme="dark" // Dark look for the shop
+          position="bottom-right" 
+          autoClose={2000}
+          hideProgressBar
+          toastClassName="store-toast" // Custom class for unique CSS
+        />      
+        </div>
     );
   }
   return (
@@ -78,6 +86,9 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={['OWNER', 'SUPER_ADMIN']} />}>
           <Route path='/dashboard/categories' element={<CategoriesTable/>}/>
         </Route>
+        <Route element={<ProtectedRoute allowedRoles={['OWNER', 'SUPER_ADMIN']} />}>
+          <Route path='/dashboard/customers' element={<CustomerList/>}/>
+        </Route>
         <Route path='/verify-store-email/:token' element={<VerifyStore/>}/>
         <Route path='*' element={<div className='flex items-center justify-center h-screen text-3xl font-semibold'>404 - Page Not Found</div>}/>
       </Routes>
@@ -90,7 +101,7 @@ function App() {
         closeOnClick
         theme="light"
         pauseOnHover
-        limit={3} // Prevents "Toast Spam" if the user clicks Save many times
+        limit={2} // Prevents "Toast Spam" if the user clicks Save many times
       />
     </div>
   )

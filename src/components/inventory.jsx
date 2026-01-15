@@ -34,7 +34,7 @@ export function InventoryCard({ isDark, products = [] }) {
         <h3 className="font-semibold">Inventory Summary</h3>
         
         <div className="flex flex-wrap gap-2">
-            <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-slate-500">
+            <span className="text-xs px-2 py-1 bg-slate-100  rounded-md text-slate-500">
                 {products.length} Items
             </span>
             <Link to={'/dashboard/products'} className="text-blue-500 hover:underline capitalize">see all</Link>
@@ -46,7 +46,7 @@ export function InventoryCard({ isDark, products = [] }) {
         <div className="text-2xl font-bold mb-4">₦{stats.assetValue}</div>
 
         {/* Progress Bar */}
-        <div className="flex gap-1 mb-3 h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className="flex gap-1 mb-3 h-2 w-full bg-slate-100  rounded-full overflow-hidden">
         {/* Available (Green) */}
         {stats.availableCount > 0 && (
             <div 

@@ -59,12 +59,16 @@ export default function CustomerSignUp() {
         });
 
         // ✅ Redirect to store home or account
-        toast.success("User Registered Successfully")
+        toast.success("User Registered Successfully", {
+          containerId: "STOREFRONT"
+        })
         setTimeout(() => {
             navigate(`/`);
         }, 3000)
     } catch (err) {
-        toast.error(err.message)
+        toast.error(err.message, {
+          containerId: "STOREFRONT"
+        })
         setTimeout(() =>{
             setError(err.message || "Registration failed. Please try again.");
         }, 2000)

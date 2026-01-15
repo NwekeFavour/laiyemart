@@ -145,11 +145,6 @@ const columnMapping = {
               </div>
             )}
           </div>
-
-          {/* Primary Action */}
-          <button className={`${isDark ? "bg-slate-900! hover:bg-slate-800! border-none" : "hover:bg-slate-50"} cursor-pointer group focus-visible:outline-hidden flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&amp;_svg]:shrink-0 bg-zinc-950 text-white  hover:bg-zinc-950 dark:hover:bg-zinc-300/90 data-[state=open]:bg-zinc-950/90 dark:data-[state=open]:bg-zinc-300/90 h-8.5 rounded-md px-3 text-[0.8125rem] leading-(--text-sm--line-height) [&amp;_svg:not([class*=size-])]:size-4 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 shadow-xs shadow-black/5 gap-2`}>
-            <Plus size={18} /> New Customer
-          </button>
         </div>
       </div>
       {/* Header */}
@@ -200,7 +195,7 @@ const columnMapping = {
                         </div>
                         </th>
                     ))}
-                    <th className={`px-4 py-4 border-b ${borderColor} text-right pr-6 whitespace-nowrap`}>Actions</th>
+                    
                     </tr>
                 </thead>
                 
@@ -245,13 +240,6 @@ const columnMapping = {
                         {customer.lastOrder}
                         </td>
 
-                        <td className={`px-4 py-4 border-b ${borderColor} text-right pr-6`}>
-                        <div className="flex justify-end gap-3 text-gray-400">
-                            <Eye size={16} className="cursor-pointer hover:text-blue-500" />
-                            <Edit2 size={16} className="cursor-pointer hover:text-amber-500" />
-                            <Trash2 size={16} className="cursor-pointer hover:text-red-500" />
-                        </div>
-                        </td>
                     </tr>
                     ))}
                 </tbody>
@@ -265,7 +253,7 @@ const columnMapping = {
           <div className="flex gap-1">
             <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className={`p-1.5 rounded border ${borderColor} disabled:opacity-30`}><ChevronLeft size={16} /></button>
             {[...Array(totalPages)].map((_, i) => (
-              <button key={i} onClick={() => setCurrentPage(i + 1)} className={`w-8 h-8 rounded border text-xs font-bold ${currentPage === i + 1 ? "bg-blue-600 text-white" : "hover:bg-gray-100"}`}>{i + 1}</button>
+              <button key={i} onClick={() => setCurrentPage(i + 1)} className={`w-8 h-8  rounded border text-xs font-bold ${currentPage === i + 1 ? "bg-slate-800! text-white" : "hover:bg-gray-100"}`}>{i + 1}</button>
             ))}
             <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className={`p-1.5 rounded border ${borderColor} disabled:opacity-30`}><ChevronRight size={16} /></button>
           </div>
@@ -296,10 +284,10 @@ const HeaderDropdown = ({ isDark, onSortAsc, onSortDesc }) => {
 
         {open && (
             <div className={`absolute right-0 mt-2 w-40 rounded border shadow-lg py-1 z-50 ${isDark ? 'bg-slate-900 border-slate-700 text-slate-300' : 'bg-white border-gray-200 text-gray-700'}`}>
-            <button onClick={() => { onSortAsc(); setOpen(false); }} className={`flex w-full items-center px-3 py-2 text-xs hover:bg-blue-600 hover:text-white`}>
+            <button onClick={() => { onSortAsc(); setOpen(false); }} className={`flex w-full items-center px-3 py-2 text-xs hover:bg-slate-600 hover:text-white`}>
                 <ArrowUp size={12} className="mr-2" /> Ascending
             </button>
-            <button onClick={() => { onSortDesc(); setOpen(false); }} className={`flex w-full items-center px-3 py-2 text-xs hover:bg-blue-600 hover:text-white`}>
+            <button onClick={() => { onSortDesc(); setOpen(false); }} className={`flex w-full items-center px-3 py-2 text-xs hover:bg-slate-600 hover:text-white`}>
                 <ArrowDown size={12} className="mr-2" /> Descending
             </button>
             </div>

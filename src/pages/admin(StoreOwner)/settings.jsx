@@ -95,6 +95,8 @@ export default function SettingsPage() {
             setStoreDits(store);
         }
     }, [store]);
+            // console.log(storeDits)
+
 
     const handleRequestOtp = async () => {
         const token = useAuthStore.getState().token;
@@ -339,7 +341,7 @@ export default function SettingsPage() {
                         <FormLabel sx={{ minWidth: 140 }}>Support Email</FormLabel>
                         <Box sx={{ flex: 1, maxWidth: 400 }}>
                             <Input 
-                                value={formEmail} 
+                                value={formEmail || ""} 
                                 onChange={(e) => setFormEmail(e.target.value)}
                                 startDecorator={<Mail size={16} />} 
                                 endDecorator={
@@ -358,7 +360,7 @@ export default function SettingsPage() {
                                     level="body-xs" 
                                     sx={{ mt: 1, color: 'orange', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}
                                 >
-                                    <span>✉️</span> Check <strong>{storeDits?.pendingEmail || storeDits?.email}</strong> to verify.
+                                    <span>✉️</span> Check <strong>{storeDits?.pendingEmail}</strong> to verify.
                                 </Typography>
                             )}
                         </Box>

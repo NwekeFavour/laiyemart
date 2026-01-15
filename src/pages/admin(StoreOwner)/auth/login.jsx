@@ -43,12 +43,16 @@ export default function AuthPage({ isDark }) {
       });
 
       // Redirect to store home on success
-      toast.success("Logged In Successfully")
+      toast.success("Logged In Successfully", {
+        containerId: "STOREFRONT"
+      })
       setTimeout(() => {
         navigate(`/`); 
       }, 4000)
     } catch (err) {
-      toast.error(err.message)
+      toast.error(err.message, {
+        containerId: "STOREFRONT"
+      })
       setTimeout(() =>{
         setError(err.message || "Invalid email or password");
       }, 2000)
