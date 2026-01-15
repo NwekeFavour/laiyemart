@@ -227,7 +227,7 @@ export default function SettingsPage() {
 
   return (
     <StoreOwnerLayout>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, p: {xs:2} }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, p: {md:2, lg:4} }}>
         {/* Header */}
         <Box>
             <Typography level="h2" sx={{ fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>Settings</Typography>
@@ -271,6 +271,7 @@ export default function SettingsPage() {
             {/* Settings Content Area */}
             <Sheet variant="outlined" sx={{ 
             flex: 1, 
+            width: "100%",
             borderRadius: 'xl', 
             p: { xs: 2, md: 4 }, 
             bgcolor: 'white' 
@@ -366,7 +367,6 @@ export default function SettingsPage() {
                         </Box>
                     </FormControl>
                     <Divider />
-
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
                         <Button variant="plain" color="neutral" onClick={() => setFormEmail(store.email)}>Cancel</Button>
                         <Button 

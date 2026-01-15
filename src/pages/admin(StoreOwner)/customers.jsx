@@ -90,7 +90,7 @@ function CustomerList({ isDark }) {
   return (
     <StoreOwnerLayout>
       <div
-        className={`p-2 md:p-2 min-h-screen ${
+        className={`p-2 md:p-4 min-h-screen ${
           isDark ? "bg-slate-950 text-slate-200" : " text-gray-900"
         }`}
       >
@@ -220,7 +220,7 @@ function CustomerList({ isDark }) {
                       />
                     </th>
 
-                    {["S/N", "Customer", "Orders", "Status", "Last Order"].map(
+                    {["S/N", "Customer", "Orders", "Status", "Created At"].map(
                       (header) => (
                         <th
                           key={header}
@@ -330,7 +330,17 @@ function CustomerList({ isDark }) {
                         <td
                           className={`px-4 py-4 border-b border-r ${borderColor} whitespace-nowrap`}
                         >
-                          {customer.lastOrder}
+                          {customer.createdAt
+                            ? new Date(customer.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              }
+                            )
+                            : "N/A"
+                          }
                         </td>
 
                       </tr>

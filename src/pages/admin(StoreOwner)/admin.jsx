@@ -591,42 +591,44 @@ const [isDrawerOpen, setIsDrawerOpen] = useState(false);
             </Grid>
 
             {/* Upgrade Card */}
-            <Grid xs={12} md={5}>
-            <Sheet sx={{ 
-                p: 4, borderRadius: '24px', bgcolor: '#eff6ff', 
-                border: '1px solid #dbeafe', position: 'relative', overflow: 'hidden' 
-            }}>
-                <Zap className="absolute -right-4 -top-4 text-blue-100" size={120} />
-                
-                <Typography sx={{ color: 'blue.700', fontWeight: 800, fontSize: '20px', mb: 1 }}>
-                Ready to grow?
-                </Typography>
-                <Typography sx={{ color: 'blue.600', fontSize: '14px', mb: 3, lineHeight: 1.5 }}>
-                The Pro plan gives you custom domains, advanced analytics, and 0% transaction fees.
-                </Typography>
-                
-                <Box sx={{ mb: 4 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography sx={{ fontSize: '12px', fontWeight: 700, color: 'blue.700' }}>Trial Usage</Typography>
-                    <Typography sx={{ fontSize: '12px', fontWeight: 700, color: 'blue.700' }}>60%</Typography>
-                </Box>
-                <LinearProgress 
-                    determinate 
-                    value={60} 
-                    color="primary"
-                    sx={{ borderRadius: 'sm', height: 8, bgcolor: '#dbeafe' }} 
-                />
-                </Box>
+            { store?.plan === "TRIAL" &&
+              <Grid xs={12} md={5}>
+                <Sheet sx={{ 
+                    p: 4, borderRadius: '24px', bgcolor: '#eff6ff', 
+                    border: '1px solid #dbeafe', position: 'relative', overflow: 'hidden' 
+                }}>
+                    <Zap className="absolute -right-4 -top-4 text-blue-100" size={120} />
+                    
+                    <Typography sx={{ color: 'blue.700', fontWeight: 800, fontSize: '20px', mb: 1 }}>
+                    Ready to grow?
+                    </Typography>
+                    <Typography sx={{ color: 'blue.600', fontSize: '14px', mb: 3, lineHeight: 1.5 }}>
+                    The Pro plan gives you custom domains, advanced analytics, and 0% transaction fees.
+                    </Typography>
+                    
+                    <Box sx={{ mb: 4 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography sx={{ fontSize: '12px', fontWeight: 700, color: 'blue.700' }}>Trial Usage</Typography>
+                        <Typography sx={{ fontSize: '12px', fontWeight: 700, color: 'blue.700' }}>60%</Typography>
+                    </Box>
+                    <LinearProgress 
+                        determinate 
+                        value={60} 
+                        color="primary"
+                        sx={{ borderRadius: 'sm', height: 8, bgcolor: '#dbeafe' }} 
+                    />
+                    </Box>
 
-                <Button 
-                fullWidth 
-                endDecorator={<ArrowUpRight size={18} />}
-                sx={{ bgcolor: '#2563eb', color: 'white', py: 1.5, borderRadius: 'xl', '&:hover': { bgcolor: '#1d4ed8' } }}
-                >
-                See All Pro Features
-                </Button>
-            </Sheet>
-            </Grid>
+                    <Button 
+                    fullWidth 
+                    endDecorator={<ArrowUpRight size={18} />}
+                    sx={{ bgcolor: '#2563eb', color: 'white', py: 1.5, borderRadius: 'xl', '&:hover': { bgcolor: '#1d4ed8' } }}
+                    >
+                    See All Pro Features
+                    </Button>
+                </Sheet>
+              </Grid>
+            }
         </Grid>
 
         

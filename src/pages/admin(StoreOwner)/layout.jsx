@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   Bell,
   Search,
-  Menu,
   X,
   LayoutGrid,
   ShoppingBag,
@@ -15,24 +14,36 @@ import {
   ChevronRight,
   Layers,
   UserCircle,
+  User2,
+  BellRing,
+  Moon,
+  Laptop,
+  HelpCircle,
+  MenuIcon,
 } from "lucide-react";
 import {
   Box,
   IconButton,
   Button,
-  Sheet,
   Badge,
+  Sheet,
   Typography,
   ModalDialog,
   Modal,
   Divider,
+  Avatar,
+  MenuItem,
+  Switch,
+  Menu,
+  Dropdown,
+  MenuButton,
 } from "@mui/joy";
 import { useLocation, useNavigate, Link, NavLink } from "react-router-dom";
 import { fetchMe } from "../../../services/authService";
 import { useAuthStore } from "../../store/useAuthStore";
 import { toast } from "react-toastify";
 
-export default function StoreOwnerLayout({ isDark, children }) {
+export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const logout = useAuthStore((state) => state.logout);
   const [loading, setLoading] = useState(false);
@@ -43,6 +54,13 @@ export default function StoreOwnerLayout({ isDark, children }) {
   const [hoveredItem, setHoveredItem] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const [profileAnchor, setProfileAnchor] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+    const handleOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null); 
+  
   const handleLogout = () => {
     // 1. Clear state and storage
     logout();
@@ -512,13 +530,14 @@ export default function StoreOwnerLayout({ isDark, children }) {
             top: 0,
             zIndex: 50,
           }}
+          
         >
           <IconButton
             variant="plain"
             sx={{ display: { lg: "none" } }}
             onClick={() => setIsMobileOpen(true)}
           >
-            <Menu />
+            <MenuIcon />
           </IconButton>
 
           <Box
@@ -554,42 +573,113 @@ export default function StoreOwnerLayout({ isDark, children }) {
               sx={{
                 width: 34,
                 height: 34,
-                borderRadius: '50%', // Perfect circle
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-                bgcolor: isDark ? '#1e293b' : '#f8fafc',
-                border: '1px solid',
-                borderColor: isDark ? '#334155' : '#e2e8f0',
-                color: isDark ? '#38bdf8' : '#0f172a', // Blue text in dark mode for a premium look
+                borderRadius: "50%", // Perfect circle
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+                border: "1px solid",
+                borderColor: isDark ? "#334155" : "#e2e8f0",
+                color: isDark ? "#38bdf8" : "#0f172a", // Blue text in dark mode for a premium look
                 fontWeight: 700,
-                fontSize: '14px',
+                fontSize: "14px",
                 ml: 1,
-                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
               }}
-            >
-              {store?.logo ? (
-                /* Priority 1: Store Logo (Show this if it exists) */
-                <img 
-                  src={store.logo.url} 
-                  alt="Store Logo" 
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover' 
-                  }} 
-                />
-              ) : user?.fullName ? (
-                /* Priority 2: User First Initial (If no logo) */
-                user.fullName.trim().charAt(0).toUpperCase()
-              ) : (
-                /* Priority 3: Fallback Icon (If neither exist) */
-                <UserCircle size={18} className="text-slate-400" />
-              )}
+            >      
+              <Dropdown>
+                {/* Trigger */}
+                <MenuButton
+                  slots={{ root: IconButton }}
+                  className={`w-9 h-9 rounded-full ${
+                    isDark ? "hover:bg-slate-800" : "hover:bg-gray-100"
+                  }`}
+                >
+                  <Avatar src={store?.logo?.url} sx={{ width: 32, height: 32 }} />
+                </MenuButton>
+
+                {/* Menu provides ListContext + positioning */}
+                <Menu className="border-none! shadow-2xl! bg-transparent!" placement="bottom-end">
+                  {/* Sheet for styling */}
+                  <Sheet
+                    className="bg-white! "
+                    variant="outlined"
+                    sx={{
+                      m: 0,
+                      width: 200,
+                      height: 240,
+                      border: "none",
+                      bgcolor: isDark ? "neutral.900" : "bg-white",
+                      borderRadius: "12px",
+                      color: isDark ? "neutral.200" : "text.primary",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {/* Header */}
+                    <div className="px-4 py-4 flex items-center gap-3">
+                      <div className="relative">
+                        <Avatar src={store?.logo?.url} sx={{ width: 48, height: 48 }} />
+                        <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full" />
+                      </div>
+
+                      <div className="flex flex-col justify-center">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                          {user?.fullName || "Sean"}
+                        </p>
+                        <p
+                          className={`text-xs ${
+                            user ? "text-gray-500 dark:text-slate-400" : "text-red-500 dark:text-red-400"
+                          }`}
+                        >
+                          {user ? "Online" : "Offline"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Divider className="border-t border-gray-200 dark:border-slate-700" />
+
+                    {/* Menu items */}
+                    <div className="flex flex-col">
+                      <MenuItem className="px-4 py-3 gap-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-none">
+                        <Link className="flex items-center w-full gap-3" to={"/dashboard/settings/"}>
+                          <Settings size={20} /> Settings
+                        </Link>
+                      </MenuItem>
+                    </div>
+
+                    <Divider className="border-t border-gray-200 dark:border-slate-700" />
+
+                    {/* Dark mode toggle */}
+                    <div className="px-4 py-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-sm text-slate-900 dark:text-slate-200">
+                        <Moon size={20} /> Dark mode
+                      </div>
+                      <Switch size="sm" checked={isDark} onChange={toggleDarkMode} />
+                    </div>
+
+                    <Divider className="border-t border-gray-200 dark:border-slate-700" />
+
+                    {/* Help */}
+                    <MenuItem className="px-4 py-3 gap-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-none">
+                      <HelpCircle size={20} /> Help
+                    </MenuItem>
+
+                    <Divider className="border-t border-gray-200 dark:border-slate-700" />
+
+                    {/* Logout */}
+                    <MenuItem className="px-4 py-3 gap-3 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-none" onClick={() => setIsLogoutModalOpen(true)}> 
+                      <LogOut size={20} /> Log out
+                    </MenuItem>
+                  </Sheet>
+
+                </Menu>
+              </Dropdown>      
             </Box>
           </Box>
         </Sheet>
+        
+
+
 
         {/* Dynamic Page Content */}
         <Box
@@ -604,6 +694,7 @@ export default function StoreOwnerLayout({ isDark, children }) {
             msOverflowStyle: "none" /* IE and Edge */,
             scrollbarWidth: "none",
           }}
+          onClick={() => setProfileAnchor(null)}
         >
           {children}
         </Box>

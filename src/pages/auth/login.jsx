@@ -263,7 +263,7 @@ export default function LoginPage() {
                         '&:hover': { textDecoration: 'underline' } 
                         }}
                     >
-                        <Link className='font-semibold!' to={"/auth/forgot-password"}>
+                        <Link className='font-semibold! text-slate-600 hover:underline' to={"/auth/forgot-password"}>
                             Forgot password?
                         </Link>
                     </Typography>
@@ -291,6 +291,7 @@ export default function LoginPage() {
             <Typography level="body-sm" sx={{ textAlign: 'center', mt: 1 }}>
             Don&apos;t have an account?{' '}
             <Typography 
+                className=' text-slate-600! hover:underline!'
                 sx={{ 
                 color: '#3b82f6', 
                 fontWeight: 700, 

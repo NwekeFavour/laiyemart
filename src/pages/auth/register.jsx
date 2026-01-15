@@ -237,6 +237,15 @@ export default function SignUpPage() {
                                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </form>
+                            <p className="text-end text-sm text-slate-500 mt-4">
+                            Already have an account?{" "}
+                            <span
+                                onClick={() => navigate("/auth/sign-in")}
+                                className="text-slate-600 font-semibold cursor-pointer hover:underline"
+                            >
+                                Sign In
+                            </span>
+                            </p>
                         </>
                     ) : (
                         /* --- STEP 2: OTP VERIFICATION FORM --- */
