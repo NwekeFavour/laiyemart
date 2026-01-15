@@ -67,7 +67,7 @@ const AllProductsSection = ({ products }) => {
                     {product.name}
                   </h3>
                   <p className="text-gray-900 font-bold mt-1">
-                    ${(product.price || 0).toFixed(2)}
+                    ₦{(product.price || 0).toLocaleString()}
                   </p>
                   <p className="text-gray-500 text-xs">
                     {product.colors ? `Available in ${product.colors} colors` : "Original Edition"}

@@ -9,6 +9,45 @@ import NewsletterSignup from '../admin(demo)/components/newsletter';
 import Footer from '../admin(demo)/components/footer';
 import StoreNotFound from '../../components/storenotfound';
 
+// 1. Define Content Strategies for each Store Type
+const STORE_CONTENT_CONFIG = {
+    "Fashion": {
+        phrases: ["Wear Your Identity", "Bold Fits Only", "Street-Ready Essentials"],
+        arrivalSub: "Discover the latest ready-to-wear pieces.",
+        emptyIcon: "👗"
+    },
+    "Electronics": {
+        phrases: ["Next-Gen Tech", "Power Your Future", "Innovation At Hand"],
+        arrivalSub: "Upgrade your setup with our latest gadgets.",
+        emptyIcon: "🔌"
+    },
+    "Beauty & Health": {
+        phrases: ["Glow Naturally", "Self-Care Essentials", "Your Daily Ritual"],
+        arrivalSub: "Discover curated beauty and wellness picks.",
+        emptyIcon: "✨"
+    },
+    "Home & Garden": {
+        phrases: ["Elevate Your Space", "Sustainable Living", "Design Your Sanctuary"],
+        arrivalSub: "New pieces for a house that feels like home.",
+        emptyIcon: "🏡"
+    },
+    "Food & Groceries": {
+        phrases: ["Freshly Sourced", "Organic & Healthy", "Farm to Table"],
+        arrivalSub: "Stock your pantry with our newest arrivals.",
+        emptyIcon: "🍎"
+    },
+    "Digital Products": {
+        phrases: ["Instant Access", "Creative Assets", "Level Up Your Skills"],
+        arrivalSub: "New tools to fuel your digital journey.",
+        emptyIcon: "💻"
+    },
+    "General Store": {
+        phrases: ["Quality Meets Value", "Your Daily Essentials", "Best Deals Daily"],
+        arrivalSub: "Explore our latest collection of essentials.",
+        emptyIcon: "📦"
+    }
+};
+
 function DemoHome({ storeSlug }) {
     const [storeData, setStoreData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -18,10 +57,8 @@ function DemoHome({ storeSlug }) {
         const validateStore = async () => {
             try {
                 setLoading(true);
-                // Adjust API URL to your environment
                 const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
                 const res = await fetch(`${API_URL}/api/stores/public/${storeSlug}`);
-                
                 const result = await res.json();
 
                 if (!res.ok || !result.success) {
@@ -37,12 +74,12 @@ function DemoHome({ storeSlug }) {
             }
         };
 
-        if (storeSlug) {
-            validateStore();
-        }
+        if (storeSlug) validateStore();
     }, [storeSlug]);
 
-    // 1. Loading State
+    // 2. Determine content config based on storeType
+    const config = STORE_CONTENT_CONFIG[storeData?.storeType] || STORE_CONTENT_CONFIG["General Store"];
+
     if (loading && !localStorage.getItem("demo")) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: 2 }}>
@@ -52,28 +89,27 @@ function DemoHome({ storeSlug }) {
         );
     }
 
-    // 2. Error State (Not Found)
-    if (error) {
-        return <StoreNotFound />;
-    }
-
-    const hasProducts = storeData?.products && storeData.products.length > 0;
-
-    // 3. Success State (Store Exists)
-    const phrases = ["Wear Your Identity", "Bold Fits Only", "Street-Ready Essentials"];
+    if (error) return <StoreNotFound />;
 
     return (
         <div>
-            <Hero storeName={storeData?.name} />
-            <NewArrivalsSlider />
+            <Hero 
+                storeName={storeData?.name} 
+                storeLogo={storeData?.logo?.url}
+                storeType={storeData?.storeType}
+            />
+
+            {/* Dynamic New Arrivals Heading passed via props if Slider supports it */}
+            <NewArrivalsSlider subtitle={config.arrivalSub} />
             
+            {/* Dynamic Marquee Section */}
             <Box sx={{ overflow: "hidden", backgroundColor: "neutral.50", py: 4, position: "relative" }}>
                 <motion.div
                     style={{ display: "flex", whiteSpace: "nowrap" }}
-                    animate={{ x: ["0%", "-50%"] }} // Changed to -50% for smoother infinite loop
-                    transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+                    animate={{ x: ["0%", "-50%"] }}
+                    transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
                 >
-                    {[...phrases, ...phrases].map((text, index) => (
+                    {[...config.phrases, ...config.phrases].map((text, index) => (
                         <Typography key={index} level="h4" sx={{ mx: 6, fontWeight: 600, fontSize: "1.5rem", display: "inline-block" }}>
                             <span style={{ color: '#ef4444' }}>*</span> {text}
                         </Typography>
@@ -81,16 +117,21 @@ function DemoHome({ storeSlug }) {
                 </motion.div>
             </Box>
 
-            <FeaturedPicksGrid />
+            <FeaturedPicksGrid storeType={storeData?.storeType} />
+            
             <AllProducts />
-            <NewsletterSignup />
-            <Footer storeName={storeData?.name} />
+            
+            <NewsletterSignup storeType={storeData?.storeType} />
+
+            <Footer 
+                storeName={storeData?.name} 
+                storeLogo={storeData?.logo?.url}
+            />
         </div>
     );
 }
 
 export default DemoHome;
-
 const EmptyStoreState = ({ storeName }) => (
   <Box sx={{ 
     py: 10, 

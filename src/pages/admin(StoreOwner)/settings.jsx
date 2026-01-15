@@ -70,7 +70,9 @@ export default function SettingsPage() {
 
             // 1. Update our local 'display' state with the response from server
             // This ensures storeDits.isEmailVerified reflects the new 'false' status
-            setStoreDits(result);
+            setTimeout(() => {
+                setStoreDits(result);
+            }, 7000)
             // console.log(storeDits)
 
             if (formEmail !== store.email) {
@@ -95,6 +97,7 @@ export default function SettingsPage() {
             setStoreDits(store);
         }
     }, [store]);
+
             // console.log(storeDits)
 
 
@@ -342,28 +345,24 @@ export default function SettingsPage() {
                         <FormLabel sx={{ minWidth: 140 }}>Support Email</FormLabel>
                         <Box sx={{ flex: 1, maxWidth: 400 }}>
                             <Input 
-                                value={formEmail || ""} 
-                                onChange={(e) => setFormEmail(e.target.value)}
-                                startDecorator={<Mail size={16} />} 
-                                endDecorator={
-                                    // Use storeDits for both to keep them in sync
-                                    storeDits?.isEmailVerified ? (
-                                        <Typography level="body-xs" color="success" sx={{ fontWeight: 'bold' }}>VERIFIED</Typography>
-                                    ) : (
-                                        <Typography level="body-xs" color="warning" sx={{ fontWeight: 'bold' }}>PENDING</Typography>
-                                    )
-                                }
-                            />
-                            
-                            {/* Only show warning if the current display state is unverified */}
-                            {!storeDits?.isEmailVerified && (
-                                <Typography 
-                                    level="body-xs" 
-                                    sx={{ mt: 1, color: 'orange', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}
-                                >
-                                    <span>✉️</span> Check <strong>{storeDits?.pendingEmail}</strong> to verify.
+                            value={formEmail || ""} 
+                            onChange={(e) => setFormEmail(e.target.value)}
+                            startDecorator={<Mail size={16} />} 
+                            endDecorator={
+                                /* Logic: If the current text in the input matches the original store email, 
+                                and that original was verified, show VERIFIED.
+                                */
+                                (formEmail === store.email && store?.isEmailVerified) ? (
+                                <Typography level="body-xs" color="success" sx={{ fontWeight: 'bold' }}>
+                                    VERIFIED
                                 </Typography>
-                            )}
+                                ) : (
+                                <Typography level="body-xs" color="warning" sx={{ fontWeight: 'bold' }}>
+                                    PENDING
+                                </Typography>
+                                )
+                            }
+                            />
                         </Box>
                     </FormControl>
                     <Divider />

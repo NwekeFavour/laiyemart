@@ -13,20 +13,29 @@ import { Link } from "react-router-dom";
 const navItems = [
   {
     label: "Product",
-    href: "#product",
+    href: "product",
     description: "Everything you need to launch fast",
   },
   {
     label: "Templates",
-    href: "#templates",
+    href: "templates",
     description: "Ready-to-use ecommerce designs",
   },
   {
     label: "Pricing",
-    href: "#pricing",
+    href: "pricing",
   },
+  
 
 ];
+
+  const handleScroll = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: "smooth" });
+  };
+
 
 export default function SaaSHeader() {
   const [open, setOpen] = useState(false);
@@ -102,7 +111,7 @@ export default function SaaSHeader() {
               <Typography
                 key={item.label}
                 component={Link}
-                to={item.href}
+                onClick={() => handleScroll(item.href)}
                 sx={{
                   fontSize: 14,
                   fontWeight: 500,

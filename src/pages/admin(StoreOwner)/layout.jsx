@@ -623,7 +623,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                       </div>
 
                       <div className="flex flex-col justify-center">
-                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                        <p className="text-sm font-semibold text-slate-900">
                           {user?.fullName || "Sean"}
                         </p>
                         <p
@@ -651,7 +651,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
                     {/* Dark mode toggle */}
                     <div className="px-4 py-3 flex items-center justify-between">
-                      <div className="flex items-center gap-3 text-sm text-slate-900 dark:text-slate-200">
+                      <div className="flex items-center gap-3 text-sm text-slate-900">
                         <Moon size={20} /> Dark mode
                       </div>
                       <Switch size="sm" checked={isDark} onChange={toggleDarkMode} />

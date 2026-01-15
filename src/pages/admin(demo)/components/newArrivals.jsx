@@ -1,56 +1,75 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Box, Typography, Rating, Stack, IconButton, useTheme, useMediaQuery, CircularProgress } from '@mui/material';
 import { motion, useAnimation } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ShoppingBagOutlined } from '@mui/icons-material';
-import { useProductStore } from '../../../../services/productService'; // Adjust path
-import { getSubdomain } from '../../../../storeResolver'; // Adjust path
+import { ChevronLeft, ChevronRight, ShoppingBagOutlined, ArrowForwardIos } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { useProductStore } from '../../../../services/productService';
+import { getSubdomain } from '../../../../storeResolver';
 
-const NewArrivalsSlider = () => {
+// Accept 'subtitle' and 'storeType' as props
+const NewArrivalsSlider = ({ subtitle }) => {
   const [width, setWidth] = useState(0);
   const { fetchStoreProducts, setLocalProducts, products, loading } = useProductStore();
+  const navigate = useNavigate();
   
   const carousel = useRef();
   const controls = useAnimation();
   const theme = useTheme();
+  const xOffset = useRef(0);
+  
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const isMedium = useMediaQuery(theme.breakpoints.between('md', 'lg'));
+
+  const getCardWidth = () => {
+    if (isMobile) return 'calc(75vw)';
+    if (isTablet) return 'calc(45vw)';
+    if (isMedium) return '280px';
+    return '300px';
+  };
+
+  const cardWidthValue = getCardWidth();
 
   useEffect(() => {
     const initData = async () => {
       const isDemo = localStorage.getItem('demo') === 'true';
       const subdomain = getSubdomain();
-
       if (isDemo || !subdomain) {
-        // Load Dummy Data if Demo mode is active
         setLocalProducts(DUMMY_PRODUCTS);
       } else {
-        // Fetch actual products from the backend for the specific store
         await fetchStoreProducts(subdomain);
       }
     };
-
     initData();
   }, [fetchStoreProducts, setLocalProducts]);
 
-  // Recalculate scrollable width whenever products change
   useEffect(() => {
     if (carousel.current && products.length > 0) {
       const updateWidth = () => {
         setWidth(carousel.current.scrollWidth - carousel.current.offsetWidth);
       };
-      
-      // Slight delay to ensure DOM has rendered images
-      const timer = setTimeout(updateWidth, 100);
+      const timer = setTimeout(updateWidth, 200);
       window.addEventListener('resize', updateWidth);
-      
       return () => {
         clearTimeout(timer);
         window.removeEventListener('resize', updateWidth);
       };
     }
-  }, [products]);
+  }, [products, cardWidthValue]);
 
-  const handleNext = () => controls.start({ x: -300 });
-  const handlePrev = () => controls.start({ x: 0 });
+  const handleNext = () => {
+    const step = isMobile ? window.innerWidth * 0.75 : 400; 
+    const newX = Math.max(xOffset.current - step, -width);
+    xOffset.current = newX;
+    controls.start({ x: newX, transition: { type: 'spring', damping: 25, stiffness: 120 } });
+  };
+
+  const handlePrev = () => {
+    const step = isMobile ? window.innerWidth * 0.75 : 400;
+    const newX = Math.min(xOffset.current + step, 0);
+    xOffset.current = newX;
+    controls.start({ x: newX, transition: { type: 'spring', damping: 25, stiffness: 120 } });
+  };
 
   if (loading) return (
     <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
@@ -58,160 +77,106 @@ const NewArrivalsSlider = () => {
     </Box>
   );
 
-  if (!loading && products.length === 0) {
-    return (
-      <Box sx={{ 
-        py: 10, 
-        px: 4, 
-        textAlign: 'center', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        borderRadius: '16px',
-        m: 4 
-      }}>
-        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6 shadow-sm">
-                    <ShoppingBagOutlined sx={{ fontSize: 32, color: '#9ca3af' }} />
-                  </div>
-        <Typography variant="h5" fontWeight="800" gutterBottom>
-          CURATING NEW ARRIVALS
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400 }}>
-          We're currently selecting our next season's favorites. 
-          Check back soon to explore our latest pieces!
-        </Typography>
-      </Box>
-    );
-  }
+  const displayedProducts = products.slice(0, 10);
+  const hasMore = products.length > 10;
 
   return (
-    <Box sx={{ p: 4, width: '100%', maxWidth: '1280px', margin: '0 auto' }}>
-      {/* Header Section */}
+    <Box sx={{ p: { xs: 2, md: 4 }, width: '100%', maxWidth: '1440px', margin: '0 auto', overflow: 'hidden' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 4 }}>
         <Box>
-          <Typography className='lg:text-[34px]! md:text-[30px]! text-[26px]!' variant="h4" fontWeight="800" sx={{ letterSpacing: '-1px' }}>
+          <Typography 
+            className='lg:text-[34px]! md:text-[30px]! text-[26px]!' 
+            variant="h4" 
+            fontWeight="800" 
+            sx={{ letterSpacing: '-1.5px' }}
+          >
             NEW ARRIVALS
           </Typography>
-          <Typography variant="body2" color="text.secondary">Discover the latest ready-to-wear dresses.</Typography>
-          
+          {/* Use the dynamic subtitle prop here */}
+          <Typography variant="body2" color="text.secondary">
+            {subtitle || "The latest additions to our collection."}
+          </Typography>
         </Box>
 
-        {/* Navigation Buttons */}
         {!isMobile && (
           <Stack direction="row" spacing={1}>
-            <IconButton onClick={handlePrev} sx={{ border: '1px solid #ddd' }}>
-              <ChevronLeft />
-            </IconButton>
-            <IconButton onClick={handleNext} sx={{ border: '1px solid #ddd' }}>
-              <ChevronRight />
-            </IconButton>
+            <IconButton onClick={handlePrev} sx={{ border: '1px solid #eee', bgcolor: 'white' }}><ChevronLeft /></IconButton>
+            <IconButton onClick={handleNext} sx={{ border: '1px solid #eee', bgcolor: 'white' }}><ChevronRight /></IconButton>
           </Stack>
         )}
       </Box>
 
-      {/* Viewport */}
-      <Box
-        component={motion.div}
-        ref={carousel}
-        sx={{
-          overflowX: isMobile ? 'auto' : 'hidden',
-          overflowY: 'hidden',
-          cursor: isMobile ? 'default' : 'grab',
-          WebkitOverflowScrolling: 'touch', // Smooth scroll for iOS
-          '&::-webkit-scrollbar': { display: 'none' }, // Hide scrollbar
-          msOverflowStyle: 'none',
-          scrollbarWidth: 'none',
-          px: isMobile ? 2 : 0, // Add padding so items don't touch screen edges
-          mx: isMobile ? -4 : 0,
-        }}
-      >
-      {/* Viewport Container */}
-      <Box
-        ref={carousel}
-        sx={{
-          overflow: 'hidden', // Keep hidden to allow Framer Motion to manage the translate
-          cursor: 'grab',
-          mx: { xs: -2, sm: 0 }, // Negative margin on mobile to allow "bleed" to edges
-          px: { xs: 2, sm: 0 },
-          '&:active': { cursor: 'grabbing' }
-        }}
-      >
+      <Box ref={carousel} sx={{ cursor: 'grab', '&:active': { cursor: 'grabbing' } }}>
         <motion.div
           drag="x"
           animate={controls}
           dragConstraints={{ right: 0, left: -width }}
-          style={{
-            display: 'flex',
-            gap: '16px',
-            width: 'max-content',
-          }}
+          onDragEnd={(e, info) => { xOffset.current = info.offset.x; }}
+          style={{ display: 'flex', gap: '20px', width: 'max-content' }}
         >
-          {products.map((product) => (
-            <motion.div
-              key={product._id || product.id}
-              style={{
-                // Responsive widths: 
-                // Mobile: ~85% of view width so the next card peeks in
-                // Tablet/Desktop: Fixed 240px
-                width: isMobile ? 'calc(85vw - 32px)' : '240px',
-                flexShrink: 0,
-              }}
-            >
-              <Box sx={{ 
-                position: 'relative', 
-                bgcolor: '#f5f5f5', 
-                aspectRatio: '3/4', 
-                mb: 2,
-                borderRadius: '8px',
-                overflow: 'hidden'
-              }}>
+          {displayedProducts.map((product) => (
+            <motion.div key={product._id || product.id} style={{ width: cardWidthValue, flexShrink: 0 }}>
+              <Box sx={{ position: 'relative', bgcolor: '#f9f9f9', aspectRatio: '3/4', mb: 2, borderRadius: '12px', overflow: 'hidden' }}>
                 <img
                   src={product.images?.[0]?.url || product.image || 'https://via.placeholder.com/400'}
                   alt={product.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
                 />
-                
-                <Box sx={{ position: 'absolute', top: 12, left: 12, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                  {(product.isNew || product.status === 'active') && (
-                    <Box sx={{ bgcolor: '#E67E22', color: 'white', px: 1, py: 0.3, fontSize: '10px', fontWeight: 'bold', borderRadius: '4px' }}>NEW</Box>
-                  )}
-                  {product.isBest && (
-                    <Box sx={{ bgcolor: '#3498DB', color: 'white', px: 1, py: 0.3, fontSize: '10px', fontWeight: 'bold', borderRadius: '4px' }}>BESTSELLER</Box>
-                  )}
-                </Box>
               </Box>
-
               <Stack spacing={0.5}>
-                <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                  {product.brand || 'OFFICIAL'}
-                </Typography>
-                <Typography variant="body2" fontWeight="bold" noWrap>
-                  {product.name}
-                </Typography>
-                <Typography variant="body2" fontWeight="bold">
-                  ₦{(product.price || 0).toFixed(2)}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {product.colors ? `Available in ${product.colors} colors` : 'Limited Edition'}
-                </Typography>
-                <Rating value={5} size="small" readOnly sx={{ color: '#E67E22', mt: 0.5 }} />
+                <Typography variant="caption" color="text.secondary" fontWeight="700" sx={{ opacity: 0.6 }}>{product.brand}</Typography>
+                <Typography variant="body2" fontWeight="700" noWrap>{product.name}</Typography>
+                <Typography variant="body2" fontWeight="800">₦{(product.price || 0).toLocaleString()}</Typography>
               </Stack>
             </motion.div>
           ))}
+
+          {/* VIEW MORE CARD */}
+          {(hasMore || products.length > 0) && (
+            <motion.div style={{ width: cardWidthValue, flexShrink: 0 }}>
+              <Box 
+                onClick={() => navigate('/products')}
+                sx={{ 
+                  aspectRatio: '3/4', 
+                  borderRadius: '12px', 
+                  border: '2px dashed #e0e0e0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: '0.3s',
+                  '&:hover': { bgcolor: '#f5f5f5', borderColor: '#000' }
+                }}
+              >
+                <Box className="bg-neutral-600/15!" sx={{ color: 'black', p: 2, borderRadius: '50%', mb: 2 }}>
+                  <ArrowForwardIos sx={{ fontSize: 18, ml: 0.5 }} />
+                </Box>
+                <Typography variant="button" fontWeight="800">View All</Typography>
+                <Typography variant="caption" color="text.secondary">
+                   Explore {products.length} Items
+                </Typography>
+              </Box>
+            </motion.div>
+          )}
         </motion.div>
-      </Box>
       </Box>
     </Box>
   );
 };
 
 const DUMMY_PRODUCTS = [
-  { id: 1, brand: 'KOMONO', name: 'TOTE BAG - VARIANT IMAGE SET', price: 142.50, colors: 3, isNew: true, isBest: true, image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400' },
-  { id: 2, brand: 'CLOUDNOLA', name: 'RIB AINE LS TOP - CHOCOLATE', price: 38.20, colors: 4, isNew: false, image: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=400' },
-  { id: 3, brand: 'MAJESTIC', name: 'NORA JEANS - BLACK CORD', price: 52.00, colors: 1, isNew: false, image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=400' },
-  { id: 4, brand: 'KALEIDOSCOPE', name: 'MANFRED WALLET - TOFFEE', price: 94.00, colors: 3, isNew: false, image: 'https://images.unsplash.com/photo-1511405946472-a37e3b5ccd47?q=80&w=400' },
-  { id: 5, brand: 'KOMONO', name: 'OVERSIZED TEE', price: 45.00, colors: 2, isNew: true, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400' },
-  { id: 6, brand: 'KOMONO', name: 'OVERSIZED TEE', price: 45.00, colors: 2, isNew: true, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400' },
+    { id: 1, brand: 'KOMONO', name: 'TOTE BAG - VARIANT IMAGE SET', price: 142.50, colors: 3, isNew: true, isBest: true, image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=400' },
+    { id: 2, brand: 'CLOUDNOLA', name: 'RIB AINE LS TOP - CHOCOLATE', price: 38.20, colors: 4, isNew: false, image: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=400' },
+    { id: 3, brand: 'MAJESTIC', name: 'NORA JEANS - BLACK CORD', price: 52.00, colors: 1, isNew: false, image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=400' },
+    { id: 4, brand: 'KALEIDOSCOPE', name: 'MANFRED WALLET - TOFFEE', price: 94.00, colors: 3, isNew: false, image: 'https://images.unsplash.com/photo-1511405946472-a37e3b5ccd47?q=80&w=400' },
+    { id: 5, brand: 'KOMONO', name: 'OVERSIZED TEE', price: 45.00, colors: 2, isNew: true, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400' },
+    { id: 6, brand: 'KOMONO', name: 'OVERSIZED TEE', price: 45.00, colors: 2, isNew: true, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400' },
+    { id: 7, brand: 'KOMONO', name: 'OVERSIZED TEE', price: 45.00, colors: 2, isNew: true, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400' },
+    { id: 8, brand: 'KOMONO', name: 'OVERSIZED TEE', price: 45.00, colors: 2, isNew: true, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400' },
+    { id: 9, brand: 'KOMONO', name: 'OVERSIZED TEE', price: 45.00, colors: 2, isNew: true, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400' },
+    { id: 10, brand: 'KOMONO', name: 'OVERSIZED TEE', price: 45.00, colors: 2, isNew: true, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400' },
+    { id: 11, brand: 'KOMONO', name: 'OVERSIZED TEE', price: 45.00, colors: 2, isNew: true, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400' },
 ];
 
 export default NewArrivalsSlider;
