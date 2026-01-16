@@ -26,6 +26,7 @@ import ResetPassword from './pages/resetPassword';
 import CategoriesTable from './pages/admin(StoreOwner)/category';
 import VerifyStore from './pages/verifyStore';
 import CustomerList from './pages/admin(StoreOwner)/customers';
+import Products from './pages/(demo)/products';
 
 
 function App() {
@@ -36,8 +37,10 @@ function App() {
         <Routes>
           {/* All store-front related routes go here */}
           <Route path='/' element={<DemoHome storeSlug={subdomain}/>}/>
+          <Route path='/home' element={<DemoHome storeSlug={subdomain}/>}/>
           <Route path='/login' element={<AuthPage isDark={false}/>}/>
           <Route path='/register' element={<CustomerSignUp/>}/>
+          <Route path='/shop' element={<Products storeSlug={subdomain}/>}/>
           <Route path='*' element={<div>Store Page Not Found</div>}/>
         </Routes>
         <ToastContainer 

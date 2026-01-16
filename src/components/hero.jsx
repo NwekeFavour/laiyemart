@@ -1,6 +1,7 @@
 import React from 'react';
 import Header from './mainheader';
 import { Button } from '@mui/joy';
+import { ArrowRight, Play } from 'lucide-react';
 export default function Hero({ onCreateStore }) {
   return (
     <section className="relative overflow-hidden bg-[#f3f4ff] lg:min-h-screen rounded-b-4xl">
@@ -12,7 +13,7 @@ export default function Hero({ onCreateStore }) {
       <div className="hero-content relative z-10">
         <Header />
         
-        <div className='flex flex-col items-center justify-center md:pt-32 pt-24 lg:pt-44 px-4'>
+        <div className='flex flex-col items-center justify-center md:pt-32 pt-32 lg:pt-44 px-4'>
           <div className="max-w-7xl w-full text-center">
             
             {/* Heading with styled accent word */}
@@ -31,14 +32,32 @@ export default function Hero({ onCreateStore }) {
               Launch faster with pre-built layouts, optimized checkout flows, and tools designed for modern online brands.
             </p>
             
-            <div className='flex flex-col sm:flex-row justify-center items-center gap-4 my-10 '>
-              <Button
+            <div className='flex flex-col sm:flex-row justify-center items-center gap-4 my-5 sm:my-10 '>
+              <div className='flex flex-col sm:flex-row justify-center items-center gap-4 mt-10 mb-6'>
+                <Button
                 onClick={onCreateStore}
                 size="lg"
-                className="bg-slate-900/90! text-[16px]! hover:bg-slate-800! text-white lg:px-8! px-5 py-3 lg:py-3! rounded-xl transition-all shadow-xl shadow-slate-200"
+                endDecorator={<ArrowRight size={18} />}
+                sx={{
+                  backgroundColor: '#0f172a',
+                  fontSize: '16px',
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: 'xl',
+                  boxShadow: '0 20px 40px -10px rgba(15, 23, 42, 0.3)',
+                  '&:hover': { backgroundColor: '#1e293b' }
+                }}
               >
-                Quick Preview
-              </Button>
+                Start Free Trial
+                </Button>
+                
+                <button className="flex items-center gap-2 font-semibold text-slate-700 hover:text-indigo-600 transition-colors px-4 py-2">
+                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-slate-100">
+                    <Play size={14} fill="currentColor" />
+                  </div>
+                  See how it works
+                </button>
+              </div>
             </div>
 
             <div className='lg:block hidden'>

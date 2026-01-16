@@ -441,7 +441,7 @@ function Home(props) {
 
                             {/* Header */}
                             <div className="flex items-center justify-center flex-col text-center gap-5 mb-10">
-                            <div className="py-1 text-indigo-600 font-semibold border-b-2 border-indigo-600 mb-1.5">
+                            <div className="py-1 text-[#4f46e5] font-semibold border-b-2 border-indigo-600 mb-1.5">
                                 Pricing
                             </div>
                             <h2 className="text-[22px] md:text-3xl font-bold text-foreground">
@@ -460,8 +460,8 @@ function Home(props) {
                                     onClick={() => setBilling("monthly")}
                                     className={`px-6 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1 ${
                                         billing === "monthly"
-                                        ? "bg-indigo-600 text-white shadow-md"
-                                        : "bg-transparent text-gray-500 hover:bg-indigo-100 hover:text-indigo-700"
+                                        ? "bg-[#4f46e5] text-white shadow-md"
+                                        : "bg-transparent text-gray-500 hover:bg-indigo-100 hover:text-[#4f46e5]/20"
                                     }`}
                                     >
                                     Monthly
@@ -471,8 +471,8 @@ function Home(props) {
                                     onClick={() => setBilling("yearly")}
                                     className={`px-6 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1 ${
                                         billing === "yearly"
-                                        ? "bg-indigo-600 text-white shadow-md"
-                                        : "bg-transparent text-gray-500 hover:bg-indigo-100 hover:text-indigo-700"
+                                        ? "bg-[#4f46e5] text-white shadow-md"
+                                        : "bg-transparent text-gray-500 hover:bg-indigo-100 hover:text-[#4f46e5]/20"
                                     }`}
                                     >
                                     Yearly
@@ -943,13 +943,13 @@ function PricingCard({
 
   return (
     <div
-      className={`bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm h-full relative transition-all duration-300 group hover:border-indigo-500 ${
-        mostPopular ? "shadow-2xl scale-105 border-indigo-500" : "border-slate-100"
+      className={`bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm h-full relative transition-all duration-300 group hover:border-[#4f46e5] ${
+        mostPopular ? "shadow-2xl scale-105 border-[#4f46e5]" : "border-slate-100"
       }`}
     >
       {mostPopular && (
         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-          <span className="inline-flex items-center justify-center rounded-md text-xs font-medium bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-2.5 py-1">
+          <span className="inline-flex items-center justify-center rounded-md text-xs font-medium bg-linear-to-r from-[#4f46e5] to-[#4f46e5] text-white px-2.5 py-1">
             Most Popular
           </span>
         </div>
@@ -989,7 +989,7 @@ function PricingCard({
             onClick={() => handlePay(plan)}
             className={`w-full h-10 rounded-md font-semibold transition ${
               mostPopular
-                ? "bg-black text-white hover:bg-slate-900"
+                ? "bg-[#4f46e5] text-white hover:bg-slate-900"
                 : "border border-slate-200 hover:bg-slate-50"
             }`}
           >
