@@ -44,18 +44,37 @@ const NewArrivalsSlider = ({ subtitle }) => {
   }, [fetchStoreProducts, setLocalProducts]);
 
   useEffect(() => {
-    if (carousel.current && products.length > 0) {
-      const updateWidth = () => {
-        setWidth(carousel.current.scrollWidth - carousel.current.offsetWidth);
+    const updateWidth = () => {
+      if (carousel.current) {
+        const newWidth = carousel.current.scrollWidth - carousel.current.offsetWidth;
+        setWidth(newWidth);
+
+        // Keep xOffset within new bounds
+        if (xOffset.current < -newWidth) {
+          xOffset.current = -newWidth;
+          controls.start({ x: -newWidth });
+        }
+      }
+    };
+
+    // Run after images have loaded
+    const images = carousel.current?.querySelectorAll('img');
+    let loadedCount = 0;
+    images?.forEach((img) => {
+      if (img.complete) loadedCount++;
+      else img.onload = () => {
+        loadedCount++;
+        if (loadedCount === images.length) updateWidth();
       };
-      const timer = setTimeout(updateWidth, 200);
-      window.addEventListener('resize', updateWidth);
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('resize', updateWidth);
-      };
-    }
-  }, [products, cardWidthValue]);
+    });
+
+    // fallback in case all images are cached
+    if (loadedCount === images?.length) updateWidth();
+
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, [products]);
+
 
   const handleNext = () => {
     const step = isMobile ? window.innerWidth * 0.75 : 400; 

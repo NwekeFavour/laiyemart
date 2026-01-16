@@ -315,6 +315,28 @@ export default function Header({ storeName, storeLogo }) {
             <Menu size={24} />
           </IconButton>
 
+          {isDemo ? <Stack
+            direction="row"
+            spacing={3}
+            sx={{ display: { xs: "none", md: "flex" } }}
+          >
+            {["Home", "Shop"].map((item) => (
+              <Link
+                key={item}
+                to={`/#`}
+                style={{
+                  textDecoration: "none",
+                  color: activeTextColor,
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  transition: "color 0.3s ease",
+                }}
+              >
+                {item}
+              </Link>
+            ))}
+          </Stack> :
           <Stack
             direction="row"
             spacing={3}
@@ -336,7 +358,7 @@ export default function Header({ storeName, storeLogo }) {
                 {item}
               </Link>
             ))}
-          </Stack>
+          </Stack>}
         </Stack>
 
         {/* Center Section: Branding */}
