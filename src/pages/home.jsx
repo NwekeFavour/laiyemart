@@ -989,8 +989,8 @@ function PricingCard({
             onClick={() => handlePay(plan)}
             className={`w-full h-10 rounded-md font-semibold transition ${
               mostPopular
-                ? "bg-[#4f46e5] text-white hover:bg-slate-900"
-                : "border border-slate-200 hover:bg-slate-50"
+                ? "bg-[#4f46e5] text-white hover:bg-[#4f46e5]/80"
+                : "border border-slate-200 hover:text-white hover:bg-[#4f46e5]/80"
             }`}
           >
             Get Started

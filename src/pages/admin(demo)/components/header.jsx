@@ -97,7 +97,7 @@
 //             onClick={() => setOpen(true)}
 //           >
 //             <Menu size={24} />
-//           </IconButton>      
+//           </IconButton>
 
 //           <Stack
 //             direction="row"
@@ -224,20 +224,36 @@ import {
   Avatar,
   Drawer,
   Divider,
+  ModalDialog,
+  Modal,
 } from "@mui/joy";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Menu, X, User, LogOut } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
+import { toast } from "react-toastify";
 
 const MotionBox = motion(Box);
 
 export default function Header({ storeName, storeLogo }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const [isLogoutModalOpen ,setIsLogoutModalOpen] = useState(false)
   const { pathname } = useLocation();
   const { isAuthenticated, customer, logout } = useCustomerAuthStore();
   const isDemo = localStorage.getItem("demo") === "true";
+
+    const handleLogout = () => {
+      // 1. Clear state and storage
+      logout();
+  
+      // 2. Trigger a well-designed success toast
+      toast.success("Signed out successfully");
+  
+      // 3. Redirect to login page
+      navigate("/login");
+    };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -315,50 +331,53 @@ export default function Header({ storeName, storeLogo }) {
             <Menu size={24} />
           </IconButton>
 
-          {isDemo ? <Stack
-            direction="row"
-            spacing={3}
-            sx={{ display: { xs: "none", md: "flex" } }}
-          >
-            {["Home", "Shop"].map((item) => (
-              <Link
-                key={item}
-                to={`/#`}
-                style={{
-                  textDecoration: "none",
-                  color: activeTextColor,
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  transition: "color 0.3s ease",
-                }}
-              >
-                {item}
-              </Link>
-            ))}
-          </Stack> :
-          <Stack
-            direction="row"
-            spacing={3}
-            sx={{ display: { xs: "none", md: "flex" } }}
-          >
-            {["Home", "Shop"].map((item) => (
-              <Link
-                key={item}
-                to={`/${item.toLowerCase()}`}
-                style={{
-                  textDecoration: "none",
-                  color: activeTextColor,
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  transition: "color 0.3s ease",
-                }}
-              >
-                {item}
-              </Link>
-            ))}
-          </Stack>}
+          {isDemo ? (
+            <Stack
+              direction="row"
+              spacing={3}
+              sx={{ display: { xs: "none", md: "flex" } }}
+            >
+              {["Home", "Shop"].map((item) => (
+                <Link
+                  key={item}
+                  to={`/#`}
+                  style={{
+                    textDecoration: "none",
+                    color: activeTextColor,
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    transition: "color 0.3s ease",
+                  }}
+                >
+                  {item}
+                </Link>
+              ))}
+            </Stack>
+          ) : (
+            <Stack
+              direction="row"
+              spacing={3}
+              sx={{ display: { xs: "none", md: "flex" } }}
+            >
+              {["Home", "Shop"].map((item) => (
+                <Link
+                  key={item}
+                  to={`/${item.toLowerCase()}`}
+                  style={{
+                    textDecoration: "none",
+                    color: activeTextColor,
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    transition: "color 0.3s ease",
+                  }}
+                >
+                  {item}
+                </Link>
+              ))}
+            </Stack>
+          )}
         </Stack>
 
         {/* Center Section: Branding */}
@@ -426,17 +445,25 @@ export default function Header({ storeName, storeLogo }) {
                   level="title-sm"
                   sx={{ color: activeTextColor, fontWeight: 700 }}
                 >
-                  {isAuthenticated ? customer?.name?.split(" ")[0] : "LOGIN"}
+                  {isAuthenticated ? "MY ACCOUNT" : "LOGIN"}
                 </Typography>
               </Link>
             )}
           </Box>
 
-          <IconButton variant="plain" sx={{ color: activeTextColor }}>
+          <Link
+            to={"/cart"}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              color: activeTextColor,
+              textDecoration: "none",
+            }}
+          >
             <Badge badgeContent={0} color="danger" size="sm">
               <ShoppingBag size={20} />
             </Badge>
-          </IconButton>
+          </Link>
         </Stack>
       </MotionBox>
 
@@ -478,9 +505,7 @@ export default function Header({ storeName, storeLogo }) {
                 className="capitalize!"
                 sx={{ fontSize: "20px", fontWeight: 500 }}
               >
-                <Link to={`/${item}`}>
-                  {item}
-                </Link>
+                <Link to={`/${item}`}>{item}</Link>
               </Typography>
             ))}
           </Stack>
@@ -494,12 +519,15 @@ export default function Header({ storeName, storeLogo }) {
                 variant="solid"
                 color="danger"
                 startDecorator={<LogOut size={18} />}
-                onClick={logout}
+                onClick={() => setIsLogoutModalOpen(true)}
               >
                 Sign Out
               </Button>
             ) : (
-              <Link className="w-full px-4 py-2 bg-slate-900 text-slate-100">
+              <Link
+                to={"/login"}
+                className="w-full px-4 py-2 bg-slate-900 text-slate-100"
+              >
                 Login to Account
               </Link>
             )}
@@ -513,6 +541,84 @@ export default function Header({ storeName, storeLogo }) {
           </Box>
         </Box>
       </Drawer>
+
+      <Modal
+        open={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+      >
+        <ModalDialog
+          variant="outlined"
+          role="alertdialog"
+          sx={{
+            borderRadius: "24px", // Matching your Auth Card radius
+            maxWidth: 400,
+            p: 3,
+            bgcolor: "#ffffff", // Slate theme colors
+            borderColor: "#e2e8f0",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Box
+              sx={{
+                p: 1,
+                borderRadius: "12px",
+                bgcolor: "danger.softBg", // Subtle red background
+                display: "flex",
+              }}
+            >
+              <LogOut size={20} color="#ef4444" />
+            </Box>
+            <Typography
+              level="h4"
+              sx={{ fontWeight: 700, color: "#0f172a" }}
+            >
+              Log Out
+            </Typography>
+          </Box>
+
+          <Divider sx={{ my: 2, opacity: 0.5 }} />
+
+          <Typography
+            level="body-md"
+            sx={{ color: "#64748b" }}
+          >
+            Are you sure you want to log out of your account? You will need to
+            sign in again to access your store dashboard.
+          </Typography>
+
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1.5,
+              mt: 4,
+              justifyContent: "flex-end",
+            }}
+          >
+            <Button
+              variant="plain"
+              color="neutral"
+              onClick={() => setIsLogoutModalOpen(false)}
+              sx={{ borderRadius: "12px", fontWeight: 600 }}
+            >
+              Stay Logged In
+            </Button>
+            <Button
+              variant="solid"
+              color="danger"
+              onClick={handleLogout} // Your logout function
+              sx={{
+                borderRadius: "12px",
+                fontWeight: 700,
+                px: 3,
+                bgcolor: "#ef4444",
+                "&:hover": { bgcolor: "#dc2626" },
+              }}
+            >
+              Sign Out
+            </Button>
+          </Box>
+        </ModalDialog>
+      </Modal>
     </Box>
   );
 }

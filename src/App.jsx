@@ -27,6 +27,7 @@ import CategoriesTable from './pages/admin(StoreOwner)/category';
 import VerifyStore from './pages/verifyStore';
 import CustomerList from './pages/admin(StoreOwner)/customers';
 import Products from './pages/(demo)/products';
+import CartDashboard from './pages/(demo)/cart';
 
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
           <Route path='/login' element={<AuthPage isDark={false}/>}/>
           <Route path='/register' element={<CustomerSignUp/>}/>
           <Route path='/shop' element={<Products storeSlug={subdomain}/>}/>
+          <Route path='/cart' element={<CartDashboard storeSlug={subdomain}/>}/>
           <Route path='*' element={<div>Store Page Not Found</div>}/>
         </Routes>
         <ToastContainer 

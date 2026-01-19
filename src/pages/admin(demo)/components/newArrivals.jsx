@@ -1,21 +1,26 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Typography, Rating, Stack, IconButton, useTheme, useMediaQuery, CircularProgress } from '@mui/material';
+import { Box, Typography, Rating, Stack, IconButton, useTheme, useMediaQuery, CircularProgress, Button } from '@mui/material';
 import { motion, useAnimation } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ShoppingBagOutlined, ArrowForwardIos } from '@mui/icons-material';
+import { ChevronLeft, ChevronRight, ShoppingBagOutlined, ArrowForwardIos, ShoppingCartOutlined, Remove, Add } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useProductStore } from '../../../../services/productService';
 import { getSubdomain } from '../../../../storeResolver';
+import { useCartStore } from '../../../../services/cartService';
+import { useCustomerAuthStore } from '../../../store/useCustomerAuthStore';
 
 // Accept 'subtitle' and 'storeType' as props
 const NewArrivalsSlider = ({ subtitle }) => {
   const [width, setWidth] = useState(0);
   const { fetchStoreProducts, setLocalProducts, products, loading } = useProductStore();
+  const { cart, addToCart, updateQuantity, removeItem } = useCartStore();
+  const {customer} = useCustomerAuthStore();
   const navigate = useNavigate();
   
   const carousel = useRef();
   const controls = useAnimation();
   const theme = useTheme();
   const xOffset = useRef(0);
+  const subdomain = getSubdomain();
   
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
@@ -29,6 +34,37 @@ const NewArrivalsSlider = ({ subtitle }) => {
   };
 
   const cardWidthValue = getCardWidth();
+
+  // Helper to get item quantity from cart
+  const getItemQty = (productId) => {
+    const item = cart?.items?.find((i) => i.product._id === productId || i.product === productId);
+    return item ? item.quantity : 0;
+  };
+
+  const handleCartAction = (product, action) => {
+    const currentQty = getItemQty(product._id);
+    const storeId = product.store || subdomain; // Ensure storeId is passed
+
+
+    if (!customer) {
+    // Redirect to login or show a toast
+    navigate('/login'); 
+    return;
+  }
+    if (action === 'increment') {
+      if (currentQty === 0) {
+        addToCart(storeId, product._id, 1);
+      } else {
+        updateQuantity(storeId, product._id, currentQty + 1);
+      }
+    } else if (action === 'decrement') {
+      if (currentQty === 1) {
+        removeItem(storeId, product._id);
+      } else {
+        updateQuantity(storeId, product._id, currentQty - 1);
+      }
+    }
+  };
 
   useEffect(() => {
     const initData = async () => {
@@ -141,6 +177,41 @@ const NewArrivalsSlider = ({ subtitle }) => {
                   alt={product.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
                 />
+                <Box sx={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', width: '90%' }}>
+                    {getItemQty(product._id || product.id) === 0 ? (
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        onClick={() => handleCartAction(product, 'increment')}
+                        startIcon={<ShoppingCartOutlined fontSize="small" />}
+                        sx={{ 
+                          bgcolor: 'white', color: 'black', borderRadius: '8px', 
+                          fontWeight: '800', '&:hover': { bgcolor: '#f0f0f0' },
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                        }}
+                      >
+                        Add to Cart
+                      </Button>
+                    ) : (
+                      <Stack 
+                        direction="row" 
+                        alignItems="center" 
+                        justifyContent="space-between"
+                        sx={{ 
+                          bgcolor: 'black', color: 'white', borderRadius: '8px', 
+                          p: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' 
+                        }}
+                      >
+                        <IconButton size="small" sx={{ color: 'white' }} onClick={() => handleCartAction(product, 'decrement')}>
+                          <Remove fontSize="small" />
+                        </IconButton>
+                        <Typography variant="body2" fontWeight="800">{getItemQty(product._id || product.id)}</Typography>
+                        <IconButton size="small" sx={{ color: 'white' }} onClick={() => handleCartAction(product, 'increment')}>
+                          <Add fontSize="small" />
+                        </IconButton>
+                      </Stack>
+                    )}
+                  </Box>
               </Box>
               <Stack spacing={0.5}>
                 <Typography variant="caption" color="text.secondary" fontWeight="700" sx={{ opacity: 0.6 }}>{product.brand}</Typography>

@@ -57,10 +57,25 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false);
+  const [showBankReminder, setShowBankReminder] = useState(false);
 
-    const handleOpen = (event) => setAnchorEl(event.currentTarget);
-  const handleClose = () => setAnchorEl(null); 
-  
+  useEffect(() => {
+    // If store exists but no subaccount, show the reminder banner
+    if (store && !store?.paystack?.subaccountCode) {
+      setShowBankReminder(true);
+    } else {
+      setShowBankReminder(false);
+    }
+  }, [store]);
+  const handleCloseBankModal = () => {
+    // Do not allow closing if subaccount is missing
+    if (!store?.paystack?.subaccountCode) return;
+    setIsBankModalOpen(false);
+  };
+  const handleOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
+
   const handleLogout = () => {
     // 1. Clear state and storage
     logout();
@@ -428,8 +443,8 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     bgcolor: isActive
                       ? "#f1f5f9"
                       : hoveredItem === item.id
-                      ? "#f8fafc"
-                      : "transparent",
+                        ? "#f8fafc"
+                        : "transparent",
 
                     "& .MuiButton-startDecorator": {
                       margin: isCollapsed ? 0 : "",
@@ -530,7 +545,6 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
             top: 0,
             zIndex: 50,
           }}
-          
         >
           <IconButton
             variant="plain"
@@ -586,7 +600,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                 ml: 1,
                 boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
               }}
-            >      
+            >
               <Dropdown>
                 {/* Trigger */}
                 <MenuButton
@@ -595,11 +609,17 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     isDark ? "hover:bg-slate-800" : "hover:bg-gray-100"
                   }`}
                 >
-                  <Avatar src={store?.logo?.url} sx={{ width: 32, height: 32 }} />
+                  <Avatar
+                    src={store?.logo?.url}
+                    sx={{ width: 32, height: 32 }}
+                  />
                 </MenuButton>
 
                 {/* Menu provides ListContext + positioning */}
-                <Menu className="border-none! shadow-2xl! bg-transparent!" placement="bottom-end">
+                <Menu
+                  className="border-none! shadow-2xl! bg-transparent!"
+                  placement="bottom-end"
+                >
                   {/* Sheet for styling */}
                   <Sheet
                     className="bg-white! "
@@ -618,7 +638,10 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     {/* Header */}
                     <div className="px-4 py-4 flex items-center gap-3">
                       <div className="relative">
-                        <Avatar src={store?.logo?.url} sx={{ width: 48, height: 48 }} />
+                        <Avatar
+                          src={store?.logo?.url}
+                          sx={{ width: 48, height: 48 }}
+                        />
                         <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full" />
                       </div>
 
@@ -628,7 +651,9 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                         </p>
                         <p
                           className={`text-xs ${
-                            user ? "text-gray-500 dark:text-slate-400" : "text-red-500 dark:text-red-400"
+                            user
+                              ? "text-gray-500 dark:text-slate-400"
+                              : "text-red-500 dark:text-red-400"
                           }`}
                         >
                           {user ? "Online" : "Offline"}
@@ -641,7 +666,10 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     {/* Menu items */}
                     <div className="flex flex-col">
                       <MenuItem className="px-4 py-3 gap-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-none">
-                        <Link className="flex items-center w-full gap-3" to={"/dashboard/settings/"}>
+                        <Link
+                          className="flex items-center w-full gap-3"
+                          to={"/dashboard/settings/"}
+                        >
                           <Settings size={20} /> Settings
                         </Link>
                       </MenuItem>
@@ -654,7 +682,11 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                       <div className="flex items-center gap-3 text-sm text-slate-900">
                         <Moon size={20} /> Dark mode
                       </div>
-                      <Switch size="sm" checked={isDark} onChange={toggleDarkMode} />
+                      <Switch
+                        size="sm"
+                        checked={isDark}
+                        onChange={toggleDarkMode}
+                      />
                     </div>
 
                     <Divider className="border-t border-gray-200 dark:border-slate-700" />
@@ -667,19 +699,18 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     <Divider className="border-t border-gray-200 dark:border-slate-700" />
 
                     {/* Logout */}
-                    <MenuItem className="px-4 py-3 gap-3 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-none" onClick={() => setIsLogoutModalOpen(true)}> 
+                    <MenuItem
+                      className="px-4 py-3 gap-3 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-none"
+                      onClick={() => setIsLogoutModalOpen(true)}
+                    >
                       <LogOut size={20} /> Log out
                     </MenuItem>
                   </Sheet>
-
                 </Menu>
-              </Dropdown>      
+              </Dropdown>
             </Box>
           </Box>
         </Sheet>
-        
-
-
 
         {/* Dynamic Page Content */}
         <Box
@@ -696,6 +727,67 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
           }}
           onClick={() => setProfileAnchor(null)}
         >
+          {/* Bank Setup Reminder Modal */}
+          <Box
+            sx={{
+              p: { xs: 2 },
+              overflowY: "auto",
+              flex: 1,
+              "&::-webkit-scrollbar": { display: "none" },
+            }}
+          >
+            {/* --- NEW BANK REMINDER BANNER --- */}
+            {showBankReminder && (
+              <Box
+                sx={{
+                  mb: 3,
+                  p: 2,
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 2,
+                  bgcolor: isDark ? "rgba(245, 158, 11, 0.1)" : "#fffbeb",
+                  borderRadius: "16px",
+                  border: "1px solid",
+                  borderColor: "#f59e0b",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <HelpCircle size={24} color="#f59e0b" />
+                  <Box>
+                    <Typography
+                      level="title-sm"
+                      sx={{ color: isDark ? "#f8fafc" : "#92400e" }}
+                    >
+                      Finish setting up your store
+                    </Typography>
+                    <Typography
+                      level="body-xs"
+                      sx={{ color: isDark ? "#94a3b8" : "#b45309" }}
+                    >
+                      Add your bank details to enable order features and receive
+                      payments.
+                    </Typography>
+                  </Box>
+                </Box>
+                <Button
+                  size="sm"
+                  variant="solid"
+                  onClick={() => navigate("/dashboard/settings#bank-details")}
+                  sx={{
+                    borderRadius: "10px",
+                    bgcolor: "#f59e0b",
+                    color: "white",
+                    whiteSpace: "nowrap",
+                    "&:hover": { bgcolor: "#d97706" },
+                  }}
+                >
+                  Configure Bank Details
+                </Button>
+              </Box>
+            )}
+          </Box>
           {children}
         </Box>
       </Box>
