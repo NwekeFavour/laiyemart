@@ -15,6 +15,8 @@ import {
   ChevronDown,
   LineChart,
   UserCircle,
+  Filter,
+  RefreshCw,
 } from "lucide-react";
 
 import StoreOwnerLayout from "./layout";
@@ -23,6 +25,8 @@ import { useAuthStore } from "../../store/useAuthStore";
 function CustomerList({ isDark }) {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+  const [currentFilter, setFilterStatus] = useState('all');
   const { store } = useAuthStore.getState();
   const storeId = store?._id;
   // console.log(storeId);
@@ -57,7 +61,7 @@ function CustomerList({ isDark }) {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
         const data = await response.json();
 
@@ -80,12 +84,12 @@ function CustomerList({ isDark }) {
     (customer) =>
       customer.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer._id?.toLowerCase().includes(searchQuery.toLowerCase())
+      customer._id?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage) || 1;
   const currentItems = filteredCustomers.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
   return (
     <StoreOwnerLayout>
@@ -107,63 +111,6 @@ function CustomerList({ isDark }) {
               {filteredCustomers.length} Customers found
             </p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Export Button */}
-            <button className={secondaryBtn}>
-              <Download size={16} /> Export
-            </button>
-
-            {/* More Actions Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowMore(!showMore)}
-                className={secondaryBtn}
-              >
-                More Actions <ChevronDown size={14} />
-              </button>
-
-              {showMore && (
-                <div
-                  className={`absolute right-0 mt-2 w-48 rounded-lg border shadow-lg z-50 overflow-hidden ${
-                    isDark
-                      ? "bg-slate-900 border-slate-700"
-                      : "bg-white border-gray-100"
-                  }`}
-                >
-                  <div className="py-1">
-                    <button
-                      className={`w-full flex items-center gap-3 px-2 py-2 text-sm ${
-                        isDark
-                          ? "hover:bg-slate-800 text-slate-300"
-                          : "hover:bg-gray-50 text-gray-700"
-                      }`}
-                    >
-                      <LineChart size={14} /> Customer Tracking
-                    </button>
-                    <button
-                      className={`w-full flex items-center gap-3 px-2 py-2 text-sm ${
-                        isDark
-                          ? "hover:bg-slate-800 text-slate-300"
-                          : "hover:bg-gray-50 text-gray-700"
-                      }`}
-                    >
-                      <UserCircle size={14} /> View Customer Profile
-                    </button>
-                    <div
-                      className={`h-px my-1 ${
-                        isDark ? "bg-slate-800" : "bg-gray-100"
-                      }`}
-                    />
-                    <button className="w-full flex items-center gap-3 px-2 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
-                      <Trash2 size={14} /> Delete Selected
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            </div>
         </div>
         {/* Header */}
 
@@ -176,9 +123,8 @@ function CustomerList({ isDark }) {
           <div
             className={`${
               isDark ? "border-slate-700" : ""
-            } sm:flex border-b border-slate-100 justify-between items-center px-3 py-3`}
+            } sm:flex border-b justify-end border-slate-100 gap-2 items-center px-3 py-3`}
           >
-            <h1 className="lg:text-[20px] text-[17px] font-bold">Customers</h1>
             <div className="relative">
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -197,6 +143,93 @@ function CustomerList({ isDark }) {
                   setCurrentPage(1); // Reset to page 1 on search
                 }}
               />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Export Button */}
+              <button className={secondaryBtn}>
+                <Download size={16} /> Export
+              </button>
+
+              <div className="relative">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={secondaryBtn}
+                >
+                  <Filter size={14} /> Filter Customers <ChevronDown size={14} />
+                </button>
+
+                {showFilters && (
+                  <div
+                    className={`absolute right-0 mt-2 w-64 rounded-lg border shadow-lg z-50 overflow-hidden ${
+                      isDark ? "bg-slate-900 border-slate-700" : "bg-white border-gray-100"
+                    }`}
+                  >
+                    {/* SECTION: CUSTOMER STATUS */}
+                    <div className={`px-4 py-2 border-b text-[11px] font-bold uppercase tracking-wider ${
+                      isDark ? "border-slate-800 text-slate-500" : "border-gray-100 text-gray-400"
+                    }`}>
+                      Account Status
+                    </div>
+
+                    <div className="py-1">
+                      {[
+                        { label: 'Active', value: 'active', color: 'text-green-500' },
+                        { label: 'Inactive', value: 'inactive', color: 'text-gray-400' },
+                        { label: 'Blocked', value: 'blocked', color: 'text-red-500' }
+                      ].map((status) => (
+                        <button
+                          key={status.value}
+                          onClick={() => {
+                            setFilterStatus(status.value);
+                            setShowFilters(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-4 py-2 text-sm ${
+                            isDark ? "hover:bg-slate-800 text-slate-300" : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className={`h-2 w-2 rounded-full bg-current ${status.color}`} />
+                            {status.label}
+                          </div>
+                          {currentFilter === status.value && <Check size={14} className="text-blue-500" />}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* SECTION: SEGMENTATION */}
+                    <div className={`px-4 py-2 border-t border-b text-[11px] font-bold uppercase tracking-wider ${
+                      isDark ? "border-slate-800 text-slate-500" : "border-gray-100 text-gray-400"
+                    }`}>
+                      Customer Tier
+                    </div>
+
+                    <div className="py-1">
+                      {['New Signups', 'Returning'].map((tier) => (
+                        <button
+                          key={tier}
+                          className={`w-full text-left px-4 py-2 text-sm ${
+                            isDark ? "hover:bg-slate-800 text-slate-300" : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                        >
+                          {tier}
+                        </button>
+                      ))}
+
+                      <div className={`h-px my-1 ${isDark ? "bg-slate-800" : "bg-gray-100"}`} />
+                      
+                      <button 
+                        onClick={() => {
+                          setFilterStatus('all');
+                          setShowFilters(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 font-medium"
+                      >
+                        <RefreshCw size={12} /> Reset All Filters
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           {/* Scrollable Table Body */}
@@ -235,7 +268,7 @@ function CustomerList({ isDark }) {
                             />
                           </div>
                         </th>
-                      )
+                      ),
                     )}
                   </tr>
                 </thead>
@@ -332,17 +365,15 @@ function CustomerList({ isDark }) {
                         >
                           {customer.createdAt
                             ? new Date(customer.createdAt).toLocaleDateString(
-                              "en-US",
-                              {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              }
-                            )
-                            : "N/A"
-                          }
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                },
+                              )
+                            : "N/A"}
                         </td>
-
                       </tr>
                     ))
                   ) : (

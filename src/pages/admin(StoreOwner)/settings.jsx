@@ -27,14 +27,19 @@ import {
   Badge,
   BellRing,
   Package,
+  RefreshCcw,
+  Info,
+  CircleDashed,
+  CheckCircle2,
 } from "lucide-react";
 import StoreOwnerLayout from "./layout";
 import { useAuthStore } from "../../store/useAuthStore";
 import { toast } from "react-toastify";
 import { useStoreProfileStore } from "../../store/useStoreProfile";
+import { fetchMe } from "../../../services/authService";
 
 export default function SettingsPage() {
-  const { updateStoreProfile, loading } = useStoreProfileStore();
+  const { updateStoreProfile, loading, resendStoreVerification } = useStoreProfileStore();
   const [activeSection, setActiveSection] = useState("profile");
   const [passwords, setPasswords] = useState({
     newPassword: "",
@@ -44,7 +49,7 @@ export default function SettingsPage() {
   const [banks, setBanks] = useState([]);
   const [storeDits, setStoreDits] = useState(store);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [formEmail, setFormEmail] = useState(store?.email);
+  const [formEmail, setFormEmail] = useState(store.email);
   const [otp, setOtp] = useState("");
   const [fullName, setFullName] = useState(user?.fullName || "");
   const [isOtpSent, setIsOtpSent] = useState(false);
@@ -52,7 +57,7 @@ export default function SettingsPage() {
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [logoFile, setLogoFile] = useState(null);
-  const [formStoreType, setFormStoreType] = useState(store.storeType);
+  const [formStoreType, setFormStoreType] = useState(store?.storeType);
   const getPasswordStrength = (password) => {
     let score = 0;
     if (!password) return 0;
@@ -84,6 +89,19 @@ export default function SettingsPage() {
 
     fetchBanks();
   }, []);
+
+
+  const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+}, [resendTimer]);
 
   useEffect(() => {
     if (window.location.hash === "#bank-details") {
@@ -341,7 +359,7 @@ export default function SettingsPage() {
           );
         }
         // Refresh your store global state here to update the UI status box
-        // e.g., await fetchMe();
+          await fetchMe();
       } else {
         toast.error(data.message || "Failed to create subaccount");
       }
@@ -412,7 +430,37 @@ export default function SettingsPage() {
       </Typography>
     </Box>
   );
-  //   console.log(user)
+
+  const RequirementBadge = ({ label, isDone }) => {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+        py: 0.5,
+      }}
+    >
+      {isDone ? (
+        <CheckCircle2 size={16} color="#15803d" /> // Green check
+      ) : (
+        <CircleDashed size={16} color="#64748b" className="animate-spin-slow" /> // Spinning gray circle
+      )}
+      <Typography
+        level="body-xs"
+        sx={{
+          color: isDone ? "text.primary" : "text.tertiary",
+          fontWeight: isDone ? 500 : 400,
+          textDecoration: isDone ? "line-through" : "none", // Optional: strikes through finished tasks
+          opacity: isDone ? 0.7 : 1,
+        }}
+      >
+        {label}
+      </Typography>
+    </Box>
+  );
+};
+    // console.log(store)
 
   return (
     <StoreOwnerLayout>
@@ -566,7 +614,6 @@ export default function SettingsPage() {
                     <Option value="Digital Products">Digital Products</Option>
                   </Select>
                 </FormControl>
-
                 {/* SUPPORT EMAIL SECTION */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
                   <FormLabel sx={{ minWidth: 140 }}>Support Email</FormLabel>
@@ -576,27 +623,67 @@ export default function SettingsPage() {
                       onChange={(e) => setFormEmail(e.target.value)}
                       startDecorator={<Mail size={16} />}
                       endDecorator={
-                        /* Logic: If the current text in the input matches the original store email, 
-                                and that original was verified, show VERIFIED.
-                                */
-                        formEmail === store.email && store?.isEmailVerified ? (
-                          <Typography
-                            level="body-xs"
-                            color="success"
-                            sx={{ fontWeight: "bold" }}
-                          >
-                            VERIFIED
-                          </Typography>
-                        ) : (
-                          <Typography
-                            level="body-xs"
-                            color="warning"
-                            sx={{ fontWeight: "bold" }}
-                          >
-                            PENDING
-                          </Typography>
-                        )
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {formEmail === store.email && store?.isEmailVerified ? (
+                            <Typography
+                              level="body-xs"
+                              color="success"
+                              sx={{ fontWeight: "bold", pr: 0.5 }}
+                            >
+                              VERIFIED
+                            </Typography>
+                          ) : (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              {resendTimer > 0 ? (
+                                <Typography level="body-xs" sx={{ fontWeight: 700, color: 'neutral.400' }}>
+                                  {resendTimer}s
+                                </Typography>
+                              ) : (
+                                <Button
+                                  variant="plain"
+                                  size="sm"
+                                  onClick={async () => {
+                                    try {
+                                      const res = await resendStoreVerification(formEmail);
+                                      if (res.store) {
+                                        toast.success("Email verified automatically!");
+                                        setStore(res.store);
+                                        setFormEmail(res.store.email);
+                                      } else {
+                                        toast.success("Verification email sent!");
+                                        setResendTimer(60);
+                                      }
+                                    } catch (err) {
+                                      toast.error("Failed to resend email");
+                                    }
+                                  }}
+                                  sx={{ 
+                                    fontSize: '11px', 
+                                    fontWeight: 700, 
+                                    minHeight: 0, 
+                                    py: 0.5,
+                                    px: 1,
+                                    color: '#2563eb',
+                                    '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
+                                  }}
+                                >
+                                  RESEND
+                                </Button>
+                              )}
+                              <Typography
+                                className="text-red-400!"
+                                level="body-xs"
+                                sx={{ fontWeight: "bold" }}
+                              >
+                                UNVERIFIED
+                              </Typography>
+                            </Box>
+                          )}
+                        </Box>
                       }
+                      sx={{
+                        '--Input-decoratorChildHeight': '28px', // Adjusts height for the button inside
+                      }}
                     />
                   </Box>
                 </FormControl>
@@ -948,7 +1035,7 @@ export default function SettingsPage() {
                         </Typography>
                         <Typography level="body-xs">
                           {store?.paystack?.verified
-                            ? `Payouts active to ${store.paystack.bankCode}`
+                            ? `Payouts active to ${store.paystack.settlementBank}`
                             : "We are waiting for Paystack to confirm your bank details."}
                         </Typography>
                       </Box>
@@ -1006,48 +1093,52 @@ export default function SettingsPage() {
 
                 {/* Verification Requirements Section */}
                 {store?.paystack?.subaccountCode &&
-                  !store?.paystack?.verified && (
-                    <Box
-                      sx={{
-                        mt: 2,
-                        p: 2,
-                        borderRadius: "xl",
-                        bgcolor: "background.surface",
-                        border: "1px dashed",
-                        borderColor: "warning.main",
+                !store?.paystack?.verified && (
+                  <Box sx={{ mt: 3, px: 1 }}>
+                    {/* Section Header */}
+                    <Typography
+                      level="title-sm"
+                      startDecorator={<Info size={18} className="text-amber-600" />}
+                      sx={{ mb: 2, display: "flex", alignItems: "center" }}
+                    >
+                      Next Steps for Payouts
+                    </Typography>
+
+                    <Stack 
+                      spacing={1.5} 
+                      sx={{ 
+                        position: 'relative',
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          left: '11px',
+                          top: '10px',
+                          bottom: '10px',
+                          width: '2px',
+                          bgcolor: 'neutral.softBg',
+                          zIndex: 0
+                        }
                       }}
                     >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          mb: 1.5,
-                        }}
-                      >
-                        <Badge color="warning" size="sm" variant="solid" />
-                        <Typography level="title-sm">
-                          Verification Requirements
-                        </Typography>
-                      </Box>
-
-                      <Stack gap={1}>
-                        <RequirementItem
-                          label="Account Number & Bank Match"
-                          isDone={!!store?.paystack?.accountNumber}
-                        />
-                        <RequirementItem
-                          label="Business Name Matches Bank Records"
-                          isDone={!!store?.paystack?.businessName}
-                        />
-                        <RequirementItem
-                          label="Paystack Manual Review"
-                          isDone={false} // Always false until 'verified' is true
-                          isPending={true}
-                        />
-                      </Stack>
-                    </Box>
-                  )}
+                      <RequirementItem
+                        label="Bank Account Connection"
+                        description="Your NUBAN and Bank details have been linked."
+                        isDone={!!store?.paystack?.accountNumber}
+                      />
+                      <RequirementItem
+                        label="Identity & Business Match"
+                        description="Paystack is cross-referencing your name with bank records."
+                        isDone={!!store?.paystack?.businessName}
+                      />
+                      <RequirementItem
+                        label="Compliance Review"
+                        description="Usually takes 30 mins to 24 hours for first-time setup."
+                        isDone={store?.paystack?.verified}
+                        isPending={!store?.paystack?.verified}
+                      />
+                    </Stack>
+                  </Box>
+                )}
 
                 {/* Form */}
                 <Stack gap={2.5} sx={{ mt: 2 }}>

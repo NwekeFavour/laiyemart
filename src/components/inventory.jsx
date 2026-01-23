@@ -5,8 +5,8 @@ export function InventoryCard({ isDark, products = [] }) {
   // 1. Calculate Statistics dynamically
   const stats = useMemo(() => {
     const total = products.length || 1; // Avoid division by zero
-    const available = products.filter(p => p.inventory > 10).length;
-    const lowStock = products.filter(p => p.inventory > 0 && p.inventory <= 10);
+    const available = products.filter(p => p.inventory > 5).length;
+    const lowStock = products.filter(p => p.inventory > 0 && p.inventory <= 5);
     const outOfStock = products.filter(p => p.inventory === 0).length;
     
     const assetValue = products.reduce((acc, p) => acc + (p.price * p.inventory), 0);

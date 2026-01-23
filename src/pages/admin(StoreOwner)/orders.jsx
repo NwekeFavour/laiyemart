@@ -4,13 +4,14 @@ import {
   IconButton, Checkbox, Link, Select, Option
 } from "@mui/joy";
 import { 
-  Search, Filter, MoreVertical, Download, 
-  Eye, PackageCheck, Truck, Clock , ChevronDown, ChevronLeft, ChevronRight
+  Search, Filter
 } from "lucide-react";
 import StoreOwnerLayout from './layout';
 
 export default function OrdersPage() {
   // Mock Data
+  const isDark = false
+  const [selected, setSelected]= useState([])
   const orders = [
     { id: "#ORD-7281", customer: "John Doe", date: "Jan 14, 2026", total: "₦120.00", status: "Delivered", method: "Mastercard" },
     { id: "#ORD-7282", customer: "Sarah Smith", date: "Jan 13, 2026", total: "₦45.50", status: "Processing", method: "PayPal" },
@@ -18,6 +19,20 @@ export default function OrdersPage() {
     { id: "#ORD-7284", customer: "Elena Rodriguez", date: "Jan 12, 2026", total: "₦89.00", status: "Cancelled", method: "Bank Transfer" },
   ];
 
+
+    const handleSelect = (id) => {
+  setSelected((prev) =>
+    prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+  );
+};
+
+  const toggleAll = () => {
+  if (selected.length === orders.length) {
+    setSelected([]);
+  } else {
+    setSelected(orders.map((o) => o._id));
+  }
+};
   const getStatusColor = (status) => {
     switch (status) {
       case 'Delivered': return 'success';
@@ -38,175 +53,114 @@ export default function OrdersPage() {
           <Typography level="h2" sx={{ fontSize: '24px', fontWeight: 700 }}>Orders</Typography>
           <Typography level="body-sm" sx={{ color: '#64748b' }}>Manage and track your store sales</Typography>
         </Box>
-        <Button startDecorator={<Download size={18} />} variant="outline" color="neutral" sx={{ borderRadius: 'xl' }}>
-          Export CSV
-        </Button>
       </Box>
 
-      {/* Quick Stats Cards */}
-      <Box sx={{ 
-        display: 'grid', 
-        gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, 
-        gap: 2 
-      }}>
-        {[
-          { label: "Total Orders", value: "452", icon: <PackageCheck className="text-blue-500" /> },
-          { label: "Pending", value: "12", icon: <Clock className="text-amber-500" /> },
-          { label: "In Transit", value: "28", icon: <Truck className="text-indigo-500" /> },
-          { label: "Revenue", value: "₦12,402", icon: <Typography sx={{color: 'green', fontWeight: 700}}>₦</Typography> },
-        ].map((stat, i) => (
-          <Sheet className="border-slate-100!" key={i} variant="outlined" sx={{ p: 2, borderRadius: 'xl', display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ p: 1, bgcolor: '#f1f5f9', borderRadius: 'lg' }}>{stat.icon}</Box>
-            <Box>
-              <Typography level="body-xs" sx={{ fontWeight: 600, color: '#64748b' }}>{stat.label}</Typography>
-              <Typography level="h4" sx={{ fontWeight: 700 }}>{stat.value}</Typography>
-            </Box>
-          </Sheet>
-        ))}
-      </Box>
 
-      {/* Filters & Search */}
-      <Sheet className="border-slate-100!" variant="outlined" sx={{ borderRadius: 'xl', p: 2, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-        <Input 
-          startDecorator={<Search size={18} />} 
-          className="border-slate-100! shadow-none!"
-          placeholder="Search by order ID or customer..." 
-          sx={{ flex: 1, borderRadius: 'lg', minWidth: '250px' }}
-        />
-        <Button startDecorator={<Filter size={18} />} variant="soft" color="neutral" sx={{ borderRadius: 'lg' }}>
-          Filters
-        </Button>
-      </Sheet>
 
       {/* Orders Table */}
-        {/* 1. Responsive Wrapper */}
-        <Sheet
-        className="hide-scrollbar"
-        variant="outlined"
-        sx={{
-            width: '100%',
-            borderRadius: 'xl',
-            overflow: 'auto', // This is the key for responsiveness
-            bgcolor: 'white',
-            border: '1px solid #e2e8f0',
-            '&::-webkit-scrollbar': { display: 'none' },
-            msOverflowStyle: 'none',
-            scrollbarWidth: 'none',
-        }}
-        >
-        <Table
-        className="bg-white!"
-        sx={{
-            minWidth: 900,
-            '--TableCell-paddingX': '16px',
-            '--TableCell-paddingY': '12px',
-            '& thead th': {
-            bgcolor: 'transparent', // Removed #f8fafc background
-            color: '#64748b',
-            fontSize: '13px',
-            fontWeight: 600,
-            borderRight: '1px solid #e2e8f0',
-            borderBottom: '2px solid #f1f5f9',
-            '&:last-child': { borderRight: 'none' }
-            },
-            '& tbody td': {
-            borderRight: '1px solid #f8fafc',
-            borderBottom: '1px solid #f1f5f9',
-            verticalAlign: 'middle',
-            '&:last-child': { borderRight: 'none' }
-            },
-            '& tbody tr:hover': {
-            bgcolor: '#f8fafc'
-            }
-        }}
-        >
-            <thead>
-            <tr>
-                <th style={{ width: 48, textAlign: 'center' }}>
-                <Checkbox size="sm" />
-                </th>
-                {[
-                { label: "Order ID", width: 140 },
-                { label: "Date", width: 120 },
-                { label: "Customer", width: 180 },
-                { label: "Amount", width: 120 },
-                { label: "Payment Method", width: 160 },
-                { label: "Order Status", width: 140 }
-                ].map((head) => (
-                <th key={head.label} style={{ width: head.width }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    {head.label}
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevrons-up-down size-[0.7rem]! mt-px" aria-hidden="true"><path d="m7 15 5 5 5-5"></path><path d="m7 9 5-5 5 5"></path></svg>      
-                    </Box>
-                </th>
-                ))}
-                <th style={{ width: 100, textAlign: 'center' }}>Action</th>
-            </tr>
-            </thead>
-            <tbody>
-            {orders.map((row) => (
-                <tr key={row.id}>
-                <td style={{ textAlign: 'center' }}>
-                    <Checkbox size="sm" />
-                </td>
-                <td>
-                    <Typography sx={{ color: '#475569', fontWeight: 600, fontSize: '14px' }}>
-                    {row.id}
-                    </Typography>
-                </td>
-                <td>
-                    <Typography sx={{ color: '#64748b', fontSize: '14px' }}>
-                    {row.date}
-                    </Typography>
-                </td>
-                <td>
-                    <Typography sx={{ color: '#0f172a', fontWeight: 500, fontSize: '14px' }}>
-                    {row.customer}
-                    </Typography>
-                </td>
-                <td>
-                    <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '14px' }}>
-                    {row.total}
-                    </Typography>
-                </td>
-                <td>
-                    <Typography sx={{ color: '#64748b', fontSize: '14px' }}>
-                    {row.method || 'Mastercard'}
-                    </Typography>
-                </td>
-                <td>
-                    <Chip
-                    variant="soft"
-                    size="sm"
-                    color={getStatusColor(row.status)}
-                    sx={{ 
-                        fontWeight: 700, 
-                        borderRadius: 'md', 
-                        fontSize: '11px', 
-                        textTransform: 'uppercase' 
-                    }}
-                    >
-                    {row.status}
-                    </Chip>
-                </td>
-                <td style={{ textAlign: 'center' }}>
-                    <Link
-                    underline="always"
-                    sx={{ 
-                        fontSize: '13px', 
-                        fontWeight: 700, 
-                        color: '#3b82f6',
-                        '&:hover': { color: '#2563eb' }
-                    }}
-                    >
-                    Details
-                    </Link>
-                </td>
-                </tr>
-            ))}
-            </tbody>
-        </Table>
+      <div className={`w-full overflow-hidden rounded-xl border ${isDark ? "border-slate-800 bg-slate-900" : "border-slate-100 bg-white"}`}>
+        <Sheet className="border-slate-100! bg-transparent! justify-end!" variant="outlined" sx={{p: 2, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Input 
+            startDecorator={<Search size={18} />} 
+            className="border-slate-100! bg-transparent! w-fit! shadow-none!"
+            placeholder="Search by order ID or customer..." 
+            sx={{  borderRadius: 'lg', minWidth: '250px' }}
+          />
+          <Button className='bg-transparent! border! border-slate-900/30! text-slate-900/80!' startDecorator={<Filter size={18} />} variant="soft" color="neutral" sx={{ borderRadius: 'lg' }}>
+            Filters
+          </Button>
         </Sheet>
+        <div className="overflow-x-auto hide-scrollbar">
+          <table className="w-full text-left border-collapse min-w-[900px]">
+            <thead className="bg-transparent">
+              <tr className={`text-[13px] border-b ${isDark ? "border-slate-800 bg-slate-800/30 text-slate-400" : "border-slate-100  text-gray-600"}`}>
+                <th className={`px-4 py-3 w-12 text-center border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}>
+                  <input 
+                    type="checkbox" 
+                    checked={selected.length > 0 && selected.length === orders.length} 
+                    onChange={toggleAll} 
+                    className="rounded-sm accent-blue-600 cursor-pointer" 
+                  />
+                </th>
+
+                {[
+                  { label: "Order ID", width: "w-[140px]" },
+                  { label: "Date", width: "w-[120px]" },
+                  { label: "Customer", width: "w-[200px]" },
+                  { label: "Amount", width: "w-[130px]" },
+                  { label: "Method", width: "w-[150px]" },
+                  { label: "Status", width: "w-[140px]" }
+                ].map((head) => (
+                  <th key={head.label} className={`${head.width} px-4 py-3 font-semibold border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}>
+                    <div className="flex items-center justify-between">
+                      <span>{head.label}</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg>
+                    </div>
+                  </th>
+                ))}
+
+                <th className="px-4 py-3 w-[100px] text-center font-semibold">Action</th>
+              </tr>
+            </thead>
+
+            <tbody className={`divide-y ${isDark ? "divide-slate-800" : "divide-slate-100"}`}>
+              {orders.map((row) => (
+                <tr 
+                  key={row.id} 
+                  className={`text-[13px] transition-colors ${isDark ? "hover:bg-slate-800/40" : "hover:bg-gray-50/50"}`}
+                >
+                  <td className={`px-4 py-3 text-center border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}>
+                    <input 
+                      type="checkbox" 
+                      checked={selected.includes(row.id)} 
+                      onChange={() => handleSelect(row.id)} 
+                      className="rounded-sm accent-blue-600 cursor-pointer" 
+                    />
+                  </td>
+
+                  <td className={`px-4 py-3 border-r font-medium ${isDark ? "border-slate-800 text-slate-200" : "border-slate-100 text-slate-700"}`}>
+                    {row.id}
+                  </td>
+
+                  <td className={`px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-400" : "border-slate-100 text-slate-500"}`}>
+                    {row.date}
+                  </td>
+
+                  <td className={`px-4 py-3 border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}>
+                    <span className={`font-semibold ${isDark ? "text-slate-200" : "text-slate-900"}`}>
+                      {row.customer}
+                    </span>
+                  </td>
+
+                  <td className={`px-4 py-3 border-r font-bold ${isDark ? "border-slate-800 text-slate-200" : "border-slate-100 text-slate-900"}`}>
+                    {row.total}
+                  </td>
+
+                  <td className={`px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-400" : "border-slate-100 text-slate-500"}`}>
+                    {row.method || 'Mastercard'}
+                  </td>
+
+                  <td className={`px-4 py-3 border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}>
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                      row.status === 'Delivered' ? 'bg-green-100 text-green-600' : 
+                      row.status === 'Cancelled' ? 'bg-red-100 text-red-600' : 
+                      'bg-orange-100 text-orange-600'
+                    }`}>
+                      {row.status}
+                    </span>
+                  </td>
+
+                  <td className="px-4 py-3 text-center">
+                    <button className="text-blue-500 font-bold hover:underline">
+                      Details
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </Box>
     </StoreOwnerLayout>
   );

@@ -79,3 +79,15 @@ export const fetchMe = async () => {
     isEmailVerified: data.isEmailVerified
   });
 };
+
+export const updateStorePlan = async (data) => {
+  const response = await fetch(`${VITE_BACKEND_URL}/api/auth/update-plan`, {
+    method: "PATCH", // Use PATCH for updates
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.message || "Failed to update plan");
+  return result;
+};

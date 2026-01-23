@@ -354,64 +354,113 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
         </IconButton>
 
         {/* 3. Brand Section */}
+
         <Box
           sx={{
-            p: 3,
+            p: isCollapsed ? 2 : 3,
             display: "flex",
-            alignItems: "start",
-            justifyContent: "flex-start",
+            flexDirection: "column",
             gap: 2,
+            transition: "padding 0.3s ease",
           }}
         >
+          {/* TOP: Brand Logo/Text */}
+          {user?.role === "SUPER_ADMIN" && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "6px",
+                  bgcolor: "#ef4444",
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                }}
+              >
+                L
+              </Box>
+              {!isCollapsed && (
+                <Typography
+                  className="text lg:text-[17px] text-[13px]!"
+                  sx={{ color: "#0f172a", whiteSpace: "nowrap" }}
+                >
+                  LAIYE
+                  <span className="text" style={{ color: "#ef4444" }}>
+                    MART
+                  </span>
+                </Typography>
+              )}
+            </Box>
+          )}
+
+          {/* BOTTOM: User Profile Section */}
           <Box
             sx={{
-              width: 32,
-              height: 32,
-              borderRadius: "6px",
-              bgcolor: "#ef4444",
-              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              mt: 1,
+              overflow: "hidden",
             }}
-          />
-
-          {!isCollapsed && (
-            <div>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                {!isCollapsed && (
-                  <Typography
-                    className="text lg:text-[17px] text-[13px]!"
-                    sx={{ color: "#0f172a", whiteSpace: "nowrap" }}
-                  >
-                    LAIYE
-                    <span className="text" style={{ color: "#ef4444" }}>
-                      MART
-                    </span>
-                  </Typography>
-                )}
-              </Box>
-              {(!isCollapsed || isMobile) && (
-                <Box sx={{ py: 1.5, mb: 1 }}>
-                  <Typography
-                    level="body-xs"
-                    sx={{
-                      fontWeight: 700,
-                      letterSpacing: "0.1em",
-                      color: "neutral.500",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Current Store
-                  </Typography>
-                  <Typography
-                    level="title-md"
-                    sx={{ color: "#0f172a", fontWeight: 800 }}
-                  >
-                    {store?.name || "Layemart Store"}
-                  </Typography>
-                </Box>
-              )}
+          >
+            <div className="relative shrink-0">
+              <Avatar
+                src={store?.logo?.url}
+                alt={user?.fullName}
+                sx={{
+                  width: isCollapsed ? 40 : 48,
+                  height: isCollapsed ? 40 : 48,
+                  transition: "all 0.3s ease",
+                  border: "2px solid #f1f5f9",
+                }}
+              >
+                {/* Fallback Initials if no logo URL */}
+                {user?.fullName?.charAt(0) || "S"}
+              </Avatar>
+              <span
+                className={`absolute bottom-0.5 right-0.5 w-3 h-3 border-2 border-white rounded-full ${user ? "bg-green-500" : "bg-red-500"}`}
+              />
             </div>
-          )}
+
+            {!isCollapsed && (
+              <div className="flex flex-col min-w-0">
+                <Typography
+                  noWrap
+                  sx={{
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    color: "#0f172a",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {user?.fullName || "Sean"}
+                </Typography>
+                <Typography
+                  level="body-xs"
+                  sx={{
+                    color: user ? "success.600" : "danger.500",
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                  }}
+                >
+                  {user ? "Online" : "Offline"}
+                </Typography>
+              </div>
+            )}
+          </Box>
         </Box>
+
+        {/* Optional Divider */}
+        {!isCollapsed && (
+          <Box sx={{ mx: 2, height: "1px", bgcolor: "#f1f5f9", mb: 1 }} />
+        )}
 
         {/* navigation menu */}
         <Box sx={{ px: 2, flex: 1, mt: 2 }}>

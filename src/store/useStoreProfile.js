@@ -66,6 +66,15 @@ export const useStoreProfileStore = create((set, get) => ({
     }
   },
 
+  resendStoreVerification: async (email) => {
+    const response = await fetch(`${API_URL}/api/stores/resend-verification`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    return response.json();
+  },
+
   // ============================
   // CLEAR STATUS
   // ============================

@@ -32,17 +32,17 @@ import {
 } from "@mui/joy";
 import {
   Search,
-  ChevronDown,
   Plus,
   Edit,
   Trash2,
   ExternalLink,
-  ArrowUpNarrowWide,
-  ArrowDownWideNarrow,
   ArrowUp,
   ArrowDown,
   ChevronLeft,
   ChevronRight,
+  UploadCloud,
+  X,
+  AlertCircle
 } from "lucide-react";
 import StoreOwnerLayout from "./layout";
 import { useProductStore } from "../../../services/productService";
@@ -52,21 +52,26 @@ import { toast } from "react-toastify";
 
 export default function ProductsPage() {
   const fileInputRef = useRef(null);
-  const { products, fetchMyProducts, loading, updateProduct, deleteProduct } =
+  const { products, createProduct, fetchMyProducts, loading, updateProduct, deleteProduct } =
     useProductStore();
-  const { categories, getCategories } = useCategoryStore();
+  const { categories, getCategories, createCategory } = useCategoryStore();
   const [error, setError] = useState(null);
   const { store } = useAuthStore();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const storeId = store?._id;
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [images, setImages] = useState([]); // This fixes the "images is not defined" error
   const [submitting, setSubmitting] = useState(false); // This fixes the button loading error
+      const MAX_IMAGES = 4;
   const [sortConfig, setSortConfig] = useState({
     key: "name",
     direction: "asc",
   });
   const [category, setCategory] = useState("");
+  const [showQuickCategory, setShowQuickCategory] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [isCreatingCat, setIsCreatingCat] = useState(false);
   const [description, setDescription] = useState("");
   const [inventory, setInventory] = useState("");
   const [price, setPrice] = useState("");
@@ -96,9 +101,28 @@ export default function ProductsPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const handleQuickCategorySubmit = async () => {
+  if (!newCatName.trim()) return toast.error("Enter a category name");
+  setIsCreatingCat(true);
+  try {
+    await createCategory({
+      storeId: store?._id,
+      name: newCatName,
+      isFeatured: false
+    });
+    toast.success("Category created!");
+    setNewCatName("");
+    setShowQuickCategory(false); // Hide the section after success
+  } catch (err) {
+    toast.error(err.message || "Failed to create category");
+  } finally {
+    setIsCreatingCat(false);
+  }
+};
   // console.log(products)
-  const removeImage = (idToRemove) => {
-    setImages((prev) => prev.filter((img) => img.id !== idToRemove));
+  const removeImage = (id) => {
+    setImages((prev) => prev.filter((img) => img.id !== id));
   };
   const handleEditOpen = (product) => {
     setSelectedProduct(product);
@@ -113,7 +137,7 @@ export default function ProductsPage() {
         id: img._id,
         url: img.url,
         isExisting: true,
-      }))
+      })),
     );
     setIsEditOpen(true);
   };
@@ -123,6 +147,100 @@ export default function ProductsPage() {
   }, [getCategories]);
   // console.log(categories)
 
+      const handleMultiFileChange = (event) => {
+          const files = Array.from(event.target.files);
+          const remainingSlots = MAX_IMAGES - images.length;
+          
+          // Only take what we have room for
+          files.slice(0, remainingSlots).forEach((file) => {
+              const newImage = {
+              id: Math.random().toString(36),
+              url: URL.createObjectURL(file),
+              file,
+              progress: 0,
+              isUploading: true
+              };
+              
+              setImages(prev => [...prev, newImage]);
+              simulateUpload(newImage.id);
+          });
+      };
+  
+      const simulateUpload = (id) => {
+      let progress = 0;
+      const interval = setInterval(() => {
+          progress += 10;
+          setImages(prev => prev.map(img => 
+          img.id === id ? { ...img, progress: progress, isUploading: progress < 100 } : img
+          ));
+          if (progress >= 100) clearInterval(interval);
+      }, 150);
+      };
+
+      const handleCreateProduct = async () => {
+        if (!name || !price || images.length === 0) {
+          toast.error("Please provide at least a name, price, and cover image.");
+          return;
+        }
+  
+        const isTrialExpired = store?.plan === "TRIAL" &&  (new Date(store.trialEndsAt) - new Date() <= 0);
+        if (isTrialExpired) {
+          toast.error("Access Denied: Your trial has expired. Please upgrade to continue.", {
+              icon: "🚫",
+              style: { borderRadius: '12px' }
+          });
+          return; // Stop execution
+        }
+  
+        try {
+          setSubmitting(true);
+            const formData = new FormData();
+            formData.append("name", name);
+            formData.append("price", Number(price) || 0);       // ✅ ensure number
+            formData.append("description", description);
+            formData.append("category", category);
+            formData.append("inventory", Number(inventory) || 0); // ✅ ensure number      
+            images.forEach((img) => {
+            formData.append("images", img.file);
+          });
+  
+        // for (let [key, value] of formData.entries()) {
+        //   console.log(key, value);
+        // }
+        await createProduct(formData) 
+          
+          // Reset Form
+          setIsDrawerOpen(false);
+          setName(""); setPrice(""); setDescription(""); setCategory(""); setImages([]); setInventory("");
+          fetchMyProducts(); // Refresh list
+        } catch (err) {
+            console.log("Full Error Object:", err);
+            const errorMsg = err.response?.data?.message || "Failed to create product"; 
+        // Extract the specific message: "Product limit reached"
+          const errorMessage = 
+            err.response?.data?.message || 
+            err.response?.data?.error ||   // Some APIs use 'error' key
+            err.message ||                 // Axios default (e.g., "Network Error")
+            "Failed to create product";
+  
+            if (errorMsg.includes("limit")) {
+                toast.error("🚀 Product limit reached! Please upgrade your plan.", {
+                    icon: "⚠️",
+                    style: { borderRadius: '12px' }
+                });
+            } else {
+                toast.error(errorMsg);
+            }
+          setError(errorMessage);
+  
+          // If it's a limit issue, don't clear it too fast so they can read it
+          const displayTime = errorMessage.includes("limit") ? 8000 : 7000;
+          setTimeout(() => setError(""), displayTime);
+  
+        } finally {
+        setSubmitting(false);
+        }
+      };
   // Handle actual update
   const handleUpdateProduct = async () => {
     // 1. Basic Validation check before starting
@@ -193,13 +311,15 @@ export default function ProductsPage() {
   // console.log(products)
   const hoverRow = "hover:bg-gray-50!";
   const filteredProducts = products.filter((product) => {
-    const query = search.toLowerCase();
-    return (
-      product.name.toLowerCase().includes(query) ||
-      product.category?.toLowerCase().includes(query) ||
-      product._id.toLowerCase().includes(query)
-    );
-  });
+  const query = search.toLowerCase();
+  
+  // Safely handle category by falling back to an empty string if it's null/undefined
+  const categoryMatch = (product.category ?? "").toLowerCase().includes(query);
+  const nameMatch = (product.name ?? "").toLowerCase().includes(query);
+  const idMatch = (product._id ?? "").toLowerCase().includes(query);
+
+  return nameMatch || categoryMatch || idMatch;
+});
 
   const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
   const sortedProducts = useMemo(() => {
@@ -232,7 +352,7 @@ export default function ProductsPage() {
   }, [filteredProducts, sortConfig]);
   const paginatedProducts = sortedProducts.slice(
     (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE
+    page * PAGE_SIZE,
   );
 
   useEffect(() => {
@@ -274,19 +394,14 @@ export default function ProductsPage() {
           {/* 2. Search & Export Bar */}
           <Box className="border-b border-slate-100" sx={{ p: 2 }}>
             <Box
+              className="justify-end!"
               sx={{
                 display: "flex",
-                justifyContent: "space-between",
                 alignItems: "center",
                 flexWrap: "wrap",
                 gap: 2,
               }}
             >
-              <Typography
-                sx={{ fontSize: "16px", fontWeight: 700, color: "#1e293b" }}
-              >
-                All Products
-              </Typography>
               <Box sx={{ display: "flex", gap: 1.5 }}>
                 <Input
                   size="sm"
@@ -311,15 +426,20 @@ export default function ProductsPage() {
                     },
                   }}
                 />
-                <Button
-                  variant="outlined"
-                  color="neutral"
-                  size="sm"
-                  sx={{ borderRadius: "md", fontWeight: 600 }}
-                >
-                  Export
-                </Button>
               </Box>
+              <Button
+                className="md:mt-0! mt-3! md:px-3! px-2! md:text-[15px]! text-[14px]!  hover:bg-slate-800/90!"
+                onClick={() => setIsDrawerOpen(true)}
+                variant="solid"
+                startDecorator={<Plus size={18} />}
+                sx={{
+                  bgcolor: "#0f172b",
+                  px: 3,
+                  py:1
+                }}
+              >
+                Add Product
+              </Button>
             </Box>
           </Box>
 
@@ -514,7 +634,7 @@ export default function ProductsPage() {
                 {loading ? (
                   // 2. LOADING STATE
                   [...Array(5)].map((_, i) => (
-                    <tr key={i} className="animate-pulse">
+                    <tr key={`skeleton-row-${i}`} className="animate-pulse">
                       <td style={{ textAlign: "center" }}>
                         <div className="h-4 w-4 bg-slate-200  rounded mx-auto" />
                       </td>
@@ -573,7 +693,7 @@ export default function ProductsPage() {
                         >
                           Your shop is empty! Add your first product to start
                           selling to your customers.
-                        </Typography>                        
+                        </Typography>
                       </Box>
                     </td>
                   </tr>
@@ -629,7 +749,7 @@ export default function ProductsPage() {
                               color: "#475569",
                             }}
                           >
-                            PROD - {item._id.slice(-6).toUpperCase()}
+                            PROD - {item?._id?.slice(-6).toUpperCase() || "......"}
                           </Typography>
                         </td>
 
@@ -683,7 +803,7 @@ export default function ProductsPage() {
                               fontSize: "14px",
                             }}
                           >
-                            ₦{item.price.toLocaleString()}
+                            ₦{item?.price?.toLocaleString()}
                           </Typography>
                         </td>
 
@@ -706,7 +826,7 @@ export default function ProductsPage() {
                                     month: "short",
                                     day: "numeric",
                                     year: "numeric",
-                                  }
+                                  },
                                 )
                               : "N/A"}
                           </Typography>
@@ -723,7 +843,7 @@ export default function ProductsPage() {
                                     month: "short",
                                     day: "numeric",
                                     year: "numeric",
-                                  }
+                                  },
                                 )
                               : "N/A"}
                           </Typography>
@@ -868,6 +988,7 @@ export default function ProductsPage() {
             <Stack spacing={3}>
               {/* MEDIA SECTION - Reusing your existing media logic */}
               <FormControl>
+
                 <FormLabel sx={{ fontWeight: 600, mb: 1 }}>
                   Product Media
                 </FormLabel>
@@ -1173,6 +1294,334 @@ export default function ProductsPage() {
           </Box>
         </ModalDialog>
       </Modal>
+
+      {/* Product Creation Drawer */}
+        <Drawer
+          anchor="right"
+          open={isDrawerOpen}
+          onClose={() => !submitting && setIsDrawerOpen(false)}
+          slotProps={{ content: { sx: { width: { xs: '100%', sm: 450 }, p: 0 } } }}
+        >
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <Box sx={{ p: 3, borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography level="h4" sx={{ fontWeight: 800 }}>Add New Product</Typography>
+              <ModalClose sx={{ position: 'static' }} />
+            </Box>
+
+            <DialogContent sx={{ p: 3, overflowY: 'auto' }}>
+                {/* --- DYNAMIC ERROR BANNER START --- */}
+                {error && (
+                    <Sheet
+                    variant="solid"
+                    color="danger"
+                    invertedColors
+                    sx={{
+                        mb: 3,
+                        p: 2,
+                        borderRadius: 'xl',
+                        background: 'linear-gradient(45deg, #dc2626 0%, #991b1b 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        animation: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        '@keyframes shake': {
+                        '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                        '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                        '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                        '40%, 60%': { transform: 'translate3d(4px, 0, 0)' },
+                        },
+                    }}
+                    >
+                    <AlertCircle size={20} />
+                    <Box sx={{ flex: 1 }}>
+                        <Typography level="title-sm" sx={{ fontWeight: 700 }}>
+                        {error.toLowerCase().includes("limit") ? "Limit Reached" : "Error"}
+                        </Typography>
+                        <Typography level="body-xs" sx={{ opacity: 0.9 }}>
+                        {error}
+                        </Typography>
+                    </Box>
+                    <IconButton 
+                        size="sm" 
+                        variant="plain" 
+                        onClick={() => setError("")}
+                        sx={{ '--IconButton-size': '24px' }}
+                    >
+                        <X size={14} />
+                    </IconButton>
+                    </Sheet>
+                )}                
+              <Stack spacing={3}>
+                <FormControl>
+                  <FormLabel sx={{ fontWeight: 600 }}>Product Media</FormLabel>
+                    <Stack spacing={1.5}>
+                    {/* Cover Image */}
+                    <Box sx={{ position: 'relative', borderRadius: 'xl', border: '2px dashed #cbd5e1', overflow: 'hidden' }}>
+                      <AspectRatio ratio="16/9">
+                          {images.length > 0 ? (
+                              <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+                                  <img 
+                                      src={images[0].url} 
+                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                      alt="Cover"
+                                  />
+                                  {/* Remove button for the Cover Image */}
+                                  <IconButton 
+                                      size="md" 
+                                      color="danger" 
+                                      variant="solid" 
+                                      onClick={() => removeImage(images[0].id)} 
+                                      sx={{ 
+                                          position: 'absolute', 
+                                          top: 10, 
+                                          right: 10, 
+                                          borderRadius: '50%', 
+                                          boxShadow: 'sm',
+                                          zIndex: 10 
+                                      }}
+                                  >
+                                      <X size={18}/>
+                                  </IconButton>
+                              </Box>
+                          ) : (
+                              <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+                                  <UploadCloud size={24} />
+                                  <Typography level="body-xs" sx={{ mt: 1 }}>Upload Cover</Typography>
+                                  <input type="file" hidden accept="image/*" multiple onChange={handleMultiFileChange} />
+                              </label>
+                          )}
+                      </AspectRatio>
+                    </Box>
+
+                    {/* Thumbnails Grid */}
+                    <Grid container spacing={1}>
+                        {/* 1. Render existing thumbnails (skipping the first image as it's the cover) */}
+                        {images.slice(1).map(img => (
+                        <Grid key={img.id} xs={4}>
+                            <Box sx={{ position: 'relative', borderRadius: 'lg', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                            <AspectRatio ratio="1/1">
+                                <img src={img.url} style={{ objectFit: 'cover' }} alt="Thumb" />
+                            </AspectRatio>
+                            <IconButton 
+                                size="sm" color="danger" variant="solid" 
+                                onClick={() => removeImage(img.id)} 
+                                sx={{ position: 'absolute', top: 2, right: 2, borderRadius: '50%', minHeight: 20, minWidth: 20 }}
+                            >
+                                <X size={12}/>
+                            </IconButton>
+                            </Box>
+                        </Grid>
+                        ))}
+
+                        {/* 2. THE FIX: The "Add More" button inside the grid */}
+                        {images.length > 0 && images.length < MAX_IMAGES && (
+                        <Grid xs={4}>
+                            <label style={{ cursor: 'pointer' }}>
+                            <AspectRatio 
+                                ratio="1/1" 
+                                sx={{ 
+                                borderRadius: 'lg', 
+                                border: '2px dashed #cbd5e1', 
+                                bgcolor: '#f8fafc',
+                                '&:hover': { bgcolor: '#f1f5f9', borderColor: '#94a3b8' } 
+                                }}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Plus size={20} className="text-slate-400" />
+                                </Box>
+                            </AspectRatio>
+                            <input type="file" hidden accept="image/*" multiple onChange={handleMultiFileChange} />
+                            </label>
+                        </Grid>
+                        )}
+                    </Grid>
+                    </Stack>
+                </FormControl>
+
+                <FormControl required>
+                  <FormLabel>Product Name</FormLabel>
+                  <Input 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)} 
+                    placeholder="e.g. Vintage Denim Jacket" 
+                    variant="soft" 
+                    sx={{ 
+                        borderRadius: 'lg',
+                        // 1. Remove the focus ring pseudo-element
+                        "&::before": {
+                        display: 'none',
+                        },
+                        // 2. Remove the default focus border/shadow
+                        "&:focus-within": {
+                        outline: 'none',
+                        border: 'none',
+                        },
+                        // 3. Optional: keep a subtle background change instead of a ring
+                        '&:hover': {
+                        bgcolor: 'neutral.100',
+                        }
+                    }}
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Description</FormLabel>
+                  <Textarea 
+                    minRows={3} 
+                    value={description} 
+                    onChange={(e) => setDescription(e.target.value)} 
+                    placeholder="Describe your product..." 
+                    variant="soft" 
+                                        sx={{ 
+                        borderRadius: 'lg',
+                        // 1. Remove the focus ring pseudo-element
+                        "&::before": {
+                        display: 'none',
+                        },
+                        // 2. Remove the default focus border/shadow
+                        "&:focus-within": {
+                        outline: 'none',
+                        border: 'none',
+                        },
+                        // 3. Optional: keep a subtle background change instead of a ring
+                        '&:hover': {
+                        bgcolor: 'neutral.100',
+                        }
+                    }}
+                  />
+                </FormControl>
+              </Stack>
+              <Stack spacing={2.5}>
+              {/* PRICE CONTROL */}
+              <FormControl required>
+                <FormLabel sx={{ fontWeight: 600 }}>Price</FormLabel>
+                <Input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="0.00"
+                  startDecorator={<Typography sx={{ fontWeight: 'bold', color: 'neutral.500' }}>₦</Typography>}
+                  variant="soft"
+                  sx={{
+                    borderRadius: 'lg',
+                    "&::before": { display: 'none' },
+                    "&:focus-within": { outline: 'none', border: 'none' },
+                    '&:hover': { bgcolor: 'neutral.100' }
+                  }}
+                />
+              </FormControl>
+
+              {/* CATEGORY CONTROL */}
+              <FormControl required>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <FormLabel sx={{ fontWeight: 600, mb: 0 }}>Category</FormLabel>
+                  {/* Optional: Add a small button to toggle the quick-add even if categories exist */}
+                  <Typography 
+                    level="body-xs" 
+                    onClick={() => setShowQuickCategory(!showQuickCategory)}
+                    sx={{ cursor: 'pointer', color: 'slate.800', fontWeight: 600 }}
+                  >
+                    {showQuickCategory ? "Cancel" : "+ Quick Add"}
+                  </Typography>
+                </Box>
+
+                {/* 1. The Quick-Add Mini Form (Shows if no categories OR if toggled) */}
+                {(categories.length === 0 || showQuickCategory) ? (
+                  <Sheet
+                    variant="soft"
+                    color="primary"
+                    sx={{
+                      p: 2,
+                      borderRadius: 'lg',
+                      border: '1px dashed',
+                      borderColor: 'primary.300',
+                      bgcolor: 'primary.50'
+                    }}
+                  >
+                    <Typography level="title-sm" sx={{ mb: 1.5, color: 'slate.700' }}>
+                      Create your first category
+                    </Typography>
+                    <Stack direction="row" spacing={1}>
+                      <Input
+                        size="sm"
+                        fullWidth
+                        placeholder="Category name (e.g. Shoes)"
+                        value={newCatName}
+                        onChange={(e) => setNewCatName(e.target.value)}
+                        sx={{ borderRadius: 'md', bgcolor: 'white' }}
+                      />
+                      <Button
+                        className="bg-slate-800!"
+                        size="sm"
+                        loading={isCreatingCat}
+                        onClick={handleQuickCategorySubmit}
+                        sx={{ px: 2 }}
+                      >
+                        Add
+                      </Button>
+                    </Stack>
+                  </Sheet>
+                ) : (
+                  /* 2. The Standard Select Dropdown */
+                  <Select
+                    placeholder="Select a category"
+                    value={category}
+                    onChange={(_, newValue) => setCategory(newValue)}
+                    variant="soft"
+                    sx={{
+                      borderRadius: 'lg',
+                      "&::before": { display: 'none' },
+                      "&:focus-within": { outline: 'none', border: 'none' },
+                    }}
+                  >
+                    {categories.map((cat) => (
+                      <Option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </Option>
+                    ))}
+                  </Select>
+                )}
+              </FormControl>
+
+              {/* INVENTORY CONTROL */}
+              <FormControl required>
+                <FormLabel sx={{ fontWeight: 600 }}>Inventory / Stock</FormLabel>
+                <Input
+                  type="number"
+                  value={inventory}
+                  onChange={(e) => setInventory(e.target.value)}
+                  placeholder="Quantity available"
+                  endDecorator={<Typography level="body-xs" sx={{ color: 'neutral.500' }}>units</Typography>}
+                  variant="soft"
+                  sx={{
+                    borderRadius: 'lg',
+                    "&::before": { display: 'none' },
+                    "&:focus-within": { outline: 'none', border: 'none' },
+                    '&:hover': { bgcolor: 'neutral.100' }
+                  }}
+                />
+                <Typography level="body-xs" sx={{ mt: 0.5, color: 'neutral.500' }}>
+                  Low stock alerts will trigger when below 5 units.
+                </Typography>
+              </FormControl>
+            </Stack>
+            </DialogContent>
+
+            <Box sx={{ p: 3, borderTop: '1px solid #eee', bgcolor: 'white' }}>
+              <Button 
+                className='bg-slate-900! hover:bg-slate-800!'
+                fullWidth 
+                size="lg" 
+                loading={submitting}
+                startDecorator={!submitting && <Plus size={18} />}
+                onClick={handleCreateProduct}
+                sx={{ borderRadius: 'xl', height: 50 }}
+              >
+                {submitting ? "Saving Product..." : "Create Product"}
+              </Button>
+            </Box>
+          </Box>
+        </Drawer>
     </StoreOwnerLayout>
   );
 }

@@ -290,35 +290,33 @@ export default function CategoriesTable({ isDark = false }) {
       <div className="p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
-            <h1 className={`text-2xl font-black tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>Inventory Categories</h1>
+            <h1 className={`text-2xl font-bold! tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}>Inventory Categories</h1>
             <p className="text-sm text-slate-500 font-medium">Manage how your products are grouped and displayed.</p>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <button className={`px-4 py-2 text-sm font-bold border rounded-lg transition-all ${isDark ? "border-slate-700 text-white hover:bg-slate-800" : "border-slate-200 text-gray-700 hover:bg-slate-50"}`}>
-              Export CSV
-            </button>
-            <button 
-              onClick={() => setIsCategoryOpen(true)}
-              className="px-5 py-2 bg-slate-900/90 0f172a text-white hover:bg-slate-800/90 hover:text-white rounded-lg font-bold text-sm shadow-lg hover:opacity-90 flex items-center gap-2"
-            >
-              <Plus size={18} />
-              New Category
-            </button>
           </div>
         </div>
 
         <div className={`rounded-xl border  bg-white overflow-hidden shadow-sm ${isDark ? "border-slate-800" : "border-slate-200"}`}>
             <div className="overflow-x-auto hide-scrollbar"> {/* This allows horizontal scrolling on mobile */}
-                <div className="p-4 flex flex-col sm:flex-row justify-between gap-4">
-                <div className="relative flex items-center">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-50" />
-                    <input
-                    placeholder="Search categories..."
-                    className="pl-9 pr-4 py-1.5 text-sm rounded-md border border-gray-200 bg-white outline-none focus:border-slate-200 w-full sm:w-64"
-                    onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
+                <div className="p-4 flex flex-col sm:flex-row justify-end gap-4">
+                  <div className="relative flex items-center">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-50" />
+                      <input
+                      placeholder="Search categories..."
+                      className="pl-9 pr-4 py-1.5 text-sm rounded-md border border-gray-200 bg-white outline-none focus:border-slate-200 w-full sm:w-64"
+                      onChange={(e) => setSearch(e.target.value)}
+                      />
+                  </div>
+
+                          
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => setIsCategoryOpen(true)}
+                      className="px-5 py-2 bg-slate-900/90 0f172a text-white hover:bg-slate-800/90 hover:text-white rounded-lg font-bold text-sm shadow-lg hover:opacity-90 flex items-center gap-2"
+                    >
+                      <Plus size={18} />
+                      New Category
+                    </button>
+                  </div>
                 </div>
                 
                 {/* Set a min-width (min-w-[800px]) to ensure the columns don't collapse on small screens */}
