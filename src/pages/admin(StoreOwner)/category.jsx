@@ -213,7 +213,7 @@ export default function CategoriesTable({ isDark = false }) {
       setPreview(selectedCategory.image); // URL from backend
       setImage(null); // Reset file upload
       setIsEditOpen(true)
-      console.log(selectedCategory)
+      // console.log(selectedCategory)
     }
     };
   useEffect(() => {
@@ -417,7 +417,7 @@ export default function CategoriesTable({ isDark = false }) {
                               variant="plain" 
                               onClick={() => {
                                   setSelectedCategory(cat); // Store the category object
-                                  setIsDeleteModalOpen(true); // Open modal
+                                  handleEditOpen(cat) // Open modal
                                 }}       
                               > 
                               Edit

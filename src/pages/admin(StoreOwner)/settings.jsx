@@ -38,6 +38,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { toast } from "react-toastify";
 import { useStoreProfileStore } from "../../store/useStoreProfile";
 import { fetchMe } from "../../../services/authService";
+import { useLocation } from "react-router-dom";
 
 export default function SettingsPage() {
   const { updateStoreProfile, loading, resendStoreVerification } =
@@ -49,12 +50,12 @@ export default function SettingsPage() {
     newPassword: "",
     confirmPassword: "",
   });
-  const { store, user, token } = useAuthStore();
+  const { store, user, token, setUser } = useAuthStore();
   const [banks, setBanks] = useState([]);
   const [storeDits, setStoreDits] = useState(store);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [formEmail, setFormEmail] = useState(store.email);
-  const [formDescription, setFormDescription] = useState(store.description);
+  const [formEmail, setFormEmail] = useState(store?.email);
+  const [formDescription, setFormDescription] = useState(store?.description);
   const [otp, setOtp] = useState("");
   const [fullName, setFullName] = useState(user?.fullName || "");
   const [isOtpSent, setIsOtpSent] = useState(false);
@@ -63,6 +64,11 @@ export default function SettingsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [logoFile, setLogoFile] = useState(null);
   const [formStoreType, setFormStoreType] = useState(store?.storeType);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(
+    user?.profilePicture?.url || "",
+  );
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const getPasswordStrength = (password) => {
     let score = 0;
     if (!password) return 0;
@@ -128,11 +134,12 @@ export default function SettingsPage() {
   const strengthScore = getPasswordStrength(passwords.newPassword);
   useEffect(() => {
     if (store?.logo?.url) {
-      setPreviewUrl(store.logo.url);
+      setPreviewUrl(store?.logo.url);
       setLogoFile(null); // Clear the pending file since it's now saved
     }
   }, [store]);
-  const [previewUrl, setPreviewUrl] = useState(store.logo?.url || "");
+  const [previewUrl, setPreviewUrl] = useState(store?.logo?.url || "");
+  const location = useLocation();
   // console.log(store)
   const menuItems = [
     { id: "profile", label: "Store Profile", icon: <Store size={18} /> },
@@ -146,7 +153,7 @@ export default function SettingsPage() {
         <Box sx={{ position: "relative" }}>
           <Banknote size={20} />
           {/* Show red dot if store exists but has no bank details */}
-          {store && !store.bankAccountNumber && (
+          {store && !store?.bankAccountNumber && (
             <Box
               sx={{
                 position: "absolute",
@@ -189,7 +196,7 @@ export default function SettingsPage() {
         // Synchronize your local display state immediately
         setStoreDits(result.store);
 
-        if (formEmail !== store.email) {
+        if (formEmail !== store?.email) {
           toast.success("Changes saved! Check your inbox to verify.", {
             icon: "📩",
             duration: 6000,
@@ -485,7 +492,23 @@ export default function SettingsPage() {
       </Box>
     );
   };
+
   // console.log(store)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const section = params.get('section');
+
+    if (section === 'bank-details') {
+      setActiveSection('st'); // Set this to 'st' since that is your bank section key
+      
+      // Optional: Smooth scroll to the anchor
+      setTimeout(() => {
+        document.getElementById('bank-details-anchor')?.scrollIntoView({ 
+          behavior: 'smooth' 
+        });
+      }, 100);
+    }
+  }, [location]);
 
   return (
     <StoreOwnerLayout>
@@ -634,8 +657,20 @@ export default function SettingsPage() {
                       }}
                     >
                       {!heroPreviewUrl && !store?.heroImage?.url && (
-                        <Box sx={{ position: "absolute", inset: 0, bgcolor: "rgba(0,0,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <Typography level="body-xs" sx={{ color: "#fff", fontWeight: 700 }}>
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            inset: 0,
+                            bgcolor: "rgba(0,0,0,0.2)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Typography
+                            level="body-xs"
+                            sx={{ color: "#fff", fontWeight: 700 }}
+                          >
                             GENERAL STORE DEFAULT
                           </Typography>
                         </Box>
@@ -643,40 +678,67 @@ export default function SettingsPage() {
                     </Box>
 
                     <Stack direction="row" spacing={1}>
-                      <Button component="label" variant="outlined" color="neutral" size="sm" disabled={loading}>
+                      <Button
+                        component="label"
+                        variant="outlined"
+                        color="neutral"
+                        size="sm"
+                        disabled={loading}
+                      >
                         Change Banner
-                        <input type="file" hidden accept="image/*" onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            setHeroFile(file);
-                            setHeroPreviewUrl(URL.createObjectURL(file));
-                          }
-                        }} />
+                        <input
+                          type="file"
+                          hidden
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              setHeroFile(file);
+                              setHeroPreviewUrl(URL.createObjectURL(file));
+                            }
+                          }}
+                        />
                       </Button>
                       {(heroPreviewUrl || store?.heroImage?.publicId) && (
-                        <Button variant="plain" color="danger" size="sm" onClick={() => { setHeroFile(null); setHeroPreviewUrl(""); }}>
+                        <Button
+                          variant="plain"
+                          color="danger"
+                          size="sm"
+                          onClick={() => {
+                            setHeroFile(null);
+                            setHeroPreviewUrl("");
+                          }}
+                        >
                           Remove
                         </Button>
                       )}
                     </Stack>
 
                     {/* --- NEW DISCLAIMER SECTION --- */}
-                    <Box 
-                      sx={{ 
-                        mt: 1, 
-                        p: 1.5, 
-                        bgcolor: 'info.softBg', 
-                        borderRadius: 'sm', 
-                        borderLeft: '4px solid', 
-                        borderColor: 'info.main' 
+                    <Box
+                      sx={{
+                        mt: 1,
+                        p: 1.5,
+                        bgcolor: "info.softBg",
+                        borderRadius: "sm",
+                        borderLeft: "4px solid",
+                        borderColor: "info.main",
                       }}
                     >
-                      <Typography level="body-xs" sx={{ fontWeight: 700, color: 'info.main', mb: 0.5 }}>
+                      <Typography
+                        level="body-xs"
+                        sx={{ fontWeight: 700, color: "info.main", mb: 0.5 }}
+                      >
                         💡 Pro Tip for a Better Storefront:
                       </Typography>
-                      <Typography level="body-xs" sx={{ color: 'text.secondary', lineHeight: 1.4 }}>
-                        For best results, use <b>landscape images</b> with <b>minimal details in the center</b>. 
-                        High-quality photos of store interiors or neutral textures work best to keep your store name readable and bold.
+                      <Typography
+                        level="body-xs"
+                        sx={{ color: "text.secondary", lineHeight: 1.4 }}
+                      >
+                        For best results, use <b>landscape images</b> with{" "}
+                        <b>minimal details in the center</b>. High-quality
+                        photos of store interiors or neutral textures work best
+                        to keep your store name readable and bold.
                       </Typography>
                     </Box>
 
@@ -690,7 +752,7 @@ export default function SettingsPage() {
 
                   <Input
                     className="placeholder:capitalize!"
-                    value={store.name}
+                    value={store?.name}
                     disabled
                     placeholder="Layemart Store"
                     sx={{ flex: 1, maxWidth: 400 }}
@@ -762,7 +824,7 @@ export default function SettingsPage() {
                         <Box
                           sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
-                          {formEmail === store.email &&
+                          {formEmail === store?.email &&
                           store?.isEmailVerified ? (
                             <Typography
                               level="body-xs"
@@ -850,7 +912,7 @@ export default function SettingsPage() {
                                     },
                                   }}
                                 >
-                                  RESEND
+                                  VERIFY
                                 </Button>
                               )}
                               <Typography
@@ -877,7 +939,7 @@ export default function SettingsPage() {
                   <Button
                     variant="plain"
                     color="neutral"
-                    onClick={() => setFormEmail(store.email)}
+                    onClick={() => setFormEmail(store?.email)}
                   >
                     Cancel
                   </Button>
@@ -949,6 +1011,96 @@ export default function SettingsPage() {
                     Manage your personal account details and security.
                   </Typography>
                 </Box>
+
+                <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                  <FormLabel sx={{ minWidth: 140 }}>Profile Picture</FormLabel>
+                  <Stack direction="row" spacing={3} alignItems="center">
+                    <Box
+                      sx={{
+                        width: 80,
+                        height: 80,
+                        borderRadius: "50%",
+                        overflow: "hidden",
+                        border: "2px solid",
+                        borderColor: "divider",
+                        bgcolor: "neutral.100",
+                        backgroundImage: `url(${avatarPreview || user?.profilePicture?.url})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    />
+                    <Stack spacing={1}>
+                      <Button
+                        component="label"
+                        variant="outlined"
+                        color="neutral"
+                        size="sm"
+                        loading={isUploadingAvatar}
+                      >
+                        Change Photo
+                        <input
+                          type="file"
+                          hidden
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+
+                            // 1. Client-side validation
+                            if (file.size > 2 * 1024 * 1024) {
+                              return toast.error("File is too large. Max 2MB.");
+                            }
+
+                            // 2. Instant Preview
+                            const previewUrl = URL.createObjectURL(file);
+                            setAvatarPreview(previewUrl);
+
+                            // 3. Upload via Fetch
+                            const formData = new FormData();
+                            formData.append("profilePicture", file);
+
+                            setIsUploadingAvatar(true);
+                            try {
+                              const response = await fetch(
+                                `${import.meta.env.VITE_BACKEND_URL}/api/auth/update-profile-picture`,
+                                {
+                                  method: "PATCH",
+                                  headers: {
+                                    Authorization: `Bearer ${token}`,
+                                  },
+                                  body: formData,
+                                },
+                              );
+
+                              const data = await response.json();
+
+                              if (!response.ok)
+                                throw new Error(
+                                  data.message || "Upload failed",
+                                );
+
+                              // 4. Update Global State (assuming you have a setUser method)
+                              setUser({
+                                ...user,
+                                profilePicture: data.profilePicture,
+                              });
+                              toast.success("Profile Picture updated!");
+                            } catch (err) {
+                              toast.error(err.message || "Failed to upload");
+                              // Revert preview on failure
+                              setAvatarPreview(user?.profilePicture?.url);
+                            } finally {
+                              setIsUploadingAvatar(false);
+                            }
+                          }}
+                        />
+                      </Button>
+                      <Typography level="body-xs">
+                        JPG, GIF or PNG. Max size 2MB
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                </FormControl>
 
                 <Divider />
 
@@ -1133,7 +1285,7 @@ export default function SettingsPage() {
             )}
 
             {activeSection === "st" && (
-              <Stack gap={3} id="bank-details-anchor">
+              <Stack gap={3} id="bank-details-anchor" sx={{ scrollMarginTop: '20px' }}>
                 <Box>
                   <Typography level="h4" sx={{ fontWeight: 700 }}>
                     Bank Details
@@ -1218,7 +1370,7 @@ export default function SettingsPage() {
                         </Typography>
                         <Typography level="body-xs">
                           {store?.paystack?.verified
-                            ? `Payouts active to ${store.paystack.settlementBank}`
+                            ? `Payouts active to ${store?.paystack.settlementBank}`
                             : "We are waiting for Paystack to confirm your bank details."}
                         </Typography>
                       </Box>

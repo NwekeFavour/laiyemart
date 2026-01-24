@@ -20,7 +20,7 @@ export const loginStoreOwner = async (email, password) => {
   useAuthStore.getState().login({
     token: data.token,
     user: data.user,
-    store: null, // fetched later
+    store: data.store, // fetched later
   });
 
   return data;
@@ -76,7 +76,8 @@ export const fetchMe = async () => {
     token,
     user: data.user,
     store: data.store,
-    isEmailVerified: data.isEmailVerified
+    isEmailVerified: data.isEmailVerified,
+    profilePicture: data.user.profilePicture,
   });
 };
 

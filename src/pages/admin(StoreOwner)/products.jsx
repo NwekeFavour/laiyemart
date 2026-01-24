@@ -35,7 +35,6 @@ import {
   Plus,
   Edit,
   Trash2,
-  ExternalLink,
   ArrowUp,
   ArrowDown,
   ChevronLeft,
@@ -208,7 +207,7 @@ export default function ProductsPage() {
         //   console.log(key, value);
         // }
         await createProduct(formData) 
-          
+        resetProductForm();
           // Reset Form
           setIsDrawerOpen(false);
           setName(""); setPrice(""); setDescription(""); setCategory(""); setImages([]); setInventory("");
@@ -361,6 +360,16 @@ export default function ProductsPage() {
 
   const borderColor = "border-slate-100";
 
+
+  const resetProductForm = () => {
+    setName("");
+    setDescription("");
+    setPrice("");
+    setInventory("");
+    setCategory("");
+    setImages([]);
+    setSelectedProduct(null);
+  };
   return (
     <StoreOwnerLayout>
       <Box
@@ -429,7 +438,7 @@ export default function ProductsPage() {
               </Box>
               <Button
                 className="md:mt-0! mt-3! md:px-3! px-2! md:text-[15px]! text-[14px]!  hover:bg-slate-800/90!"
-                onClick={() => setIsDrawerOpen(true)}
+                onClick={() => {resetProductForm(); setIsDrawerOpen(true);}}
                 variant="solid"
                 startDecorator={<Plus size={18} />}
                 sx={{
@@ -863,9 +872,6 @@ export default function ProductsPage() {
                             >
                               <Edit size={16} />
                             </IconButton>
-                            <IconButton size="sm" variant="plain">
-                              <ExternalLink size={16} />
-                            </IconButton>
                             <IconButton
                               size="sm"
                               variant="plain"
@@ -1298,7 +1304,12 @@ export default function ProductsPage() {
         <Drawer
           anchor="right"
           open={isDrawerOpen}
-          onClose={() => !submitting && setIsDrawerOpen(false)}
+          onClose={() => {
+            if (!submitting) {
+              resetProductForm();
+              setIsDrawerOpen(false);
+            }
+          }} 
           slotProps={{ content: { sx: { width: { xs: '100%', sm: 450 }, p: 0 } } }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

@@ -8,6 +8,8 @@ export const useStoreProfileStore = create((set, get) => ({
   loading: false,
   error: null,
   success: null,
+  totalCustomers: 0,
+  setTotalCustomers: (count) => set({ totalCustomers: count }),
 
   // ============================
   // UPDATE STORE PROFILE
@@ -44,6 +46,15 @@ export const useStoreProfileStore = create((set, get) => ({
     } finally {
       set({ loading: false });
     }
+  },
+
+  fetchTotalCustomers: async (storeId) => {
+    const { token } = useAuthStore.getState();
+    const res = await fetch(`${API_URL}/api/stores/${storeId}/customers`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Failed to fetch customers");
+    return await res.json();
   },
 
   // ============================

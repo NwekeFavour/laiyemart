@@ -20,6 +20,7 @@ import {
   Laptop,
   HelpCircle,
   MenuIcon,
+  Zap,
 } from "lucide-react";
 import {
   Box,
@@ -60,6 +61,48 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
   const [showBankReminder, setShowBankReminder] = useState(false);
 
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+  const handlePay = async () => {
+    try {
+      const { user, token, store } = useAuthStore.getState();
+
+      // 🔐 Must be logged in
+      if (!token || !user) {
+        window.location.href = "/auth/sign-in";
+        return;
+      }
+
+      // 🏪 Must have an active store
+      if (!store?._id) {
+        alert("No active store selected");
+        return;
+      }
+
+      const amount = 5000;
+      const res = await fetch(`${BACKEND_URL}/api/payments/init`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: user.email,
+          plan: "PAID",
+          amount,
+          storeId: store._id, // ✅ REQUIRED
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Payment failed");
+      console.log(data);
+      // 🚀 Redirect to Paystack
+      window.location.href = data.url;
+    } catch (err) {
+      alert(err.message);
+    }
+  };
   useEffect(() => {
     // If store exists but no subaccount, show the reminder banner
     if (store && !store?.paystack?.subaccountCode) {
@@ -438,7 +481,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     lineHeight: 1.2,
                   }}
                 >
-                  {user?.fullName || "Sean"}
+                  {store?.name.toUpperCase() + " Store" || "Sean"}
                 </Typography>
                 <Typography
                   level="body-xs"
@@ -659,7 +702,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                   }`}
                 >
                   <Avatar
-                    src={store?.logo?.url}
+                    src={user?.profilePicture?.url}
                     sx={{ width: 32, height: 32 }}
                   />
                 </MenuButton>
@@ -688,7 +731,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     <div className="px-4 py-4 flex items-center gap-3">
                       <div className="relative">
                         <Avatar
-                          src={store?.logo?.url}
+                          src={user?.profilePicture?.url}
                           sx={{ width: 48, height: 48 }}
                         />
                         <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full" />
@@ -776,10 +819,55 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
           }}
           onClick={() => setProfileAnchor(null)}
         >
+          {store?.plan === "starter" && (
+            <Sheet
+              className="bg-slate-900/90! text-white! shadow-lg shadow-slate-200/20! lg:items-center! items-end! flex! justify-between! flex-wrap!"
+              variant="solid"
+              sx={{
+                p: 2,
+                borderRadius: "20px",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <div className="bg-amber-400 p-2 rounded-lg">
+                  <Zap size={20} className="text-slate-900" />
+                </div>
+                <Box>
+                  <Typography
+                    className="text-[15px]!"
+                    level="body-xs"
+                    sx={{ mt: 1, color: "neutral.100" }}
+                  >
+                    Trial ends on{" "}
+                    {new Date(store.trialEndsAt).toLocaleDateString()}
+                  </Typography>
+                  <Typography
+                    className="text-slate-200!"
+                    sx={{ fontSize: "12px" }}
+                  >
+                    Upgrade now to unlock unlimited products and custom domains.
+                  </Typography>
+                </Box>
+              </Box>
+              <Button
+                onClick={handlePay}
+                className="md:mt-0 mt-4!"
+                size="sm"
+                sx={{
+                  bgcolor: "white",
+                  color: "#0f172a",
+                  "&:hover": { bgcolor: "#f1f5f9" },
+                  borderRadius: "lg",
+                }}
+              >
+                Upgrade to Pro
+              </Button>
+            </Sheet>
+          )}
           {/* Bank Setup Reminder Modal */}
           <Box
             sx={{
-              p: { xs: 2 },
+              mt:2,
               overflowY: "auto",
               flex: 1,
               "&::-webkit-scrollbar": { display: "none" },
@@ -823,7 +911,9 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                 <Button
                   size="sm"
                   variant="solid"
-                  onClick={() => navigate("/dashboard/settings#bank-details")}
+                  onClick={() =>
+                    navigate("/dashboard/settings?section=bank-details")
+                  }
                   sx={{
                     borderRadius: "10px",
                     bgcolor: "#f59e0b",
@@ -837,7 +927,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
               </Box>
             )}
           </Box>
-          {children}
+          <Box>{children}</Box>
         </Box>
       </Box>
 

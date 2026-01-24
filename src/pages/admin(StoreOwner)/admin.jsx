@@ -45,6 +45,8 @@ import { useProductStore } from "../../../services/productService";
 import { toast } from "react-toastify";
 import { useCategoryStore } from "../../../services/categoryService";
 import { InventoryCard } from "../../components/inventory";
+import { useStoreProfileStore } from "../../store/useStoreProfile";
+import BestSellersCard from "../../components/bestSeller";
 export default function StoreOwnerTrialDashboard() {
   // Stats reflecting a brand new store
   const [error, setError] = useState("");
@@ -53,6 +55,7 @@ export default function StoreOwnerTrialDashboard() {
   const total_orders = 0;
   const [loading, setLoading] = useState(false);
   const { products, fetchMyProducts, createProduct } = useProductStore();
+  const { totalCustomers, setTotalCustomers, fetchTotalCustomers } = useStoreProfileStore();
   const { categories, getCategories } = useCategoryStore();
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -70,6 +73,20 @@ export default function StoreOwnerTrialDashboard() {
   useEffect(() => {
     getCategories();
   }, []);
+
+  useEffect(() => {
+  const loadStats = async () => {
+    try {
+      if (store?._id) {
+        const data = await fetchTotalCustomers(store._id);
+        setTotalCustomers(data.count); // data.count comes from your controller
+      }
+    } catch (err) {
+      console.error("Customer fetch error:", err);
+    }
+  };
+  loadStats();
+}, [store?._id]);
   const handleSelect = (id) => {
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
@@ -84,7 +101,6 @@ export default function StoreOwnerTrialDashboard() {
     }
   };
 
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const stats = useMemo(() => {
     const totalProducts = products.length;
 
@@ -96,58 +112,35 @@ export default function StoreOwnerTrialDashboard() {
     );
 
     // 1. Core stats that always show
-    const baseStats = [
-      {
-        label: "Total Products",
-        value: totalProducts,
-        sub: "All products",
-        icon: "📦",
-      },
-      {
-        label: "Out of Stock",
-        value: outOfStock,
-        sub: "Needs restock",
-        icon: "⚠️",
-      },
-      {
-        label: "Inventory Value",
-        value: `₦${inventoryValue.toLocaleString()}`,
-        sub: "Stock worth",
-        icon: "💰",
-      },
-    ];
+const baseStats = [
+  {
+    label: "Total Products",
+    value: totalProducts,
+    sub: "All products",
+    icon: "📦",
+  },
+  {
+    label: "Total Customers",
+    value: totalCustomers || 0, // Ensure you have this variable from your state/props
+    sub: "Lifetime customers",
+    icon: "👥",
+  },
+  {
+    label: "Sales",
+    value: `₦0`,
+    sub: "Stock worth",
+    icon: "💰",
+  },
+  {
+    label: "Total Orders",
+    value: `₦0`,
+    sub: "Needs restock",
+    icon: "⚠️",
+  },
+];
 
-    // 2. Logic for Trial Days
-    let trialStat = null;
-    if (store?.plan === "starter" && store?.trialEndsAt) {
-      const end = new Date(store.trialEndsAt);
-      const now = new Date();
-      const diffInMs = end - now;
-      const daysLeft = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
 
-      trialStat = {
-        label: "Trial Days Left",
-        value: daysLeft > 0 ? daysLeft : 0,
-        sub: daysLeft > 0 ? "Days remaining" : "Trial expired",
-        icon: daysLeft > 0 ? "⏳" : "❌",
-      };
-    }
-
-    if (store?.plan === "professional" && store?.trialEndsAt) {
-      const end = new Date(store.trialEndsAt);
-      const now = new Date();
-      const diffInMs = end - now;
-      const daysLeft = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
-
-      trialStat = {
-        label: "Trial Days Left",
-        value: daysLeft > 0 ? daysLeft : 0,
-        sub: daysLeft > 0 ? "Days remaining" : "Trial expired",
-        icon: daysLeft > 0 ? "⏳" : "❌",
-      };
-    }
-
-    return [...baseStats, trialStat].filter(Boolean);
+    return [...baseStats].filter(Boolean);
   }, [products, store]);
 
   useEffect(() => {
@@ -159,10 +152,16 @@ export default function StoreOwnerTrialDashboard() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const data = await fetchMe();
-        // console.log(data)
+        setLoading(true);
+        // Only call fetchMe if a token actually exists to avoid unnecessary "Failed" states
+        const token = useAuthStore.getState().token;
+        if (token) {
+          await fetchMe();
+        }
       } catch (err) {
-        setError("Failed to fetch user:", err);
+        // Only show error if it's a real server error, not just "no token"
+        console.error("Silent fetchMe error:", err);
+        // setError("Failed to fetch user"); // Only uncomment if you want the red bar
       } finally {
         setLoading(false);
       }
@@ -170,47 +169,6 @@ export default function StoreOwnerTrialDashboard() {
 
     loadUser();
   }, []);
-
-  const handlePay = async () => {
-    try {
-      const { user, token, store } = useAuthStore.getState();
-
-      // 🔐 Must be logged in
-      if (!token || !user) {
-        window.location.href = "/auth/sign-in";
-        return;
-      }
-
-      // 🏪 Must have an active store
-      if (!store?._id) {
-        alert("No active store selected");
-        return;
-      }
-
-      const amount = 5000;
-      const res = await fetch(`${BACKEND_URL}/api/payments/init`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          email: user.email,
-          plan: "PAID",
-          amount,
-          storeId: store._id, // ✅ REQUIRED
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Payment failed");
-      console.log(data);
-      // 🚀 Redirect to Paystack
-      window.location.href = data.url;
-    } catch (err) {
-      alert(err.message);
-    }
-  };
 
   const StatSkeleton = () => (
     <Sheet
@@ -220,20 +178,30 @@ export default function StoreOwnerTrialDashboard() {
         borderRadius: "20px",
         border: "1px solid #e2e8f0",
         bgcolor: "white",
+        height: "100%", // Ensures all cards are equal height
+        display: "flex",
+        flexDirection: "column",
+        gap: 1,
       }}
     >
+      {/* Icon Box Skeleton */}
       <Skeleton
         variant="rectangular"
         width={40}
         height={40}
-        sx={{ borderRadius: "8px", mb: 2 }}
+        sx={{ borderRadius: "lg", mb: 0.5 }}
       />
-      <Skeleton width="60%" height={16} />
-      <Skeleton width="40%" height={32} sx={{ mt: 1 }} />
-      <Skeleton width="70%" height={12} sx={{ mt: 1 }} />
+
+      {/* Label Skeleton */}
+      <Skeleton variant="text" width="60%" height={20} />
+
+      {/* Value Skeleton */}
+      <Skeleton variant="text" width="45%" height={40} />
+
+      {/* Subtext Skeleton */}
+      <Skeleton variant="text" width="75%" height={15} />
     </Sheet>
   );
-
   return (
     <StoreOwnerLayout>
       <Box sx={{ p: { xs: 2, md: 2 }, minHeight: "100vh" }}>
@@ -354,49 +322,6 @@ export default function StoreOwnerTrialDashboard() {
                 </Button>
               )}
             </Box>
-          </Sheet>
-        )}
-
-        {/* Trial Countdown Header */}
-        {store?.plan === "TRIAL" && (
-          <Sheet
-            className="bg-slate-900/90! text-white! shadow-lg shadow-slate-200/20! lg:items-center! items-end! flex! justify-between! flex-wrap!"
-            variant="solid"
-            sx={{
-              mb: 4,
-              p: 2,
-              borderRadius: "20px",
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <div className="bg-amber-400 p-2 rounded-lg">
-                <Zap size={20} className="text-slate-900" />
-              </div>
-              <Box>
-                <Typography sx={{ color: "white", fontWeight: 700 }}>
-                  You're on the Free Trial
-                </Typography>
-                <Typography
-                  className="text-slate-200!"
-                  sx={{ fontSize: "12px" }}
-                >
-                  Upgrade now to unlock unlimited products and custom domains.
-                </Typography>
-              </Box>
-            </Box>
-            <Button
-              onClick={handlePay}
-              className="md:mt-0 mt-4!"
-              size="sm"
-              sx={{
-                bgcolor: "white",
-                color: "#0f172a",
-                "&:hover": { bgcolor: "#f1f5f9" },
-                borderRadius: "lg",
-              }}
-            >
-              Upgrade to Pro
-            </Button>
           </Sheet>
         )}
 
@@ -525,7 +450,7 @@ export default function StoreOwnerTrialDashboard() {
               className={`flex items-center justify-between mb-4 border-b px-3 py-4
         ${isDark ? "border-slate-700" : "border-slate-100"}`}
             >
-              <h3 className="font-semibold">Orders</h3>
+              <h3 className="font-semibold">Pending Orders</h3>
               <button
                 className={`text-sm ${isDark ? "text-blue-400" : "text-blue-600"}`}
               >
@@ -534,10 +459,9 @@ export default function StoreOwnerTrialDashboard() {
             </div>
 
             <div className="flex flex-col flex-1 p-5">
-
               {/* Value */}
               <div className="mb-4">
-                <div className="text-2xl font-bold">₦9,395.72</div>
+                <div className="text-2xl font-bold">₦0</div>
                 <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
                   +4.7%
                 </span>
@@ -576,6 +500,9 @@ export default function StoreOwnerTrialDashboard() {
           </div>
           <div>
             <InventoryCard isDark={false} products={products} />
+          </div>
+          <div>
+            <BestSellersCard isDark={false}/>
           </div>
         </div>
 
@@ -728,7 +655,7 @@ export default function StoreOwnerTrialDashboard() {
 
         <Grid container spacing={3}>
           {/* Onboarding Checklist */}
-          <Grid xs={12} md={7}>
+          <Grid xs={12} md={12}>
             <Sheet
               sx={{
                 p: 3,
