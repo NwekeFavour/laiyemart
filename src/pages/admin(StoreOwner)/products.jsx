@@ -435,7 +435,6 @@ export default function ProductsPage() {
                 sx={{
                   bgcolor: "#0f172b",
                   px: 3,
-                  py:1
                 }}
               >
                 Add Product

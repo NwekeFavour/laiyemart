@@ -9,6 +9,7 @@ import NewsletterSignup from "../admin(demo)/components/newsletter";
 import Footer from "../admin(demo)/components/footer";
 import StoreNotFound from "../../components/storenotfound";
 import { Helmet } from "react-helmet-async";
+import Header from "../admin(demo)/components/header"
 
 // 1. Define Content Strategies for each Store Type
 const STORE_CONTENT_CONFIG = {
@@ -152,7 +153,7 @@ function DemoHome({ storeSlug }) {
     STORE_META_CONFIG["General Store"];
 
   const pageTitle = storeData
-    ? `${storeData.name} – ${storeData.storeType} | Layemart`
+    ? `${storeData.name.toUpperCase()} – ${storeData.storeType} | Layemart`
     : "Layemart Store";
 
   const pageDescription = storeData
@@ -188,10 +189,13 @@ function DemoHome({ storeSlug }) {
       </Helmet>
 
       <div>
+        <Header storeName={storeData?.name} storeLogo={storeData?.logo?.url} />
+
         <Hero
           storeName={storeData?.name}
           storeLogo={storeData?.logo?.url}
           storeType={storeData?.storeType}
+          storeHero={storeData?.heroImage?.url}
         />
 
         {/* Dynamic New Arrivals Heading passed via props if Slider supports it */}
@@ -234,7 +238,7 @@ function DemoHome({ storeSlug }) {
 
         <NewsletterSignup storeType={storeData?.storeType} />
 
-        <Footer storeName={storeData?.name} storeLogo={storeData?.logo?.url} />
+        <Footer storeName={storeData?.name} storeDescription={storeData?.description} storeLogo={storeData?.logo?.url} />
       </div>
     </div>
   );

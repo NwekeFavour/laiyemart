@@ -13,6 +13,7 @@ import {
   Switch,
   Select,
   Option,
+  Textarea,
 } from "@mui/joy";
 import {
   User,
@@ -39,8 +40,11 @@ import { useStoreProfileStore } from "../../store/useStoreProfile";
 import { fetchMe } from "../../../services/authService";
 
 export default function SettingsPage() {
-  const { updateStoreProfile, loading, resendStoreVerification } = useStoreProfileStore();
+  const { updateStoreProfile, loading, resendStoreVerification } =
+    useStoreProfileStore();
   const [activeSection, setActiveSection] = useState("profile");
+  const [heroFile, setHeroFile] = useState(null);
+  const [heroPreviewUrl, setHeroPreviewUrl] = useState(null);
   const [passwords, setPasswords] = useState({
     newPassword: "",
     confirmPassword: "",
@@ -50,6 +54,7 @@ export default function SettingsPage() {
   const [storeDits, setStoreDits] = useState(store);
   const [isUpdating, setIsUpdating] = useState(false);
   const [formEmail, setFormEmail] = useState(store.email);
+  const [formDescription, setFormDescription] = useState(store.description);
   const [otp, setOtp] = useState("");
   const [fullName, setFullName] = useState(user?.fullName || "");
   const [isOtpSent, setIsOtpSent] = useState(false);
@@ -90,7 +95,6 @@ export default function SettingsPage() {
     fetchBanks();
   }, []);
 
-
   const [resendTimer, setResendTimer] = useState(0);
 
   useEffect(() => {
@@ -101,7 +105,7 @@ export default function SettingsPage() {
       }, 1000);
     }
     return () => clearInterval(interval);
-}, [resendTimer]);
+  }, [resendTimer]);
 
   useEffect(() => {
     if (window.location.hash === "#bank-details") {
@@ -162,40 +166,57 @@ export default function SettingsPage() {
   ];
 
   const handleSave = async () => {
+    // 1. Validation
     if (!formEmail) {
       toast.error("Support email is required");
       return;
     }
 
     try {
+      // 2. Execute Update
       const result = await updateStoreProfile({
         email: formEmail,
         storeType: formStoreType,
+        description: formDescription,
+        heroFile: heroFile, // Key name matches Zustand expectations
         logo: logoFile,
         token,
       });
 
-      // 1. Update our local 'display' state with the response from server
-      // This ensures storeDits.isEmailVerified reflects the new 'false' status
-      setTimeout(() => {
-        setStoreDits(result);
-      }, 7000);
-      // console.log(storeDits)
+      // 3. Success Handling
+      // result usually contains { message: "...", store: {...} }
+      if (result && result.store) {
+        // Synchronize your local display state immediately
+        setStoreDits(result.store);
 
-      if (formEmail !== store.email) {
-        toast.success("Changes saved! Check your inbox to verify.", {
-          icon: "📩",
-          duration: 6000,
-        });
-        // DO NOT setFormEmail(store.email) here,
-        // otherwise the input jumps back to the old email!
-      } else {
-        toast.success("Store profile updated successfully");
+        if (formEmail !== store.email) {
+          toast.success("Changes saved! Check your inbox to verify.", {
+            icon: "📩",
+            duration: 6000,
+          });
+        } else {
+          toast.success("Store profile updated successfully");
+        }
+
+        // 4. Clear temporary file buffers only on SUCCESS
+        setLogoFile(null);
+        setHeroFile(null);
+        // Note: previewUrls stay visible because they now point to store.heroImage.url
       }
-
-      setLogoFile(null);
     } catch (err) {
-      toast.error(err.message || "Failed to update store profile");
+      // 5. Advanced Error Parsing
+      console.error("Save Error:", err);
+
+      // Check for Multer/Busboy specific errors
+      if (err.message?.includes("Unexpected end of form")) {
+        toast.error(
+          "Upload interrupted. Please try a smaller image or check your connection.",
+        );
+      } else if (err.message?.includes("too large")) {
+        toast.error("File size is too large. Max limit is 2MB.");
+      } else {
+        toast.error(err.message || "Failed to update store profile");
+      }
     }
   };
 
@@ -359,7 +380,7 @@ export default function SettingsPage() {
           );
         }
         // Refresh your store global state here to update the UI status box
-          await fetchMe();
+        await fetchMe();
       } else {
         toast.error(data.message || "Failed to create subaccount");
       }
@@ -432,35 +453,39 @@ export default function SettingsPage() {
   );
 
   const RequirementBadge = ({ label, isDone }) => {
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 1,
-        py: 0.5,
-      }}
-    >
-      {isDone ? (
-        <CheckCircle2 size={16} color="#15803d" /> // Green check
-      ) : (
-        <CircleDashed size={16} color="#64748b" className="animate-spin-slow" /> // Spinning gray circle
-      )}
-      <Typography
-        level="body-xs"
+    return (
+      <Box
         sx={{
-          color: isDone ? "text.primary" : "text.tertiary",
-          fontWeight: isDone ? 500 : 400,
-          textDecoration: isDone ? "line-through" : "none", // Optional: strikes through finished tasks
-          opacity: isDone ? 0.7 : 1,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          py: 0.5,
         }}
       >
-        {label}
-      </Typography>
-    </Box>
-  );
-};
-    // console.log(store)
+        {isDone ? (
+          <CheckCircle2 size={16} color="#15803d" /> // Green check
+        ) : (
+          <CircleDashed
+            size={16}
+            color="#64748b"
+            className="animate-spin-slow"
+          /> // Spinning gray circle
+        )}
+        <Typography
+          level="body-xs"
+          sx={{
+            color: isDone ? "text.primary" : "text.tertiary",
+            fontWeight: isDone ? 500 : 400,
+            textDecoration: isDone ? "line-through" : "none", // Optional: strikes through finished tasks
+            opacity: isDone ? 0.7 : 1,
+          }}
+        >
+          {label}
+        </Typography>
+      </Box>
+    );
+  };
+  // console.log(store)
 
   return (
     <StoreOwnerLayout>
@@ -588,6 +613,79 @@ export default function SettingsPage() {
                 </FormControl>
 
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                  <FormLabel sx={{ minWidth: 140 }}>Hero Background</FormLabel>
+                  <Stack spacing={1.5} sx={{ flex: 1, maxWidth: 400 }}>
+                    <Box
+                      sx={{
+                        height: 120,
+                        width: "100%",
+                        borderRadius: "md",
+                        bgcolor: "neutral.100",
+                        backgroundImage: `url(${heroPreviewUrl || store?.heroImage?.url})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        border: "1px solid",
+                        borderColor: "divider",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        position: "relative",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {!heroPreviewUrl && !store?.heroImage?.url && (
+                        <Box sx={{ position: "absolute", inset: 0, bgcolor: "rgba(0,0,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Typography level="body-xs" sx={{ color: "#fff", fontWeight: 700 }}>
+                            GENERAL STORE DEFAULT
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+
+                    <Stack direction="row" spacing={1}>
+                      <Button component="label" variant="outlined" color="neutral" size="sm" disabled={loading}>
+                        Change Banner
+                        <input type="file" hidden accept="image/*" onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            setHeroFile(file);
+                            setHeroPreviewUrl(URL.createObjectURL(file));
+                          }
+                        }} />
+                      </Button>
+                      {(heroPreviewUrl || store?.heroImage?.publicId) && (
+                        <Button variant="plain" color="danger" size="sm" onClick={() => { setHeroFile(null); setHeroPreviewUrl(""); }}>
+                          Remove
+                        </Button>
+                      )}
+                    </Stack>
+
+                    {/* --- NEW DISCLAIMER SECTION --- */}
+                    <Box 
+                      sx={{ 
+                        mt: 1, 
+                        p: 1.5, 
+                        bgcolor: 'info.softBg', 
+                        borderRadius: 'sm', 
+                        borderLeft: '4px solid', 
+                        borderColor: 'info.main' 
+                      }}
+                    >
+                      <Typography level="body-xs" sx={{ fontWeight: 700, color: 'info.main', mb: 0.5 }}>
+                        💡 Pro Tip for a Better Storefront:
+                      </Typography>
+                      <Typography level="body-xs" sx={{ color: 'text.secondary', lineHeight: 1.4 }}>
+                        For best results, use <b>landscape images</b> with <b>minimal details in the center</b>. 
+                        High-quality photos of store interiors or neutral textures work best to keep your store name readable and bold.
+                      </Typography>
+                    </Box>
+
+                    <Typography level="body-xs" sx={{ color: "text.tertiary" }}>
+                      Recommended: 1920x1080px • Max 2MB • JPG, PNG, WebP
+                    </Typography>
+                  </Stack>
+                </FormControl>
+                <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
                   <FormLabel sx={{ minWidth: 140 }}>Store Name</FormLabel>
 
                   <Input
@@ -597,6 +695,44 @@ export default function SettingsPage() {
                     placeholder="Layemart Store"
                     sx={{ flex: 1, maxWidth: 400 }}
                   />
+                </FormControl>
+                {/* STORE DESCRIPTION SECTION */}
+                <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                  <FormLabel sx={{ minWidth: 140 }}>
+                    Store Description
+                  </FormLabel>
+                  <Box sx={{ flex: 1, maxWidth: 400 }}>
+                    <Textarea
+                      minRows={2}
+                      placeholder="e.g. Premium clothing made for everyday style. Ethical and sustainable fashion."
+                      value={formDescription}
+                      onChange={(e) => {
+                        if (e.target.value.length <= 85) {
+                          setFormDescription(e.target.value);
+                        }
+                      }}
+                      endDecorator={
+                        <Typography
+                          level="body-xs"
+                          sx={{ ml: "auto", fontWeight: 700 }}
+                        >
+                          {formDescription?.length || 0} / 85 characters
+                        </Typography>
+                      }
+                      sx={{
+                        borderRadius: "md",
+                        "&:focus-within": {
+                          borderColor: "#0f172a",
+                        },
+                      }}
+                    />
+                    <Typography
+                      level="body-xs"
+                      sx={{ mt: 1, color: "text.tertiary" }}
+                    >
+                      Keep it short and sweet for your storefront bio.
+                    </Typography>
+                  </Box>
                 </FormControl>
 
                 {/* STORE TYPE SECTION */}
@@ -623,8 +759,11 @@ export default function SettingsPage() {
                       onChange={(e) => setFormEmail(e.target.value)}
                       startDecorator={<Mail size={16} />}
                       endDecorator={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {formEmail === store.email && store?.isEmailVerified ? (
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          {formEmail === store.email &&
+                          store?.isEmailVerified ? (
                             <Typography
                               level="body-xs"
                               color="success"
@@ -633,9 +772,18 @@ export default function SettingsPage() {
                               VERIFIED
                             </Typography>
                           ) : (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
                               {resendTimer > 0 ? (
-                                <Typography level="body-xs" sx={{ fontWeight: 700, color: 'neutral.400' }}>
+                                <Typography
+                                  level="body-xs"
+                                  sx={{ fontWeight: 700, color: "neutral.400" }}
+                                >
                                   {resendTimer}s
                                 </Typography>
                               ) : (
@@ -644,27 +792,62 @@ export default function SettingsPage() {
                                   size="sm"
                                   onClick={async () => {
                                     try {
-                                      const res = await resendStoreVerification(formEmail);
-                                      if (res.store) {
-                                        toast.success("Email verified automatically!");
-                                        setStore(res.store);
+                                      setLoading(true); // Assuming you have a loading state for the button
+                                      const res =
+                                        await resendStoreVerification(
+                                          formEmail,
+                                        );
+
+                                      if (res.isAutoVerified || res.store) {
+                                        toast.success(
+                                          "Email verified automatically!",
+                                        );
                                         setFormEmail(res.store.email);
                                       } else {
-                                        toast.success("Verification email sent!");
+                                        toast.success(
+                                          res.message ||
+                                            "Verification email sent!",
+                                        );
                                         setResendTimer(60);
                                       }
                                     } catch (err) {
-                                      toast.error("Failed to resend email");
+                                      // 1. Extract the specific error message from the backend response
+                                      const errorMessage =
+                                        err.response?.data?.message ||
+                                        "Failed to resend email. Please try again.";
+
+                                      // 2. Handle specific status codes if needed
+                                      if (err.response?.status === 404) {
+                                        toast.error(
+                                          "Account error: Store profile not found.",
+                                        );
+                                      } else if (err.response?.status === 401) {
+                                        toast.error(
+                                          "Session expired. Please log in again.",
+                                        );
+                                      } else {
+                                        toast.error(errorMessage);
+                                      }
+
+                                      console.error(
+                                        "Resend Verification Error:",
+                                        err,
+                                      );
+                                    } finally {
+                                      setLoading(false);
                                     }
                                   }}
-                                  sx={{ 
-                                    fontSize: '11px', 
-                                    fontWeight: 700, 
-                                    minHeight: 0, 
+                                  sx={{
+                                    fontSize: "11px",
+                                    fontWeight: 700,
+                                    minHeight: 0,
                                     py: 0.5,
                                     px: 1,
-                                    color: '#2563eb',
-                                    '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
+                                    color: "#2563eb",
+                                    "&:hover": {
+                                      bgcolor: "transparent",
+                                      textDecoration: "underline",
+                                    },
                                   }}
                                 >
                                   RESEND
@@ -682,7 +865,7 @@ export default function SettingsPage() {
                         </Box>
                       }
                       sx={{
-                        '--Input-decoratorChildHeight': '28px', // Adjusts height for the button inside
+                        "--Input-decoratorChildHeight": "28px", // Adjusts height for the button inside
                       }}
                     />
                   </Box>
@@ -965,7 +1148,7 @@ export default function SettingsPage() {
 
                 {/* Single Status Box */}
                 <Box
-                    className="flex! flex-wrap! items-center!"
+                  className="flex! flex-wrap! items-center!"
                   sx={{
                     p: 2,
                     borderRadius: "lg",
@@ -1093,52 +1276,54 @@ export default function SettingsPage() {
 
                 {/* Verification Requirements Section */}
                 {store?.paystack?.subaccountCode &&
-                !store?.paystack?.verified && (
-                  <Box sx={{ mt: 3, px: 1 }}>
-                    {/* Section Header */}
-                    <Typography
-                      level="title-sm"
-                      startDecorator={<Info size={18} className="text-amber-600" />}
-                      sx={{ mb: 2, display: "flex", alignItems: "center" }}
-                    >
-                      Next Steps for Payouts
-                    </Typography>
-
-                    <Stack 
-                      spacing={1.5} 
-                      sx={{ 
-                        position: 'relative',
-                        '&::before': {
-                          content: '""',
-                          position: 'absolute',
-                          left: '11px',
-                          top: '10px',
-                          bottom: '10px',
-                          width: '2px',
-                          bgcolor: 'neutral.softBg',
-                          zIndex: 0
+                  !store?.paystack?.verified && (
+                    <Box sx={{ mt: 3, px: 1 }}>
+                      {/* Section Header */}
+                      <Typography
+                        level="title-sm"
+                        startDecorator={
+                          <Info size={18} className="text-amber-600" />
                         }
-                      }}
-                    >
-                      <RequirementItem
-                        label="Bank Account Connection"
-                        description="Your NUBAN and Bank details have been linked."
-                        isDone={!!store?.paystack?.accountNumber}
-                      />
-                      <RequirementItem
-                        label="Identity & Business Match"
-                        description="Paystack is cross-referencing your name with bank records."
-                        isDone={!!store?.paystack?.businessName}
-                      />
-                      <RequirementItem
-                        label="Compliance Review"
-                        description="Usually takes 30 mins to 24 hours for first-time setup."
-                        isDone={store?.paystack?.verified}
-                        isPending={!store?.paystack?.verified}
-                      />
-                    </Stack>
-                  </Box>
-                )}
+                        sx={{ mb: 2, display: "flex", alignItems: "center" }}
+                      >
+                        Next Steps for Payouts
+                      </Typography>
+
+                      <Stack
+                        spacing={1.5}
+                        sx={{
+                          position: "relative",
+                          "&::before": {
+                            content: '""',
+                            position: "absolute",
+                            left: "11px",
+                            top: "10px",
+                            bottom: "10px",
+                            width: "2px",
+                            bgcolor: "neutral.softBg",
+                            zIndex: 0,
+                          },
+                        }}
+                      >
+                        <RequirementItem
+                          label="Bank Account Connection"
+                          description="Your NUBAN and Bank details have been linked."
+                          isDone={!!store?.paystack?.accountNumber}
+                        />
+                        <RequirementItem
+                          label="Identity & Business Match"
+                          description="Paystack is cross-referencing your name with bank records."
+                          isDone={!!store?.paystack?.businessName}
+                        />
+                        <RequirementItem
+                          label="Compliance Review"
+                          description="Usually takes 30 mins to 24 hours for first-time setup."
+                          isDone={store?.paystack?.verified}
+                          isPending={!store?.paystack?.verified}
+                        />
+                      </Stack>
+                    </Box>
+                  )}
 
                 {/* Form */}
                 <Stack gap={2.5} sx={{ mt: 2 }}>

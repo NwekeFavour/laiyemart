@@ -25,7 +25,7 @@ export function InventoryCard({ isDark, products = [] }) {
   }, [products]);
 
   return (
-    <div className={`rounded-xl lg:w-95 max-w-100 border flex flex-col transition-all
+    <div className={`rounded-xl min-h-80 border flex flex-col transition-all
       ${isDark ? "bg-slate-950 border-slate-700 text-slate-200" : "bg-white border-slate-100 text-gray-900"}`}>
       
       {/* Header */}

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { useAuthStore } from "./useAuthStore";
 
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -11,15 +12,18 @@ export const useStoreProfileStore = create((set, get) => ({
   // ============================
   // UPDATE STORE PROFILE
   // ============================
-  updateStoreProfile: async ({ email, logo, storeType, token }) => {
+
+  setStore: (storeData) => set({ store: storeData }),
+  updateStoreProfile: async ({ email, logo, storeType, description, heroFile, token }) => {
     set({ loading: true, error: null, success: null });
 
     try {
       const formData = new FormData();
       if (email) formData.append("email", email);
       if (logo) formData.append("logo", logo);
-      if(storeType) formData.append("storeType", storeType);
-
+      if(description) formData.append("description", description);
+      if(storeType) formData.append("storeType", storeType);    
+      if (heroFile) formData.append("heroImage", heroFile); // Must match backend field name
       const res = await fetch(`${API_URL}/api/stores/profile`, {
         method: "PUT",
         headers: {
@@ -67,9 +71,13 @@ export const useStoreProfileStore = create((set, get) => ({
   },
 
   resendStoreVerification: async (email) => {
+    const {token} = useAuthStore.getState()
     const response = await fetch(`${API_URL}/api/stores/resend-verification`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization" : `Bearer ${token}`
+       },
       body: JSON.stringify({ email }),
     });
     return response.json();

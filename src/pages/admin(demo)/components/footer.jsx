@@ -2,7 +2,7 @@ import { Avatar } from "@mui/joy";
 import React from "react";
 import { FaFacebookF, FaInstagram, FaTwitter, FaPinterest } from "react-icons/fa";
 
-const Footer = ({storeName, storeLogo}) => {
+const Footer = ({storeName, storeLogo, storeDescription}) => {
 
   return (
     <footer className="bg-gray-900 text-gray-200 py-12">
@@ -19,7 +19,7 @@ const Footer = ({storeName, storeLogo}) => {
               }}
             />
           <p className="text-gray-400 text-sm mt-4">
-            Premium clothing made for everyday style. Ethical and sustainable fashion.
+            {storeDescription}
           </p>
 
           {/* Social Icons */}

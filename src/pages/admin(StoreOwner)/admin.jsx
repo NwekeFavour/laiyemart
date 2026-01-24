@@ -58,31 +58,31 @@ export default function StoreOwnerTrialDashboard() {
   const [isUploading, setIsUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [orders, setOrders] = useState([])
+  const [orders, setOrders] = useState([]);
   // Form State
-  const isDark = false
+  const isDark = false;
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [selected, setSelected] = useState([]);
-      const thStyle = `px-4 py-3 font-semibold border-r ${isDark ? "border-slate-800" : "border-slate-100"}`;
-    const tdStyle = `px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-300" : "border-slate-100 text-gray-700"}`;
+  const thStyle = `px-4 py-3 font-semibold border-r ${isDark ? "border-slate-800" : "border-slate-100"}`;
+  const tdStyle = `px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-300" : "border-slate-100 text-gray-700"}`;
   useEffect(() => {
     getCategories();
   }, []);
   const handleSelect = (id) => {
-  setSelected((prev) =>
-    prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-  );
-};
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
 
   const toggleAll = () => {
-  if (selected.length === orders.length) {
-    setSelected([]);
-  } else {
-    setSelected(orders.map((o) => o._id));
-  }
-};
+    if (selected.length === orders.length) {
+      setSelected([]);
+    } else {
+      setSelected(orders.map((o) => o._id));
+    }
+  };
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const stats = useMemo(() => {
@@ -515,7 +515,65 @@ export default function StoreOwnerTrialDashboard() {
               ))}
         </Grid>
 
-        <div className="grid grid-cols-1 justify-items-center lg:my-5 my-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full lg:my-5 my-4">
+          <div
+            className={`rounded-xl min-h-80 border flex flex-col
+      ${isDark ? "bg-slate-900 border-slate-700 text-slate-200" : "bg-white border-slate-100 text-gray-900"}`}
+          >
+            {/* Header */}
+            <div
+              className={`flex items-center justify-between mb-4 border-b px-3 py-4
+        ${isDark ? "border-slate-700" : "border-slate-100"}`}
+            >
+              <h3 className="font-semibold">Orders</h3>
+              <button
+                className={`text-sm ${isDark ? "text-blue-400" : "text-blue-600"}`}
+              >
+                See All
+              </button>
+            </div>
+
+            <div className="flex flex-col flex-1 p-5">
+
+              {/* Value */}
+              <div className="mb-4">
+                <div className="text-2xl font-bold">₦9,395.72</div>
+                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                  +4.7%
+                </span>
+              </div>
+
+              {/* Dummy Chart */}
+              {/* <ul className="space-y-2 text-sm">
+                {[
+                  ["Nike Shift Runner", 4],
+                  ["Puma Wace Strike", 7],
+                  ["Adidas Xtreme High", 1],
+                ].map(([name, qty]) => (
+                  <li
+                    key={name}
+                    className={`flex items-center justify-between rounded-lg px-3 py-2
+                ${isDark ? "bg-slate-800 text-slate-200" : "bg-gray-50 text-gray-900"}`}
+                  >
+                    <span>{name}</span>
+                    <span
+                      className={`${isDark ? "text-slate-400" : "text-gray-500"}`}
+                    >
+                      Qty: {qty} ·{" "}
+                      <button
+                        className={`${isDark ? "text-blue-400" : "text-blue-600"}`}
+                      >
+                        Order
+                      </button>
+                    </span>
+                  </li>
+                ))}
+              </ul> */}
+              <div className="text-center py-4  text-slate-400 text-xs italic border-2 border-dashed border-slate-800 rounded-xl">
+                No low stock alerts
+              </div>
+            </div>
+          </div>
           <div>
             <InventoryCard isDark={false} products={products} />
           </div>
@@ -523,7 +581,6 @@ export default function StoreOwnerTrialDashboard() {
 
         <Sheet
           sx={{
-            p: 3,
             mb: 4,
             borderRadius: "24px",
             border: "1px solid #e2e8f0",
@@ -534,23 +591,20 @@ export default function StoreOwnerTrialDashboard() {
           <Box sx={{ mb: 4, overflowX: "auto" }}>
             <Box
               sx={{
+                p: 2,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                mb: 2,
               }}
             >
               <Box>
                 <Typography level="title-lg" sx={{ fontWeight: 700 }}>
                   Recent Orders
                 </Typography>
-                <Typography level="body-sm" sx={{ color: "neutral.500" }}>
-                  Manage and track your latest customer purchases
-                </Typography>
               </Box>
             </Box>
 
-            <table className="w-full text-left border-collapse border-t border-slate-100 min-w-[800px]">
+            <table className="w-full text-left border-collapse border-t border-slate-100 min-w-200">
               <thead className="bg-transparent">
                 <tr
                   className={`text-[13px] border-b ${isDark ? "border-slate-800 bg-slate-800/50 text-slate-400" : "border-slate-100 text-gray-600"}`}
@@ -572,10 +626,8 @@ export default function StoreOwnerTrialDashboard() {
                   <th className={`w-[200px] ${thStyle}`}>Customer</th>
                   <th className={`w-[120px] ${thStyle}`}>Items</th>
                   <th className={`w-[150px] ${thStyle}`}>Total Amount</th>
-                  <th className={`w-[120px] ${thStyle}`}>Status</th>
-                  <th className="px-4 py-3 w-[120px] text-center font-semibold">
-                    Actions
-                  </th>
+                  <th className={`w-[120px] ${thStyle}`}>Order Status</th>
+                  <th className="px-4 py-3 w-[120px] text-center font-semibold"></th>
                 </tr>
               </thead>
 

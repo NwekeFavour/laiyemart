@@ -239,21 +239,21 @@ export default function Header({ storeName, storeLogo }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const [isLogoutModalOpen ,setIsLogoutModalOpen] = useState(false)
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const { pathname } = useLocation();
   const { isAuthenticated, customer, logout } = useCustomerAuthStore();
   const isDemo = localStorage.getItem("demo") === "true";
 
-    const handleLogout = () => {
-      // 1. Clear state and storage
-      logout();
-  
-      // 2. Trigger a well-designed success toast
-      toast.success("Signed out successfully");
-  
-      // 3. Redirect to login page
-      navigate("/login");
-    };
+  const handleLogout = () => {
+    // 1. Clear state and storage
+    logout();
+
+    // 2. Trigger a well-designed success toast
+    toast.success("Signed out successfully");
+
+    // 3. Redirect to login page
+    navigate("/login");
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -265,11 +265,11 @@ export default function Header({ storeName, storeLogo }) {
   }, []);
 
   // Theme Constants
-  const isDarkHero = pathname === "/"; // Assuming Home has a dark hero
-  const activeTextColor = scrolled || !isDarkHero ? "#0f172a" : "#fff";
-
+  const isDarkHero = pathname === "/" && "/shop"; // Assuming Home has a dark hero
+  const activeTextColor = (scrolled) ? "#0f172a" : "#fff";
+    const activeBorderColor = (scrolled) ? "rgba(15, 23, 42, 0.1)" : "rgba(255, 255, 255, 0.2)";
   return (
-    <Box sx={{ width: "100%", position: "sticky", top: 0, zIndex: 1000 }}>
+    <Box className="bg-black!" sx={{ width: "100%", position: "sticky", top: 0, zIndex: 1000 }}>
       {/* ================= ANNOUNCEMENT BAR ================= */}
       <AnimatePresence initial={false}>
         {!scrolled && (
@@ -360,22 +360,30 @@ export default function Header({ storeName, storeLogo }) {
               spacing={3}
               sx={{ display: { xs: "none", md: "flex" } }}
             >
-              {["Home", "Shop"].map((item) => (
-                <Link
-                  key={item}
-                  to={`/${item.toLowerCase()}`}
-                  style={{
-                    textDecoration: "none",
-                    color: activeTextColor,
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    transition: "color 0.3s ease",
-                  }}
-                >
-                  {item}
-                </Link>
-              ))}
+              {["Home", "Shop"].map((item) => {
+                const path = item === "Home" ? "/" : `/${item.toLowerCase()}`;
+                const isActive = pathname === path;
+                return (
+                  <Link
+                    className={`${isActive ? "underline" : ""}`}
+                    key={item}
+                    to={path}
+                    style={{
+                      textDecoration: isActive ? "underline" : "none", // Toggles underline
+                      textUnderlineOffset: "8px", // Adds breathable space (Jumia style)
+                      textDecorationThickness: "2px",
+                      textDecorationColor: "#ef4444", // Layemart Red underline
+                      color: activeTextColor,
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                      transition: "color 0.3s ease",
+                    }}
+                  >
+                    {item}
+                  </Link>
+                );
+              })}
             </Stack>
           )}
         </Stack>
@@ -439,11 +447,20 @@ export default function Header({ storeName, storeLogo }) {
             ) : (
               <Link
                 to={isAuthenticated ? "/account" : "/login"}
-                style={{ textDecoration: "none", color: activeTextColor }}
+                className={`${pathname === "/account" || pathname === "/login" ? "underline" : ""}`}
+                style={{
+                  textDecoration:
+                    pathname === "/account" || pathname === "/login"
+                      ? "underline"
+                      : "none",
+                  textUnderlineOffset: "8px",
+                  textDecorationColor: "#ef4444",
+                  color: activeTextColor,
+                }}
               >
                 <Typography
                   level="title-sm"
-                  sx={{ color: activeTextColor, fontWeight: 700 }}
+                  sx={{ color: "inherit", fontWeight: 700 }}
                 >
                   {isAuthenticated ? "MY ACCOUNT" : "LOGIN"}
                 </Typography>
@@ -498,16 +515,42 @@ export default function Header({ storeName, storeLogo }) {
           </Stack>
 
           <Stack spacing={3} sx={{ flex: 1 }}>
-            {["home", "shop", "wishlist"].map((item) => (
-              <Typography
-                key={item}
-                level="h2"
-                className="capitalize!"
-                sx={{ fontSize: "20px", fontWeight: 500 }}
-              >
-                <Link to={`/${item}`}>{item}</Link>
-              </Typography>
-            ))}
+            {["home", "shop", "wishlist", "account"]
+              // 1. Filter out 'account' if the user is not logged in
+              .filter((item) => (item === "account" ? isAuthenticated : true))
+              .map((item) => {
+                const path = item === "home" ? "/" : `/${item}`;
+
+                const isActive =
+                  pathname === path || (item === "account" && pathname === "/login");
+
+                return (
+                  <Typography
+                    key={item}
+                    level="h2"
+                    className="capitalize!"
+                    sx={{
+                      fontSize: "20px",
+                      fontWeight: isActive ? 700 : 500,
+                    }}
+                  >
+                    <Link
+                      to={path}
+                      className={`${isActive ? "underline" : ""}`}
+                      style={{
+                        textDecoration: isActive ? "underline" : "none",
+                        textUnderlineOffset: "6px",
+                        textDecorationThickness: "2px",
+                        textDecorationColor: "#ef4444",
+                        color: isActive ? "#0f172a" : "inherit",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      {item}
+                    </Link>
+                  </Typography>
+                );
+              })}
           </Stack>
 
           <Divider sx={{ my: 4 }} />
@@ -568,20 +611,14 @@ export default function Header({ storeName, storeLogo }) {
             >
               <LogOut size={20} color="#ef4444" />
             </Box>
-            <Typography
-              level="h4"
-              sx={{ fontWeight: 700, color: "#0f172a" }}
-            >
+            <Typography level="h4" sx={{ fontWeight: 700, color: "#0f172a" }}>
               Log Out
             </Typography>
           </Box>
 
           <Divider sx={{ my: 2, opacity: 0.5 }} />
 
-          <Typography
-            level="body-md"
-            sx={{ color: "#64748b" }}
-          >
+          <Typography level="body-md" sx={{ color: "#64748b" }}>
             Are you sure you want to log out of your account? You will need to
             sign in again to access your store dashboard.
           </Typography>

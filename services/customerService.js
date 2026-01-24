@@ -59,3 +59,28 @@ export const fetchCustomerMe = async () => {
 
   return data;
 };
+
+
+export const forgotPasswordCustomer = async (data) => {
+  try {
+    const response = await fetch(`${API_URL}/customer-auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data), // { email, storeSlug }
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      // This allows your catch block to receive the error message from your backend
+      throw new Error(result.message || 'Something went wrong');
+    }
+
+    return result;
+  } catch (error) {
+    // Re-throw so your UI component can display the toast/alert
+    throw error;
+  }
+};
