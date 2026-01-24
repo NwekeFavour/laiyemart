@@ -34,11 +34,18 @@ import CustomerAccountPage from "./pages/(demo)/account";
 
 function App() {
   const subdomain = getSubdomain();
-  const isDark = false;
   const { customer } = useCustomerAuthStore();
   const [storeData, setStoreData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+  return localStorage.getItem('theme') === 'dark';
+});
+
+  const toggleDarkMode = (checked) => {
+    setIsDark(checked);
+    localStorage.setItem('theme', checked ? 'dark' : 'light');
+  };
   useEffect(() => {
     const validateStore = async () => {
       try {
@@ -129,33 +136,33 @@ function App() {
         >
           <Route
             path="/dashboard/beta"
-            element={<StoreOwnerTrialDashboard />}
+            element={<StoreOwnerTrialDashboard isDark={isDark} toggleDarkMode={toggleDarkMode}/>}
           />
         </Route>
         <Route
           element={<ProtectedRoute allowedRoles={["OWNER", "SUPER_ADMIN"]} />}
         >
-          <Route path="/dashboard/orders" element={<OrdersPage />} />
+          <Route path="/dashboard/orders" element={<OrdersPage isDark={isDark} toggleDarkMode={toggleDarkMode}/>} />
         </Route>
         <Route
           element={<ProtectedRoute allowedRoles={["OWNER", "SUPER_ADMIN"]} />}
         >
-          <Route path="/dashboard/products" element={<ProductsPage />} />
+          <Route path="/dashboard/products" element={<ProductsPage  isDark={isDark} toggleDarkMode={toggleDarkMode}/>} />
         </Route>
         <Route
           element={<ProtectedRoute allowedRoles={["OWNER", "SUPER_ADMIN"]} />}
         >
-          <Route path="/dashboard/settings" element={<SettingsPage />} />
+          <Route path="/dashboard/settings" element={<SettingsPage isDark={isDark} toggleDarkMode={toggleDarkMode}/>} />
         </Route>
         <Route
           element={<ProtectedRoute allowedRoles={["OWNER", "SUPER_ADMIN"]} />}
         >
-          <Route path="/dashboard/categories" element={<CategoriesTable />} />
+          <Route path="/dashboard/categories" element={<CategoriesTable isDark={isDark} toggleDarkMode={toggleDarkMode} />} />
         </Route>
         <Route
           element={<ProtectedRoute allowedRoles={["OWNER", "SUPER_ADMIN"]} />}
         >
-          <Route path="/dashboard/customers" element={<CustomerList />} />
+          <Route path="/dashboard/customers" element={<CustomerList  isDark={isDark} toggleDarkMode={toggleDarkMode}/>} />
         </Route>
         <Route path="/verify-store-email/:token" element={<VerifyStore />} />
         <Route

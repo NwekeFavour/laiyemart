@@ -40,7 +40,7 @@ import { useStoreProfileStore } from "../../store/useStoreProfile";
 import { fetchMe } from "../../../services/authService";
 import { useLocation } from "react-router-dom";
 
-export default function SettingsPage() {
+export default function SettingsPage({isDark, toggleDarkMode}) {
   const { updateStoreProfile, loading, resendStoreVerification } =
     useStoreProfileStore();
   const [activeSection, setActiveSection] = useState("profile");
@@ -511,7 +511,7 @@ export default function SettingsPage() {
   }, [location]);
 
   return (
-    <StoreOwnerLayout>
+    <StoreOwnerLayout isDark={isDark} toggleDarkMode={toggleDarkMode}>
       <Box
         sx={{
           display: "flex",
@@ -543,6 +543,7 @@ export default function SettingsPage() {
         >
           {/* Settings Sidebar Navigation */}
           <Sheet
+            className={`${isDark ? "bg-[#020618]! border-[#314158]!": ""}`}
             variant="outlined"
             sx={{
               width: { xs: "100%", md: 240 },
@@ -576,6 +577,7 @@ export default function SettingsPage() {
 
           {/* Settings Content Area */}
           <Sheet
+            className={`${isDark ? "bg-[#020618]! text-slate-200! border-[#314158]!": ""}`}
             variant="outlined"
             sx={{
               flex: 1,
@@ -588,10 +590,10 @@ export default function SettingsPage() {
             {activeSection === "profile" && (
               <Stack gap={3}>
                 <Box>
-                  <Typography level="h4" sx={{ fontWeight: 700 }}>
+                  <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="h4" sx={{ fontWeight: 700 }}>
                     Store Profile
                   </Typography>
-                  <Typography level="body-sm">
+                  <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-sm">
                     This information will be displayed publicly to your
                     customers.
                   </Typography>
@@ -601,7 +603,7 @@ export default function SettingsPage() {
 
                 {/* LOGO SECTION */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel sx={{ minWidth: 140 }}>Store Logo</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Store Logo</FormLabel>
                   <Stack direction="row" spacing={2} alignItems="center">
                     <Avatar
                       src={previewUrl}
@@ -612,6 +614,7 @@ export default function SettingsPage() {
                       }}
                     />
                     <Button
+                      className={`${isDark ? "text-slate-200!" : ""}`}
                       component="label"
                       variant="outlined"
                       color="neutral"
@@ -636,7 +639,7 @@ export default function SettingsPage() {
                 </FormControl>
 
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel sx={{ minWidth: 140 }}>Hero Background</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Hero Background</FormLabel>
                   <Stack spacing={1.5} sx={{ flex: 1, maxWidth: 400 }}>
                     <Box
                       sx={{
@@ -679,6 +682,7 @@ export default function SettingsPage() {
 
                     <Stack direction="row" spacing={1}>
                       <Button
+                        className={`${isDark ? "text-slate-200!" : ""}`}
                         component="label"
                         variant="outlined"
                         color="neutral"
@@ -726,12 +730,14 @@ export default function SettingsPage() {
                       }}
                     >
                       <Typography
+                        className={`${isDark ? "text-slate-200!" : ""}`}
                         level="body-xs"
                         sx={{ fontWeight: 700, color: "info.main", mb: 0.5 }}
                       >
                         💡 Pro Tip for a Better Storefront:
                       </Typography>
                       <Typography
+                      className={`${isDark ? "text-slate-400!" : ""}`}
                         level="body-xs"
                         sx={{ color: "text.secondary", lineHeight: 1.4 }}
                       >
@@ -742,25 +748,46 @@ export default function SettingsPage() {
                       </Typography>
                     </Box>
 
-                    <Typography level="body-xs" sx={{ color: "text.tertiary" }}>
+                    <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="body-xs" sx={{ color: "text.tertiary" }}>
                       Recommended: 1920x1080px • Max 2MB • JPG, PNG, WebP
                     </Typography>
                   </Stack>
                 </FormControl>
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel sx={{ minWidth: 140 }}>Store Name</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Store Name</FormLabel>
 
                   <Input
                     className="placeholder:capitalize!"
                     value={store?.name}
                     disabled
                     placeholder="Layemart Store"
-                    sx={{ flex: 1, maxWidth: 400 }}
+                    sx={{ 
+                      flex: 1, 
+                      maxWidth: 400,
+                      borderRadius: 'lg',
+                      // ✅ Handle colors based on isDark
+                      bgcolor: isDark ? 'slate.900' : 'neutral.50',
+                      borderColor: isDark ? 'slate.800' : 'neutral.200',
+                      color: isDark ? 'slate.400' : 'neutral.600',
+                      
+                      // ✅ Specific override for the "Disabled" state
+                      "&.Mui-disabled": {
+                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
+                        color: isDark ? 'slate.500' : 'neutral.500',
+                        borderColor: isDark ? 'slate.800' : 'neutral.200',
+                        textShadow: isDark ? 'none' : 'none',
+                        cursor: 'not-allowed',
+                        // Target the internal input element
+                        "& input": {
+                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
+                        }
+                      }
+                    }}
                   />
                 </FormControl>
                 {/* STORE DESCRIPTION SECTION */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel sx={{ minWidth: 140 }}>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>
                     Store Description
                   </FormLabel>
                   <Box sx={{ flex: 1, maxWidth: 400 }}>
@@ -776,16 +803,42 @@ export default function SettingsPage() {
                       endDecorator={
                         <Typography
                           level="body-xs"
-                          sx={{ ml: "auto", fontWeight: 700 }}
+                          sx={{ 
+                            ml: "auto", 
+                            fontWeight: 700,
+                            // ✅ Dynamic character count color: turns brighter or subtle based on length
+                            color: isDark 
+                              ? (formDescription?.length >= 80 ? 'warning.400' : 'slate.500') 
+                              : 'neutral.500' 
+                          }}
                         >
                           {formDescription?.length || 0} / 85 characters
                         </Typography>
                       }
                       sx={{
                         borderRadius: "md",
-                        "&:focus-within": {
-                          borderColor: "#0f172a",
+                        // ✅ Main surface colors
+                        bgcolor: isDark ? '#0f172a' : 'white', // slate-900
+                        color: isDark ? '#f1f5f9' : 'inherit', // slate-100
+                        borderColor: isDark ? '#1e293b' : 'neutral.300', // slate-800
+                        
+                        // ✅ Internal footer (endDecorator) styling
+                        "& .MuiTextarea-endDecorator": {
+                          bgcolor: isDark ? 'rgba(30, 41, 59, 0.5)' : 'neutral.50',
+                          borderTop: '1px solid',
+                          borderColor: isDark ? '#1e293b' : 'neutral.200',
                         },
+
+                        "&:focus-within": {
+                          // ✅ Focus state adjusted for dark visibility
+                          borderColor: isDark ? 'primary.500' : '#0f172a',
+                          boxShadow: isDark ? '0 0 0 3px rgba(14, 165, 233, 0.15)' : 'none',
+                        },
+
+                        // ✅ Placeholder visibility
+                        "& textarea::placeholder": {
+                          color: isDark ? '#64748b' : 'neutral.400', // slate-500
+                        }
                       }}
                     />
                     <Typography
@@ -799,52 +852,96 @@ export default function SettingsPage() {
 
                 {/* STORE TYPE SECTION */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel sx={{ minWidth: 140 }}>Store Category</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Store Category</FormLabel>
                   <Select
                     value={formStoreType}
                     onChange={(e, newValue) => setFormStoreType(newValue)}
-                    sx={{ flex: 1, maxWidth: 400 }}
+                    variant={isDark ? "soft" : "outlined"}
+                    sx={{ 
+                      flex: 1, 
+                      maxWidth: 400,
+                      borderRadius: 'lg',
+                      // ✅ Use specific Slate-900 for the button background
+                      bgcolor: isDark ? '#0f172a' : 'white', 
+                      color: isDark ? '#f1f5f9' : 'inherit',
+                      borderColor: isDark ? '#1e293b' : 'neutral.300',
+                      '&:hover': {
+                        bgcolor: isDark ? '#1e293b' : 'neutral.50', // Slate-800
+                        borderColor: isDark ? '#334155' : 'neutral.400',
+                      },
+                      '&:focus-within': {
+                        borderColor: 'primary.500',
+                        outline: isDark ? '2px solid rgba(14, 165, 233, 0.2)' : 'none',
+                      },
+                      '& .MuiSelect-indicator': {
+                        color: isDark ? '#64748b' : 'inherit', // Slate-500
+                      }
+                    }}
+                    slotProps={{
+                      listbox: {
+                        sx: {
+                          // ✅ Match the deep Slate-950/900 palette for the menu
+                          bgcolor: isDark ? '#020617' : 'background.surface', 
+                          borderColor: isDark ? '#1e293b' : 'divider',
+                          boxShadow: isDark ? '0 20px 25px -5px rgba(0, 0, 0, 0.6)' : 'md',
+                          color: isDark ? '#e2e8f0' : 'inherit',
+                          p: 1,
+                          gap: 0.5,
+                          '& .MuiOption-root': {
+                            borderRadius: 'md',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              bgcolor: isDark ? '#1e293b' : 'neutral.100',
+                              color: isDark ? '#fff' : 'inherit',
+                            },
+                            '&[aria-selected="true"]': {
+                              // High-contrast selection for dark mode
+                              bgcolor: isDark ? 'rgba(14, 165, 233, 0.15)' : 'primary.100',
+                              color: isDark ? '#38bdf8' : 'primary.700', // Slate-400 blue
+                              fontWeight: 600,
+                            }
+                          }
+                        }
+                      }
+                    }}
                   >
-                    <Option value="General Store">General Store</Option>
-                    <Option value="Fashion">Fashion</Option>
-                    <Option value="Electronics">Electronics</Option>
-                    <Option value="Beauty & Health">Beauty & Health</Option>
-                    <Option value="Digital Products">Digital Products</Option>
+                    <Option className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`} value="General Store">General Store</Option>
+                    <Option  className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}  value="Fashion">Fashion</Option>
+                    <Option className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}   value="Electronics">Electronics</Option>
+                    <Option className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}  value="Beauty & Health">Beauty & Health</Option>
+                    <Option className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}  value="Digital Products">Digital Products</Option>
                   </Select>
                 </FormControl>
                 {/* SUPPORT EMAIL SECTION */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel sx={{ minWidth: 140 }}>Support Email</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Support Email</FormLabel>
                   <Box sx={{ flex: 1, maxWidth: 400 }}>
                     <Input
                       value={formEmail || ""}
                       onChange={(e) => setFormEmail(e.target.value)}
-                      startDecorator={<Mail size={16} />}
+                      startDecorator={
+                        <Mail size={16} color={isDark ? "#94a3b8" : "#64748b"} />
+                      }
                       endDecorator={
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          {formEmail === store?.email &&
-                          store?.isEmailVerified ? (
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          {formEmail === store?.email && store?.isEmailVerified ? (
                             <Typography
                               level="body-xs"
+                              // ✅ Success color looks great in both modes
                               color="success"
-                              sx={{ fontWeight: "bold", pr: 0.5 }}
+                              sx={{ fontWeight: "bold", pr: 0.5, letterSpacing: '0.05em' }}
                             >
                               VERIFIED
                             </Typography>
                           ) : (
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                              }}
-                            >
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                               {resendTimer > 0 ? (
                                 <Typography
                                   level="body-xs"
-                                  sx={{ fontWeight: 700, color: "neutral.400" }}
+                                  sx={{ 
+                                    fontWeight: 700, 
+                                    color: isDark ? "slate.500" : "neutral.400" 
+                                  }}
                                 >
                                   {resendTimer}s
                                 </Typography>
@@ -852,63 +949,37 @@ export default function SettingsPage() {
                                 <Button
                                   variant="plain"
                                   size="sm"
+                                  loading={loading}
                                   onClick={async () => {
                                     try {
-                                      setLoading(true); // Assuming you have a loading state for the button
-                                      const res =
-                                        await resendStoreVerification(
-                                          formEmail,
-                                        );
-
+                                      setLoading(true);
+                                      const res = await resendStoreVerification(formEmail);
                                       if (res.isAutoVerified || res.store) {
-                                        toast.success(
-                                          "Email verified automatically!",
-                                        );
+                                        toast.success("Email verified automatically!");
                                         setFormEmail(res.store.email);
                                       } else {
-                                        toast.success(
-                                          res.message ||
-                                            "Verification email sent!",
-                                        );
+                                        toast.success(res.message || "Verification email sent!");
                                         setResendTimer(60);
                                       }
                                     } catch (err) {
-                                      // 1. Extract the specific error message from the backend response
-                                      const errorMessage =
-                                        err.response?.data?.message ||
-                                        "Failed to resend email. Please try again.";
-
-                                      // 2. Handle specific status codes if needed
-                                      if (err.response?.status === 404) {
-                                        toast.error(
-                                          "Account error: Store profile not found.",
-                                        );
-                                      } else if (err.response?.status === 401) {
-                                        toast.error(
-                                          "Session expired. Please log in again.",
-                                        );
-                                      } else {
-                                        toast.error(errorMessage);
-                                      }
-
-                                      console.error(
-                                        "Resend Verification Error:",
-                                        err,
-                                      );
+                                      const errorMessage = err.response?.data?.message || "Failed to resend email.";
+                                      toast.error(errorMessage);
                                     } finally {
                                       setLoading(false);
                                     }
                                   }}
                                   sx={{
                                     fontSize: "11px",
-                                    fontWeight: 700,
+                                    fontWeight: 800,
                                     minHeight: 0,
                                     py: 0.5,
                                     px: 1,
-                                    color: "#2563eb",
+                                    // ✅ Brighter blue for dark mode visibility
+                                    color: isDark ? "#38bdf8" : "#2563eb",
                                     "&:hover": {
                                       bgcolor: "transparent",
                                       textDecoration: "underline",
+                                      color: isDark ? "#7dd3fc" : "#1d4ed8",
                                     },
                                   }}
                                 >
@@ -916,9 +987,13 @@ export default function SettingsPage() {
                                 </Button>
                               )}
                               <Typography
-                                className="text-red-400!"
                                 level="body-xs"
-                                sx={{ fontWeight: "bold" }}
+                                sx={{ 
+                                  fontWeight: "bold", 
+                                  // ✅ Red-400 for dark mode, Red-600 for light mode
+                                  color: isDark ? "#fb7185 !important" : "#dc2626 !important",
+                                  letterSpacing: '0.05em'
+                                }}
                               >
                                 UNVERIFIED
                               </Typography>
@@ -927,7 +1002,20 @@ export default function SettingsPage() {
                         </Box>
                       }
                       sx={{
-                        "--Input-decoratorChildHeight": "28px", // Adjusts height for the button inside
+                        "--Input-decoratorChildHeight": "28px",
+                        borderRadius: "lg",
+                        // ✅ Main surface colors
+                        bgcolor: isDark ? "#0f172a" : "white",
+                        color: isDark ? "#f1f5f9" : "inherit",
+                        borderColor: isDark ? "#1e293b" : "#e2e8f0",
+                        "&:focus-within": {
+                          borderColor: isDark ? "#38bdf8" : "#0f172a",
+                          boxShadow: isDark ? "0 0 0 2px rgba(56, 189, 248, 0.15)" : "none",
+                        },
+                        // Fix for the input text color in dark mode
+                        "& input": {
+                            color: isDark ? "#f8fafc" : "inherit",
+                        }
                       }}
                     />
                   </Box>

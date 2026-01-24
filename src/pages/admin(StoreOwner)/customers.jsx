@@ -22,7 +22,7 @@ import {
 import StoreOwnerLayout from "./layout";
 import { useAuthStore } from "../../store/useAuthStore";
 
-function CustomerList({ isDark }) {
+function CustomerList({ isDark, toggleDarkMode }) {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -36,12 +36,12 @@ function CustomerList({ isDark }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
-  const borderColor = isDark ? "border-slate-700" : "border-slate-100";
+  const borderColor = isDark ? "border-[#314158]" : "border-slate-100";
   const themeHeader = isDark
-    ? "text-slate-400 bg-slate-800"
+    ? "text-slate-400 bg-slate-950"
     : "text-gray-400 bg-white";
   const themeBody = isDark
-    ? "bg-slate-900 text-slate-300"
+    ? "bg-slate-950 text-slate-300"
     : "bg-white text-gray-700";
   const hoverRow = isDark ? "hover:bg-slate-800/50" : "hover:bg-gray-50";
   const secondaryBtn = `flex items-center gap-2 px-3 py-1.5 border rounded-md text-[13px] font-medium transition-colors ${
@@ -92,7 +92,7 @@ function CustomerList({ isDark }) {
     currentPage * itemsPerPage,
   );
   return (
-    <StoreOwnerLayout>
+    <StoreOwnerLayout isDark={isDark} toggleDarkMode={toggleDarkMode}>
       <div
         className={`p-2 md:p-4 min-h-screen ${
           isDark ? "bg-slate-950 text-slate-200" : " text-gray-900"
@@ -117,7 +117,7 @@ function CustomerList({ isDark }) {
         {/* Table Container */}
         <div
           className={`rounded-xl border ${borderColor} ${
-            isDark ? "bg-slate-900" : "bg-white"
+            isDark ? "bg-slate-950" : "bg-white"
           } overflow-hidden`}
         >
           <div
@@ -233,7 +233,7 @@ function CustomerList({ isDark }) {
             </div>
           </div>
           {/* Scrollable Table Body */}
-          <div className="w-full overflow-hidden   dark:border-slate-700">
+          <div className={`w-full overflow-hidden   ${isDark ? "bg-slate-950!" : ""}`}>
             {/* 2. Scroll Container: 'hide-scrollbar' keeps it clean, 'w-full' ensures it fits parent */}
             <div className="overflow-x-auto hide-scrollbar">
               {/* 3. Table: Set a 'min-w' to prevent columns from collapsing on small screens */}
@@ -244,7 +244,7 @@ function CustomerList({ isDark }) {
                   >
                     <th
                       className={`px-6 py-4 w-10 border-b border-r ${borderColor} sticky left-0 z-10 ${
-                        isDark ? "bg-slate-800" : "bg-white"
+                        isDark ? "bg-slate-950" : "bg-white"
                       }`}
                     >
                       <input
@@ -417,7 +417,7 @@ function CustomerList({ isDark }) {
 
           {/* Footer */}
           <div
-            className={`px-6 py-4 border-t ${borderColor} flex justify-between items-center text-sm`}
+            className={`px-6 py-4  flex justify-between items-center text-sm`}
           >
             <p className="text-gray-500">
               Showing {customers.length} customers

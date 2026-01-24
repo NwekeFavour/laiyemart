@@ -5,7 +5,7 @@ export default function BestSellersCard({ isDark, bestSellers = [] }) {
   const isEmpty = bestSellers.length === 0;
 
   const containerClasses = `rounded-xl border flex flex-col transition-colors h-full
-    ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200' : 'bg-white border-slate-100 text-gray-900'}`;
+    ${isDark ? 'bg-slate-950 border-slate-700 text-slate-200' : 'bg-white border-slate-100 text-gray-900'}`;
 
   const headerClasses = `flex items-center justify-between mb-4 border-b px-3 py-4
     ${isDark ? 'border-slate-700' : 'border-slate-100'}`;

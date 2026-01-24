@@ -49,7 +49,7 @@ import { useCategoryStore } from "../../../services/categoryService";
 import { useAuthStore } from "../../store/useAuthStore";
 import { toast } from "react-toastify";
 
-export default function ProductsPage() {
+export default function ProductsPage({isDark , toggleDarkMode}) {
   const fileInputRef = useRef(null);
   const { products, createProduct, fetchMyProducts, loading, updateProduct, deleteProduct } =
     useProductStore();
@@ -371,7 +371,7 @@ export default function ProductsPage() {
     setSelectedProduct(null);
   };
   return (
-    <StoreOwnerLayout>
+    <StoreOwnerLayout isDark={isDark} toggleDarkMode={toggleDarkMode}>
       <Box
         sx={{ display: "flex", flexDirection: "column", gap: 3, p: { xs: 2 } }}
       >
@@ -385,23 +385,24 @@ export default function ProductsPage() {
         >
           <Box>
             <Typography
+              className={`${isDark ? "text-slate-200!": ""}`}
               level="h2"
               sx={{ fontSize: "24px", fontWeight: 800, color: "#0f172a" }}
             >
               Products
             </Typography>
-            <Typography level="body-sm" sx={{ color: "#64748b" }}>
+            <Typography className={`${isDark ? "text-slate-400!": ""}`} level="body-sm" sx={{ color: "#64748b" }}>
               Manage your inventory and product listings
             </Typography>
           </Box>
         </Box>
 
         <Box
-          className="border-b! rounded-t-xl rounded-b-xl"
-          sx={{ bgcolor: "white", border: "1px solid #e2e8f0" }}
+          className={`border-b!  rounded-t-xl rounded-b-xl`}
+          sx={{ bgcolor: isDark ? "#020618": "white", border:isDark ? "1px solid #314158": "1px solid #e2e8f0" }}
         >
           {/* 2. Search & Export Bar */}
-          <Box className="border-b border-slate-100" sx={{ p: 2 }}>
+          <Box className={`${isDark ? "border-[#314158]!" :"border-slate-100"} border-b `} sx={{ p: 2 }}>
             <Box
               className="justify-end!"
               sx={{
@@ -420,18 +421,15 @@ export default function ProductsPage() {
                   sx={{
                     borderRadius: "md",
                     width: { xs: "100%", sm: 250 },
-                    bgcolor: "#f8fafc",
+                    bgcolor: isDark ? "#020618": "#f8fafc",
                     "&::before": {
                       display: "none",
                     },
+                    border: "1px solid #fff",
                     // 2. Remove the default focus border/shadow
                     "&:focus-within": {
                       outline: "none",
-                      border: "none",
-                    },
-                    // 3. Optional: keep a subtle background change instead of a ring
-                    "&:hover": {
-                      bgcolor: "neutral.100",
+                      border: "1px solid #fff",
                     },
                   }}
                 />
@@ -453,7 +451,7 @@ export default function ProductsPage() {
 
           {/* 3. Responsive Products Table */}
           <Sheet
-            className="hide-scrollbar border-none!"
+            className="hide-scrollbar  border-none!"
             variant="outlined"
             sx={{
               overflow: "auto",
@@ -467,23 +465,21 @@ export default function ProductsPage() {
                 "--TableCell-paddingX": "16px",
                 "--TableCell-paddingY": "14px",
                 "& thead th": {
-                  bgcolor: "transparent",
-                  color: "#64748b",
-                  fontSize: "13px",
+                  bgcolor: isDark ? "#1d293d": "transparent",
+                  color: "#90a1b9",
                   fontWeight: 600,
-                  borderRight: "1px solid #e2e8f0",
-                  borderBottom: "2px solid #f1f5f9",
+                  borderRight: isDark ? "1px solid #314158": "1px solid #e2e8f0",
                   "&:last-child": { borderRight: "none" },
                 },
                 "& tbody td": {
-                  borderRight: "1px solid #e2e8f0 ",
-                  borderBottom: "1px solid #e2e8f0 ",
+                  borderRight:  isDark ? "1px solid #314158" : "1px solid #e2e8f0 ",
+                  borderBottom: isDark ? "1px solid #314158" : "1px solid #e2e8f0 ",
                   "&:last-child": { borderRight: "none" },
                 },
               }}
             >
               <thead>
-                <tr>
+                <tr >
                   <th style={{ width: 48, textAlign: "center" }}>
                     <Checkbox size="sm" />
                   </th>
@@ -506,7 +502,7 @@ export default function ProductsPage() {
                     const fieldKey = keyMap[column.label];
 
                     return (
-                      <th
+                      <th 
                         key={column.label}
                         style={{ width: column.width, minWidth: column.width }}
                       >
@@ -520,6 +516,8 @@ export default function ProductsPage() {
                           }}
                         >
                           <Typography
+                          className="text-[13px]! font-[500]!"
+                          
                             level="title-sm"
                             sx={{ color: "inherit", whiteSpace: "nowrap" }}
                           >
@@ -560,6 +558,7 @@ export default function ProductsPage() {
                               </svg>
                             </MenuButton>
                             <Menu
+                              className={`${isDark ? "bg-slate-950!" : ""}`}
                               size="sm"
                               placement="bottom-end"
                               variant="outlined"
@@ -638,7 +637,7 @@ export default function ProductsPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className={`${isDark ? "bg-slate-950!": ""}`}>
                 {loading ? (
                   // 2. LOADING STATE
                   [...Array(5)].map((_, i) => (
@@ -694,7 +693,7 @@ export default function ProductsPage() {
                         <div className="p-4 bg-blue-50 dark:bg-slate-800 rounded-full text-blue-500">
                           <Plus size={32} />
                         </div>
-                        <Typography level="h4">No products found</Typography>
+                        <Typography className={`${isDark ? "text-slate-200!": ""}`} level="h4">No products found</Typography>
                         <Typography
                           level="body-sm"
                           sx={{ maxWidth: 300, mb: 1 }}
@@ -1312,9 +1311,11 @@ export default function ProductsPage() {
           }} 
           slotProps={{ content: { sx: { width: { xs: '100%', sm: 450 }, p: 0 } } }}
         >
-          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <Box sx={{ p: 3, borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography level="h4" sx={{ fontWeight: 800 }}>Add New Product</Typography>
+          <Box 
+            className={`${isDark ? "bg-slate-950" : ""}`}
+           sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <Box sx={{ p: 3, borderBottom: isDark ? "1px solid #314158" : '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="h4" sx={{ fontWeight: 800 }}>Add New Product</Typography>
               <ModalClose sx={{ position: 'static' }} />
             </Box>
 
@@ -1363,11 +1364,11 @@ export default function ProductsPage() {
                 )}                
               <Stack spacing={3}>
                 <FormControl>
-                  <FormLabel sx={{ fontWeight: 600 }}>Product Media</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ fontWeight: 600 }}>Product Media</FormLabel>
                     <Stack spacing={1.5}>
                     {/* Cover Image */}
-                    <Box sx={{ position: 'relative', borderRadius: 'xl', border: '2px dashed #cbd5e1', overflow: 'hidden' }}>
-                      <AspectRatio ratio="16/9">
+                    <Box  sx={{ position: 'relative', borderRadius: 'xl', border: '2px dashed #cbd5e1', overflow: 'hidden' }}>
+                      <AspectRatio  ratio="16/9">
                           {images.length > 0 ? (
                               <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
                                   <img 
@@ -1394,9 +1395,9 @@ export default function ProductsPage() {
                                   </IconButton>
                               </Box>
                           ) : (
-                              <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+                              <label className={`${isDark? "bg-slate-950! text-slate-200!" : ""}`} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
                                   <UploadCloud size={24} />
-                                  <Typography level="body-xs" sx={{ mt: 1 }}>Upload Cover</Typography>
+                                  <Typography className={`${isDark? "text-slate-200!" : ""}`} level="body-xs" sx={{ mt: 1 }}>Upload Cover</Typography>
                                   <input type="file" hidden accept="image/*" multiple onChange={handleMultiFileChange} />
                               </label>
                           )}
@@ -1436,7 +1437,7 @@ export default function ProductsPage() {
                                 '&:hover': { bgcolor: '#f1f5f9', borderColor: '#94a3b8' } 
                                 }}
                             >
-                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Box className={`${isDark? "bg-slate-950!" : ""}`} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <Plus size={20} className="text-slate-400" />
                                 </Box>
                             </AspectRatio>
@@ -1449,14 +1450,16 @@ export default function ProductsPage() {
                 </FormControl>
 
                 <FormControl required>
-                  <FormLabel>Product Name</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`}>Product Name</FormLabel>
                   <Input 
                     value={name} 
                     onChange={(e) => setName(e.target.value)} 
                     placeholder="e.g. Vintage Denim Jacket" 
                     variant="soft" 
                     sx={{ 
+                        bgcolor: isDark ? "transparent" : "", 
                         borderRadius: 'lg',
+                        border: isDark ? "1px solid #314158": 'none',
                         // 1. Remove the focus ring pseudo-element
                         "&::before": {
                         display: 'none',
@@ -1468,14 +1471,14 @@ export default function ProductsPage() {
                         },
                         // 3. Optional: keep a subtle background change instead of a ring
                         '&:hover': {
-                        bgcolor: 'neutral.100',
+                        bgcolor: isDark ? "#020618" :'neutral.100',
                         }
                     }}
                   />
                 </FormControl>
 
                 <FormControl>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`}>Description</FormLabel>
                   <Textarea 
                     minRows={3} 
                     value={description} 
@@ -1483,6 +1486,8 @@ export default function ProductsPage() {
                     placeholder="Describe your product..." 
                     variant="soft" 
                                         sx={{ 
+                        bgcolor: isDark ? "transparent" : "", 
+                        border: isDark ? "1px solid #314158": 'none',
                         borderRadius: 'lg',
                         // 1. Remove the focus ring pseudo-element
                         "&::before": {
@@ -1493,10 +1498,6 @@ export default function ProductsPage() {
                         outline: 'none',
                         border: 'none',
                         },
-                        // 3. Optional: keep a subtle background change instead of a ring
-                        '&:hover': {
-                        bgcolor: 'neutral.100',
-                        }
                     }}
                   />
                 </FormControl>
@@ -1504,7 +1505,7 @@ export default function ProductsPage() {
               <Stack spacing={2.5}>
               {/* PRICE CONTROL */}
               <FormControl required>
-                <FormLabel sx={{ fontWeight: 600 }}>Price</FormLabel>
+                <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ fontWeight: 600 }}>Price</FormLabel>
                 <Input
                   type="number"
                   value={price}
@@ -1514,9 +1515,10 @@ export default function ProductsPage() {
                   variant="soft"
                   sx={{
                     borderRadius: 'lg',
+                    bgcolor: isDark ? "transparent" : "", 
+                    border: isDark ? "1px solid #314158": 'none',
                     "&::before": { display: 'none' },
                     "&:focus-within": { outline: 'none', border: 'none' },
-                    '&:hover': { bgcolor: 'neutral.100' }
                   }}
                 />
               </FormControl>
@@ -1524,33 +1526,49 @@ export default function ProductsPage() {
               {/* CATEGORY CONTROL */}
               <FormControl required>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <FormLabel sx={{ fontWeight: 600, mb: 0 }}>Category</FormLabel>
-                  {/* Optional: Add a small button to toggle the quick-add even if categories exist */}
+                  <FormLabel 
+                    className={`${isDark ? "text-slate-400!" : ""}`} 
+                    sx={{ fontWeight: 600, mb: 0 }}
+                  >
+                    Category
+                  </FormLabel>
+                  
                   <Typography 
                     level="body-xs" 
                     onClick={() => setShowQuickCategory(!showQuickCategory)}
-                    sx={{ cursor: 'pointer', color: 'slate.800', fontWeight: 600 }}
+                    sx={{ 
+                      cursor: 'pointer', 
+                      color: isDark ? 'primary.400' : 'slate.800', 
+                      fontWeight: 600,
+                      '&:hover': { color: isDark ? 'primary.300' : 'primary.600' }
+                    }}
                   >
                     {showQuickCategory ? "Cancel" : "+ Quick Add"}
                   </Typography>
                 </Box>
 
-                {/* 1. The Quick-Add Mini Form (Shows if no categories OR if toggled) */}
+                {/* 1. The Quick-Add Mini Form */}
                 {(categories.length === 0 || showQuickCategory) ? (
                   <Sheet
-                    variant="soft"
+                    variant={isDark ? "outlined" : "soft"}
                     color="primary"
                     sx={{
                       p: 2,
                       borderRadius: 'lg',
                       border: '1px dashed',
-                      borderColor: 'primary.300',
-                      bgcolor: 'primary.50'
+                      // ✅ Dynamic Colors for the container
+                      borderColor: isDark ? 'rgba(56, 189, 248, 0.3)' : 'primary.300',
+                      bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'primary.50',
                     }}
                   >
-                    <Typography level="title-sm" sx={{ mb: 1.5, color: 'slate.700' }}>
+                    <Typography 
+                      className={`${isDark ? "text-slate-400!" : ""}`}
+                      level="title-sm" 
+                      sx={{ mb: 1.5, color:  'slate.700' }}
+                    >
                       Create your first category
                     </Typography>
+                    
                     <Stack direction="row" spacing={1}>
                       <Input
                         size="sm"
@@ -1558,10 +1576,19 @@ export default function ProductsPage() {
                         placeholder="Category name (e.g. Shoes)"
                         value={newCatName}
                         onChange={(e) => setNewCatName(e.target.value)}
-                        sx={{ borderRadius: 'md', bgcolor: 'white' }}
+                        sx={{ 
+                          borderRadius: 'md', 
+                          // ✅ Input styling for dark mode
+                          bgcolor: isDark ? '#1e293b' : 'white',
+                          borderColor: isDark ? '#334155' : 'neutral.300',
+                          color: isDark ? 'white' : 'inherit',
+                          '&:focus-within': {
+                            borderColor: 'primary.500',
+                          }
+                        }}
                       />
                       <Button
-                        className="bg-slate-800!"
+                        className={isDark ? "bg-blue-600!" : "bg-slate-800!"}
                         size="sm"
                         loading={isCreatingCat}
                         onClick={handleQuickCategorySubmit}
@@ -1580,12 +1607,36 @@ export default function ProductsPage() {
                     variant="soft"
                     sx={{
                       borderRadius: 'lg',
+                      // ✅ Select styling for dark mode
+                      bgcolor: isDark ? 'transparent' : 'neutral.100',
+                      color: isDark ? '#f1f5f9' : 'inherit',
+                      border: isDark ? '1px solid #334155' : '1px solid transparent',
                       "&::before": { display: 'none' },
-                      "&:focus-within": { outline: 'none', border: 'none' },
+                      "&:hover": {
+                        bgcolor: isDark ? 'transparent' : 'neutral.200',
+                      },
+                      // Target the icon
+                      '& .MuiSelect-indicator': {
+                        color: isDark ? '#94a3b8' : 'inherit',
+                      }
+                    }}
+                    slotProps={{
+                      listbox: {
+                        sx: {
+                          // ✅ Dropdown menu styling
+                          bgcolor: isDark ? '#0f172a' : 'background.surface',
+                          borderColor: isDark ? '#334155' : 'divider',
+                          boxShadow: 'xl',
+                          color: isDark ? '#f1f5f9' : 'inherit',
+                          '& .MuiOption-root:hover': {
+                            bgcolor: isDark ? '#1e293b' : 'neutral.100',
+                          }
+                        }
+                      }
                     }}
                   >
                     {categories.map((cat) => (
-                      <Option key={cat._id} value={cat._id}>
+                      <Option className={`${isDark ? "bg-transparent! text-slate-200!" : ""}`} key={cat._id} value={cat._id}>
                         {cat.name}
                       </Option>
                     ))}
@@ -1595,7 +1646,7 @@ export default function ProductsPage() {
 
               {/* INVENTORY CONTROL */}
               <FormControl required>
-                <FormLabel sx={{ fontWeight: 600 }}>Inventory / Stock</FormLabel>
+                <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ fontWeight: 600 }}>Inventory / Stock</FormLabel>
                 <Input
                   type="number"
                   value={inventory}
@@ -1604,10 +1655,11 @@ export default function ProductsPage() {
                   endDecorator={<Typography level="body-xs" sx={{ color: 'neutral.500' }}>units</Typography>}
                   variant="soft"
                   sx={{
+                    bgcolor: isDark ? "transparent" : "", 
                     borderRadius: 'lg',
+                    border: isDark ? "1px solid #314158": 'none',
                     "&::before": { display: 'none' },
                     "&:focus-within": { outline: 'none', border: 'none' },
-                    '&:hover': { bgcolor: 'neutral.100' }
                   }}
                 />
                 <Typography level="body-xs" sx={{ mt: 0.5, color: 'neutral.500' }}>
@@ -1617,7 +1669,7 @@ export default function ProductsPage() {
             </Stack>
             </DialogContent>
 
-            <Box sx={{ p: 3, borderTop: '1px solid #eee', bgcolor: 'white' }}>
+            <Box sx={{ p: 3, borderTop: isDark ? "1px solid #314158":  '1px solid #eee', bgcolor: isDark ? "#020618":  'white' }}>
               <Button 
                 className='bg-slate-900! hover:bg-slate-800!'
                 fullWidth 

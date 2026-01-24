@@ -21,6 +21,7 @@ import {
   HelpCircle,
   MenuIcon,
   Zap,
+  SunDim,
 } from "lucide-react";
 import {
   Box,
@@ -191,6 +192,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   // Internal Navigation Component to avoid code duplication
   const NavigationMenu = ({ isMobile = false }) => (
     <Box
+      className={`${isDark ?"text-slate-200! bg-slate-950!" : ""}`}
       sx={{ display: "flex", flexDirection: "column", height: "100%", p: 2 }}
     >
       {/* Brand/Logo */}
@@ -356,9 +358,10 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   );
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+    <Box className={`${isDark ?"text-slate-200! bg-slate-950!" : ""}`} sx={{ display: "flex", minHeight: "100vh" }}>
       {/* 1. Desktop Sidebar Wrapper */}
       <Box
+        className={`${isDark ?"text-slate-200! bg-slate-950!" : ""}`}
         onMouseEnter={() => setIsCollapsed(false)}
         onMouseLeave={() => setIsCollapsed(true)}
         sx={{
@@ -369,7 +372,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
           position: "fixed",
           height: "100vh",
           bgcolor: "white",
-          borderRight: "1px solid #e2e8f0",
+          borderRight: isDark ? "1px solid #314158": "1px solid #e2e8f0",
           zIndex: 100,
           overflowX: "hidden",
         }}
@@ -377,7 +380,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
         {/* 2. Collapse Toggle Button */}
         <IconButton
           onClick={() => setIsCollapsed((p) => !p)}
-          className="hover:bg-transparent!"
+          className={`${isDark ? "bg-slate-950! text-white!" : ""} hover:bg-transparent!`}
           sx={{
             position: "absolute",
             right: -4,
@@ -388,6 +391,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
           }}
         >
           <ChevronLeft
+            
             size={16}
             style={{
               transform: isCollapsed ? "rotate(180deg)" : "rotate(0deg)",
@@ -473,6 +477,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
             {!isCollapsed && (
               <div className="flex flex-col min-w-0">
                 <Typography
+                  className={`${isDark ? "text-slate-200!" : ""}`}
                   noWrap
                   sx={{
                     fontSize: "14px",
@@ -484,6 +489,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                   {store?.name.toUpperCase() + " Store" || "Sean"}
                 </Typography>
                 <Typography
+                  className={`${isDark ? "text-emerald-400!" : ""}`}
                   level="body-xs"
                   sx={{
                     color: user ? "success.600" : "danger.500",
@@ -502,7 +508,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
         {/* Optional Divider */}
         {!isCollapsed && (
-          <Box sx={{ mx: 2, height: "1px", bgcolor: "#f1f5f9", mb: 1 }} />
+          <Box className={`${isDark ?"text-slate-200! bg-slate-100/50!" : ""}`} sx={{ mx: 2, height: "1px", bgcolor: "#f1f5f9", mb: 1 }} />
         )}
 
         {/* navigation menu */}
@@ -585,7 +591,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
         </Box>
 
         {/* 5. Bottom Logout Section */}
-        <Box sx={{ p: 2, mt: "auto", borderTop: "1px solid #f1f5f9" }}>
+        <Box className={`${isDark ?"text-slate-200! border-t! border-slate-100/50! bg-slate-950!" : ""}`} sx={{ p: 2, mt: "auto", borderTop: "1px solid #f1f5f9" }}>
           <Button
             variant="plain"
             color="danger"
@@ -611,7 +617,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
       {/* 2. Main Content Area */}
       <Box
-        className="hide-scrollbar"
+        className={`hide-scrollbar `}
         sx={{
           flex: 1,
           ml: { lg: isCollapsed ? "80px" : "280px" },
@@ -631,8 +637,8 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
             justifyContent: "space-between",
             px: { xs: 2, md: 4 },
             py: 4,
-            bgcolor: "white",
-            borderBottom: "1px solid #e2e8f0",
+            bgcolor: isDark ? "#020618" : "white",
+            borderBottom: isDark ? "1px solid #314158" : "1px solid #e2e8f0",
             position: "sticky",
             top: 0,
             zIndex: 50,
@@ -664,15 +670,15 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
               />
               <input
                 placeholder="Search..."
-                className="w-full bg-slate-50 border-none rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-slate-200 outline-none transition-all"
+                className={`${isDark ? "bg-slate-900 placeholder:text-slate-200! focus:ring-slate-700!" : "bg-slate-50 focus:ring-slate-200"} w-full  border-none rounded-xl py-2 pl-10 pr-4 text-sm focus:ring  outline-none transition-all`}
               />
             </div>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Badge badgeContent={3} size="sm" color="danger" variant="solid">
-              <IconButton variant="plain" sx={{ borderRadius: "xl" }}>
-                <Bell size={20} />
+              <IconButton className={`${isDark ? "hover:bg-slate-950!" : ""}`} variant="plain" sx={{ borderRadius: "xl" }}>
+                <Bell className={`${isDark ? "text-slate-200" : ""}`} size={20} />
               </IconButton>
             </Badge>
             <Box
@@ -709,12 +715,12 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
                 {/* Menu provides ListContext + positioning */}
                 <Menu
-                  className="border-none! shadow-2xl! bg-transparent!"
+                  className={`border-none! shadow-2xl! bg-transparent!`}
                   placement="bottom-end"
                 >
                   {/* Sheet for styling */}
                   <Sheet
-                    className="bg-white! "
+                    className={`${isDark ? "bg-slate-950!":  "bg-white!"} `}
                     variant="outlined"
                     sx={{
                       m: 0,
@@ -738,7 +744,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                       </div>
 
                       <div className="flex flex-col justify-center">
-                        <p className="text-sm font-semibold text-slate-900">
+                        <p className={`${isDark ? "text-slate-200!" : "text-slate-900"} text-sm font-semibold `}>
                           {user?.fullName || "Sean"}
                         </p>
                         <p
@@ -757,7 +763,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
                     {/* Menu items */}
                     <div className="flex flex-col">
-                      <MenuItem className="px-4 py-3 gap-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-none">
+                      <MenuItem className={`${isDark ? "text-slate-200! hover:text-slate-950!" : ""} px-4 py-3 gap-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-none`}>
                         <Link
                           className="flex items-center w-full gap-3"
                           to={"/dashboard/settings/"}
@@ -770,21 +776,24 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     <Divider className="border-t border-gray-200 dark:border-slate-700" />
 
                     {/* Dark mode toggle */}
-                    <div className="px-4 py-3 flex items-center justify-between">
-                      <div className="flex items-center gap-3 text-sm text-slate-900">
-                        <Moon size={20} /> Dark mode
+                    <div className={"px-4 py-3 flex items-center justify-between"}>
+                      <div className={`${isDark ? "text-slate-200" : "text-slate-900"} flex items-center gap-3 text-sm `}>
+                        <div className="flex items-center gap-3 text-sm font-medium">
+                          {isDark ? <SunDim size={20} className="text-amber-400" /> : <Moon size={20} className="text-slate-600" />}
+                          <span>{isDark ? 'Light' : 'Dark'} mode</span>
+                        </div>
                       </div>
                       <Switch
                         size="sm"
                         checked={isDark}
-                        onChange={toggleDarkMode}
+                        onChange={(event) => toggleDarkMode(event.target.checked)}
                       />
                     </div>
 
                     <Divider className="border-t border-gray-200 dark:border-slate-700" />
 
                     {/* Help */}
-                    <MenuItem className="px-4 py-3 gap-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-none">
+                    <MenuItem className={`${isDark ? "text-slate-200! hover:text-slate-950!" : ""}  px-4 py-3 gap-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-none`}>
                       <HelpCircle size={20} /> Help
                     </MenuItem>
 
@@ -792,7 +801,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
                     {/* Logout */}
                     <MenuItem
-                      className="px-4 py-3 gap-3 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-none"
+                      className={`${isDark ? "text-slate-200! hover:text-red-600!" : ""} px-4 py-3 gap-3 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-none`}
                       onClick={() => setIsLogoutModalOpen(true)}
                     >
                       <LogOut size={20} /> Log out
@@ -808,7 +817,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
         <Box
           className="hide-scrollbar"
           sx={{
-            p: { xs: 2 },
+            p: { xs: 2, md: 4},
             overflowY: "auto", // Ensure it is scrollable
             /* Target the scrollbar specifically */
             "&::-webkit-scrollbar": {
@@ -821,7 +830,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
         >
           {store?.plan === "starter" && (
             <Sheet
-              className="bg-slate-900/90! text-white! shadow-lg shadow-slate-200/20! lg:items-center! items-end! flex! justify-between! flex-wrap!"
+              className={`${isDark ? "bg-white! text-slate-900!" : "bg-slate-900/90! shadow-slate-200/20!  shadow-lg"} lg:items-center! items-end! flex! justify-between! flex-wrap!`}
               variant="solid"
               sx={{
                 p: 2,
@@ -834,7 +843,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                 </div>
                 <Box>
                   <Typography
-                    className="text-[15px]!"
+                    className={`${isDark ? "text-slate-900!" : ""} text-[15px]!`}
                     level="body-xs"
                     sx={{ mt: 1, color: "neutral.100" }}
                   >
@@ -842,7 +851,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     {new Date(store.trialEndsAt).toLocaleDateString()}
                   </Typography>
                   <Typography
-                    className="text-slate-200!"
+                    className={` ${isDark ? "text-slate-950!" : "text-slate-200!"}`}
                     sx={{ fontSize: "12px" }}
                   >
                     Upgrade now to unlock unlimited products and custom domains.
@@ -854,8 +863,8 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                 className="md:mt-0 mt-4!"
                 size="sm"
                 sx={{
-                  bgcolor: "white",
-                  color: "#0f172a",
+                  bgcolor: isDark ? "black": "white",
+                  color: isDark ? "#fff":  "#0f172a",
                   "&:hover": { bgcolor: "#f1f5f9" },
                   borderRadius: "lg",
                 }}
@@ -927,7 +936,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
               </Box>
             )}
           </Box>
-          <Box>{children}</Box>
+          <Box >{children}</Box>
         </Box>
       </Box>
 
@@ -1037,6 +1046,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
             }}
           >
             <Button
+              className={`${isDark ? "text-slate-200!" : ""}`}
               variant="plain"
               color="neutral"
               onClick={() => setIsLogoutModalOpen(false)}

@@ -47,7 +47,8 @@ import { useCategoryStore } from "../../../services/categoryService";
 import { InventoryCard } from "../../components/inventory";
 import { useStoreProfileStore } from "../../store/useStoreProfile";
 import BestSellersCard from "../../components/bestSeller";
-export default function StoreOwnerTrialDashboard() {
+
+export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
   // Stats reflecting a brand new store
   const [error, setError] = useState("");
   const { user, store } = useAuthStore();
@@ -55,7 +56,8 @@ export default function StoreOwnerTrialDashboard() {
   const total_orders = 0;
   const [loading, setLoading] = useState(false);
   const { products, fetchMyProducts, createProduct } = useProductStore();
-  const { totalCustomers, setTotalCustomers, fetchTotalCustomers } = useStoreProfileStore();
+  const { totalCustomers, setTotalCustomers, fetchTotalCustomers } =
+    useStoreProfileStore();
   const { categories, getCategories } = useCategoryStore();
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -63,30 +65,29 @@ export default function StoreOwnerTrialDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [orders, setOrders] = useState([]);
   // Form State
-  const isDark = false;
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [selected, setSelected] = useState([]);
-  const thStyle = `px-4 py-3 font-semibold border-r ${isDark ? "border-slate-800" : "border-slate-100"}`;
+  const thStyle = `px-4 py-3 font-semibold border-r ${isDark ? "border-[#314158] border-r" : "border-slate-100"}`;
   const tdStyle = `px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-300" : "border-slate-100 text-gray-700"}`;
   useEffect(() => {
     getCategories();
   }, []);
 
   useEffect(() => {
-  const loadStats = async () => {
-    try {
-      if (store?._id) {
-        const data = await fetchTotalCustomers(store._id);
-        setTotalCustomers(data.count); // data.count comes from your controller
+    const loadStats = async () => {
+      try {
+        if (store?._id) {
+          const data = await fetchTotalCustomers(store._id);
+          setTotalCustomers(data.count); // data.count comes from your controller
+        }
+      } catch (err) {
+        console.error("Customer fetch error:", err);
       }
-    } catch (err) {
-      console.error("Customer fetch error:", err);
-    }
-  };
-  loadStats();
-}, [store?._id]);
+    };
+    loadStats();
+  }, [store?._id]);
   const handleSelect = (id) => {
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
@@ -112,33 +113,32 @@ export default function StoreOwnerTrialDashboard() {
     );
 
     // 1. Core stats that always show
-const baseStats = [
-  {
-    label: "Total Products",
-    value: totalProducts,
-    sub: "All products",
-    icon: "📦",
-  },
-  {
-    label: "Total Customers",
-    value: totalCustomers || 0, // Ensure you have this variable from your state/props
-    sub: "Lifetime customers",
-    icon: "👥",
-  },
-  {
-    label: "Sales",
-    value: `₦0`,
-    sub: "Stock worth",
-    icon: "💰",
-  },
-  {
-    label: "Total Orders",
-    value: `₦0`,
-    sub: "Needs restock",
-    icon: "⚠️",
-  },
-];
-
+    const baseStats = [
+      {
+        label: "Total Products",
+        value: totalProducts,
+        sub: "All products",
+        icon: "📦",
+      },
+      {
+        label: "Total Customers",
+        value: totalCustomers || 0, // Ensure you have this variable from your state/props
+        sub: "Lifetime customers",
+        icon: "👥",
+      },
+      {
+        label: "Sales",
+        value: `₦0`,
+        sub: "Stock worth",
+        icon: "💰",
+      },
+      {
+        label: "Total Orders",
+        value: `₦0`,
+        sub: "Needs restock",
+        icon: "⚠️",
+      },
+    ];
 
     return [...baseStats].filter(Boolean);
   }, [products, store]);
@@ -170,15 +170,16 @@ const baseStats = [
     loadUser();
   }, []);
 
-  const StatSkeleton = () => (
+  const StatSkeleton = ({ isDark }) => (
     <Sheet
       variant="outlined"
       sx={{
         p: 2.5,
         borderRadius: "20px",
-        border: "1px solid #e2e8f0",
-        bgcolor: "white",
-        height: "100%", // Ensures all cards are equal height
+        // ✅ Match the border and background logic from your actual cards
+        borderColor: isDark ? "#314158" : "#e2e8f0",
+        bgcolor: isDark ? "#0f172a" : "white",
+        height: "100%",
         display: "flex",
         flexDirection: "column",
         gap: 1,
@@ -189,21 +190,41 @@ const baseStats = [
         variant="rectangular"
         width={40}
         height={40}
-        sx={{ borderRadius: "lg", mb: 0.5 }}
+        sx={{
+          borderRadius: "lg",
+          mb: 0.5,
+          // ✅ Adjust skeleton colors for dark mode visibility
+          bgcolor: isDark ? "bg-slate-950!" : undefined,
+        }}
       />
 
       {/* Label Skeleton */}
-      <Skeleton variant="text" width="60%" height={20} />
+      <Skeleton
+        variant="text"
+        width="60%"
+        height={20}
+        sx={{ bgcolor: isDark ? "bg-slate-950!" : undefined }}
+      />
 
       {/* Value Skeleton */}
-      <Skeleton variant="text" width="45%" height={40} />
+      <Skeleton
+        variant="text"
+        width="45%"
+        height={40}
+        sx={{ bgcolor: isDark ? "bg-slate-950!" : undefined }}
+      />
 
       {/* Subtext Skeleton */}
-      <Skeleton variant="text" width="75%" height={15} />
+      <Skeleton
+        variant="text"
+        width="75%"
+        height={15}
+        sx={{ bgcolor: isDark ? "bg-slate-950!" : undefined }}
+      />
     </Sheet>
   );
   return (
-    <StoreOwnerLayout>
+    <StoreOwnerLayout isDark={isDark} toggleDarkMode={toggleDarkMode}>
       <Box sx={{ p: { xs: 2, md: 2 }, minHeight: "100vh" }}>
         {error && (
           <Sheet
@@ -337,7 +358,7 @@ const baseStats = [
         >
           <Box>
             <Typography
-              className="lg:text-[30px]! md:text-[24px]! text-[22px]!"
+              className={`lg:text-[30px]! md:text-[24px]! text-[22px]! ${isDark ? "text-slate-200!" : ""}`}
               level="h2"
               sx={{
                 fontWeight: 800,
@@ -348,8 +369,10 @@ const baseStats = [
               Welcome,{" "}
               {user?.fullName ? user.fullName.split(" ")[0] : "Store Owner"}!
             </Typography>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <Typography level="body-md" sx={{ color: "neutral.500" }}>
+            <div
+              className={`${isDark ? "text-slate-200" : ""} flex items-center gap-2 mt-1 flex-wrap`}
+            >
+              <Typography level="body-md" sx={{ color: isDark ? "neutral.400":"neutral.500" }}>
                 Your store is currently live at:
               </Typography>
               <Typography
@@ -384,11 +407,11 @@ const baseStats = [
         </Box>
 
         {/* Stats Grid */}
-        <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid  container spacing={2} sx={{ mb: 4 }}>
           {loading
             ? Array.from({ length: 4 }).map((_, i) => (
                 <Grid key={i} xs={12} sm={6} md={3}>
-                  <StatSkeleton />
+                  <StatSkeleton isDark={isDark}/>
                 </Grid>
               ))
             : stats.map((item, i) => (
@@ -398,8 +421,13 @@ const baseStats = [
                     sx={{
                       p: 2.5,
                       borderRadius: "20px",
-                      border: "1px solid #e2e8f0",
-                      bgcolor: "white",
+                      // ✅ Dynamic border color
+                      borderColor: isDark
+                        ? "#314158"
+                        : "#e2e8f0",
+                      // ✅ Dynamic background (Matches your slate-900/950 theme)
+                      bgcolor: isDark ? "#0f172a" : "white",
+                      transition: "all 0.2s ease",
                     }}
                   >
                     <Box
@@ -410,7 +438,14 @@ const baseStats = [
                       }}
                     >
                       <Box
-                        sx={{ p: 1, borderRadius: "lg", bgcolor: "#f1f5f9" }}
+                        sx={{
+                          p: 1,
+                          borderRadius: "lg",
+                          // ✅ Dynamic icon background
+                          bgcolor: isDark
+                            ? "bg-slate-950!"
+                            : "#f1f5f9",
+                        }}
                       >
                         {item.icon}
                       </Box>
@@ -418,20 +453,33 @@ const baseStats = [
 
                     <Typography
                       level="body-sm"
-                      sx={{ fontWeight: 600, color: "neutral.500" }}
+                      sx={{
+                        fontWeight: 600,
+                        // ✅ Dynamic label color
+                        color: isDark ? "neutral.400" : "neutral.500",
+                      }}
                     >
                       {item.label}
                     </Typography>
 
                     <Typography
                       level="h3"
-                      sx={{ fontWeight: 800, color: "#0f172a" }}
+                      sx={{
+                        fontWeight: 800,
+                        // ✅ Dynamic value color (White in dark mode)
+                        color: isDark ? "#f8fafc" : "#0f172a",
+                      }}
                     >
                       {item.value}
                     </Typography>
 
                     <Typography
-                      sx={{ fontSize: "12px", color: "neutral.400", mt: 0.5 }}
+                      sx={{
+                        fontSize: "12px",
+                        // ✅ Dynamic subtext color
+                        color: isDark ? "neutral.500" : "neutral.400",
+                        mt: 0.5,
+                      }}
                     >
                       {item.sub}
                     </Typography>
@@ -443,7 +491,7 @@ const baseStats = [
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full lg:my-5 my-4">
           <div
             className={`rounded-xl min-h-80 border flex flex-col
-      ${isDark ? "bg-slate-900 border-slate-700 text-slate-200" : "bg-white border-slate-100 text-gray-900"}`}
+      ${isDark ? "bg-slate-950 border-slate-700 text-slate-200" : "bg-white border-slate-100 text-gray-900"}`}
           >
             {/* Header */}
             <div
@@ -499,14 +547,15 @@ const baseStats = [
             </div>
           </div>
           <div>
-            <InventoryCard isDark={false} products={products} />
+            <InventoryCard isDark={isDark} products={products} />
           </div>
           <div>
-            <BestSellersCard isDark={false}/>
+            <BestSellersCard isDark={isDark} />
           </div>
         </div>
 
         <Sheet
+          className={`${isDark ? "bg-slate-950! border-[#314158]! rounded-t-3xl! text-slate-200!" : " border-slate-100! text-gray-900!"}`}
           sx={{
             mb: 4,
             borderRadius: "24px",
@@ -525,19 +574,25 @@ const baseStats = [
               }}
             >
               <Box>
-                <Typography level="title-lg" sx={{ fontWeight: 700 }}>
+                <Typography
+                  className={`${isDark ? "text-slate-200!" : ""}`}
+                  level="title-lg"
+                  sx={{ fontWeight: 700 }}
+                >
                   Recent Orders
                 </Typography>
               </Box>
             </Box>
 
-            <table className="w-full text-left border-collapse border-t border-slate-100 min-w-200">
+            <table
+              className={`${isDark ? "border-[#314158]!" : "border-slate-100"} w-full text-left border-collapse border-t  min-w-200`}
+            >
               <thead className="bg-transparent">
                 <tr
-                  className={`text-[13px] border-b ${isDark ? "border-slate-800 bg-slate-800/50 text-slate-400" : "border-slate-100 text-gray-600"}`}
+                  className={`text-[13px] border-b ${isDark ? "bg-slate-950 border-b border-[#314158] text-slate-200" : "bg-white border-slate-100 text-gray-900"}`}
                 >
                   <th
-                    className={`px-4 py-3 w-12 text-center border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
+                    className={`px-4 py-3 w-12 text-center border-r ${isDark ? "border-[#314158] border-r" : "border-slate-100"}`}
                   >
                     <input
                       type="checkbox"
@@ -549,7 +604,7 @@ const baseStats = [
                     />
                   </th>
 
-                  <th className={`w-[150px] ${thStyle}`}>Order ID</th>
+                  <th className={`w-37.5 ${thStyle} `}>Order ID</th>
                   <th className={`w-[200px] ${thStyle}`}>Customer</th>
                   <th className={`w-[120px] ${thStyle}`}>Items</th>
                   <th className={`w-[150px] ${thStyle}`}>Total Amount</th>
@@ -642,7 +697,7 @@ const baseStats = [
                   <tr>
                     <td
                       colSpan="7"
-                      className="px-4 py-12 text-center text-gray-500 italic"
+                      className={`${isDark ? "text-slate-200!" : ""} px-4 py-12 text-center text-gray-500 italic`}
                     >
                       No recent orders found
                     </td>
@@ -655,19 +710,19 @@ const baseStats = [
 
         <Grid container spacing={3}>
           {/* Onboarding Checklist */}
-          <Grid xs={12} md={12}>
+          <Grid  xs={12} md={12}>
             <Sheet
               sx={{
                 p: 3,
                 borderRadius: "24px",
-                border: "1px solid #e2e8f0",
-                bgcolor: "white",
+                border: isDark ? "1px solid #314158": "1px solid #e2e8f0",
+                bgcolor: isDark ? "#020618": "white",
               }}
             >
-              <Typography level="title-lg" sx={{ fontWeight: 700, mb: 1 }}>
+              <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="title-lg" sx={{ fontWeight: 700, mb: 1 }}>
                 Setup Checklist
               </Typography>
-              <Typography level="body-sm" sx={{ color: "neutral.500", mb: 3 }}>
+              <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-sm" sx={{ color: "neutral.500", mb: 3 }}>
                 Complete these steps to launch your store successfully.
               </Typography>
 
@@ -675,11 +730,11 @@ const baseStats = [
                 {[
                   {
                     task: "Add your first product",
-                    done: products.length > 0 ? true : false,
+                    done: products.length > 0,
                   },
                   {
                     task: "Receive your first order",
-                    done: total_orders > 0, // The ultimate "Success" milestone
+                    done: total_orders > 0,
                     link: "/orders",
                   },
                 ].map((item, idx) => (
@@ -692,31 +747,46 @@ const baseStats = [
                       p: 2,
                       borderRadius: "xl",
                       border: "1px solid",
-                      borderColor: item.done ? "#f1f5f9" : "#e2e8f0",
-                      bgcolor: item.done ? "#f8fafc" : "transparent",
+                      // ✅ Dynamic Border: Subtler in dark mode
+                      borderColor: item.done 
+                        ? (isDark ? "rgba(255, 255, 255, 0.05)" : "#f1f5f9") 
+                        : (isDark ? "rgba(255, 255, 255, 0.1)" : "#e2e8f0"),
+                      // ✅ Dynamic Background: Slate 900 for dark mode cards
+                      bgcolor: item.done 
+                        ? (isDark ? "rgba(255, 255, 255, 0.02)" : "#f8fafc") 
+                        : "transparent",
                     }}
                   >
                     <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${item.done ? "bg-emerald-500 border-emerald-500" : "border-slate-300"}`}
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                        item.done 
+                          ? "bg-emerald-500 border-emerald-500" 
+                          : isDark ? "border-slate-700" : "border-slate-300"
+                      }`}
                     >
                       {item.done && (
                         <div className="w-2 h-2 bg-white rounded-full" />
                       )}
                     </div>
+                    
                     <Typography
                       sx={{
                         fontSize: "14px",
                         fontWeight: 600,
-                        color: item.done ? "neutral.400" : "neutral.700",
+                        // ✅ Dynamic Text Color
+                        color: item.done 
+                          ? (isDark ? "neutral.600" : "neutral.400") 
+                          : (isDark ? "neutral.200" : "neutral.700"),
                         textDecoration: item.done ? "line-through" : "none",
                       }}
                     >
                       {item.task}
                     </Typography>
+
                     {!item.done && (
                       <ChevronRight
                         size={16}
-                        className="ml-auto text-slate-400"
+                        className={`ml-auto ${isDark ? "text-slate-600" : "text-slate-400"}`}
                       />
                     )}
                   </Box>
