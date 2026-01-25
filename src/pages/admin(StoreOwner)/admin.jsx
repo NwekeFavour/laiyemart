@@ -12,6 +12,8 @@ import {
   AlertCircle,
   X,
   ShoppingBag,
+  PackageOpenIcon,
+  Filter,
 } from "lucide-react";
 import {
   Box,
@@ -372,7 +374,10 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
             <div
               className={`${isDark ? "text-slate-200" : ""} flex items-center gap-2 mt-1 flex-wrap`}
             >
-              <Typography level="body-md" sx={{ color: isDark ? "neutral.400":"neutral.500" }}>
+              <Typography
+                level="body-md"
+                sx={{ color: isDark ? "neutral.400" : "neutral.500" }}
+              >
                 Your store is currently live at:
               </Typography>
               <Typography
@@ -407,11 +412,11 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
         </Box>
 
         {/* Stats Grid */}
-        <Grid  container spacing={2} sx={{ mb: 4 }}>
+        <Grid container spacing={2} sx={{ mb: 4 }}>
           {loading
             ? Array.from({ length: 4 }).map((_, i) => (
                 <Grid key={i} xs={12} sm={6} md={3}>
-                  <StatSkeleton isDark={isDark}/>
+                  <StatSkeleton isDark={isDark} />
                 </Grid>
               ))
             : stats.map((item, i) => (
@@ -422,9 +427,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                       p: 2.5,
                       borderRadius: "20px",
                       // ✅ Dynamic border color
-                      borderColor: isDark
-                        ? "#314158"
-                        : "#e2e8f0",
+                      borderColor: isDark ? "#314158" : "#e2e8f0",
                       // ✅ Dynamic background (Matches your slate-900/950 theme)
                       bgcolor: isDark ? "#0f172a" : "white",
                       transition: "all 0.2s ease",
@@ -442,9 +445,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                           p: 1,
                           borderRadius: "lg",
                           // ✅ Dynamic icon background
-                          bgcolor: isDark
-                            ? "bg-slate-950!"
-                            : "#f1f5f9",
+                          bgcolor: isDark ? "bg-slate-950!" : "#f1f5f9",
                         }}
                       >
                         {item.icon}
@@ -507,14 +508,6 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
             </div>
 
             <div className="flex flex-col flex-1 p-5">
-              {/* Value */}
-              <div className="mb-4">
-                <div className="text-2xl font-bold">₦0</div>
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                  +4.7%
-                </span>
-              </div>
-
               {/* Dummy Chart */}
               {/* <ul className="space-y-2 text-sm">
                 {[
@@ -541,8 +534,26 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                   </li>
                 ))}
               </ul> */}
-              <div className="text-center py-4  text-slate-400 text-xs italic border-2 border-dashed border-slate-800 rounded-xl">
-                No low stock alerts
+              <div className="flex flex-col items-center justify-center flex-1 py-10 px-6 text-center">
+                <div
+                  className={`p-4 rounded-full mb-4 ${isDark ? "bg-slate-800" : "bg-slate-50"}`}
+                >
+                  <PackageOpenIcon
+                    size={32}
+                    className={isDark ? "text-slate-500" : "text-slate-300"}
+                  />
+                </div>
+                <p
+                  className={`text-sm font-bold ${isDark ? "text-slate-300" : "text-slate-700"}`}
+                >
+                  No orders recorded yet
+                </p>
+                <p
+                  className={`text-xs mt-1 ${isDark ? "text-slate-500" : "text-slate-400"}`}
+                >
+                  Once you start getting orders, your pending orders will appear
+                  here.
+                </p>
               </div>
             </div>
           </div>
@@ -612,7 +623,6 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                   <th className="px-4 py-3 w-[120px] text-center font-semibold"></th>
                 </tr>
               </thead>
-
               <tbody
                 className={`divide-y ${isDark ? "divide-slate-800" : "divide-gray-100"}`}
               >
@@ -620,10 +630,14 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                   orders.map((order) => (
                     <tr
                       key={order._id}
-                      className={`text-[13px] transition-colors hover:bg-gray-50 ${isDark ? "hover:bg-slate-800/40" : ""}`}
+                      className={`text-[13px] transition-colors hover:bg-gray-50 ${
+                        isDark ? "hover:bg-slate-800/40" : ""
+                      }`}
                     >
                       <td
-                        className={`px-4 py-3 text-center border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
+                        className={`px-4 py-3 text-center border-r ${
+                          isDark ? "border-slate-800" : "border-slate-100"
+                        }`}
                       >
                         <input
                           type="checkbox"
@@ -640,7 +654,9 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                       <td className={tdStyle}>
                         <div className="flex flex-col">
                           <span
-                            className={`font-medium ${isDark ? "text-slate-200" : "text-gray-900"}`}
+                            className={`font-medium ${
+                              isDark ? "text-slate-200" : "text-gray-900"
+                            }`}
                           >
                             {order.customerName}
                           </span>
@@ -695,11 +711,64 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan="7"
-                      className={`${isDark ? "text-slate-200!" : ""} px-4 py-12 text-center text-gray-500 italic`}
-                    >
-                      No recent orders found
+                    {/* ✅ MUST wrap content in td + colSpan */}
+                    <td colSpan={7} className="border-none">
+                      <Box
+                        sx={{
+                          py: 10,
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 2,
+                          textAlign: "center",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 56,
+                            height: 56,
+                            borderRadius: "50%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            bgcolor: isDark ? "rgba(30,41,59,0.6)" : "#f1f5f9",
+                          }}
+                        >
+                          <Filter
+                            size={22}
+                            className={
+                              isDark ? "text-slate-400" : "text-slate-500"
+                            }
+                          />
+                        </Box>
+
+                        <Typography
+                          level="title-md"
+                          className={isDark ? "text-slate-200!" : ""}
+                        >
+                          No orders yet
+                        </Typography>
+
+                        <Typography
+                          level="body-sm"
+                          sx={{ maxWidth: 360 }}
+                          className={
+                            isDark ? "text-slate-400!" : "text-slate-500"
+                          }
+                        >
+                          Orders will appear here once customers start
+                          purchasing from your store.
+                        </Typography>
+
+                        <Button
+                          variant="soft"
+                          color="primary"
+                          sx={{ mt: 1, borderRadius: "lg" }}
+                        >
+                          View Products
+                        </Button>
+                      </Box>
                     </td>
                   </tr>
                 )}
@@ -710,19 +779,27 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
 
         <Grid container spacing={3}>
           {/* Onboarding Checklist */}
-          <Grid  xs={12} md={12}>
+          <Grid xs={12} md={12}>
             <Sheet
               sx={{
                 p: 3,
                 borderRadius: "24px",
-                border: isDark ? "1px solid #314158": "1px solid #e2e8f0",
-                bgcolor: isDark ? "#020618": "white",
+                border: isDark ? "1px solid #314158" : "1px solid #e2e8f0",
+                bgcolor: isDark ? "#020618" : "white",
               }}
             >
-              <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="title-lg" sx={{ fontWeight: 700, mb: 1 }}>
+              <Typography
+                className={`${isDark ? "text-slate-200!" : ""}`}
+                level="title-lg"
+                sx={{ fontWeight: 700, mb: 1 }}
+              >
                 Setup Checklist
               </Typography>
-              <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-sm" sx={{ color: "neutral.500", mb: 3 }}>
+              <Typography
+                className={`${isDark ? "text-slate-400!" : ""}`}
+                level="body-sm"
+                sx={{ color: "neutral.500", mb: 3 }}
+              >
                 Complete these steps to launch your store successfully.
               </Typography>
 
@@ -748,35 +825,47 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                       borderRadius: "xl",
                       border: "1px solid",
                       // ✅ Dynamic Border: Subtler in dark mode
-                      borderColor: item.done 
-                        ? (isDark ? "rgba(255, 255, 255, 0.05)" : "#f1f5f9") 
-                        : (isDark ? "rgba(255, 255, 255, 0.1)" : "#e2e8f0"),
+                      borderColor: item.done
+                        ? isDark
+                          ? "rgba(255, 255, 255, 0.05)"
+                          : "#f1f5f9"
+                        : isDark
+                          ? "rgba(255, 255, 255, 0.1)"
+                          : "#e2e8f0",
                       // ✅ Dynamic Background: Slate 900 for dark mode cards
-                      bgcolor: item.done 
-                        ? (isDark ? "rgba(255, 255, 255, 0.02)" : "#f8fafc") 
+                      bgcolor: item.done
+                        ? isDark
+                          ? "rgba(255, 255, 255, 0.02)"
+                          : "#f8fafc"
                         : "transparent",
                     }}
                   >
                     <div
                       className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                        item.done 
-                          ? "bg-emerald-500 border-emerald-500" 
-                          : isDark ? "border-slate-700" : "border-slate-300"
+                        item.done
+                          ? "bg-emerald-500 border-emerald-500"
+                          : isDark
+                            ? "border-slate-700"
+                            : "border-slate-300"
                       }`}
                     >
                       {item.done && (
                         <div className="w-2 h-2 bg-white rounded-full" />
                       )}
                     </div>
-                    
+
                     <Typography
                       sx={{
                         fontSize: "14px",
                         fontWeight: 600,
                         // ✅ Dynamic Text Color
-                        color: item.done 
-                          ? (isDark ? "neutral.600" : "neutral.400") 
-                          : (isDark ? "neutral.200" : "neutral.700"),
+                        color: item.done
+                          ? isDark
+                            ? "neutral.600"
+                            : "neutral.400"
+                          : isDark
+                            ? "neutral.200"
+                            : "neutral.700",
                         textDecoration: item.done ? "line-through" : "none",
                       }}
                     >

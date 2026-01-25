@@ -523,12 +523,13 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
         {/* Header */}
         <Box>
           <Typography
+            className={`${isDark ? "text-slate-200!" : ""}`}
             level="h2"
             sx={{ fontSize: "24px", fontWeight: 800, color: "#0f172a" }}
           >
             Settings
           </Typography>
-          <Typography level="body-sm" sx={{ color: "#64748b" }}>
+          <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-sm" sx={{ color: "#64748b" }}>
             Manage your store preferences and account settings
           </Typography>
         </Box>
@@ -1046,10 +1047,10 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
             {activeSection === "notifications" && (
               <Stack gap={3}>
                 <Box>
-                  <Typography level="h4" sx={{ fontWeight: 700 }}>
+                  <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="h4" sx={{ fontWeight: 700 }}>
                     Notification Preferences
                   </Typography>
-                  <Typography level="body-sm">
+                  <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-sm">
                     Control how you receive updates about your store.
                   </Typography>
                 </Box>
@@ -1078,7 +1079,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                     }}
                   >
                     <Box>
-                      <Typography sx={{ fontWeight: 600 }}>
+                      <Typography className={`${isDark ? "text-slate-400!" : ""}`} sx={{ fontWeight: 600 }}>
                         {notif.title}
                       </Typography>
                       <Typography level="body-xs">{notif.desc}</Typography>
@@ -1092,16 +1093,16 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
             {activeSection === "account" && (
               <Stack gap={3}>
                 <Box>
-                  <Typography level="h4" sx={{ fontWeight: 700 }}>
+                  <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="h4" sx={{ fontWeight: 700 }}>
                     Account Information
                   </Typography>
-                  <Typography level="body-sm">
+                  <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-sm">
                     Manage your personal account details and security.
                   </Typography>
                 </Box>
 
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel sx={{ minWidth: 140 }}>Profile Picture</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Profile Picture</FormLabel>
                   <Stack direction="row" spacing={3} alignItems="center">
                     <Box
                       sx={{
@@ -1119,6 +1120,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                     />
                     <Stack spacing={1}>
                       <Button
+                        className={`${isDark ? "text-slate-900! bg-slate-200!" : ""}`}
                         component="label"
                         variant="outlined"
                         color="neutral"
@@ -1183,7 +1185,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                           }}
                         />
                       </Button>
-                      <Typography level="body-xs">
+                      <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-xs">
                         JPG, GIF or PNG. Max size 2MB
                       </Typography>
                     </Stack>
@@ -1193,12 +1195,33 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                 <Divider />
 
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel sx={{ minWidth: 140 }}>Full Name</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Full Name</FormLabel>
                   <Input
                     value={fullName || ""}
                     onChange={(e) => setFullName(e.target.value)}
                     startDecorator={<Mail size={16} />}
-                    sx={{ flex: 1, maxWidth: 400 }}
+                    sx={{ 
+                      flex: 1, 
+                      maxWidth: 400,
+                      borderRadius: 'lg',
+                      // ✅ Handle colors based on isDark
+                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
+                      borderColor: isDark ? '#1d293d' : 'neutral.200',
+                      color: isDark ? '#90a1b9' : 'neutral.600',
+                      
+                      // ✅ Specific override for the "Disabled" state
+                      "&.Mui-disabled": {
+                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
+                        color: isDark ? '#62748e' : 'neutral.500',
+                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
+                        textShadow: isDark ? 'none' : 'none',
+                        cursor: 'not-allowed',
+                        // Target the internal input element
+                        "& input": {
+                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
+                        }
+                      }
+                    }}
                   />
                 </FormControl>
                 <Box
@@ -1219,22 +1242,64 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                 </Box>
                 {/* Email */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel sx={{ minWidth: 140 }}>Email Address</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Email Address</FormLabel>
                   <Input
                     value={user?.email || ""}
                     disabled
                     startDecorator={<Mail size={16} />}
-                    sx={{ flex: 1, maxWidth: 400 }}
+                                        sx={{ 
+                      flex: 1, 
+                      maxWidth: 400,
+                      borderRadius: 'lg',
+                      // ✅ Handle colors based on isDark
+                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
+                      borderColor: isDark ? '#1d293d' : 'neutral.200',
+                      color: isDark ? '#90a1b9' : 'neutral.600',
+                      
+                      // ✅ Specific override for the "Disabled" state
+                      "&.Mui-disabled": {
+                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
+                        color: isDark ? '#62748e' : 'neutral.500',
+                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
+                        textShadow: isDark ? 'none' : 'none',
+                        cursor: 'not-allowed',
+                        // Target the internal input element
+                        "& input": {
+                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
+                        }
+                      }
+                    }}
                   />
                 </FormControl>
 
                 {/* Role */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel sx={{ minWidth: 140 }}>Account Role</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Account Role</FormLabel>
                   <Input
                     value={user?.role === "OWNER" ? "Store Owner" : user?.role}
                     disabled
-                    sx={{ flex: 1, maxWidth: 400 }}
+                                        sx={{ 
+                      flex: 1, 
+                      maxWidth: 400,
+                      borderRadius: 'lg',
+                      // ✅ Handle colors based on isDark
+                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
+                      borderColor: isDark ? '#1d293d' : 'neutral.200',
+                      color: isDark ? '#90a1b9' : 'neutral.600',
+                      
+                      // ✅ Specific override for the "Disabled" state
+                      "&.Mui-disabled": {
+                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
+                        color: isDark ? '#62748e' : 'neutral.500',
+                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
+                        textShadow: isDark ? 'none' : 'none',
+                        cursor: 'not-allowed',
+                        // Target the internal input element
+                        "& input": {
+                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
+                        }
+                      }
+                    }}
                   />
                 </FormControl>
 
@@ -1242,18 +1307,19 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
 
                 {/* Password */}
                 <Box>
-                  <Typography level="title-md" sx={{ fontWeight: 700 }}>
+                  <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="title-md" sx={{ fontWeight: 700 }}>
                     Password
                   </Typography>
-                  <Typography level="body-xs">
-                    Change your account password. A verification code will be
+                  <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-xs">
+                    When you Change your account password. A verification code will be
                     sent to your email.
                   </Typography>
                 </Box>
 
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel sx={{ minWidth: 140 }}>New Password</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>New Password</FormLabel>
                   <Input
+                    className="border! border-slate-300!"
                     type="password"
                     placeholder="••••••••"
                     value={passwords.newPassword}
@@ -1263,17 +1329,61 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                         newPassword: e.target.value,
                       })
                     }
-                    sx={{ flex: 1, maxWidth: 400 }}
+                                        sx={{ 
+                      flex: 1, 
+                      maxWidth: 400,
+                      borderRadius: 'lg',
+                      // ✅ Handle colors based on isDark
+                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
+                      borderColor: isDark ? '#1d293d' : 'neutral.200',
+                      color: isDark ? '#90a1b9' : 'neutral.600',
+                      
+                      // ✅ Specific override for the "Disabled" state
+                      "&.Mui-disabled": {
+                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
+                        color: isDark ? '#62748e' : 'neutral.500',
+                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
+                        textShadow: isDark ? 'none' : 'none',
+                        cursor: 'not-allowed',
+                        // Target the internal input element
+                        "& input": {
+                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
+                        }
+                      }
+                    }}
                   />
                 </FormControl>
 
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel sx={{ minWidth: 140 }}>Confirm Password</FormLabel>
+                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Confirm Password</FormLabel>
                   <Box sx={{ flex: 1, maxWidth: 400 }}>
                     <Input
+                      className="border! border-slate-300!"
                       type="password"
                       placeholder="••••••••"
                       value={passwords.confirmPassword}
+                                          sx={{ 
+                      flex: 1, 
+                      maxWidth: 400,
+                      borderRadius: 'lg',
+                      // ✅ Handle colors based on isDark
+                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
+                      borderColor: isDark ? '#1d293d' : 'neutral.200',
+                      color: isDark ? '#90a1b9' : 'neutral.600',
+                      
+                      // ✅ Specific override for the "Disabled" state
+                      "&.Mui-disabled": {
+                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
+                        color: isDark ? '#62748e' : 'neutral.500',
+                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
+                        textShadow: isDark ? 'none' : 'none',
+                        cursor: 'not-allowed',
+                        // Target the internal input element
+                        "& input": {
+                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
+                        }
+                      }
+                    }}
                       onChange={(e) =>
                         setPasswords({
                           ...passwords,
@@ -1303,6 +1413,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                           ))}
                         </Box>
                         <Typography
+                          className={`${isDark ? "text-slate-400!" : ""}`}
                           level="body-xs"
                           sx={{
                             color: strengthColors[strengthScore],
@@ -1319,7 +1430,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                 {/* OTP INPUT (Appears After Sending OTP) */}
                 {isOtpSent && (
                   <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                    <FormLabel sx={{ minWidth: 140 }}>
+                    <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>
                       Verification Code
                     </FormLabel>
                     <Input
@@ -1331,12 +1442,11 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                   </FormControl>
                 )}
 
-                <Divider />
-
                 <Box
                   sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}
                 >
                   <Button
+                    className={`${isDark ? "text-slate-200!" : ""}`}
                     variant="plain"
                     color="neutral"
                     onClick={() => {
@@ -1355,7 +1465,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                       sx={{ bgcolor: "#0f172a", borderRadius: "lg" }}
                       className="hover:bg-slate-800/90!"
                     >
-                      Send Verification Code
+                      Change Password
                     </Button>
                   ) : (
                     <Button
@@ -1375,10 +1485,10 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
             {activeSection === "st" && (
               <Stack gap={3} id="bank-details-anchor" sx={{ scrollMarginTop: '20px' }}>
                 <Box>
-                  <Typography level="h4" sx={{ fontWeight: 700 }}>
+                  <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="h4" sx={{ fontWeight: 700 }}>
                     Bank Details
                   </Typography>
-                  <Typography level="body-sm">
+                  <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-sm">
                     Configure where your earnings will be deposited via
                     Paystack.
                   </Typography>
@@ -1468,6 +1578,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                     {store?.paystack?.subaccountCode &&
                       !store?.paystack?.verified && (
                         <Button
+                          className={`${isDark ? "text-slate-200!" : ""}`}
                           size="sm"
                           variant="ghost"
                           color="warning"
@@ -1568,7 +1679,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                 {/* Form */}
                 <Stack gap={2.5} sx={{ mt: 2 }}>
                   <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                    <FormLabel sx={{ minWidth: 140 }}>Business Name</FormLabel>
+                    <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Business Name</FormLabel>
                     <Input
                       placeholder="Registered Business Name"
                       value={bankForm.businessName}
@@ -1578,12 +1689,33 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                           businessName: e.target.value,
                         })
                       }
-                      sx={{ flex: 1, maxWidth: 400 }}
+                      sx={{ 
+                      flex: 1, 
+                      maxWidth: 400,
+                      borderRadius: 'lg',
+                      // ✅ Handle colors based on isDark
+                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
+                      borderColor: isDark ? '#1d293d' : 'neutral.200',
+                      color: isDark ? '#90a1b9' : 'neutral.600',
+                      
+                      // ✅ Specific override for the "Disabled" state
+                      "&.Mui-disabled": {
+                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
+                        color: isDark ? '#62748e' : 'neutral.500',
+                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
+                        textShadow: isDark ? 'none' : 'none',
+                        cursor: 'not-allowed',
+                        // Target the internal input element
+                        "& input": {
+                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
+                        }
+                      }
+                    }}
                     />
                   </FormControl>
 
                   <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                    <FormLabel sx={{ minWidth: 140 }}>
+                    <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>
                       Settlement Bank
                     </FormLabel>
                     <Select
@@ -1592,10 +1724,24 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                       onChange={(e, newValue) =>
                         setBankForm({ ...bankForm, bankCode: newValue })
                       }
-                      sx={{ flex: 1, maxWidth: 400 }}
+                      sx={{ 
+                        maxWidth: 400,
+                        // Dynamic Dark Mode Styles
+                          backgroundColor: isDark ? '#0f172b' : '#fff', 
+                          color: isDark ? '#cbd5e1' : '#1f2937',
+                          borderColor: isDark ? '#334155' : '#d1d5db',
+                          '&:hover': {
+                          backgroundColor: isDark ? '#0f172b' : '#f9fafb',
+                          borderColor: isDark ? '#475569' : '#9ca3af',
+                          },
+                          '& .MuiSelect-listbox': {
+                          backgroundColor: isDark ? '#1e293b' : '#fff',
+                          color: isDark ? '#cbd5e1' : '#1f2937',
+                          }
+                      }}
                     >
                       {banks.map((bank, id) => (
-                        <Option key={id} value={bank.code}>
+                        <Option  className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`} key={id} value={bank.code}>
                           {bank.name}
                         </Option>
                       ))}
@@ -1603,7 +1749,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                   </FormControl>
 
                   <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                    <FormLabel sx={{ minWidth: 140 }}>Account Number</FormLabel>
+                    <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Account Number</FormLabel>
                     <Input
                       placeholder="0000000000"
                       value={bankForm.accountNumber}
@@ -1613,7 +1759,28 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                           accountNumber: e.target.value,
                         })
                       }
-                      sx={{ flex: 1, maxWidth: 400 }}
+                      sx={{ 
+                      flex: 1, 
+                      maxWidth: 400,
+                      borderRadius: 'lg',
+                      // ✅ Handle colors based on isDark
+                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
+                      borderColor: isDark ? '#1d293d' : 'neutral.200',
+                      color: isDark ? '#90a1b9' : 'neutral.600',
+                      
+                      // ✅ Specific override for the "Disabled" state
+                      "&.Mui-disabled": {
+                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
+                        color: isDark ? '#62748e' : 'neutral.500',
+                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
+                        textShadow: isDark ? 'none' : 'none',
+                        cursor: 'not-allowed',
+                        // Target the internal input element
+                        "& input": {
+                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
+                        }
+                      }
+                    }}
                     />
                   </FormControl>
                 </Stack>
@@ -1624,6 +1791,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                   sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}
                 >
                   <Button
+                    className={`${isDark ? "text-slate-200!" : ""}`}
                     variant="plain"
                     color="neutral"
                     onClick={() =>

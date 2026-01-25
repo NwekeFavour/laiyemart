@@ -31,6 +31,7 @@ import CartDashboard from "./pages/(demo)/cart";
 import { useCustomerAuthStore } from "./store/useCustomerAuthStore";
 import { useStoreProfileStore } from "./store/useStoreProfile";
 import CustomerAccountPage from "./pages/(demo)/account";
+import ResetPasswordPage from "./pages/admin(StoreOwner)/auth/reset";
 
 function App() {
   const subdomain = getSubdomain();
@@ -84,6 +85,7 @@ function App() {
             path="/cart"
             element={<CartDashboard storeSlug={subdomain} />}
           />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage storeSlug={subdomain}/>}/>
           <Route path="*" element={<div>Store Page Not Found</div>} />
           <Route
             path="/account"

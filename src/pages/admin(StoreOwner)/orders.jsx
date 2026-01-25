@@ -19,40 +19,7 @@ import StoreOwnerLayout from "./layout";
 export default function OrdersPage({ isDark, toggleDarkMode }) {
   // Mock Data
   const [selected, setSelected] = useState([]);
-  const orders = [
-    {
-      id: "#ORD-7281",
-      customer: "John Doe",
-      date: "Jan 14, 2026",
-      total: "₦120.00",
-      status: "Delivered",
-      method: "Mastercard",
-    },
-    {
-      id: "#ORD-7282",
-      customer: "Sarah Smith",
-      date: "Jan 13, 2026",
-      total: "₦45.50",
-      status: "Processing",
-      method: "PayPal",
-    },
-    {
-      id: "#ORD-7283",
-      customer: "Mike Johnson",
-      date: "Jan 13, 2026",
-      total: "₦210.00",
-      status: "Shipped",
-      method: "Visa",
-    },
-    {
-      id: "#ORD-7284",
-      customer: "Elena Rodriguez",
-      date: "Jan 12, 2026",
-      total: "₦89.00",
-      status: "Cancelled",
-      method: "Bank Transfer",
-    },
-  ];
+  const orders = [];
 
   const handleSelect = (id) => {
     setSelected((prev) =>
@@ -161,143 +128,201 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
               Filters
             </Button>
           </Sheet>
-          <div className="overflow-x-auto hide-scrollbar">
-            <table className="w-full text-left border-collapse min-w-[900px]">
-              <thead className="bg-transparent">
-                <tr
-                  className={`text-[13px] border-b ${isDark ? "border-slate-800 bg-slate-800/30 text-slate-400" : "border-slate-100  text-gray-600"}`}
-                >
-                  <th
-                    className={`px-4 py-3 w-12 text-center border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={
-                        selected.length > 0 && selected.length === orders.length
-                      }
-                      onChange={toggleAll}
-                      className="rounded-sm accent-blue-600 cursor-pointer"
-                    />
-                  </th>
-
-                  {[
-                    { label: "Order ID", width: "w-[140px]" },
-                    { label: "Date", width: "w-[120px]" },
-                    { label: "Customer", width: "w-[200px]" },
-                    { label: "Amount", width: "w-[130px]" },
-                    { label: "Method", width: "w-[150px]" },
-                    { label: "Status", width: "w-[140px]" },
-                  ].map((head) => (
-                    <th
-                      key={head.label}
-                      className={`${head.width} px-4 py-3 font-semibold border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>{head.label}</span>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="opacity-50"
-                        >
-                          <path d="m7 15 5 5 5-5" />
-                          <path d="m7 9 5-5 5 5" />
-                        </svg>
-                      </div>
-                    </th>
-                  ))}
-
-                  <th className="px-4 py-3 w-[100px] text-center font-semibold">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody
-                className={`divide-y ${isDark ? "divide-slate-800" : "divide-slate-100"}`}
+          {orders.length === 0 ? (
+            /* EMPTY STATE */
+            <Box
+              sx={{
+                py: 10,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 2,
+                textAlign: "center",
+              }}
+            >
+              <Box
+                sx={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  bgcolor: isDark ? "rgba(30,41,59,0.6)" : "#f1f5f9",
+                }}
               >
-                {orders.map((row) => (
+                <Filter
+                  size={22}
+                  className={isDark ? "text-slate-400" : "text-slate-500"}
+                />
+              </Box>
+
+              <Typography
+                level="title-md"
+                className={isDark ? "text-slate-200!" : ""}
+              >
+                No orders yet
+              </Typography>
+
+              <Typography
+                level="body-sm"
+                sx={{ maxWidth: 360 }}
+                className={isDark ? "text-slate-400!" : "text-slate-500"}
+              >
+                Orders will appear here once customers start purchasing from
+                your store.
+              </Typography>
+
+              <Button
+                variant="soft"
+                color="primary"
+                sx={{ mt: 1, borderRadius: "lg" }}
+              >
+                View Products
+              </Button>
+            </Box>
+          ) : (
+            /* TABLE */
+            <div className="overflow-x-auto hide-scrollbar">
+              <table className="w-full text-left border-collapse min-w-[900px]">
+                <thead className="bg-transparent">
                   <tr
-                    key={row.id}
-                    className={`text-[13px] transition-colors ${isDark ? "hover:bg-slate-800/40" : "hover:bg-gray-50/50"}`}
+                    className={`text-[13px] border-b ${isDark ? "border-slate-800 bg-slate-800/30 text-slate-400" : "border-slate-100  text-gray-600"}`}
                   >
-                    <td
-                      className={`px-4 py-3 text-center border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
+                    <th
+                      className={`px-4 py-3 w-12 text-center border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
                     >
                       <input
                         type="checkbox"
-                        checked={selected.includes(row.id)}
-                        onChange={() => handleSelect(row.id)}
+                        checked={
+                          selected.length > 0 &&
+                          selected.length === orders.length
+                        }
+                        onChange={toggleAll}
                         className="rounded-sm accent-blue-600 cursor-pointer"
                       />
-                    </td>
+                    </th>
 
-                    <td
-                      className={`px-4 py-3 border-r font-medium ${isDark ? "border-slate-800 text-slate-200" : "border-slate-100 text-slate-700"}`}
-                    >
-                      {row.id}
-                    </td>
-
-                    <td
-                      className={`px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-400" : "border-slate-100 text-slate-500"}`}
-                    >
-                      {row.date}
-                    </td>
-
-                    <td
-                      className={`px-4 py-3 border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
-                    >
-                      <span
-                        className={`font-semibold ${isDark ? "text-slate-200" : "text-slate-900"}`}
+                    {[
+                      { label: "Order ID", width: "w-[140px]" },
+                      { label: "Date", width: "w-[120px]" },
+                      { label: "Customer", width: "w-[200px]" },
+                      { label: "Amount", width: "w-[130px]" },
+                      { label: "Method", width: "w-[150px]" },
+                      { label: "Status", width: "w-[140px]" },
+                    ].map((head) => (
+                      <th
+                        key={head.label}
+                        className={`${head.width} px-4 py-3 font-semibold border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
                       >
-                        {row.customer}
-                      </span>
-                    </td>
+                        <div className="flex items-center justify-between">
+                          <span>{head.label}</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="opacity-50"
+                          >
+                            <path d="m7 15 5 5 5-5" />
+                            <path d="m7 9 5-5 5 5" />
+                          </svg>
+                        </div>
+                      </th>
+                    ))}
 
-                    <td
-                      className={`px-4 py-3 border-r font-bold ${isDark ? "border-slate-800 text-slate-200" : "border-slate-100 text-slate-900"}`}
-                    >
-                      {row.total}
-                    </td>
-
-                    <td
-                      className={`px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-400" : "border-slate-100 text-slate-500"}`}
-                    >
-                      {row.method || "Mastercard"}
-                    </td>
-
-                    <td
-                      className={`px-4 py-3 border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
-                    >
-                      <span
-                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                          row.status === "Delivered"
-                            ? "bg-green-100 text-green-600"
-                            : row.status === "Cancelled"
-                              ? "bg-red-100 text-red-600"
-                              : "bg-orange-100 text-orange-600"
-                        }`}
-                      >
-                        {row.status}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-center">
-                      <button className="text-blue-500 font-bold hover:underline">
-                        Details
-                      </button>
-                    </td>
+                    <th className="px-4 py-3 w-[100px] text-center font-semibold">
+                      Action
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+
+                <tbody
+                  className={`divide-y ${isDark ? "divide-slate-800" : "divide-slate-100"}`}
+                >
+                  {orders.map((row) => (
+                    <tr
+                      key={row.id}
+                      className={`text-[13px] transition-colors ${isDark ? "hover:bg-slate-800/40" : "hover:bg-gray-50/50"}`}
+                    >
+                      <td
+                        className={`px-4 py-3 text-center border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(row.id)}
+                          onChange={() => handleSelect(row.id)}
+                          className="rounded-sm accent-blue-600 cursor-pointer"
+                        />
+                      </td>
+
+                      <td
+                        className={`px-4 py-3 border-r font-medium ${isDark ? "border-slate-800 text-slate-200" : "border-slate-100 text-slate-700"}`}
+                      >
+                        {row.id}
+                      </td>
+
+                      <td
+                        className={`px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-400" : "border-slate-100 text-slate-500"}`}
+                      >
+                        {row.date}
+                      </td>
+
+                      <td
+                        className={`px-4 py-3 border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
+                      >
+                        <span
+                          className={`font-semibold ${isDark ? "text-slate-200" : "text-slate-900"}`}
+                        >
+                          {row.customer}
+                        </span>
+                      </td>
+
+                      <td
+                        className={`px-4 py-3 border-r font-bold ${isDark ? "border-slate-800 text-slate-200" : "border-slate-100 text-slate-900"}`}
+                      >
+                        {row.total}
+                      </td>
+
+                      <td
+                        className={`px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-400" : "border-slate-100 text-slate-500"}`}
+                      >
+                        {row.method || "Mastercard"}
+                      </td>
+
+                      <td
+                        className={`px-4 py-3 border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
+                      >
+                        <span
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                            row.status === "Delivered"
+                              ? "bg-green-100 text-green-600"
+                              : row.status === "Cancelled"
+                                ? "bg-red-100 text-red-600"
+                                : "bg-orange-100 text-orange-600"
+                          }`}
+                        >
+                          {row.status}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 text-center">
+                        <button className="text-blue-500 font-bold hover:underline">
+                          Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </Box>
     </StoreOwnerLayout>

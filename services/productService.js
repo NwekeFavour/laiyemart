@@ -40,7 +40,6 @@ export const useProductStore = create((set, get) => ({
       });
     }
   },
-
   // Create product
   createProduct: async (productData) => {
     const { token } = useAuthStore.getState();

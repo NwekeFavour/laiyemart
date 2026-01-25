@@ -170,24 +170,24 @@ const NewArrivalsSlider = ({ subtitle }) => {
           style={{ display: 'flex', gap: '20px', width: 'max-content' }}
         >
           {displayedProducts.map((product) => (
-            <motion.div key={product._id || product.id} style={{ width: cardWidthValue, flexShrink: 0 }}>
+            <motion.div className='shadow-lg! rounded-lg' key={product._id || product.id} style={{ width: cardWidthValue, flexShrink: 0 }}>
               <Box sx={{ position: 'relative', bgcolor: '#f9f9f9', aspectRatio: '3/4', mb: 2, borderRadius: '12px', overflow: 'hidden' }}>
                 <img
                   src={product.images?.[0]?.url || product.image || 'https://via.placeholder.com/400'}
                   alt={product.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
                 />
-                <Box sx={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', width: '90%' }}>
+                <Box sx={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', width: '100%' }}>
                     {getItemQty(product._id || product.id) === 0 ? (
                       <Button
+                        className='hover:bg-neutral-900!'
                         fullWidth
                         variant="contained"
                         onClick={() => handleCartAction(product, 'increment')}
                         startIcon={<ShoppingCartOutlined fontSize="small" />}
                         sx={{ 
-                          bgcolor: 'white', color: 'black', borderRadius: '8px', 
+                          bgcolor: 'black', color: 'white', 
                           fontWeight: '800', '&:hover': { bgcolor: '#f0f0f0' },
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
                         }}
                       >
                         Add to Cart
@@ -213,7 +213,7 @@ const NewArrivalsSlider = ({ subtitle }) => {
                     )}
                   </Box>
               </Box>
-              <Stack spacing={0.5}>
+              <Stack className='px-3 pb-2' spacing={0.5}>
                 <Typography variant="caption" color="text.secondary" fontWeight="700" sx={{ opacity: 0.6 }}>{product.brand}</Typography>
                 <Typography variant="body2" fontWeight="700" noWrap>{product.name}</Typography>
                 <Typography variant="body2" fontWeight="800">₦{(product.price || 0).toLocaleString()}</Typography>

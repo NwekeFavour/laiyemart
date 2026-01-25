@@ -41,28 +41,37 @@ import {
   ChevronRight,
   UploadCloud,
   X,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import StoreOwnerLayout from "./layout";
 import { useProductStore } from "../../../services/productService";
 import { useCategoryStore } from "../../../services/categoryService";
 import { useAuthStore } from "../../store/useAuthStore";
 import { toast } from "react-toastify";
+import { Switch } from "@mui/material";
 
-export default function ProductsPage({isDark , toggleDarkMode}) {
+export default function ProductsPage({ isDark, toggleDarkMode }) {
   const fileInputRef = useRef(null);
-  const { products, createProduct, fetchMyProducts, loading, updateProduct, deleteProduct } =
-    useProductStore();
+  const {
+    products,
+    createProduct,
+    fetchMyProducts,
+    loading,
+    updateProduct,
+    deleteProduct,
+  } = useProductStore();
   const { categories, getCategories, createCategory } = useCategoryStore();
   const [error, setError] = useState(null);
   const { store } = useAuthStore();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const storeId = store?._id;
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [isUnlimited, setIsUnlimited] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [images, setImages] = useState([]); // This fixes the "images is not defined" error
   const [submitting, setSubmitting] = useState(false); // This fixes the button loading error
-      const MAX_IMAGES = 4;
+  const MAX_IMAGES = 4;
   const [sortConfig, setSortConfig] = useState({
     key: "name",
     direction: "asc",
@@ -102,23 +111,23 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handleQuickCategorySubmit = async () => {
-  if (!newCatName.trim()) return toast.error("Enter a category name");
-  setIsCreatingCat(true);
-  try {
-    await createCategory({
-      storeId: store?._id,
-      name: newCatName,
-      isFeatured: false
-    });
-    toast.success("Category created!");
-    setNewCatName("");
-    setShowQuickCategory(false); // Hide the section after success
-  } catch (err) {
-    toast.error(err.message || "Failed to create category");
-  } finally {
-    setIsCreatingCat(false);
-  }
-};
+    if (!newCatName.trim()) return toast.error("Enter a category name");
+    setIsCreatingCat(true);
+    try {
+      await createCategory({
+        storeId: store?._id,
+        name: newCatName,
+        isFeatured: false,
+      });
+      toast.success("Category created!");
+      setNewCatName("");
+      setShowQuickCategory(false); // Hide the section after success
+    } catch (err) {
+      toast.error(err.message || "Failed to create category");
+    } finally {
+      setIsCreatingCat(false);
+    }
+  };
   // console.log(products)
   const removeImage = (id) => {
     setImages((prev) => prev.filter((img) => img.id !== id));
@@ -130,6 +139,8 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
     setPrice(product.price);
     setInventory(product.inventory);
     setCategory(product.category);
+    setIsFeatured(!!product.isFeatured);
+    setIsUnlimited(!!product.isUnlimited);
     // Convert existing image URLs to your state format if needed
     setImages(
       product.images.map((img) => ({
@@ -146,100 +157,122 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
   }, [getCategories]);
   // console.log(categories)
 
-      const handleMultiFileChange = (event) => {
-          const files = Array.from(event.target.files);
-          const remainingSlots = MAX_IMAGES - images.length;
-          
-          // Only take what we have room for
-          files.slice(0, remainingSlots).forEach((file) => {
-              const newImage = {
-              id: Math.random().toString(36),
-              url: URL.createObjectURL(file),
-              file,
-              progress: 0,
-              isUploading: true
-              };
-              
-              setImages(prev => [...prev, newImage]);
-              simulateUpload(newImage.id);
-          });
-      };
-  
-      const simulateUpload = (id) => {
-      let progress = 0;
-      const interval = setInterval(() => {
-          progress += 10;
-          setImages(prev => prev.map(img => 
-          img.id === id ? { ...img, progress: progress, isUploading: progress < 100 } : img
-          ));
-          if (progress >= 100) clearInterval(interval);
-      }, 150);
+  const handleMultiFileChange = (event) => {
+    const files = Array.from(event.target.files);
+    const remainingSlots = MAX_IMAGES - images.length;
+
+    // Only take what we have room for
+    files.slice(0, remainingSlots).forEach((file) => {
+      const newImage = {
+        id: Math.random().toString(36),
+        url: URL.createObjectURL(file),
+        file,
+        progress: 0,
+        isUploading: true,
       };
 
-      const handleCreateProduct = async () => {
-        if (!name || !price || images.length === 0) {
-          toast.error("Please provide at least a name, price, and cover image.");
-          return;
-        }
-  
-        const isTrialExpired = store?.plan === "TRIAL" &&  (new Date(store.trialEndsAt) - new Date() <= 0);
-        if (isTrialExpired) {
-          toast.error("Access Denied: Your trial has expired. Please upgrade to continue.", {
-              icon: "🚫",
-              style: { borderRadius: '12px' }
-          });
-          return; // Stop execution
-        }
-  
-        try {
-          setSubmitting(true);
-            const formData = new FormData();
-            formData.append("name", name);
-            formData.append("price", Number(price) || 0);       // ✅ ensure number
-            formData.append("description", description);
-            formData.append("category", category);
-            formData.append("inventory", Number(inventory) || 0); // ✅ ensure number      
-            images.forEach((img) => {
-            formData.append("images", img.file);
-          });
-  
-        // for (let [key, value] of formData.entries()) {
-        //   console.log(key, value);
-        // }
-        await createProduct(formData) 
-        resetProductForm();
-          // Reset Form
-          setIsDrawerOpen(false);
-          setName(""); setPrice(""); setDescription(""); setCategory(""); setImages([]); setInventory("");
-          fetchMyProducts(); // Refresh list
-        } catch (err) {
-            console.log("Full Error Object:", err);
-            const errorMsg = err.response?.data?.message || "Failed to create product"; 
-        // Extract the specific message: "Product limit reached"
-          const errorMessage = 
-            err.response?.data?.message || 
-            err.response?.data?.error ||   // Some APIs use 'error' key
-            err.message ||                 // Axios default (e.g., "Network Error")
-            "Failed to create product";
-  
-            if (errorMsg.includes("limit")) {
-                toast.error("🚀 Product limit reached! Please upgrade your plan.", {
-                    icon: "⚠️",
-                    style: { borderRadius: '12px' }
-                });
-            } else {
-                toast.error(errorMsg);
-            }
-          setError(errorMessage);
-  
-          // If it's a limit issue, don't clear it too fast so they can read it
-          const displayTime = errorMessage.includes("limit") ? 8000 : 7000;
-          setTimeout(() => setError(""), displayTime);
-  
-        } finally {
-        setSubmitting(false);
-        }
-      };
+      setImages((prev) => [...prev, newImage]);
+      simulateUpload(newImage.id);
+    });
+  };
+
+  const simulateUpload = (id) => {
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      setImages((prev) =>
+        prev.map((img) =>
+          img.id === id
+            ? { ...img, progress: progress, isUploading: progress < 100 }
+            : img,
+        ),
+      );
+      if (progress >= 100) clearInterval(interval);
+    }, 150);
+  };
+
+  const handleCreateProduct = async () => {
+    if (
+      !name ||
+      !price ||
+      (!isUnlimited && !inventory) ||
+      images.length === 0
+    ) {
+      toast.error("Please provide at least a name, price, and cover image.");
+      return;
+    }
+
+    const isTrialExpired =
+      store?.plan === "TRIAL" && new Date(store.trialEndsAt) - new Date() <= 0;
+    if (isTrialExpired) {
+      toast.error(
+        "Access Denied: Your trial has expired. Please upgrade to continue.",
+        {
+          icon: "🚫",
+          style: { borderRadius: "12px" },
+        },
+      );
+      return; // Stop execution
+    }
+
+    try {
+      setSubmitting(true);
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("price", Number(price) || 0); // ✅ ensure number
+      formData.append("description", description);
+      formData.append("category", category);
+      formData.append("inventory", isUnlimited ? 0 : Number(inventory)); // ✅ ensure number
+      formData.append("isUnlimited", isUnlimited ? "true" : "false");
+      formData.append("isFeatured", isFeatured ? "true" : "false");
+      images.forEach((img) => {
+        formData.append("images", img.file);
+      });
+
+      // for (let [key, value] of formData.entries()) {
+      //   console.log(key, value);
+      // }
+      await createProduct(formData);
+      resetProductForm();
+      // Reset Form
+      setIsDrawerOpen(false);
+      setName("");
+      setPrice("");
+      setDescription("");
+      setCategory("");
+      setImages([]);
+      setInventory("");
+      setIsFeatured(false);
+      setIsUnlimited(false);
+      fetchMyProducts(); // Refresh list
+    } catch (err) {
+      console.log("Full Error Object:", err);
+      const errorMsg =
+        err.response?.data?.message || "Failed to create product";
+      // Extract the specific message: "Product limit reached"
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error || // Some APIs use 'error' key
+        err.message || // Axios default (e.g., "Network Error")
+        "Failed to create product";
+
+      if (errorMsg.includes("limit")) {
+        toast.error("🚀 Product limit reached! Please upgrade your plan.", {
+          icon: "⚠️",
+          style: { borderRadius: "12px" },
+        });
+      } else {
+        toast.error(errorMsg);
+      }
+      setError(errorMessage);
+
+      // If it's a limit issue, don't clear it too fast so they can read it
+      const displayTime = errorMessage.includes("limit") ? 8000 : 7000;
+      setTimeout(() => setError(""), displayTime);
+    } finally {
+      setSubmitting(false);
+    }
+  };
   // Handle actual update
   const handleUpdateProduct = async () => {
     // 1. Basic Validation check before starting
@@ -260,6 +293,8 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
       formData.append("price", price);
       formData.append("inventory", inventory);
       formData.append("category", category);
+      formData.append("isFeatured", isFeatured);
+      formData.append("isUnlimited", isUnlimited);
 
       const keptImageIds = images
         .filter((img) => img.isExisting)
@@ -308,17 +343,24 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
     return { label: "In Stock", color: "success" };
   };
   // console.log(products)
-  const hoverRow = "hover:bg-gray-50!";
+  const hoverRow = ` ${isDark ? "hover:bg-gray-800/40!" : "hover:bg-gray-50!"}`;
   const filteredProducts = products.filter((product) => {
-  const query = search.toLowerCase();
-  
-  // Safely handle category by falling back to an empty string if it's null/undefined
-  const categoryMatch = (product.category ?? "").toLowerCase().includes(query);
-  const nameMatch = (product.name ?? "").toLowerCase().includes(query);
-  const idMatch = (product._id ?? "").toLowerCase().includes(query);
+    const query = search.trim().toLowerCase();
 
-  return nameMatch || categoryMatch || idMatch;
-});
+    if (!query) return true;
+
+    const name = (product.name ?? "").toLowerCase();
+    const category = (product.category ?? "").toLowerCase();
+    const id = (product._id ?? "").toLowerCase();
+
+    // ID: allow partial match anywhere
+    if (id.startsWith(query)) return true;
+
+    // Name / category: match word beginnings only
+    const words = `${name} ${category}`.split(/\s+/);
+
+    return words.some((word) => word.startsWith(query));
+  });
 
   const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
   const sortedProducts = useMemo(() => {
@@ -360,7 +402,6 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
 
   const borderColor = "border-slate-100";
 
-
   const resetProductForm = () => {
     setName("");
     setDescription("");
@@ -385,13 +426,17 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
         >
           <Box>
             <Typography
-              className={`${isDark ? "text-slate-200!": ""}`}
+              className={`${isDark ? "text-slate-200!" : ""}`}
               level="h2"
               sx={{ fontSize: "24px", fontWeight: 800, color: "#0f172a" }}
             >
               Products
             </Typography>
-            <Typography className={`${isDark ? "text-slate-400!": ""}`} level="body-sm" sx={{ color: "#64748b" }}>
+            <Typography
+              className={`${isDark ? "text-slate-400!" : ""}`}
+              level="body-sm"
+              sx={{ color: "#64748b" }}
+            >
               Manage your inventory and product listings
             </Typography>
           </Box>
@@ -399,10 +444,16 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
 
         <Box
           className={`border-b!  rounded-t-xl rounded-b-xl`}
-          sx={{ bgcolor: isDark ? "#020618": "white", border:isDark ? "1px solid #314158": "1px solid #e2e8f0" }}
+          sx={{
+            bgcolor: isDark ? "#020618" : "white",
+            border: isDark ? "1px solid #314158" : "1px solid #e2e8f0",
+          }}
         >
           {/* 2. Search & Export Bar */}
-          <Box className={`${isDark ? "border-[#314158]!" :"border-slate-100"} border-b `} sx={{ p: 2 }}>
+          <Box
+            className={`${isDark ? "border-[#314158]!" : "border-slate-100"} border-b `}
+            sx={{ p: 2 }}
+          >
             <Box
               className="justify-end!"
               sx={{
@@ -421,7 +472,7 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                   sx={{
                     borderRadius: "md",
                     width: { xs: "100%", sm: 250 },
-                    bgcolor: isDark ? "#020618": "#f8fafc",
+                    bgcolor: isDark ? "#020618" : "#f8fafc",
                     "&::before": {
                       display: "none",
                     },
@@ -436,7 +487,10 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
               </Box>
               <Button
                 className="md:mt-0! mt-3! md:px-3! px-2! md:text-[15px]! text-[14px]!  hover:bg-slate-800/90!"
-                onClick={() => {resetProductForm(); setIsDrawerOpen(true);}}
+                onClick={() => {
+                  resetProductForm();
+                  setIsDrawerOpen(true);
+                }}
                 variant="solid"
                 startDecorator={<Plus size={18} />}
                 sx={{
@@ -465,21 +519,27 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                 "--TableCell-paddingX": "16px",
                 "--TableCell-paddingY": "14px",
                 "& thead th": {
-                  bgcolor: isDark ? "#1d293d": "transparent",
+                  bgcolor: isDark ? "#1d293d" : "transparent",
                   color: "#90a1b9",
                   fontWeight: 600,
-                  borderRight: isDark ? "1px solid #314158": "1px solid #e2e8f0",
+                  borderRight: isDark
+                    ? "1px solid #314158"
+                    : "1px solid #e2e8f0",
                   "&:last-child": { borderRight: "none" },
                 },
                 "& tbody td": {
-                  borderRight:  isDark ? "1px solid #314158" : "1px solid #e2e8f0 ",
-                  borderBottom: isDark ? "1px solid #314158" : "1px solid #e2e8f0 ",
+                  borderRight: isDark
+                    ? "1px solid #314158"
+                    : "1px solid #e2e8f0 ",
+                  borderBottom: isDark
+                    ? "1px solid #314158"
+                    : "1px solid #e2e8f0",
                   "&:last-child": { borderRight: "none" },
                 },
               }}
             >
               <thead>
-                <tr >
+                <tr>
                   <th style={{ width: 48, textAlign: "center" }}>
                     <Checkbox size="sm" />
                   </th>
@@ -488,6 +548,7 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                     { label: "Product", width: 220 },
                     { label: "Price", width: 130 },
                     { label: "Stock", width: 120 },
+                    { label: "Featured", width: 120 },
                     { label: "Created", width: 130 },
                     { label: "Updated", width: 130 },
                   ].map((column) => {
@@ -496,13 +557,14 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                       Product: "name",
                       Price: "price",
                       Stock: "inventory",
+                      Featured: "featured",
                       Created: "created",
                       Updated: "updated",
                     };
                     const fieldKey = keyMap[column.label];
 
                     return (
-                      <th 
+                      <th
                         key={column.label}
                         style={{ width: column.width, minWidth: column.width }}
                       >
@@ -516,8 +578,7 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                           }}
                         >
                           <Typography
-                          className="text-[13px]! font-[500]!"
-                          
+                            component="span"
                             level="title-sm"
                             sx={{ color: "inherit", whiteSpace: "nowrap" }}
                           >
@@ -631,16 +692,14 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                     );
                   })}
                   <th className="" style={{ width: 120, textAlign: "center" }}>
-                    <p className="flex items-center justify-center h-[30px]">
-                      Actions
-                    </p>
+                    Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className={`${isDark ? "bg-slate-950!": ""}`}>
+              <tbody className={`${isDark ? "bg-slate-950!" : ""}`}>
                 {loading ? (
                   // 2. LOADING STATE
-                  [...Array(5)].map((_, i) => (
+                  [...Array(6)].map((_, i) => (
                     <tr key={`skeleton-row-${i}`} className="animate-pulse">
                       <td style={{ textAlign: "center" }}>
                         <div className="h-4 w-4 bg-slate-200  rounded mx-auto" />
@@ -675,11 +734,14 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                       <td>
                         <div className="h-8 w-24 bg-slate-200  rounded ml-auto" />
                       </td>
+                      <td>
+                        <div className="h-8 w-24 bg-slate-200  rounded ml-auto" />
+                      </td>
                     </tr>
                   ))
                 ) : products?.length === 0 ? (
                   <tr>
-                    <td colSpan={8}>
+                    <td colSpan={9}>
                       <Box
                         sx={{
                           py: 10,
@@ -693,7 +755,12 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                         <div className="p-4 bg-blue-50 dark:bg-slate-800 rounded-full text-blue-500">
                           <Plus size={32} />
                         </div>
-                        <Typography className={`${isDark ? "text-slate-200!": ""}`} level="h4">No products found</Typography>
+                        <Typography
+                          className={`${isDark ? "text-slate-200!" : ""}`}
+                          level="h4"
+                        >
+                          No products found
+                        </Typography>
                         <Typography
                           level="body-sm"
                           sx={{ maxWidth: 300, mb: 1 }}
@@ -704,10 +771,10 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                       </Box>
                     </td>
                   </tr>
-                ) : paginatedProducts.length === 0 ? (
+                ) : filteredProducts.length === 0 ? (
                   /* 3. SEARCH IS EMPTY (Products exist, but search query matches nothing) */
                   <tr>
-                    <td colSpan={8}>
+                    <td colSpan={9}>
                       <Box
                         sx={{
                           py: 10,
@@ -718,10 +785,15 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                         }}
                       >
                         <Search size={48} className="text-slate-300 mb-4" />
-                        <Typography level="h4" sx={{ color: "text.primary" }}>
+                        <Typography
+                          className={`${isDark ? "text-slate-200!" : ""}`}
+                          level="h4"
+                          sx={{ color: "text.primary" }}
+                        >
                           No results for "{search}"
                         </Typography>
                         <Typography
+                          className={`${isDark ? "text-slate-400!" : ""}`}
                           level="body-sm"
                           sx={{ mb: 3, maxWidth: 300 }}
                         >
@@ -750,13 +822,15 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
 
                         <td>
                           <Typography
+                            className={`${isDark ? "text-slate-200!" : ""}`}
                             sx={{
                               fontWeight: 700,
                               fontSize: "14px",
                               color: "#475569",
                             }}
                           >
-                            PROD - {item?._id?.slice(-6).toUpperCase() || "......"}
+                            PROD -{" "}
+                            {item?._id?.slice(-6).toUpperCase() || "......"}
                           </Typography>
                         </td>
 
@@ -791,8 +865,9 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                             </Box>
 
                             <Typography
+                              className={`${isDark ? "text-slate-200!" : ""}`}
                               sx={{
-                                fontWeight: 600,
+                                fontWeight: isDark ? 400 : 600,
                                 fontSize: "14px",
                                 color: "#0f172a",
                               }}
@@ -804,8 +879,9 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
 
                         <td>
                           <Typography
+                            className={`${isDark ? "text-slate-200!" : ""}`}
                             sx={{
-                              fontWeight: 800,
+                              fontWeight: isDark ? 400 : 800,
                               color: "#0f172a",
                               fontSize: "14px",
                             }}
@@ -813,17 +889,44 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                             ₦{item?.price?.toLocaleString()}
                           </Typography>
                         </td>
+                        <td>
+                          {item.isUnlimited ? (
+                            <Chip size="sm" variant="soft" color="primary">
+                              Unlimited
+                            </Chip>
+                          ) : (
+                            <Typography
+                              component="div"
+                              sx={{ fontSize: "14px", color: "#64748b" }}
+                            >
+                              {item.inventory} units
+                            </Typography>
+                          )}
+                        </td>
 
                         <td>
-                          <Typography
-                            sx={{ fontSize: "14px", color: "#64748b" }}
-                          >
-                            {item.inventory} units
-                          </Typography>
+                          {item.isFeatured ? (
+                            <Chip
+                              size="sm"
+                              variant="soft"
+                              color="warning"
+                              startDecorator="⭐"
+                            >
+                              Featured
+                            </Chip>
+                          ) : (
+                            <Typography
+                              component="span"
+                              sx={{ fontSize: "14px", color: "#64748b" }}
+                            >
+                              Standard
+                            </Typography>
+                          )}
                         </td>
 
                         <td>
                           <Typography
+                            className={`${isDark ? "text-slate-200!" : ""}`}
                             sx={{ fontSize: "14px", color: "#64748b" }}
                           >
                             {item.createdAt
@@ -841,6 +944,7 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
 
                         <td>
                           <Typography
+                            className={`${isDark ? "text-slate-200!" : ""}`}
                             sx={{ fontSize: "14px", color: "#64748b" }}
                           >
                             {item.updatedAt
@@ -865,13 +969,18 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                             }}
                           >
                             <IconButton
+                              className={`${isDark && "hover:bg-transparent!"}`}
                               size="sm"
                               variant="plain"
                               onClick={() => handleEditOpen(item)} // Edit trigger
                             >
-                              <Edit size={16} />
+                              <Edit
+                                className={`${isDark ? "text-slate-200!" : ""}`}
+                                size={16}
+                              />
                             </IconButton>
                             <IconButton
+                              className={`${isDark ? "bg-slate-200!" : ""}`}
                               size="sm"
                               variant="plain"
                               color="danger"
@@ -887,41 +996,6 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                       </tr>
                     );
                   })
-                )}
-                {/* Inside your Table or Grid container */}
-                {search.trim() !== "" && (
-                  <tr>
-                    <td colSpan={7}>
-                      {" "}
-                      {/* Replace 6 with the number of columns in your table */}
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          py: 10,
-                          textAlign: "center",
-                          width: "100%", // Now it will take the full width of the table
-                        }}
-                      >
-                        <Typography level="h4" sx={{ color: "text.secondary" }}>
-                          No products found
-                        </Typography>
-                        <Typography level="body-sm" sx={{ mb: 2 }}>
-                          Try adjusting your search for "{search}" to find what
-                          you're looking for.
-                        </Typography>
-                        <Button
-                          variant="soft"
-                          size="sm"
-                          onClick={() => setSearch("")}
-                        >
-                          Clear Search
-                        </Button>
-                      </Box>
-                    </td>
-                  </tr>
                 )}
               </tbody>
             </Table>
@@ -972,7 +1046,10 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
           content: { sx: { width: { xs: "100%", sm: 450 }, p: 0 } },
         }}
       >
-        <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <Box
+          className={`${isDark && "bg-[#0f172a]!"}`}
+          sx={{ display: "flex", flexDirection: "column", height: "100%" }}
+        >
           <Box
             sx={{
               p: 3,
@@ -982,18 +1059,27 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
               alignItems: "center",
             }}
           >
-            <Typography level="h4" sx={{ fontWeight: 800 }}>
+            <Typography
+              className={`${isDark && "text-slate-200!"}`}
+              level="h4"
+              sx={{ fontWeight: 800 }}
+            >
               Edit Product
             </Typography>
-            <ModalClose sx={{ position: "static" }} />
+            <ModalClose
+              className={`${isDark && "text-slate-200!"}`}
+              sx={{ position: "static", color: isDark && "#e2e8f0" }}
+            />
           </Box>
 
           <DialogContent sx={{ p: 3, overflowY: "auto" }}>
             <Stack spacing={3}>
               {/* MEDIA SECTION - Reusing your existing media logic */}
               <FormControl>
-
-                <FormLabel sx={{ fontWeight: 600, mb: 1 }}>
+                <FormLabel
+                  className={`${isDark && "text-slate-400!"}`}
+                  sx={{ fontWeight: 600, mb: 1 }}
+                >
                   Product Media
                 </FormLabel>
                 <Stack spacing={2}>
@@ -1107,7 +1193,7 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                     {/* Hidden Input Field */}
                     <input
                       type="file"
-                      accept="image/*"
+                      accept=".jpg, .jpeg, .png, .webp, .avif"
                       ref={fileInputRef}
                       style={{ display: "none" }}
                       onChange={handleFileChange}
@@ -1115,6 +1201,7 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
 
                     {images.length < 5 && (
                       <Button
+                        className={`${isDark && "text-slate-200! border-dashed!"}`}
                         variant="dashed"
                         color="neutral"
                         onClick={() => fileInputRef.current.click()} // <--- Triggers the hidden input
@@ -1127,7 +1214,12 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                         }}
                       >
                         <Plus size={20} />
-                        <Typography level="body-xs">Add</Typography>
+                        <Typography
+                          className={`${isDark && "text-slate-200!"}`}
+                          level="body-xs"
+                        >
+                          Add
+                        </Typography>
                       </Button>
                     )}
                   </Box>
@@ -1135,33 +1227,82 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
               </FormControl>
 
               <FormControl required>
-                <FormLabel>Product Name</FormLabel>
+                <FormLabel className={`${isDark && "text-slate-400!"}`}>
+                  Product Name
+                </FormLabel>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   variant="soft"
                   sx={{
                     borderRadius: "lg",
+                    // ✅ Select styling for dark mode
+                    bgcolor: isDark ? "transparent" : "neutral.100",
+                    color: isDark ? "#f1f5f9" : "inherit",
+                    border: isDark
+                      ? "1px solid #334155"
+                      : "1px solid transparent",
                     "&::before": { display: "none" },
-                    "&:focus-within": { outline: "none" },
+                    "&:hover": {
+                      bgcolor: isDark ? "transparent" : "neutral.200",
+                    },
+                    // Target the icon
+                    "& .MuiSelect-indicator": {
+                      color: isDark ? "#94a3b8" : "inherit",
+                    },
+                  }}
+                  slotProps={{
+                    listbox: {
+                      sx: {
+                        // ✅ Dropdown menu styling
+                        bgcolor: isDark ? "#0f172a" : "background.surface",
+                        borderColor: isDark ? "#334155" : "divider",
+                        boxShadow: "xl",
+                        color: isDark ? "#f1f5f9" : "inherit",
+                        "& .MuiOption-root:hover": {
+                          bgcolor: isDark ? "#1e293b" : "neutral.100",
+                        },
+                      },
+                    },
                   }}
                 />
               </FormControl>
 
               <FormControl>
-                <FormLabel>Description</FormLabel>
+                <FormLabel className={`${isDark && "text-slate-400!"}`}>
+                  Description
+                </FormLabel>
                 <Textarea
+                  className={`${isDark && "placeholder:text-slate-200! text-slate-200!"}`}
                   minRows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   variant="soft"
-                  sx={{ borderRadius: "lg", "&::before": { display: "none" } }}
+                  sx={{
+                    bgcolor: isDark ? "transparent" : "",
+                    border: isDark ? "1px solid #314158" : "none",
+                    borderRadius: "lg",
+                    // 1. Remove the focus ring pseudo-element
+                    "&::before": {
+                      display: "none",
+                    },
+                    // 2. Remove the default focus border/shadow
+                    "&:focus-within": {
+                      outline: "none",
+                      border: "none",
+                    },
+                  }}
                 />
               </FormControl>
 
               <Stack spacing={2.5}>
                 <FormControl required>
-                  <FormLabel sx={{ fontWeight: 600 }}>Price</FormLabel>
+                  <FormLabel
+                    className={`${isDark && "text-slate-400!"}`}
+                    sx={{ fontWeight: 600 }}
+                  >
+                    Price
+                  </FormLabel>
                   <Input
                     type="number"
                     value={price}
@@ -1172,23 +1313,89 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                     variant="soft"
                     sx={{
                       borderRadius: "lg",
+                      // ✅ Select styling for dark mode
+                      bgcolor: isDark ? "transparent" : "neutral.100",
+                      color: isDark ? "#f1f5f9" : "inherit",
+                      border: isDark
+                        ? "1px solid #334155"
+                        : "1px solid transparent",
                       "&::before": { display: "none" },
+                      "&:hover": {
+                        bgcolor: isDark ? "transparent" : "neutral.200",
+                      },
+                      // Target the icon
+                      "& .MuiSelect-indicator": {
+                        color: isDark ? "#94a3b8" : "inherit",
+                      },
+                    }}
+                    slotProps={{
+                      listbox: {
+                        sx: {
+                          // ✅ Dropdown menu styling
+                          bgcolor: isDark ? "#0f172a" : "background.surface",
+                          borderColor: isDark ? "#334155" : "divider",
+                          boxShadow: "xl",
+                          color: isDark ? "#f1f5f9" : "inherit",
+                          "& .MuiOption-root:hover": {
+                            bgcolor: isDark ? "#1e293b" : "neutral.100",
+                          },
+                        },
+                      },
                     }}
                   />
                 </FormControl>
 
                 {/* ... Category and Inventory Selects ... */}
                 <FormControl required>
-                  <FormLabel sx={{ fontWeight: 600 }}>Category</FormLabel>
+                  <FormLabel
+                    className={`${isDark && "text-slate-400!"}`}
+                    sx={{ fontWeight: 600 }}
+                  >
+                    Category
+                  </FormLabel>
                   <Select
                     placeholder="Select a category"
                     value={category} // Tied to state const [category, setCategory] = useState("");
                     onChange={(_, newValue) => setCategory(newValue)}
                     variant="soft"
-                    sx={{ borderRadius: "lg" }}
+                    sx={{
+                      borderRadius: "lg",
+                      // ✅ Select styling for dark mode
+                      bgcolor: isDark ? "transparent" : "neutral.100",
+                      color: isDark ? "#f1f5f9" : "inherit",
+                      border: isDark
+                        ? "1px solid #334155"
+                        : "1px solid transparent",
+                      "&::before": { display: "none" },
+                      "&:hover": {
+                        bgcolor: isDark ? "transparent" : "neutral.200",
+                      },
+                      // Target the icon
+                      "& .MuiSelect-indicator": {
+                        color: isDark ? "#94a3b8" : "inherit",
+                      },
+                    }}
+                    slotProps={{
+                      listbox: {
+                        sx: {
+                          // ✅ Dropdown menu styling
+                          bgcolor: isDark ? "#0f172a" : "background.surface",
+                          borderColor: isDark ? "#334155" : "divider",
+                          boxShadow: "xl",
+                          color: isDark ? "#f1f5f9" : "inherit",
+                          "& .MuiOption-root:hover": {
+                            bgcolor: isDark ? "#1e293b" : "neutral.100",
+                          },
+                        },
+                      },
+                    }}
                   >
                     {categories.map((cat) => (
-                      <Option key={cat._id} value={cat._id}>
+                      <Option
+                        className={`${isDark ? "bg-transparent! text-slate-200!" : ""}`}
+                        key={cat._id}
+                        value={cat._id}
+                      >
                         {cat.name}
                       </Option>
                     ))}
@@ -1197,7 +1404,10 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
 
                 {/* INVENTORY INPUT */}
                 <FormControl required>
-                  <FormLabel sx={{ fontWeight: 600 }}>
+                  <FormLabel
+                    className={`${isDark && "text-slate-400!"}`}
+                    sx={{ fontWeight: 600 }}
+                  >
                     Inventory / Stock
                   </FormLabel>
                   <Input
@@ -1210,17 +1420,130 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                     variant="soft"
                     sx={{
                       borderRadius: "lg",
+                      // ✅ Select styling for dark mode
+                      bgcolor: isDark ? "transparent" : "neutral.100",
+                      color: isDark ? "#f1f5f9" : "inherit",
+                      border: isDark
+                        ? "1px solid #334155"
+                        : "1px solid transparent",
                       "&::before": { display: "none" },
+                      "&:hover": {
+                        bgcolor: isDark ? "transparent" : "neutral.200",
+                      },
+                      // Target the icon
+                      "& .MuiSelect-indicator": {
+                        color: isDark ? "#94a3b8" : "inherit",
+                      },
+                    }}
+                    slotProps={{
+                      listbox: {
+                        sx: {
+                          // ✅ Dropdown menu styling
+                          bgcolor: isDark ? "#0f172a" : "background.surface",
+                          borderColor: isDark ? "#334155" : "divider",
+                          boxShadow: "xl",
+                          color: isDark ? "#f1f5f9" : "inherit",
+                          "& .MuiOption-root:hover": {
+                            bgcolor: isDark ? "#1e293b" : "neutral.100",
+                          },
+                        },
+                      },
                     }}
                   />
                 </FormControl>
+                {/* Add this after the Inventory FormControl inside the Stack */}
+
+                <Stack direction="row" spacing={3} sx={{ mt: 1 }}>
+                  {/* FEATURED TOGGLE */}
+                  <FormControl
+                    orientation="horizontal"
+                    sx={{ justifyContent: "space-between", flexGrow: 1 }}
+                  >
+                    <div>
+                      <FormLabel
+                        className={`${isDark && "text-slate-400!"}`}
+                        sx={{ mb: 0 }}
+                      >
+                        Featured Product
+                      </FormLabel>
+                      <Typography className={`${isDark && "text-slate-200!"}`} level="body-xs">
+                        Appear on home page
+                      </Typography>
+                    </div>
+                    <Switch
+                      checked={isFeatured} // const [isFeatured, setIsFeatured] = useState(false);
+                      onChange={(event) => setIsFeatured(event.target.checked)}
+                      color={isFeatured ? "success" : "neutral"}
+                      variant={isFeatured ? "solid" : "outlined"}
+                      slotProps={{
+                        track: {
+                          sx: {
+                            bgcolor: isFeatured
+                              ? isDark
+                                ? "#22c55e"
+                                : "#16a34a"
+                              : isDark
+                                ? "#334155"
+                                : "",
+                          },
+                        },
+                      }}
+                    />
+                  </FormControl>
+
+                  {/* UNLIMITED TOGGLE */}
+                  <FormControl
+                    orientation="horizontal"
+                    sx={{ justifyContent: "space-between", flexGrow: 1 }}
+                  >
+                    <div>
+                      <FormLabel
+                        className={`${isDark && "text-slate-400!"}`}
+                        sx={{ mb: 0 }}
+                      >
+                        Unlimited Stock
+                      </FormLabel>
+                      <Typography className={`${isDark && "text-slate-200!"}`} level="body-xs">
+                        Disable stock limits
+                      </Typography>
+                    </div>
+                    <Switch
+                      checked={isUnlimited} // const [isUnlimited, setIsUnlimited] = useState(false);
+                      onChange={(event) => {
+                        setIsUnlimited(event.target.checked);
+                        if (event.target.checked) setInventory(99999); // Optional: default high value
+                      }}
+                      color={isUnlimited ? "primary" : "neutral"}
+                      variant={isUnlimited ? "solid" : "outlined"}
+                      slotProps={{
+                        track: {
+                          sx: {
+                            bgcolor: isUnlimited
+                              ? isDark
+                                ? "#3b82f6"
+                                : "#2563eb"
+                              : isDark
+                                ? "#334155"
+                                : "",
+                          },
+                        },
+                      }}
+                    />
+                  </FormControl>
+                </Stack>
               </Stack>
             </Stack>
           </DialogContent>
 
-          <Box sx={{ p: 3, borderTop: "1px solid #eee", bgcolor: "white" }}>
+          <Box
+            sx={{
+              p: 3,
+              borderTop: "1px solid #eee",
+              bgcolor: isDark ? "#020618" : "white",
+            }}
+          >
             <Button
-              className="bg-slate-900/90! hover:bg-slate-800!"
+              className={`${isDark ? "bg-neutral-100/90! text-slate-900! hover:bg-slate-200!" : "bg-slate-900/90! hover:bg-slate-800!"}`}
               fullWidth
               size="lg"
               loading={submitting}
@@ -1300,247 +1623,375 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
       </Modal>
 
       {/* Product Creation Drawer */}
-        <Drawer
-          anchor="right"
-          open={isDrawerOpen}
-          onClose={() => {
-            if (!submitting) {
-              resetProductForm();
-              setIsDrawerOpen(false);
-            }
-          }} 
-          slotProps={{ content: { sx: { width: { xs: '100%', sm: 450 }, p: 0 } } }}
+      <Drawer
+        anchor="right"
+        open={isDrawerOpen}
+        onClose={() => {
+          if (!submitting) {
+            resetProductForm();
+            setIsDrawerOpen(false);
+          }
+        }}
+        slotProps={{
+          content: { sx: { width: { xs: "100%", sm: 450 }, p: 0 } },
+        }}
+      >
+        <Box
+          className={`${isDark ? "bg-[#0f172a]" : ""}`}
+          sx={{ display: "flex", flexDirection: "column", height: "100%" }}
         >
-          <Box 
-            className={`${isDark ? "bg-slate-950" : ""}`}
-           sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <Box sx={{ p: 3, borderBottom: isDark ? "1px solid #314158" : '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="h4" sx={{ fontWeight: 800 }}>Add New Product</Typography>
-              <ModalClose sx={{ position: 'static' }} />
-            </Box>
+          <Box
+            sx={{
+              p: 3,
+              borderBottom: isDark ? "1px solid #314158" : "1px solid #eee",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography
+              className={`${isDark ? "text-slate-200!" : ""}`}
+              level="h4"
+              sx={{ fontWeight: 800 }}
+            >
+              Add New Product
+            </Typography>
+            <ModalClose sx={{ position: "static" }} />
+          </Box>
 
-            <DialogContent sx={{ p: 3, overflowY: 'auto' }}>
-                {/* --- DYNAMIC ERROR BANNER START --- */}
-                {error && (
-                    <Sheet
-                    variant="solid"
-                    color="danger"
-                    invertedColors
+          <DialogContent sx={{ p: 3, overflowY: "auto" }}>
+            {/* --- DYNAMIC ERROR BANNER START --- */}
+            {error && (
+              <Sheet
+                variant="solid"
+                color="danger"
+                invertedColors
+                sx={{
+                  mb: 3,
+                  p: 2,
+                  borderRadius: "xl",
+                  background:
+                    "linear-gradient(45deg, #dc2626 0%, #991b1b 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  animation: "shake 0.5s cubic-bezier(.36,.07,.19,.97) both",
+                  "@keyframes shake": {
+                    "10%, 90%": { transform: "translate3d(-1px, 0, 0)" },
+                    "20%, 80%": { transform: "translate3d(2px, 0, 0)" },
+                    "30%, 50%, 70%": { transform: "translate3d(-4px, 0, 0)" },
+                    "40%, 60%": { transform: "translate3d(4px, 0, 0)" },
+                  },
+                }}
+              >
+                <AlertCircle size={20} />
+                <Box sx={{ flex: 1 }}>
+                  <Typography level="title-sm" sx={{ fontWeight: 700 }}>
+                    {error.toLowerCase().includes("limit")
+                      ? "Limit Reached"
+                      : "Error"}
+                  </Typography>
+                  <Typography level="body-xs" sx={{ opacity: 0.9 }}>
+                    {error}
+                  </Typography>
+                </Box>
+                <IconButton
+                  size="sm"
+                  variant="plain"
+                  onClick={() => setError("")}
+                  sx={{ "--IconButton-size": "24px" }}
+                >
+                  <X size={14} />
+                </IconButton>
+              </Sheet>
+            )}
+            <Stack spacing={3}>
+              <FormControl>
+                <FormLabel
+                  className={`${isDark ? "text-slate-400!" : ""}`}
+                  sx={{ fontWeight: 600 }}
+                >
+                  Product Media
+                </FormLabel>
+                <Stack spacing={1.5}>
+                  {/* Cover Image */}
+                  <Box
                     sx={{
-                        mb: 3,
-                        p: 2,
-                        borderRadius: 'xl',
-                        background: 'linear-gradient(45deg, #dc2626 0%, #991b1b 100%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 2,
-                        animation: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
-                        '@keyframes shake': {
-                        '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
-                        '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
-                        '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
-                        '40%, 60%': { transform: 'translate3d(4px, 0, 0)' },
-                        },
+                      position: "relative",
+                      borderRadius: "xl",
+                      border: "2px dashed #cbd5e1",
+                      overflow: "hidden",
                     }}
-                    >
-                    <AlertCircle size={20} />
-                    <Box sx={{ flex: 1 }}>
-                        <Typography level="title-sm" sx={{ fontWeight: 700 }}>
-                        {error.toLowerCase().includes("limit") ? "Limit Reached" : "Error"}
-                        </Typography>
-                        <Typography level="body-xs" sx={{ opacity: 0.9 }}>
-                        {error}
-                        </Typography>
-                    </Box>
-                    <IconButton 
-                        size="sm" 
-                        variant="plain" 
-                        onClick={() => setError("")}
-                        sx={{ '--IconButton-size': '24px' }}
-                    >
-                        <X size={14} />
-                    </IconButton>
-                    </Sheet>
-                )}                
-              <Stack spacing={3}>
-                <FormControl>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ fontWeight: 600 }}>Product Media</FormLabel>
-                    <Stack spacing={1.5}>
-                    {/* Cover Image */}
-                    <Box  sx={{ position: 'relative', borderRadius: 'xl', border: '2px dashed #cbd5e1', overflow: 'hidden' }}>
-                      <AspectRatio  ratio="16/9">
-                          {images.length > 0 ? (
-                              <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
-                                  <img 
-                                      src={images[0].url} 
-                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                                      alt="Cover"
-                                  />
-                                  {/* Remove button for the Cover Image */}
-                                  <IconButton 
-                                      size="md" 
-                                      color="danger" 
-                                      variant="solid" 
-                                      onClick={() => removeImage(images[0].id)} 
-                                      sx={{ 
-                                          position: 'absolute', 
-                                          top: 10, 
-                                          right: 10, 
-                                          borderRadius: '50%', 
-                                          boxShadow: 'sm',
-                                          zIndex: 10 
-                                      }}
-                                  >
-                                      <X size={18}/>
-                                  </IconButton>
-                              </Box>
-                          ) : (
-                              <label className={`${isDark? "bg-slate-950! text-slate-200!" : ""}`} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-                                  <UploadCloud size={24} />
-                                  <Typography className={`${isDark? "text-slate-200!" : ""}`} level="body-xs" sx={{ mt: 1 }}>Upload Cover</Typography>
-                                  <input type="file" hidden accept="image/*" multiple onChange={handleMultiFileChange} />
-                              </label>
-                          )}
-                      </AspectRatio>
-                    </Box>
+                  >
+                    <AspectRatio ratio="16/9">
+                      {images.length > 0 ? (
+                        <Box
+                          sx={{
+                            position: "relative",
+                            width: "100%",
+                            height: "100%",
+                          }}
+                        >
+                          <img
+                            src={images[0].url}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                            alt="Cover"
+                          />
+                          {/* Remove button for the Cover Image */}
+                          <IconButton
+                            size="md"
+                            color="danger"
+                            variant="solid"
+                            onClick={() => removeImage(images[0].id)}
+                            sx={{
+                              position: "absolute",
+                              top: 10,
+                              right: 10,
+                              borderRadius: "50%",
+                              boxShadow: "sm",
+                              zIndex: 10,
+                            }}
+                          >
+                            <X size={18} />
+                          </IconButton>
+                        </Box>
+                      ) : (
+                        <label
+                          className={`${isDark ? "bg-slate-950! text-slate-200!" : ""}`}
+                          style={{
+                            cursor: "pointer",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "100%",
+                            height: "100%",
+                          }}
+                        >
+                          <UploadCloud size={24} />
+                          <Typography
+                            className={`${isDark ? "text-slate-200!" : ""}`}
+                            level="body-xs"
+                            sx={{ mt: 1 }}
+                          >
+                            Upload Cover
+                          </Typography>
+                          <input
+                            type="file"
+                            hidden
+                            accept="image/*"
+                            multiple
+                            onChange={handleMultiFileChange}
+                          />
+                        </label>
+                      )}
+                    </AspectRatio>
+                  </Box>
 
-                    {/* Thumbnails Grid */}
-                    <Grid container spacing={1}>
-                        {/* 1. Render existing thumbnails (skipping the first image as it's the cover) */}
-                        {images.slice(1).map(img => (
-                        <Grid key={img.id} xs={4}>
-                            <Box sx={{ position: 'relative', borderRadius: 'lg', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-                            <AspectRatio ratio="1/1">
-                                <img src={img.url} style={{ objectFit: 'cover' }} alt="Thumb" />
-                            </AspectRatio>
-                            <IconButton 
-                                size="sm" color="danger" variant="solid" 
-                                onClick={() => removeImage(img.id)} 
-                                sx={{ position: 'absolute', top: 2, right: 2, borderRadius: '50%', minHeight: 20, minWidth: 20 }}
+                  {/* Thumbnails Grid */}
+                  <Grid container spacing={1}>
+                    {/* 1. Render existing thumbnails (skipping the first image as it's the cover) */}
+                    {images.slice(1).map((img) => (
+                      <Grid key={img.id} xs={4}>
+                        <Box
+                          sx={{
+                            position: "relative",
+                            borderRadius: "lg",
+                            overflow: "hidden",
+                            border: "1px solid #e2e8f0",
+                          }}
+                        >
+                          <AspectRatio ratio="1/1">
+                            <img
+                              src={img.url}
+                              style={{ objectFit: "cover" }}
+                              alt="Thumb"
+                            />
+                          </AspectRatio>
+                          <IconButton
+                            size="sm"
+                            color="danger"
+                            variant="solid"
+                            onClick={() => removeImage(img.id)}
+                            sx={{
+                              position: "absolute",
+                              top: 2,
+                              right: 2,
+                              borderRadius: "50%",
+                              minHeight: 20,
+                              minWidth: 20,
+                            }}
+                          >
+                            <X size={12} />
+                          </IconButton>
+                        </Box>
+                      </Grid>
+                    ))}
+
+                    {/* 2. THE FIX: The "Add More" button inside the grid */}
+                    {images.length > 0 && images.length < MAX_IMAGES && (
+                      <Grid xs={4}>
+                        <label style={{ cursor: "pointer" }}>
+                          <AspectRatio
+                            ratio="1/1"
+                            sx={{
+                              borderRadius: "lg",
+                              border: "2px dashed #cbd5e1",
+                              bgcolor: "#f8fafc",
+                              "&:hover": {
+                                bgcolor: "#f1f5f9",
+                                borderColor: "#94a3b8",
+                              },
+                            }}
+                          >
+                            <Box
+                              className={`${isDark ? "bg-slate-950!" : ""}`}
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
                             >
-                                <X size={12}/>
-                            </IconButton>
+                              <Plus size={20} className="text-slate-400" />
                             </Box>
-                        </Grid>
-                        ))}
+                          </AspectRatio>
+                          <input
+                            type="file"
+                            hidden
+                            accept="image/*"
+                            multiple
+                            onChange={handleMultiFileChange}
+                          />
+                        </label>
+                      </Grid>
+                    )}
+                  </Grid>
+                </Stack>
+              </FormControl>
 
-                        {/* 2. THE FIX: The "Add More" button inside the grid */}
-                        {images.length > 0 && images.length < MAX_IMAGES && (
-                        <Grid xs={4}>
-                            <label style={{ cursor: 'pointer' }}>
-                            <AspectRatio 
-                                ratio="1/1" 
-                                sx={{ 
-                                borderRadius: 'lg', 
-                                border: '2px dashed #cbd5e1', 
-                                bgcolor: '#f8fafc',
-                                '&:hover': { bgcolor: '#f1f5f9', borderColor: '#94a3b8' } 
-                                }}
-                            >
-                                <Box className={`${isDark? "bg-slate-950!" : ""}`} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Plus size={20} className="text-slate-400" />
-                                </Box>
-                            </AspectRatio>
-                            <input type="file" hidden accept="image/*" multiple onChange={handleMultiFileChange} />
-                            </label>
-                        </Grid>
-                        )}
-                    </Grid>
-                    </Stack>
-                </FormControl>
+              <FormControl required>
+                <FormLabel className={`${isDark ? "text-slate-400!" : ""}`}>
+                  Product Name
+                </FormLabel>
+                <Input
+                  className={`${isDark ? "placeholder:text-slate-200! text-slate-200!" : ""}`}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Vintage Denim Jacket"
+                  variant="soft"
+                  sx={{
+                    bgcolor: isDark ? "transparent" : "",
+                    borderRadius: "lg",
+                    border: isDark ? "1px solid #314158" : "none",
+                    // 1. Remove the focus ring pseudo-element
+                    "&::before": {
+                      display: "none",
+                    },
+                    // 2. Remove the default focus border/shadow
+                    "&:focus-within": {
+                      outline: "none",
+                      border: "none",
+                    },
+                    // 3. Optional: keep a subtle background change instead of a ring
+                    "&:hover": {
+                      bgcolor: isDark ? "#020618" : "neutral.100",
+                    },
+                  }}
+                />
+              </FormControl>
 
-                <FormControl required>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`}>Product Name</FormLabel>
-                  <Input 
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)} 
-                    placeholder="e.g. Vintage Denim Jacket" 
-                    variant="soft" 
-                    sx={{ 
-                        bgcolor: isDark ? "transparent" : "", 
-                        borderRadius: 'lg',
-                        border: isDark ? "1px solid #314158": 'none',
-                        // 1. Remove the focus ring pseudo-element
-                        "&::before": {
-                        display: 'none',
-                        },
-                        // 2. Remove the default focus border/shadow
-                        "&:focus-within": {
-                        outline: 'none',
-                        border: 'none',
-                        },
-                        // 3. Optional: keep a subtle background change instead of a ring
-                        '&:hover': {
-                        bgcolor: isDark ? "#020618" :'neutral.100',
-                        }
-                    }}
-                  />
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`}>Description</FormLabel>
-                  <Textarea 
-                    minRows={3} 
-                    value={description} 
-                    onChange={(e) => setDescription(e.target.value)} 
-                    placeholder="Describe your product..." 
-                    variant="soft" 
-                                        sx={{ 
-                        bgcolor: isDark ? "transparent" : "", 
-                        border: isDark ? "1px solid #314158": 'none',
-                        borderRadius: 'lg',
-                        // 1. Remove the focus ring pseudo-element
-                        "&::before": {
-                        display: 'none',
-                        },
-                        // 2. Remove the default focus border/shadow
-                        "&:focus-within": {
-                        outline: 'none',
-                        border: 'none',
-                        },
-                    }}
-                  />
-                </FormControl>
-              </Stack>
-              <Stack spacing={2.5}>
+              <FormControl>
+                <FormLabel className={`${isDark ? "text-slate-400!" : ""}`}>
+                  Description
+                </FormLabel>
+                <Textarea
+                  className={`${isDark ? "placeholder:text-slate-200! text-slate-200!" : ""}`}
+                  minRows={3}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe your product..."
+                  variant="soft"
+                  sx={{
+                    bgcolor: isDark ? "transparent" : "",
+                    border: isDark ? "1px solid #314158" : "none",
+                    borderRadius: "lg",
+                    // 1. Remove the focus ring pseudo-element
+                    "&::before": {
+                      display: "none",
+                    },
+                    // 2. Remove the default focus border/shadow
+                    "&:focus-within": {
+                      outline: "none",
+                      border: "none",
+                    },
+                  }}
+                />
+              </FormControl>
+            </Stack>
+            <Stack spacing={2.5}>
               {/* PRICE CONTROL */}
               <FormControl required>
-                <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ fontWeight: 600 }}>Price</FormLabel>
+                <FormLabel
+                  className={`${isDark ? "text-slate-400!" : ""}`}
+                  sx={{ fontWeight: 600 }}
+                >
+                  Price
+                </FormLabel>
                 <Input
+                  className={`${isDark ? "placeholder:text-slate-200! text-slate-200!" : ""}`}
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   placeholder="0.00"
-                  startDecorator={<Typography sx={{ fontWeight: 'bold', color: 'neutral.500' }}>₦</Typography>}
+                  startDecorator={
+                    <Typography
+                      sx={{ fontWeight: "bold", color: "neutral.500" }}
+                    >
+                      ₦
+                    </Typography>
+                  }
                   variant="soft"
                   sx={{
-                    borderRadius: 'lg',
-                    bgcolor: isDark ? "transparent" : "", 
-                    border: isDark ? "1px solid #314158": 'none',
-                    "&::before": { display: 'none' },
-                    "&:focus-within": { outline: 'none', border: 'none' },
+                    borderRadius: "lg",
+                    bgcolor: isDark ? "transparent" : "",
+                    border: isDark ? "1px solid #314158" : "none",
+                    "&::before": { display: "none" },
+                    "&:focus-within": { outline: "none", border: "none" },
                   }}
                 />
               </FormControl>
 
               {/* CATEGORY CONTROL */}
               <FormControl required>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <FormLabel 
-                    className={`${isDark ? "text-slate-400!" : ""}`} 
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 1,
+                  }}
+                >
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
                     sx={{ fontWeight: 600, mb: 0 }}
                   >
                     Category
                   </FormLabel>
-                  
-                  <Typography 
-                    level="body-xs" 
+
+                  <Typography
+                    level="body-xs"
                     onClick={() => setShowQuickCategory(!showQuickCategory)}
-                    sx={{ 
-                      cursor: 'pointer', 
-                      color: isDark ? 'primary.400' : 'slate.800', 
+                    sx={{
+                      cursor: "pointer",
+                      color: isDark ? "primary.400" : "slate.800",
                       fontWeight: 600,
-                      '&:hover': { color: isDark ? 'primary.300' : 'primary.600' }
+                      "&:hover": {
+                        color: isDark ? "primary.300" : "primary.600",
+                      },
                     }}
                   >
                     {showQuickCategory ? "Cancel" : "+ Quick Add"}
@@ -1548,27 +1999,29 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                 </Box>
 
                 {/* 1. The Quick-Add Mini Form */}
-                {(categories.length === 0 || showQuickCategory) ? (
+                {categories.length === 0 || showQuickCategory ? (
                   <Sheet
                     variant={isDark ? "outlined" : "soft"}
                     color="primary"
                     sx={{
                       p: 2,
-                      borderRadius: 'lg',
-                      border: '1px dashed',
+                      borderRadius: "lg",
+                      border: "1px dashed",
                       // ✅ Dynamic Colors for the container
-                      borderColor: isDark ? 'rgba(56, 189, 248, 0.3)' : 'primary.300',
-                      bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'primary.50',
+                      borderColor: isDark
+                        ? "rgba(56, 189, 248, 0.3)"
+                        : "primary.300",
+                      bgcolor: isDark ? "rgba(15, 23, 42, 0.6)" : "primary.50",
                     }}
                   >
-                    <Typography 
+                    <Typography
                       className={`${isDark ? "text-slate-400!" : ""}`}
-                      level="title-sm" 
-                      sx={{ mb: 1.5, color:  'slate.700' }}
+                      level="title-sm"
+                      sx={{ mb: 1.5, color: "slate.700" }}
                     >
                       Create your first category
                     </Typography>
-                    
+
                     <Stack direction="row" spacing={1}>
                       <Input
                         size="sm"
@@ -1576,15 +2029,15 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                         placeholder="Category name (e.g. Shoes)"
                         value={newCatName}
                         onChange={(e) => setNewCatName(e.target.value)}
-                        sx={{ 
-                          borderRadius: 'md', 
+                        sx={{
+                          borderRadius: "md",
                           // ✅ Input styling for dark mode
-                          bgcolor: isDark ? '#1e293b' : 'white',
-                          borderColor: isDark ? '#334155' : 'neutral.300',
-                          color: isDark ? 'white' : 'inherit',
-                          '&:focus-within': {
-                            borderColor: 'primary.500',
-                          }
+                          bgcolor: isDark ? "#1e293b" : "white",
+                          borderColor: isDark ? "#334155" : "neutral.300",
+                          color: isDark ? "white" : "inherit",
+                          "&:focus-within": {
+                            borderColor: "primary.500",
+                          },
                         }}
                       />
                       <Button
@@ -1606,37 +2059,43 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
                     onChange={(_, newValue) => setCategory(newValue)}
                     variant="soft"
                     sx={{
-                      borderRadius: 'lg',
+                      borderRadius: "lg",
                       // ✅ Select styling for dark mode
-                      bgcolor: isDark ? 'transparent' : 'neutral.100',
-                      color: isDark ? '#f1f5f9' : 'inherit',
-                      border: isDark ? '1px solid #334155' : '1px solid transparent',
-                      "&::before": { display: 'none' },
+                      bgcolor: isDark ? "transparent" : "neutral.100",
+                      color: isDark ? "#f1f5f9" : "inherit",
+                      border: isDark
+                        ? "1px solid #334155"
+                        : "1px solid transparent",
+                      "&::before": { display: "none" },
                       "&:hover": {
-                        bgcolor: isDark ? 'transparent' : 'neutral.200',
+                        bgcolor: isDark ? "transparent" : "neutral.200",
                       },
                       // Target the icon
-                      '& .MuiSelect-indicator': {
-                        color: isDark ? '#94a3b8' : 'inherit',
-                      }
+                      "& .MuiSelect-indicator": {
+                        color: isDark ? "#94a3b8" : "inherit",
+                      },
                     }}
                     slotProps={{
                       listbox: {
                         sx: {
                           // ✅ Dropdown menu styling
-                          bgcolor: isDark ? '#0f172a' : 'background.surface',
-                          borderColor: isDark ? '#334155' : 'divider',
-                          boxShadow: 'xl',
-                          color: isDark ? '#f1f5f9' : 'inherit',
-                          '& .MuiOption-root:hover': {
-                            bgcolor: isDark ? '#1e293b' : 'neutral.100',
-                          }
-                        }
-                      }
+                          bgcolor: isDark ? "#0f172a" : "background.surface",
+                          borderColor: isDark ? "#334155" : "divider",
+                          boxShadow: "xl",
+                          color: isDark ? "#f1f5f9" : "inherit",
+                          "& .MuiOption-root:hover": {
+                            bgcolor: isDark ? "#1e293b" : "neutral.100",
+                          },
+                        },
+                      },
                     }}
                   >
                     {categories.map((cat) => (
-                      <Option className={`${isDark ? "bg-transparent! text-slate-200!" : ""}`} key={cat._id} value={cat._id}>
+                      <Option
+                        className={`${isDark ? "bg-transparent! text-slate-200!" : ""}`}
+                        key={cat._id}
+                        value={cat._id}
+                      >
                         {cat.name}
                       </Option>
                     ))}
@@ -1645,45 +2104,126 @@ export default function ProductsPage({isDark , toggleDarkMode}) {
               </FormControl>
 
               {/* INVENTORY CONTROL */}
-              <FormControl required>
-                <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ fontWeight: 600 }}>Inventory / Stock</FormLabel>
+              <FormControl required={!isUnlimited}>
+                <FormLabel
+                  className={`${isDark ? "text-slate-400!" : ""}`}
+                  sx={{ fontWeight: 600 }}
+                >
+                  Inventory / Stock
+                </FormLabel>
                 <Input
                   type="number"
-                  value={inventory}
+                  className={`${isDark ? "placeholder:text-slate-200! text-slate-200!" : ""}`}
+                  value={isUnlimited ? 0 : inventory}
                   onChange={(e) => setInventory(e.target.value)}
                   placeholder="Quantity available"
-                  endDecorator={<Typography level="body-xs" sx={{ color: 'neutral.500' }}>units</Typography>}
+                  endDecorator={
+                    <Typography level="body-xs" sx={{ color: "neutral.500" }}>
+                      units
+                    </Typography>
+                  }
                   variant="soft"
                   sx={{
-                    bgcolor: isDark ? "transparent" : "", 
-                    borderRadius: 'lg',
-                    border: isDark ? "1px solid #314158": 'none',
-                    "&::before": { display: 'none' },
-                    "&:focus-within": { outline: 'none', border: 'none' },
+                    bgcolor: isDark ? "transparent" : "",
+                    borderRadius: "lg",
+                    border: isDark ? "1px solid #314158" : "none",
+                    "&::before": { display: "none" },
+                    "&:focus-within": { outline: "none", border: "none" },
                   }}
                 />
-                <Typography level="body-xs" sx={{ mt: 0.5, color: 'neutral.500' }}>
+                <Typography
+                  level="body-xs"
+                  sx={{ mt: 0.5, color: "neutral.500" }}
+                >
                   Low stock alerts will trigger when below 5 units.
                 </Typography>
               </FormControl>
             </Stack>
-            </DialogContent>
 
-            <Box sx={{ p: 3, borderTop: isDark ? "1px solid #314158":  '1px solid #eee', bgcolor: isDark ? "#020618":  'white' }}>
-              <Button 
-                className='bg-slate-900! hover:bg-slate-800!'
-                fullWidth 
-                size="lg" 
-                loading={submitting}
-                startDecorator={!submitting && <Plus size={18} />}
-                onClick={handleCreateProduct}
-                sx={{ borderRadius: 'xl', height: 50 }}
+            {/* --- NEW: FEATURED & UNLIMITED CONTROLS --- */}
+            <Box
+              sx={{
+                display: "flex",
+                gap: 3,
+                p: 2,
+                mt: 3,
+                borderRadius: "lg",
+                bgcolor: isDark ? "rgba(30, 41, 59, 0.5)" : "neutral.50",
+                border: isDark ? "1px solid #314158" : "1px solid #eee",
+              }}
+            >
+              <FormControl
+                orientation="horizontal"
+                sx={{ alignItems: "center", gap: 1 }}
               >
-                {submitting ? "Saving Product..." : "Create Product"}
-              </Button>
+                <Checkbox
+                  variant="soft"
+                  color="primary"
+                  checked={isFeatured}
+                  onChange={(e) => setIsFeatured(e.target.checked)}
+                  slotProps={{
+                    checkbox: {
+                      sx: { borderRadius: "sm" },
+                    },
+                  }}
+                />
+                <FormLabel
+                  className={`${isDark ? "text-slate-300!" : ""}`}
+                  sx={{ mb: 0, fontWeight: 600 }}
+                >
+                  Featured Product
+                </FormLabel>
+              </FormControl>
+
+              <FormControl
+                orientation="horizontal"
+                sx={{ alignItems: "center", gap: 1 }}
+              >
+                <Checkbox
+                  variant="soft"
+                  color="primary"
+                  checked={isUnlimited}
+                  onChange={(e) => {
+                    setIsUnlimited(e.target.checked);
+                    if (e.target.checked) setInventory("0"); // Optional: set a high number
+                  }}
+                  slotProps={{
+                    checkbox: {
+                      sx: { borderRadius: "sm" },
+                    },
+                  }}
+                />
+                <FormLabel
+                  className={`${isDark ? "text-slate-300!" : ""}`}
+                  sx={{ mb: 0, fontWeight: 600 }}
+                >
+                  Unlimited Stock
+                </FormLabel>
+              </FormControl>
             </Box>
+          </DialogContent>
+
+          <Box
+            sx={{
+              p: 3,
+              borderTop: isDark ? "1px solid #314158" : "1px solid #eee",
+              bgcolor: isDark ? "#020618" : "white",
+            }}
+          >
+            <Button
+              className="bg-slate-900! hover:bg-slate-800!"
+              fullWidth
+              size="lg"
+              loading={submitting}
+              startDecorator={!submitting && <Plus size={18} />}
+              onClick={handleCreateProduct}
+              sx={{ borderRadius: "xl", height: 50 }}
+            >
+              {submitting ? "Saving Product..." : "Create Product"}
+            </Button>
           </Box>
-        </Drawer>
+        </Box>
+      </Drawer>
     </StoreOwnerLayout>
   );
 }

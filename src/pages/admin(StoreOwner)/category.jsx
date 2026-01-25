@@ -39,8 +39,9 @@ import { toast } from "react-toastify";
 
 /* ------------------ MODAL COMPONENT ------------------ */
 const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
-  const { createCategory, loading } = useCategoryStore();
+  const { createCategory } = useCategoryStore();
   const { store } = useAuthStore();
+  const [loadingc, setLoadingc] = useState(false)
   // Replace 'YOUR_STORE_ID' with the actual ID from your Auth or Params
   const storeId = store?._id;
   const [shouldRender, setShouldRender] = useState(isOpen);
@@ -74,6 +75,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
 
   const handleSubmit = async () => {
     // 1. Basic Validation
+    setLoadingc(true)
     if (!name.trim()) {
       return toast.error("Please enter a category name");
     }
@@ -95,7 +97,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
       setImageFile(null);
       setImagePreview(null);
       setIsFeatured(false);
-
+      setLoadingc(false)
       // 5. Close Modal/Drawer
       onClose();
     } catch (err) {
@@ -119,7 +121,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
       : "bg-white border-gray-300 focus:border-blue-400 text-gray-900"
   }`;
   const labelStyle =
-    "block text-[13px] font-semibold mb-1.5 text-gray-700 dark:text-slate-300";
+    ` ${isDark ? "text-slate-400" : "text-gray-700 "} block text-[13px] font-semibold mb-1.5 dark:text-slate-300`;
 
   return (
     <div
@@ -198,7 +200,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
             />
           </div>
 
-          <div
+          {/* <div
             className={`p-4 rounded-lg border ${isDark ? "bg-slate-800/30 border-slate-700" : "bg-blue-50/50 border-blue-100"}`}
           >
             <label className="flex items-center gap-3 cursor-pointer">
@@ -214,7 +216,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
                 Feature this category on homepage
               </span>
             </label>
-          </div>
+          </div> */}
         </div>
 
         <div
@@ -228,11 +230,11 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={loading || !name}
-            className="flex-[2] px-4 py-2.5 bg-slate-900/90 text-white dark:bg-white dark:text-black rounded-lg font-bold text-sm shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
+            disabled={loadingc || !name}
+            className={`${isDark ? "bg-slate-100/20 text-slate-100" : "bg-slate-900/90 text-white"} flex-[2] px-4 py-2.5   dark:bg-white dark:text-black rounded-lg font-bold text-sm shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2`}
           >
-            {loading && <Loader2 size={16} className="animate-spin" />}
-            {loading ? "Creating..." : "Create Category"}
+            {loadingc && <Loader2 size={16} className="animate-spin" />}
+            {loadingc ? "Creating..." : "Create Category"}
           </button>
         </div>
       </div>
@@ -454,20 +456,9 @@ export default function CategoriesTable({ isDark, toggleDarkMode }) {
                     </div>
                   </th>
 
-                  <th className={`w-[150px] ${thStyle}`}>
-                    <div className="flex items-center justify-between">
-                      <span>Earnings</span>
-                      <HeaderDropdown
-                        isDark={isDark}
-                        onSortAsc={() => handleSort("products.price", "asc")}
-                        onSortDesc={() => handleSort("products.price", "desc")}
-                      />
-                    </div>
-                  </th>
-
                   <th className={`w-[120px] ${thStyle}`}>Status</th>
 
-                  <th className={`w-[100px] ${thStyle}`}>Featured</th>
+                  {/* <th className={`w-[100px] ${thStyle}`}>Featured</th> */}
 
                   <th className="px-4 py-3 w-[120px] text-center font-semibold">
                     Actions
@@ -518,19 +509,7 @@ export default function CategoriesTable({ isDark, toggleDarkMode }) {
                         </div>
                       </td>
 
-                      <td className={tdStyle}>{cat.products?.length || 0}</td>
-                      <td className={`${tdStyle} font-medium`}>
-                        ₦
-                        {cat.products && cat.products.length > 0
-                          ? cat.products
-                              .reduce(
-                                (total, product) =>
-                                  total + (Number(product.price) || 0),
-                                0,
-                              )
-                              .toLocaleString()
-                          : "0"}
-                      </td>
+                      <td className={tdStyle}>{cat.products?.length || 0}</td>                      
                       <td className={tdStyle}>
                         <span
                           className={`px-2 py-0.5 rounded text-[11px] font-bold ${cat.isActive !== false ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}
@@ -538,17 +517,18 @@ export default function CategoriesTable({ isDark, toggleDarkMode }) {
                           {cat.isActive !== false ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className={tdStyle}>
+                      {/* <td className={tdStyle}>
                         <input
                           type="checkbox"
                           checked={cat.isFeatured}
                           readOnly
                           className="accent-blue-600"
                         />
-                      </td>
+                      </td> */}
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-3">
                           <IconButton
+                            className={`${isDark ? "text-slate-200!" : ""}`}
                             size="sm"
                             variant="plain"
                             onClick={() => {
@@ -627,7 +607,7 @@ export default function CategoriesTable({ isDark, toggleDarkMode }) {
                 width: { xs: "100%", sm: 450 },
                 p: 0,
                 // ✅ Background adjusts to slate-950 in dark mode
-                bgcolor: isDark ? "#020617" : "background.surface",
+                bgcolor: isDark ? "#0f172a" : "background.surface",
               },
             },
           }}
@@ -728,7 +708,7 @@ export default function CategoriesTable({ isDark, toggleDarkMode }) {
 
                     <input
                       type="file"
-                      accept="image/*"
+                      accept=".jpg, .jpeg, .png, .webp, .avif"
                       onChange={handleFileChange}
                       style={{
                         position: "absolute",

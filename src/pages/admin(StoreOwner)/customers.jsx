@@ -38,18 +38,22 @@ function CustomerList({ isDark, toggleDarkMode }) {
   const itemsPerPage = 8;
   const borderColor = isDark ? "border-[#314158]" : "border-slate-100";
   const themeHeader = isDark
-    ? "text-slate-400 bg-slate-950"
+    ? "text-slate-400 bg-slate-800/50"
     : "text-gray-400 bg-white";
   const themeBody = isDark
     ? "bg-slate-950 text-slate-300"
     : "bg-white text-gray-700";
-  const hoverRow = isDark ? "hover:bg-slate-800/50" : "hover:bg-gray-50";
+  const hoverRow = isDark ? "hover:bg-slate-800/40" : "hover:bg-gray-50";
   const secondaryBtn = `flex items-center gap-2 px-3 py-1.5 border rounded-md text-[13px] font-medium transition-colors ${
     isDark
       ? "bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800"
       : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
   }`;
   // Fetch data from your backend
+
+  const handleSort = () => {
+    
+  }
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
@@ -149,87 +153,6 @@ function CustomerList({ isDark, toggleDarkMode }) {
               <button className={secondaryBtn}>
                 <Download size={16} /> Export
               </button>
-
-              <div className="relative">
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className={secondaryBtn}
-                >
-                  <Filter size={14} /> Filter Customers <ChevronDown size={14} />
-                </button>
-
-                {showFilters && (
-                  <div
-                    className={`absolute right-0 mt-2 w-64 rounded-lg border shadow-lg z-50 overflow-hidden ${
-                      isDark ? "bg-slate-900 border-slate-700" : "bg-white border-gray-100"
-                    }`}
-                  >
-                    {/* SECTION: CUSTOMER STATUS */}
-                    <div className={`px-4 py-2 border-b text-[11px] font-bold uppercase tracking-wider ${
-                      isDark ? "border-slate-800 text-slate-500" : "border-gray-100 text-gray-400"
-                    }`}>
-                      Account Status
-                    </div>
-
-                    <div className="py-1">
-                      {[
-                        { label: 'Active', value: 'active', color: 'text-green-500' },
-                        { label: 'Inactive', value: 'inactive', color: 'text-gray-400' },
-                        { label: 'Blocked', value: 'blocked', color: 'text-red-500' }
-                      ].map((status) => (
-                        <button
-                          key={status.value}
-                          onClick={() => {
-                            setFilterStatus(status.value);
-                            setShowFilters(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-4 py-2 text-sm ${
-                            isDark ? "hover:bg-slate-800 text-slate-300" : "hover:bg-gray-50 text-gray-700"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className={`h-2 w-2 rounded-full bg-current ${status.color}`} />
-                            {status.label}
-                          </div>
-                          {currentFilter === status.value && <Check size={14} className="text-blue-500" />}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* SECTION: SEGMENTATION */}
-                    <div className={`px-4 py-2 border-t border-b text-[11px] font-bold uppercase tracking-wider ${
-                      isDark ? "border-slate-800 text-slate-500" : "border-gray-100 text-gray-400"
-                    }`}>
-                      Customer Tier
-                    </div>
-
-                    <div className="py-1">
-                      {['New Signups', 'Returning'].map((tier) => (
-                        <button
-                          key={tier}
-                          className={`w-full text-left px-4 py-2 text-sm ${
-                            isDark ? "hover:bg-slate-800 text-slate-300" : "hover:bg-gray-50 text-gray-700"
-                          }`}
-                        >
-                          {tier}
-                        </button>
-                      ))}
-
-                      <div className={`h-px my-1 ${isDark ? "bg-slate-800" : "bg-gray-100"}`} />
-                      
-                      <button 
-                        onClick={() => {
-                          setFilterStatus('all');
-                          setShowFilters(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 font-medium"
-                      >
-                        <RefreshCw size={12} /> Reset All Filters
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
           {/* Scrollable Table Body */}
@@ -244,7 +167,7 @@ function CustomerList({ isDark, toggleDarkMode }) {
                   >
                     <th
                       className={`px-6 py-4 w-10 border-b border-r ${borderColor} sticky left-0 z-10 ${
-                        isDark ? "bg-slate-950" : "bg-white"
+                        isDark ? "bg-slate-800/50" : "bg-white"
                       }`}
                     >
                       <input
@@ -300,7 +223,7 @@ function CustomerList({ isDark, toggleDarkMode }) {
                         {/* Ch eckbox Cell - Sticky for better mobile UX */}
                         <td
                           className={`px-6 py-4 border-b border-r ${borderColor} sticky left-0 z-10 ${
-                            isDark ? "bg-slate-900" : "bg-white"
+                            isDark ? "bg-slate-950" : "bg-white"
                           }`}
                         >
                           <input

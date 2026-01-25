@@ -26,7 +26,10 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { forgotPasswordCustomer, loginCustomer } from "../../../../services/customerService";
+import {
+  forgotPasswordCustomer,
+  loginCustomer,
+} from "../../../../services/customerService";
 import { getSubdomain } from "../../../../storeResolver";
 import { toast } from "react-toastify";
 
@@ -90,21 +93,40 @@ export default function AuthPage({ isDark }) {
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    if (!formData.email) return setError("Please enter your email address.");
+
+    if (!formData.email?.trim()) {
+      setError("Please enter your email address.");
+      return;
+    }
 
     setLoading(true);
     setError(null);
+
     try {
       await forgotPasswordCustomer({
-        email: formData.email,
+        email: formData.email.trim(),
         storeSlug: activeSlug,
       });
+
       toast.success("Reset link sent to your email!", {
         containerId: "STOREFRONT",
       });
-      setIsForgotMode(false); // Go back to login
+      setFormData({email: ""})
+
+      setIsForgotMode(false);
     } catch (err) {
-      setError(err.message || "Could not send reset link.");
+      // Axios-style error
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Unable to send reset link. Please try again.";
+
+      setError(message);
+
+      toast.error(message, {
+        containerId: "STOREFRONT",
+      });
     } finally {
       setLoading(false);
     }

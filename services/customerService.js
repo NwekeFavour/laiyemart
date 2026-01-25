@@ -63,7 +63,7 @@ export const fetchCustomerMe = async () => {
 
 export const forgotPasswordCustomer = async (data) => {
   try {
-    const response = await fetch(`${API_URL}/customer-auth/forgot-password`, {
+    const response = await fetch(`${API_URL}/api/customers/forgot-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -83,4 +83,13 @@ export const forgotPasswordCustomer = async (data) => {
     // Re-throw so your UI component can display the toast/alert
     throw error;
   }
+};
+
+
+export const logoutCustomer = () => {
+  // Access the Zustand store's logout action
+  useCustomerAuthStore.getState().logout();
+  
+  // Optional: Redirect user or clear other local data
+  // window.location.href = "/login"; 
 };

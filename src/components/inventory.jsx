@@ -7,8 +7,7 @@ export function InventoryCard({ isDark, products = [] }) {
     const total = products.length || 1; // Avoid division by zero
     const available = products.filter(p => p.inventory > 5).length;
     const lowStock = products.filter(p => p.inventory > 0 && p.inventory <= 5);
-    const outOfStock = products.filter(p => p.inventory === 0).length;
-    
+    const outOfStock = products.filter(p => p.inventory === 0 && p.isUnlimited !== true).length;    
     const assetValue = products.reduce((acc, p) => acc + (p.price * p.inventory), 0);
 
     return {
