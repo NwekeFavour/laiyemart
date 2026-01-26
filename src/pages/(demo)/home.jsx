@@ -253,7 +253,7 @@ function DemoHome({ storeSlug }) {
   );
 
 
-  if (storeData && storeData.isOnboarded === false) {
+  if (storeData && storeData.isOnboarded === true) {
     return (
       <>
         <Helmet>

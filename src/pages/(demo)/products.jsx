@@ -24,6 +24,10 @@ import {
 } from "lucide-react";
 import { useProductStore } from "../../../services/productService";
 import { Helmet } from "react-helmet-async";
+import { useNavigate } from "react-router-dom";
+import { useCartStore } from "../../../services/cartService";
+import { useCustomerAuthStore } from "../../store/useCustomerAuthStore";
+import { Add, Remove, ShoppingCartOutlined } from "@mui/icons-material";
 
 // --- CONTENT & THEME CONFIGURATION ---
 const STORE_CONTENT_CONFIG = {
@@ -110,12 +114,36 @@ function Products({ storeSlug }) {
   const [storeError, setStoreError] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-
+  const { cart, addToCart, updateQuantity, removeItem } = useCartStore();
+  const { customer } = useCustomerAuthStore();
   const {
     products,
     loading: productsLoading,
     fetchStoreProducts,
   } = useProductStore();
+  const navigate = useNavigate();
+  const getItemQty = (productId) => {
+    const item = cart?.items?.find(
+      (i) => i.product._id === productId || i.product === productId,
+    );
+    return item ? item.quantity : 0;
+  };
+  const handleCartAction = (product, action) => {
+    const currentQty = getItemQty(product._id);
+    if (!customer) {
+      navigate("/login");
+      return;
+    }
+    if (action === "increment") {
+      currentQty === 0
+        ? addToCart(product.store, product._id, 1)
+        : updateQuantity(product.store, product._id, currentQty + 1);
+    } else if (action === "decrement") {
+      currentQty === 1
+        ? removeItem(product.store, product._id)
+        : updateQuantity(product.store, product._id, currentQty - 1);
+    }
+  };
 
   // Determine current config based on store industry/type
   const config = useMemo(() => {
@@ -380,12 +408,10 @@ function Products({ storeSlug }) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {productsLoading ? (
               Array.from(new Array(8)).map((_, i) => (
-                <Skeleton
+                <div
                   key={i}
-                  variant="rectangular"
-                  height={300}
-                  sx={{ borderRadius: config.radius }}
-                />
+                  className="h-72 bg-gray-200 animate-pulse rounded-lg"
+                ></div>
               ))
             ) : filteredProducts.length === 0 ? (
               <div className="col-span-full text-center py-24 opacity-60">
@@ -401,33 +427,73 @@ function Products({ storeSlug }) {
               filteredProducts.map((product) => (
                 <div
                   key={product._id}
-                  className="group bg-transparent overflow-hidden hover:shadow-xl transition-all duration-300"
-                  style={{ borderRadius: config.radius }}
+                  className="group relative cursor-pointer rounded-lg overflow-hidden bg-white shadow-md transition-all duration-300 hover:shadow-xl"
                 >
-                  <div className="relative aspect-square overflow-hidden bg-slate-50">
+                  {/* Product Image */}
+                  <div className="relative aspect-square overflow-hidden bg-gray-100">
                     <img
-                      src={product.images?.[0]?.url}
+                      src={
+                        product.images?.[0]?.url ||
+                        product.image ||
+                        "https://via.placeholder.com/400"
+                      }
                       alt={product.name}
-                      className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       loading="lazy"
                     />
+
+                    {/* Featured Badge */}
+                    {product.isFeatured && (
+                      <div className="absolute top-3 left-3 bg-black text-white px-2 py-0.5 text-[10px] font-bold rounded-sm tracking-wide">
+                        FEATURED
+                      </div>
+                    )}
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-slate-800 text-sm md:text-base line-clamp-1">
+
+                  {/* Product Info */}
+                  <div className="p-4 flex flex-col gap-1">
+                    <span className="text-xs font-bold text-gray-500">
+                      {product.brand || "OFFICIAL"}
+                    </span>
+                    <h3 className="text-sm md:text-base font-bold line-clamp-1">
                       {product.name}
                     </h3>
-                    <div className="mt-4 flex items-center justify-between">
-                      <Typography level="title-lg" fontWeight={800}>
-                        ₦{product.price?.toLocaleString()}
-                      </Typography>
-                      <IconButton
-                        variant="solid"
-                        color={config.primary}
-                        size="sm"
-                        sx={{ borderRadius: "50%" }}
-                      >
-                        <ShoppingCart size={18} />
-                      </IconButton>
+                    <span className="text-sm font-extrabold mt-1">
+                      ₦{(product.price || 0).toLocaleString()}
+                    </span>
+
+                    {/* Add to Cart / Quantity Controls */}
+                    <div className="mt-3">
+                      {getItemQty(product._id || product.id) === 0 ? (
+                        <button
+                          onClick={() => handleCartAction(product, "increment")}
+                          className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-1"
+                        >
+                          <ShoppingCartOutlined size={18} /> Add to Cart
+                        </button>
+                      ) : (
+                        <div className="flex items-center justify-between mt-1 gap-2">
+                          <button
+                            className="bg-gray-200 p-1 rounded"
+                            onClick={() =>
+                              handleCartAction(product, "decrement")
+                            }
+                          >
+                            <Remove />
+                          </button>
+                          <span className="font-bold">
+                            {getItemQty(product._id || product.id)}
+                          </span>
+                          <button
+                            className="bg-gray-200 p-1 rounded"
+                            onClick={() =>
+                              handleCartAction(product, "increment")
+                            }
+                          >
+                            <Add/>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
