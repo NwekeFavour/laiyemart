@@ -32,7 +32,11 @@ export const useAuthStore = create(
             localStorage.removeItem("layemart-auth")
             useProductStore.getState().resetProducts();
         },
-      setStore: (store) => set({ store })
+      setStore: (store) => set({ store }),
+      setStoreData: (storeData) =>
+        set((state) => ({
+          store: state.store ? { ...state.store, ...storeData } : storeData,
+        })),
     }),
     {
         name: "layemart-auth",

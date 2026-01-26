@@ -375,17 +375,35 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
               className={`${isDark ? "text-slate-200" : ""} flex items-center gap-2 mt-1 flex-wrap`}
             >
               <Typography
-                level="body-md"
-                sx={{ color: isDark ? "neutral.400" : "neutral.500" }}
+                level="div"
+                sx={{
+                  color: isDark ? "neutral.400" : "neutral.500",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
               >
-                Your store is currently live at:
+                {/* Status Badge */}
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    bgcolor: store?.isOnboarded ? "success.500" : "warning.500",
+                    boxShadow: store?.isOnboarded
+                      ? "0 0 8px #10b981"
+                      : "0 0 8px #f59e0b",
+                  }}
+                />
+                {store?.isOnboarded
+                  ? "Your store is live at:"
+                  : "Your preview link (Under Construction):"}
               </Typography>
+
               <Typography
                 sx={{
-                  color: "blue.600",
                   fontWeight: 600,
                   fontSize: "14px",
-                  cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   gap: 0.5,
@@ -399,7 +417,11 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                   }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-slate-600 hover:text-blue-600 hover:underline transition-colors"
+                  className={`flex items-center gap-1 transition-colors ${
+                    isDark
+                      ? "text-blue-400 hover:text-blue-300"
+                      : "text-blue-600 hover:text-blue-700"
+                  } hover:underline`}
                 >
                   {store?.subdomain
                     ? `${store.subdomain}.layemart.com`
@@ -407,6 +429,22 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                   <ExternalLink size={14} className="mb-0.5" />
                 </a>
               </Typography>
+
+              {/* Conditional Helper Text for Unonboarded Stores */}
+              {!store?.isOnboarded && (
+                <Typography
+                  level="body-xs"
+                  sx={{
+                    width: "100%",
+                    color: "warning.600",
+                    fontStyle: "italic",
+                    mt: 0.5,
+                  }}
+                >
+                  Note: Visitors will see a "Coming Soon" page until your bank
+                  details are verified.
+                </Typography>
+              )}
             </div>
           </Box>
         </Box>
@@ -760,14 +798,6 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                           Orders will appear here once customers start
                           purchasing from your store.
                         </Typography>
-
-                        <Button
-                          variant="soft"
-                          color="primary"
-                          sx={{ mt: 1, borderRadius: "lg" }}
-                        >
-                          View Products
-                        </Button>
                       </Box>
                     </td>
                   </tr>

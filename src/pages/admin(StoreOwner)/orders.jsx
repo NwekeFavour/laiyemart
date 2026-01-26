@@ -173,14 +173,6 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
                 Orders will appear here once customers start purchasing from
                 your store.
               </Typography>
-
-              <Button
-                variant="soft"
-                color="primary"
-                sx={{ mt: 1, borderRadius: "lg" }}
-              >
-                View Products
-              </Button>
             </Box>
           ) : (
             /* TABLE */

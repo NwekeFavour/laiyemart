@@ -8,7 +8,7 @@ import {
 import { User, Package, Heart, MapPin, LogOut, ChevronRight, ShoppingBag, AlertTriangle } from "lucide-react";
 import CustomerAccountLayout from "./layout";
 import { logoutCustomer } from "../../../services/customerService";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function CustomerAccountPage({ storeData, customer, isDark }) {
@@ -25,10 +25,11 @@ export default function CustomerAccountPage({ storeData, customer, isDark }) {
 
 const handleConfirmLogout = () => {
   logoutCustomer();
+  setIsLogoutModalOpen(false)
   setTimeout(()=> navigate("/login"), 5000)
   toast.success("Logged out successfully", {
-        containerId: "STOREFRONT",
-      });
+    containerId: "STOREFRONT",
+  });
 };
 
   const menuItems = [
@@ -161,11 +162,11 @@ const handleConfirmLogout = () => {
 
                     <Typography level="body-sm" sx={{ mb: 3 }}>Ready to start shopping at {storeData?.name}?</Typography>
 
-                    <ListItemButton sx={{ alignSelf: "center", bgcolor: colors.primary, color: "white", borderRadius: "md", px: 4, "&:hover": { bgcolor: "#cc3333" } }}>
+                    <Link className="bg-[#cc3333] w-[200px] py-1 mx-auto text-slate-100 hover:bg-[#cc3333]/80 rounded-md" to={"/shop"}>
 
                         START SHOPPING
 
-                    </ListItemButton>
+                    </Link>
 
                   </Card>
 

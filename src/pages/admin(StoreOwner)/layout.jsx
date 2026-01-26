@@ -39,18 +39,20 @@ import {
   Menu,
   Dropdown,
   MenuButton,
+  ModalClose,
 } from "@mui/joy";
 import { useLocation, useNavigate, Link, NavLink } from "react-router-dom";
 import { fetchMe } from "../../../services/authService";
 import { useAuthStore } from "../../store/useAuthStore";
 import { toast } from "react-toastify";
+import { Input, Stack } from "@mui/material";
 
 export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const logout = useAuthStore((state) => state.logout);
   const [loading, setLoading] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { user, store } = useAuthStore();
+  const { user, store,token, setStoreData } = useAuthStore();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [error, setError] = useState("");
   const [hoveredItem, setHoveredItem] = useState(null);
@@ -61,6 +63,9 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   const open = Boolean(anchorEl);
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
   const [showBankReminder, setShowBankReminder] = useState(false);
+  const [openNinModal, setOpenNinModal] = useState(false);
+  const [nin, setNin] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -192,7 +197,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   // Internal Navigation Component to avoid code duplication
   const NavigationMenu = ({ isMobile = false }) => (
     <Box
-      className={`${isDark ?"text-slate-200! bg-slate-950!" : ""}`}
+      className={`${isDark ? "text-slate-200! bg-slate-950!" : ""}`}
       sx={{ display: "flex", flexDirection: "column", height: "100%", p: 2 }}
     >
       {/* Brand/Logo */}
@@ -357,11 +362,45 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
     </Box>
   );
 
+  const handleVerifyNin = async () => {
+    if (nin.length !== 11) return toast.error("NIN must be 11 digits");
+
+    try {
+      setIsVerifying(true);
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/paystack/verify-nin`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ nin }),
+        },
+      );
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      toast.success("Identity Verified! Profile updated.");
+      setOpenNinModal(false);
+      // Refresh store data to update banner to "Step 2"
+      setStoreData();
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   return (
-    <Box className={`${isDark ?"text-slate-200! bg-slate-950!" : ""}`} sx={{ display: "flex", minHeight: "100vh" }}>
+    <Box
+      className={`${isDark ? "text-slate-200! bg-slate-950!" : ""}`}
+      sx={{ display: "flex", minHeight: "100vh" }}
+    >
       {/* 1. Desktop Sidebar Wrapper */}
       <Box
-        className={`${isDark ?"text-slate-200! bg-slate-950!" : ""}`}
+        className={`${isDark ? "text-slate-200! bg-slate-950!" : ""}`}
         onMouseEnter={() => setIsCollapsed(false)}
         onMouseLeave={() => setIsCollapsed(true)}
         sx={{
@@ -372,7 +411,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
           position: "fixed",
           height: "100vh",
           bgcolor: "white",
-          borderRight: isDark ? "1px solid #314158": "1px solid #e2e8f0",
+          borderRight: isDark ? "1px solid #314158" : "1px solid #e2e8f0",
           zIndex: 100,
           overflowX: "hidden",
         }}
@@ -391,7 +430,6 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
           }}
         >
           <ChevronLeft
-            
             size={16}
             style={{
               transform: isCollapsed ? "rotate(180deg)" : "rotate(0deg)",
@@ -508,7 +546,10 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
         {/* Optional Divider */}
         {!isCollapsed && (
-          <Box className={`${isDark ?"text-slate-200! bg-slate-100/50!" : ""}`} sx={{ mx: 2, height: "1px", bgcolor: "#f1f5f9", mb: 1 }} />
+          <Box
+            className={`${isDark ? "text-slate-200! bg-slate-100/50!" : ""}`}
+            sx={{ mx: 2, height: "1px", bgcolor: "#f1f5f9", mb: 1 }}
+          />
         )}
 
         {/* navigation menu */}
@@ -591,7 +632,10 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
         </Box>
 
         {/* 5. Bottom Logout Section */}
-        <Box className={`${isDark ?"text-slate-200! border-t! border-slate-100/50! bg-slate-950!" : ""}`} sx={{ p: 2, mt: "auto", borderTop: "1px solid #f1f5f9" }}>
+        <Box
+          className={`${isDark ? "text-slate-200! border-t! border-slate-100/50! bg-slate-950!" : ""}`}
+          sx={{ p: 2, mt: "auto", borderTop: "1px solid #f1f5f9" }}
+        >
           <Button
             variant="plain"
             color="danger"
@@ -677,8 +721,15 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Badge badgeContent={3} size="sm" color="danger" variant="solid">
-              <IconButton className={`${isDark ? "hover:bg-slate-950!" : ""}`} variant="plain" sx={{ borderRadius: "xl" }}>
-                <Bell className={`${isDark ? "text-slate-200" : ""}`} size={20} />
+              <IconButton
+                className={`${isDark ? "hover:bg-slate-950!" : ""}`}
+                variant="plain"
+                sx={{ borderRadius: "xl" }}
+              >
+                <Bell
+                  className={`${isDark ? "text-slate-200" : ""}`}
+                  size={20}
+                />
               </IconButton>
             </Badge>
             <Box
@@ -720,7 +771,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                 >
                   {/* Sheet for styling */}
                   <Sheet
-                    className={`${isDark ? "bg-slate-950!":  "bg-white!"} `}
+                    className={`${isDark ? "bg-slate-950!" : "bg-white!"} `}
                     variant="outlined"
                     sx={{
                       m: 0,
@@ -744,7 +795,9 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                       </div>
 
                       <div className="flex flex-col justify-center">
-                        <p className={`${isDark ? "text-slate-200!" : "text-slate-900"} text-sm font-semibold `}>
+                        <p
+                          className={`${isDark ? "text-slate-200!" : "text-slate-900"} text-sm font-semibold `}
+                        >
                           {user?.fullName || "Sean"}
                         </p>
                         <p
@@ -763,7 +816,9 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
                     {/* Menu items */}
                     <div className="flex flex-col">
-                      <MenuItem className={`${isDark ? "text-slate-200! hover:text-slate-950!" : ""} px-4 py-3 gap-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-none`}>
+                      <MenuItem
+                        className={`${isDark ? "text-slate-200! hover:text-slate-950!" : ""} px-4 py-3 gap-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-none`}
+                      >
                         <Link
                           className="flex items-center w-full gap-3"
                           to={"/dashboard/settings/"}
@@ -776,24 +831,36 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     <Divider className="border-t border-gray-200 dark:border-slate-700" />
 
                     {/* Dark mode toggle */}
-                    <div className={"px-4 py-3 flex items-center justify-between"}>
-                      <div className={`${isDark ? "text-slate-200" : "text-slate-900"} flex items-center gap-3 text-sm `}>
+                    <div
+                      className={"px-4 py-3 flex items-center justify-between"}
+                    >
+                      <div
+                        className={`${isDark ? "text-slate-200" : "text-slate-900"} flex items-center gap-3 text-sm `}
+                      >
                         <div className="flex items-center gap-3 text-sm font-medium">
-                          {isDark ? <SunDim size={20} className="text-amber-400" /> : <Moon size={20} className="text-slate-600" />}
-                          <span>{isDark ? 'Light' : 'Dark'} mode</span>
+                          {isDark ? (
+                            <SunDim size={20} className="text-amber-400" />
+                          ) : (
+                            <Moon size={20} className="text-slate-600" />
+                          )}
+                          <span>{isDark ? "Light" : "Dark"} mode</span>
                         </div>
                       </div>
                       <Switch
                         size="sm"
                         checked={isDark}
-                        onChange={(event) => toggleDarkMode(event.target.checked)}
+                        onChange={(event) =>
+                          toggleDarkMode(event.target.checked)
+                        }
                       />
                     </div>
 
                     <Divider className="border-t border-gray-200 dark:border-slate-700" />
 
                     {/* Help */}
-                    <MenuItem className={`${isDark ? "text-slate-200! hover:text-slate-950!" : ""}  px-4 py-3 gap-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-none`}>
+                    <MenuItem
+                      className={`${isDark ? "text-slate-200! hover:text-slate-950!" : ""}  px-4 py-3 gap-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-none`}
+                    >
                       <HelpCircle size={20} /> Help
                     </MenuItem>
 
@@ -817,7 +884,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
         <Box
           className="hide-scrollbar"
           sx={{
-            p: { xs: 2, md: 4},
+            p: { xs: 2, md: 4 },
             overflowY: "auto", // Ensure it is scrollable
             /* Target the scrollbar specifically */
             "&::-webkit-scrollbar": {
@@ -863,8 +930,8 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                 className="md:mt-0 mt-4!"
                 size="sm"
                 sx={{
-                  bgcolor: isDark ? "black": "white",
-                  color: isDark ? "#fff":  "#0f172a",
+                  bgcolor: isDark ? "black" : "white",
+                  color: isDark ? "#fff" : "#0f172a",
                   "&:hover": { bgcolor: "#f1f5f9" },
                   borderRadius: "lg",
                 }}
@@ -873,71 +940,100 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
               </Button>
             </Sheet>
           )}
-          {/* Bank Setup Reminder Modal */}
-          <Box
-            sx={{
-              mt:2,
-              overflowY: "auto",
-              flex: 1,
-              "&::-webkit-scrollbar": { display: "none" },
-            }}
-          >
-            {/* --- NEW BANK REMINDER BANNER --- */}
-            {showBankReminder && (
-              <Box
+          {/* --- DYNAMIC VERIFICATION REMINDER BANNER --- */}
+          {!store?.isOnboarded && (
+            <Box
+              sx={{
+                mb: 3,
+                mt:2,
+                p: 2,
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 2,
+                bgcolor: isDark ? "rgba(245, 158, 11, 0.1)" : "#fffbeb",
+                borderRadius: "16px",
+                border: "1px solid",
+                borderColor: "#f59e0b",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <HelpCircle size={24} color="#f59e0b" />
+                <Box>
+                  <Typography
+                    level="title-sm"
+                    sx={{ color: isDark ? "#f8fafc" : "#92400e" }}
+                  >
+                    {/* Logic based on your Process Flow document */}
+                    {!store?.paystack?.ninVerified
+                      ? "Step 1: Identity Verification"
+                      : "Step 2: Financial Verification"}
+                  </Typography>
+                  <Typography
+                    level="body-xs"
+                    sx={{ color: isDark ? "#94a3b8" : "#b45309" }}
+                  >
+                    {!store?.paystack?.ninVerified
+                      ? "Provide your NIN to verify your identity and unlock store features."
+                      : "Identity verified! Now add your BVN and bank details to enable payouts."}
+                  </Typography>
+                </Box>
+              </Box>
+              <Button
+                size="sm"
+                variant="solid"
+                onClick={() => {
+                  if (!store?.paystack?.ninVerified) {
+                    setOpenNinModal(true); // Trigger the NIN Modal
+                  } else {
+                    navigate("/dashboard/settings?section=bank-details"); // Navigate for Step 2
+                  }
+                }}
                 sx={{
-                  mb: 3,
-                  p: 2,
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 2,
-                  bgcolor: isDark ? "rgba(245, 158, 11, 0.1)" : "#fffbeb",
-                  borderRadius: "16px",
-                  border: "1px solid",
-                  borderColor: "#f59e0b",
+                  borderRadius: "10px",
+                  bgcolor: "#f59e0b",
+                  color: "white",
+                  "&:hover": { bgcolor: "#d97706" },
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <HelpCircle size={24} color="#f59e0b" />
-                  <Box>
-                    <Typography
-                      level="title-sm"
-                      sx={{ color: isDark ? "#f8fafc" : "#92400e" }}
-                    >
-                      Finish setting up your store
-                    </Typography>
-                    <Typography
-                      level="body-xs"
-                      sx={{ color: isDark ? "#94a3b8" : "#b45309" }}
-                    >
-                      Add your bank details to enable order features and receive
-                      payments.
-                    </Typography>
-                  </Box>
-                </Box>
-                <Button
-                  size="sm"
-                  variant="solid"
-                  onClick={() =>
-                    navigate("/dashboard/settings?section=bank-details")
-                  }
-                  sx={{
-                    borderRadius: "10px",
-                    bgcolor: "#f59e0b",
-                    color: "white",
-                    whiteSpace: "nowrap",
-                    "&:hover": { bgcolor: "#d97706" },
-                  }}
-                >
-                  Configure Bank Details
-                </Button>
-              </Box>
-            )}
-          </Box>
-          <Box >{children}</Box>
+                {!store?.paystack?.ninVerified
+                  ? "Verify NIN"
+                  : "Configure Bank"}
+              </Button>
+            </Box>
+          )}
+          <Box>{children}</Box>
         </Box>
+        <Modal open={openNinModal} onClose={() => setOpenNinModal(false)}>
+          <ModalDialog sx={{ maxWidth: 400, borderRadius: "20px", p: 3 }}>
+            <ModalClose />
+            <Typography level="h4" startDecorator="🆔">
+              Identity Verification
+            </Typography>
+            <Typography level="body-sm" sx={{ mb: 2 }}>
+              Input your 11-digit NIN to verify your identity.
+            </Typography>
+
+            <Stack spacing={2}>
+              <Input
+                placeholder="Enter 11-digit NIN"
+                value={nin}
+                onChange={(e) =>
+                  setNin(e.target.value.replace(/\D/g, "").slice(0, 11))
+                }
+                slotProps={{ input: { inputMode: "numeric" } }}
+              />
+              <Button
+                loading={isVerifying}
+                onClick={handleVerifyNin}
+                sx={{ bgcolor: "#f59e0b", "&:hover": { bgcolor: "#d97706" } }}
+              >
+                Verify and Continue
+              </Button>
+            </Stack>
+          </ModalDialog>
+        </Modal>
       </Box>
 
       {/* 3. Mobile Sidebar Overlay & Drawer */}

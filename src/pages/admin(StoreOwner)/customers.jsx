@@ -52,7 +52,7 @@ function CustomerList({ isDark, toggleDarkMode }) {
   // Fetch data from your backend
 
   const handleSort = () => {
-    
+
   }
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -324,11 +324,6 @@ function CustomerList({ isDark, toggleDarkMode }) {
                               ? `We couldn't find any customers matching "${searchQuery}"`
                               : "Start growing your business by adding your first customer manually or through orders."}
                           </p>
-                          {!searchQuery && (
-                            <button className="mt-2 text-blue-500 font-bold flex items-center gap-2 hover:underline">
-                              <Plus size={16} /> Add your first customer
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>

@@ -1,590 +1,198 @@
-// import React, { useState, useEffect } from "react";
-// import {
-//   Box,
-//   Typography,
-//   IconButton,
-//   Badge,
-//   Stack,
-//   Button,
-//   Avatar,
-//   Drawer,
-//   Divider,
-// } from "@mui/joy";
-// import { motion, AnimatePresence } from "framer-motion";
-// import {
-//   Search,
-//   ShoppingBag,
-//   Menu,
-//   X,
-//   User,
-//   LogOut,
-//   HelpCircle,
-//   Heart,
-// } from "lucide-react";
-// import { Link, useParams, useLocation } from "react-router-dom";
-// import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
-
-// const MotionBox = motion(Box);
-
-// export default function Header({ storeName, storeLogo }) {
-//   const [open, setOpen] = useState(false);
-//   const [scrolled, setScrolled] = useState(false);
-//   const { pathname } = useLocation();
-//   const { isAuthenticated, customer, logout } = useCustomerAuthStore();
-
-//   const isDemo = localStorage.getItem("demo") === "true";
-
-//   // Handle scroll effect
-//   useEffect(() => {
-//     const handleScroll = () => setScrolled(window.scrollY > 20);
-//     window.addEventListener("scroll", handleScroll);
-//     return () => window.removeEventListener("scroll", handleScroll);
-//   }, []);
-
-//   // Theme Constants
-//   const glassBg = scrolled ? "rgba(255, 255, 255, 0.85)" : "transparent";
-//   const textColor = scrolled || pathname !== "/" ? "#0f172a" : "#fff";
-
-//   return (
-//     <Box sx={{ width: "100%", position: "sticky", top: 0, zIndex: 1000 }}>
-//       {/* ================= ANNOUNCEMENT BAR ================= */}
-//       <AnimatePresence>
-//         {!scrolled && (
-//           <MotionBox
-//             initial={{ height: 0 }}
-//             animate={{ height: "auto" }}
-//             exit={{ height: 0 }}
-//             sx={{
-//               backgroundColor: "#000",
-//               color: "#fff",
-//               fontSize: "11px",
-//               py: 0.8,
-//               textAlign: "center",
-//               letterSpacing: "0.05em",
-//               fontWeight: 600,
-//               overflow: "hidden",
-//             }}
-//           >
-//             {isDemo
-//               ? "PREVIEW MODE: CUSTOMER EXPERIENCE"
-//               : "FREE DELIVERY ON ORDERS OVER ₦30,000"}
-//           </MotionBox>
-//         )}
-//       </AnimatePresence>
-
-//       {/* ================= MAIN NAVIGATION ================= */}
-//       <MotionBox
-//         animate={{
-//           backgroundColor: glassBg,
-//           backdropFilter: scrolled ? "blur(12px)" : "none",
-//           boxShadow: scrolled ? "0 4px 20px rgba(0,0,0,0.05)" : "none",
-//           borderBottom: scrolled ? "1px solid rgba(0,0,0,0.05)" : "none",
-//         }}
-//         sx={{
-//           px: { xs: 2, md: 6 },
-//           py: scrolled ? 1.5 : 2.5,
-//           display: "flex",
-//           alignItems: "center",
-//           justifyContent: "space-between",
-//           transition: "all 0.3s ease",
-//         }}
-//       >
-//         {/* Left: Desktop Nav / Mobile Menu Toggle */}
-//         <Stack direction="row" alignItems="center" spacing={3} sx={{ flex: 1 }}>
-//           <IconButton
-//             variant="plain"
-//             sx={{ display: { md: "none" }, color: textColor }}
-//             onClick={() => setOpen(true)}
-//           >
-//             <Menu size={24} />
-//           </IconButton>
-
-//           <Stack
-//             direction="row"
-//             spacing={3}
-//             sx={{ display: { xs: "none", md: "flex" } }}
-//           >
-//             {["Home", "Shop", "Categories"].map((item) => (
-//               <Link
-//                 key={item}
-//                 to={`/${item.toLowerCase()}`}
-//                 style={{
-//                   textDecoration: "none",
-//                   color: textColor,
-//                   fontSize: "13px",
-//                   fontWeight: 600,
-//                   letterSpacing: "0.02em",
-//                   textTransform: "uppercase",
-//                 }}
-//               >
-//                 {item}
-//               </Link>
-//             ))}
-//           </Stack>
-//         </Stack>
-
-//         {/* Center: Branding */}
-//         <Box
-//           sx={{
-//             display: "flex",
-//             flexDirection: "column",
-//             alignItems: "center",
-//           }}
-//         >
-//           <Avatar
-//             src={storeLogo}
-//             alt={storeName}
-//             sx={{
-//               width: scrolled ? 35 : 45,
-//               height: scrolled ? 35 : 45,
-//               transition: "all 0.3s ease",
-//               boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-//             }}
-//           />
-//           {!scrolled && (
-//             <Typography
-//               level="body-xs"
-//               sx={{
-//                 mt: 0.5,
-//                 color: textColor,
-//                 fontWeight: 700,
-//                 letterSpacing: "0.1em",
-//               }}
-//             >
-//               {storeName?.toUpperCase()}
-//             </Typography>
-//           )}
-//         </Box>
-
-//         {/* Right: Actions */}
-//         <Stack
-//           direction="row"
-//           spacing={{ xs: 1, md: 2.5 }}
-//           alignItems="center"
-//           sx={{ flex: 1, justifyContent: "flex-end" }}
-//         >
-//           <Box sx={{ display: { xs: "none", md: "block" } }}>
-//             {isDemo ? (
-//               <Button
-//                 size="sm"
-//                 variant="soft"
-//                 color="neutral"
-//                 startDecorator={<User size={14} />}
-//               >
-//                 DEMO USER
-//               </Button>
-//             ) : isAuthenticated ? (
-//               <Link
-//                 to={`/account`}
-//                 style={{ textDecoration: "none", color: textColor }}
-//               >
-//                 <Stack direction="row" spacing={1} alignItems="center">
-//                   <Typography level="title-sm" sx={{ color: textColor }}>
-//                     {customer?.name?.split(" ")[0]}
-//                   </Typography>
-//                 </Stack>
-//               </Link>
-//             ) : (
-//               <Link
-//                 to={`/login`}
-//                 style={{
-//                   textDecoration: "none",
-//                   color: textColor,
-//                   fontSize: "13px",
-//                   fontWeight: 700,
-//                 }}
-//               >
-//                 LOGIN
-//               </Link>
-//             )}
-//           </Box>
-
-//           <IconButton variant="plain" sx={{ color: textColor }}>
-//             <Badge badgeContent={0} color="danger" size="sm">
-//               <ShoppingBag size={20} />
-//             </Badge>
-//           </IconButton>
-//         </Stack>
-//       </MotionBox>
-
-//       {/* ================= MOBILE DRAWER ================= */}
-//
-//     </Box>
-//   );
-// }
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
-  Typography,
-  IconButton,
-  Badge,
   Stack,
+  IconButton,
+  Typography,
   Button,
-  Avatar,
+  Badge,
   Drawer,
   Divider,
-  ModalDialog,
+  Avatar,
   Modal,
+  ModalDialog,
 } from "@mui/joy";
-import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, ShoppingBag, User, LogOut } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
 import { toast } from "react-toastify";
 
-const MotionBox = motion(Box);
-
 export default function Header({ storeName, storeLogo }) {
-  const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const { pathname } = useLocation();
-  const { isAuthenticated, customer, logout } = useCustomerAuthStore();
+  const navigate = useNavigate();
+  const { isAuthenticated, logout } = useCustomerAuthStore();
+
   const isDemo = localStorage.getItem("demo") === "true";
 
   const handleLogout = () => {
-    // 1. Clear state and storage
     logout();
-
-    // 2. Trigger a well-designed success toast
     toast.success("Signed out successfully");
-
-    // 3. Redirect to login page
     navigate("/login");
   };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      // Threshold increased slightly for better UX
-      setScrolled(window.scrollY > 40);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const navItems = ["Home", "Shop"];
 
-  // Theme Constants
-  const isDarkHero = pathname === "/" && "/shop"; // Assuming Home has a dark hero
-  const activeTextColor = (scrolled) ? "#0f172a" : "#fff";
-    const activeBorderColor = (scrolled) ? "rgba(15, 23, 42, 0.1)" : "rgba(255, 255, 255, 0.2)";
   return (
-    <Box className="bg-black!" sx={{ width: "100%", position: "sticky", top: 0, zIndex: 1000 }}>
-      {/* ================= ANNOUNCEMENT BAR ================= */}
-      <AnimatePresence initial={false}>
-        {!scrolled && (
-          <MotionBox
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            sx={{
-              backgroundColor: "#000",
-              color: "#fff",
-              fontSize: "11px",
-              py: 1,
-              textAlign: "center",
-              letterSpacing: "0.05em",
-              fontWeight: 600,
-              overflow: "hidden",
-            }}
-          >
-            {isDemo
-              ? "PREVIEW MODE: CUSTOMER EXPERIENCE"
-              : "FREE DELIVERY ON ORDERS OVER ₦30,000"}
-          </MotionBox>
-        )}
-      </AnimatePresence>
-
-      {/* ================= MAIN NAVIGATION ================= */}
-      <MotionBox
-        initial={false}
-        animate={{
-          backgroundColor: scrolled
-            ? "rgba(255, 255, 255, 0.85)"
-            : "rgba(255, 255, 255, 0)",
-          backdropFilter: scrolled ? "blur(12px)" : "blur(0px)",
-          paddingTop: scrolled ? "12px" : "24px",
-          paddingBottom: scrolled ? "12px" : "24px",
-          boxShadow: scrolled
-            ? "0 4px 20px rgba(0,0,0,0.05)"
-            : "0 0 0 rgba(0,0,0,0)",
-          borderBottom: scrolled
-            ? "1px solid rgba(0,0,0,0.05)"
-            : "1px solid rgba(0,0,0,0)",
-        }}
-        transition={{ duration: 0.4, ease: "circOut" }}
+    <>
+      {/* ================= HEADER ================= */}
+      <Box
         sx={{
-          px: { xs: 2, md: 6 },
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          position: "sticky",
+          top: 0,
+          zIndex: 1000,
+          bgcolor: "#fff",
+          borderBottom: "1px solid #e5e7eb",
         }}
       >
-        {/* Left Section */}
-        <Stack direction="row" alignItems="center" spacing={3} sx={{ flex: 1 }}>
-          <IconButton
-            variant="plain"
-            sx={{ display: { md: "none" }, color: activeTextColor }}
-            onClick={() => setOpen(true)}
-          >
-            <Menu size={24} />
-          </IconButton>
-
-          {isDemo ? (
-            <Stack
-              direction="row"
-              spacing={3}
-              sx={{ display: { xs: "none", md: "flex" } }}
+        <Box
+          sx={{
+            maxWidth: "1280px",
+            mx: "auto",
+            px: 2,
+            height: 64,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          {/* Left */}
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <IconButton
+              sx={{ display: { md: "none" } }}
+              onClick={() => setOpen(true)}
             >
-              {["Home", "Shop"].map((item) => (
+              <Menu />
+            </IconButton>
+
+            <Link to="/">
+              <Avatar
+                src={storeLogo}
+                sx={{ width: 40, height: 40 }}
+                alt={storeName}
+              />
+            </Link>
+          </Stack>
+
+          {/* Center Nav (Desktop) */}
+          <Stack
+            direction="row"
+            spacing={3}
+            sx={{ display: { xs: "none", md: "flex" } }}
+          >
+            {navItems.map((item) => {
+              const path = item === "Home" ? "/" : "/shop";
+              const active = pathname === path;
+
+              return (
                 <Link
                   key={item}
-                  to={`/#`}
+                  to={`${isDemo ? "#" : path}`}
                   style={{
-                    textDecoration: "none",
-                    color: activeTextColor,
-                    fontSize: "13px",
+                    textDecoration: active ? "underline" : "none",
+                    textUnderlineOffset: "6px",
+                    textDecorationColor: "#ef4444",
+                    color: "#111827",
                     fontWeight: 600,
-                    textTransform: "uppercase",
-                    transition: "color 0.3s ease",
+                    fontSize: 14,
                   }}
                 >
                   {item}
                 </Link>
-              ))}
-            </Stack>
-          ) : (
-            <Stack
-              direction="row"
-              spacing={3}
-              sx={{ display: { xs: "none", md: "flex" } }}
-            >
-              {["Home", "Shop"].map((item) => {
-                const path = item === "Home" ? "/" : `/${item.toLowerCase()}`;
-                const isActive = pathname === path;
+              );
+            })}
+          </Stack>
+
+          {/* Right */}
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Link to={`${isDemo ? "#" : "/cart"} `}>
+              <Badge badgeContent={0} color="danger">
+                <ShoppingBag size={20} />
+              </Badge>
+            </Link>
+
+            {isDemo ? (
+              <Button size="sm" variant="soft" startDecorator={<User size={14} />}>
+                DEMO
+              </Button>
+            ) : (
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ display: { xs: "none", md: "flex" } }}
+              >
+                <Link to={isAuthenticated ? "/account" : "/login"}>
+                  <Button size="sm" variant="outlined">
+                    {isAuthenticated ? "My Account" : "Login"}
+                  </Button>
+                </Link>
+              </Stack>
+            )}
+          </Stack>
+        </Box>
+      </Box>
+
+      {/* ================= MOBILE DRAWER ================= */}
+      <Drawer open={open} onClose={() => setOpen(false)}>
+        <Box sx={{ p: 3 }}>
+          <Stack direction="row" justifyContent="space-between">
+            <Avatar src={storeLogo} sx={{ width: 36, height: 36 }} />
+            <IconButton onClick={() => setOpen(false)}>
+              <X />
+            </IconButton>
+          </Stack>
+
+          <Divider sx={{ my: 3 }} />
+
+          <Stack spacing={3}>
+            {["home", "shop", "account"]
+              .filter((item) => (item === "account" ? isAuthenticated : true))
+              .map((item) => {
+                const path = item === "home" ? "/" : `/${item}`;
+                const active = pathname === path;
+
                 return (
                   <Link
-                    className={`${isActive ? "underline" : ""}`}
+                    className="capitalize"
                     key={item}
                     to={path}
+                    onClick={() => setOpen(false)}
                     style={{
-                      textDecoration: isActive ? "underline" : "none", // Toggles underline
-                      textUnderlineOffset: "8px", // Adds breathable space (Jumia style)
-                      textDecorationThickness: "2px",
-                      textDecorationColor: "#ef4444", // Layemart Red underline
-                      color: activeTextColor,
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      transition: "color 0.3s ease",
+                      fontSize: 18,
+                      fontWeight: active ? 700 : 500,
+                      textDecoration: active ? "underline" : "none",
+                      textUnderlineOffset: "6px",
+                      textDecorationColor: "#ef4444",
+                      color: "#111827",
                     }}
                   >
                     {item}
                   </Link>
                 );
               })}
-            </Stack>
-          )}
-        </Stack>
-
-        {/* Center Section: Branding */}
-        <Stack alignItems="center">
-          <MotionBox
-            animate={{ scale: scrolled ? 0.85 : 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Avatar
-              src={storeLogo}
-              alt={storeName}
-              sx={{
-                width: 45,
-                height: 45,
-                boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-              }}
-            />
-          </MotionBox>
-          <AnimatePresence>
-            {!scrolled && (
-              <motion.div
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-              >
-                <Typography
-                  level="body-xs"
-                  sx={{
-                    mt: 0.5,
-                    color: activeTextColor,
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                  }}
-                >
-                  {storeName?.toUpperCase()}
-                </Typography>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Stack>
-
-        {/* Right Section */}
-        <Stack
-          direction="row"
-          spacing={{ xs: 1, md: 2.5 }}
-          alignItems="center"
-          sx={{ flex: 1, justifyContent: "flex-end" }}
-        >
-          <Box sx={{ display: { xs: "none", md: "block" } }}>
-            {isDemo ? (
-              <Button
-                size="sm"
-                variant="soft"
-                color="neutral"
-                startDecorator={<User size={14} />}
-              >
-                DEMO USER
-              </Button>
-            ) : (
-              <Link
-                to={isAuthenticated ? "/account" : "/login"}
-                className={`${pathname === "/account" || pathname === "/login" ? "underline" : ""}`}
-                style={{
-                  textDecoration:
-                    pathname === "/account" || pathname === "/login"
-                      ? "underline"
-                      : "none",
-                  textUnderlineOffset: "8px",
-                  textDecorationColor: "#ef4444",
-                  color: activeTextColor,
-                }}
-              >
-                <Typography
-                  level="title-sm"
-                  sx={{ color: "inherit", fontWeight: 700 }}
-                >
-                  {isAuthenticated ? "MY ACCOUNT" : "LOGIN"}
-                </Typography>
-              </Link>
-            )}
-          </Box>
-
-          <Link
-            to={"/cart"}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              color: activeTextColor,
-              textDecoration: "none",
-            }}
-          >
-            <Badge badgeContent={0} color="danger" size="sm">
-              <ShoppingBag size={20} />
-            </Badge>
-          </Link>
-        </Stack>
-      </MotionBox>
-
-      {/* ... Drawer code remains the same ... */}
-      <Drawer open={open} onClose={() => setOpen(false)} size="md">
-        <Box
-          sx={{
-            p: 3,
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ mb: 4 }}
-          >
-            <Avatar
-              src={storeLogo}
-              sx={{
-                width: scrolled ? 35 : 45,
-                height: scrolled ? 35 : 45,
-                transition: "all 0.3s ease",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-              }}
-            />
-            <IconButton onClick={() => setOpen(false)}>
-              <X />
-            </IconButton>
-          </Stack>
-
-          <Stack spacing={3} sx={{ flex: 1 }}>
-            {["home", "shop", "wishlist", "account"]
-              // 1. Filter out 'account' if the user is not logged in
-              .filter((item) => (item === "account" ? isAuthenticated : true))
-              .map((item) => {
-                const path = item === "home" ? "/" : `/${item}`;
-
-                const isActive =
-                  pathname === path || (item === "account" && pathname === "/login");
-
-                return (
-                  <Typography
-                    key={item}
-                    level="h2"
-                    className="capitalize!"
-                    sx={{
-                      fontSize: "20px",
-                      fontWeight: isActive ? 700 : 500,
-                    }}
-                  >
-                    <Link
-                      to={path}
-                      className={`${isActive ? "underline" : ""}`}
-                      style={{
-                        textDecoration: isActive ? "underline" : "none",
-                        textUnderlineOffset: "6px",
-                        textDecorationThickness: "2px",
-                        textDecorationColor: "#ef4444",
-                        color: isActive ? "#0f172a" : "inherit",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      {item}
-                    </Link>
-                  </Typography>
-                );
-              })}
           </Stack>
 
           <Divider sx={{ my: 4 }} />
 
-          <Box sx={{ pb: 4 }}>
-            {isAuthenticated ? (
-              <Button
-                fullWidth
-                variant="solid"
-                color="danger"
-                startDecorator={<LogOut size={18} />}
-                onClick={() => setIsLogoutModalOpen(true)}
-              >
-                Sign Out
-              </Button>
-            ) : (
-              <Link
-                to={"/login"}
-                className="w-full px-4 py-2 bg-slate-900 text-slate-100"
-              >
-                Login to Account
-              </Link>
-            )}
-            <Stack
-              direction="row"
-              spacing={2}
-              sx={{ mt: 4, justifyContent: "center", opacity: 0.6 }}
+          {isAuthenticated ? (
+            <Button
+              fullWidth
+              color="danger"
+              startDecorator={<LogOut size={18} />}
+              onClick={() => setIsLogoutModalOpen(true)}
             >
-              <Typography level="body-xs">Powered by Layemart</Typography>
-            </Stack>
-          </Box>
+              Sign Out
+            </Button>
+          ) : (
+            <Link to="/login">
+              <Button fullWidth>Login to Account</Button>
+            </Link>
+          )}
         </Box>
       </Drawer>
 
+      {/* ================= LOGOUT MODAL (UNCHANGED) ================= */}
       <Modal
         open={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
@@ -593,69 +201,51 @@ export default function Header({ storeName, storeLogo }) {
           variant="outlined"
           role="alertdialog"
           sx={{
-            borderRadius: "24px", // Matching your Auth Card radius
+            borderRadius: "24px",
             maxWidth: 400,
             p: 3,
-            bgcolor: "#ffffff", // Slate theme colors
+            bgcolor: "#ffffff",
             borderColor: "#e2e8f0",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Stack direction="row" spacing={1.5} alignItems="center">
             <Box
               sx={{
                 p: 1,
                 borderRadius: "12px",
-                bgcolor: "danger.softBg", // Subtle red background
-                display: "flex",
+                bgcolor: "danger.softBg",
               }}
             >
               <LogOut size={20} color="#ef4444" />
             </Box>
-            <Typography level="h4" sx={{ fontWeight: 700, color: "#0f172a" }}>
+            <Typography level="h4" fontWeight={700}>
               Log Out
             </Typography>
-          </Box>
+          </Stack>
 
-          <Divider sx={{ my: 2, opacity: 0.5 }} />
+          <Divider sx={{ my: 2 }} />
 
           <Typography level="body-md" sx={{ color: "#64748b" }}>
             Are you sure you want to log out of your account? You will need to
             sign in again to access your store dashboard.
           </Typography>
 
-          <Box
-            sx={{
-              display: "flex",
-              gap: 1.5,
-              mt: 4,
-              justifyContent: "flex-end",
-            }}
-          >
+          <Stack direction="row" spacing={1.5} justifyContent="flex-end" mt={4}>
             <Button
               variant="plain"
-              color="neutral"
               onClick={() => setIsLogoutModalOpen(false)}
-              sx={{ borderRadius: "12px", fontWeight: 600 }}
             >
               Stay Logged In
             </Button>
-            <Button
-              variant="solid"
-              color="danger"
-              onClick={handleLogout} // Your logout function
-              sx={{
-                borderRadius: "12px",
-                fontWeight: 700,
-                px: 3,
-                bgcolor: "#ef4444",
-                "&:hover": { bgcolor: "#dc2626" },
-              }}
-            >
+            <Button color="danger" onClick={handleLogout}>
               Sign Out
             </Button>
-          </Box>
+          </Stack>
         </ModalDialog>
       </Modal>
-    </Box>
+
+      {/* Spacer */}
+      {/* <Box sx={{ height: 64 }} /> */}
+    </>
   );
 }

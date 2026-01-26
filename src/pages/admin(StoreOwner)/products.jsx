@@ -905,23 +905,14 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                         </td>
 
                         <td>
-                          {item.isFeatured ? (
-                            <Chip
-                              size="sm"
-                              variant="soft"
-                              color="warning"
-                              startDecorator="⭐"
-                            >
-                              Featured
-                            </Chip>
-                          ) : (
-                            <Typography
-                              component="span"
-                              sx={{ fontSize: "14px", color: "#64748b" }}
-                            >
-                              Standard
-                            </Typography>
-                          )}
+                          <Chip
+                            size="sm"
+                            variant="soft"
+                            color={item.isFeatured ? "warning" : "neutral"}
+                            startDecorator={item.isFeatured ? "⭐" : null}
+                          >
+                            {item.isFeatured ? "Featured" : "Standard"}
+                          </Chip>
                         </td>
 
                         <td>
@@ -1511,7 +1502,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                       checked={isUnlimited} // const [isUnlimited, setIsUnlimited] = useState(false);
                       onChange={(event) => {
                         setIsUnlimited(event.target.checked);
-                        if (event.target.checked) setInventory(99999); // Optional: default high value
+                        if (event.target.checked) setInventory(0); // Optional: default high value
                       }}
                       color={isUnlimited ? "primary" : "neutral"}
                       variant={isUnlimited ? "solid" : "outlined"}

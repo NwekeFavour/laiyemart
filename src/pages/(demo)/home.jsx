@@ -164,6 +164,108 @@ function DemoHome({ storeSlug }) {
 
   if (error) return <StoreNotFound />;
 
+  const UnderConstructionState = ({ storeName, storeLogo }) => (
+    <Box
+      sx={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        textAlign: "center",
+        px: 3,
+        background: "linear-gradient(180deg, #fff 0%, #f9fafb 100%)",
+      }}
+    >
+      {/* Store Identity */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        {storeLogo ? (
+          <img src={storeLogo} alt={storeName} style={{ height: '60px', marginBottom: '16px' }} />
+        ) : (
+          <Typography level="h2" sx={{ mb: 1, fontWeight: 800, color: '#111' }}>
+            {storeName?.toUpperCase()}
+          </Typography>
+        )}
+
+        {/* Construction Visual */}
+        <Box sx={{ position: 'relative', my: 4 }}>
+          <Typography sx={{ fontSize: "5rem", filter: "drop-shadow(0 10px 15px rgba(0,0,0,0.1))" }}>
+            🏗️
+          </Typography>
+          <CircularProgress
+            color="warning"
+            size="lg"
+            thickness={2}
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              '--CircularProgress-size': '120px'
+            }}
+          />
+        </Box>
+
+        <Typography level="h3" sx={{ mb: 1, fontWeight: 700 }}>
+          Coming Soon
+        </Typography>
+        <Typography level="body-lg" sx={{ color: "text.secondary", maxWidth: 500, mx: "auto", mb: 4 }}>
+          We are currently building something amazing for you. <strong>{storeName}</strong> is putting on the finishing touches.
+        </Typography>
+
+        {/* Layemart Ad / Branding */}
+        <Box 
+          sx={{ 
+            pt: 4, 
+            borderTop: '1px solid', 
+            borderColor: 'neutral.200',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
+          <Typography level="body-xs" sx={{ letterSpacing: '1px', textTransform: 'uppercase', color: 'neutral.500' }}>
+            Powered By
+          </Typography>
+          <Typography 
+            level="title-md" 
+            sx={{ 
+              fontWeight: 900, 
+              color: '#ef4444', // Your branding color
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 0.5 
+            }}
+          >
+            LAYEMART <Box component="span" sx={{ fontSize: '10px', px: 0.5, py: 0.2, bgcolor: '#ef4444', color: '#fff', borderRadius: '2px' }}>PRO</Box>
+          </Typography>
+          <Typography level="body-xs" sx={{ mt: 1 }}>
+            Create your own professional store in minutes.
+          </Typography>
+        </Box>
+      </motion.div>
+    </Box>
+  );
+
+
+  if (storeData && storeData.isOnboarded === false) {
+    return (
+      <>
+        <Helmet>
+          <title>{storeData.name} Store | Coming Soon</title>
+        </Helmet>
+        <UnderConstructionState 
+          storeName={storeData.name} 
+          storeLogo={storeData.logo?.url} 
+        />
+      </>
+    );
+  }
   return (
     <div>
       <Helmet key={storeSlug} defer={false}>
@@ -202,7 +304,7 @@ function DemoHome({ storeSlug }) {
         <NewArrivalsSlider subtitle={config.arrivalSub} />
 
         {/* Dynamic Marquee Section */}
-        <Box
+        {/* <Box
           sx={{
             overflow: "hidden",
             backgroundColor: "neutral.50",
@@ -230,7 +332,7 @@ function DemoHome({ storeSlug }) {
               </Typography>
             ))}
           </motion.div>
-        </Box>
+        </Box> */}
 
         <FeaturedPicksGrid storeType={storeData?.storeType} />
 

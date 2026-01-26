@@ -32,6 +32,7 @@ import {
   Info,
   CircleDashed,
   CheckCircle2,
+  CheckCircle,
 } from "lucide-react";
 import StoreOwnerLayout from "./layout";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -39,8 +40,9 @@ import { toast } from "react-toastify";
 import { useStoreProfileStore } from "../../store/useStoreProfile";
 import { fetchMe } from "../../../services/authService";
 import { useLocation } from "react-router-dom";
+import { Alert, CircularProgress } from "@mui/material";
 
-export default function SettingsPage({isDark, toggleDarkMode}) {
+export default function SettingsPage({ isDark, toggleDarkMode }) {
   const { updateStoreProfile, loading, resendStoreVerification } =
     useStoreProfileStore();
   const [activeSection, setActiveSection] = useState("profile");
@@ -50,7 +52,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
     newPassword: "",
     confirmPassword: "",
   });
-  const { store, user, token, setUser } = useAuthStore();
+  const { store, user, token, setUser, setStoreData } = useAuthStore();
   const [banks, setBanks] = useState([]);
   const [storeDits, setStoreDits] = useState(store);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -68,6 +70,8 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
   const [avatarPreview, setAvatarPreview] = useState(
     user?.profilePicture?.url || "",
   );
+  const [verifyingStep, setVerifyingStep] = useState("idle"); // 'idle' | 'resolving' | 'bvn_check' | 'ready'
+  const [resolvedName, setResolvedName] = useState("");
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const getPasswordStrength = (password) => {
     let score = 0;
@@ -83,7 +87,41 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
     businessName: store?.paystack?.businessName || "",
     bankCode: store?.paystack?.bankCode || "",
     accountNumber: store?.paystack?.accountNumber || "",
+    bvn: "",
   });
+
+  const handleVerifyAndCreate = async () => {
+    try {
+      setIsUpdating(true);
+
+      // STEP 1: Resolve Account Name
+      setVerifyingStep("resolving");
+      const res = await axios.post("/api/stores/verify-bank", {
+        accountNumber: bankForm.accountNumber,
+        bankCode: bankForm.bankCode,
+      });
+
+      setResolvedName(res.data.accountName);
+
+      // STEP 2: Optional BVN Check (If provided)
+      if (bankForm.bvn) {
+        setVerifyingStep("bvn_check");
+        // Call your BVN match endpoint here
+      }
+
+      // STEP 3: Final Creation
+      setVerifyingStep("ready");
+      const createRes = await axios.post("/api/stores/subaccount", bankForm);
+
+      toast.success("Subaccount created successfully!");
+      // Refresh store data...
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Verification failed");
+    } finally {
+      setIsUpdating(false);
+      setVerifyingStep("idle");
+    }
+  };
 
   useEffect(() => {
     const fetchBanks = async () => {
@@ -361,40 +399,75 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
     }
   };
 
+  const canCreateSubaccount =
+    store?.paystack?.ninVerified && store?.paystack?.bankVerified;
   const handleSaveBankDetails = async () => {
+    // Check for BVN as well, as per Step 7 of your process flow
+    if (!bankForm.accountNumber || !bankForm.bankCode || !bankForm.bvn) {
+      return toast.error("Please provide BVN, Account Number, and Bank.");
+    }
+
     try {
       setIsUpdating(true);
-      const API_URL = import.meta.env.VITE_BACKEND_URL;
 
-      const res = await fetch(`${API_URL}/api/paystack/subaccount`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      // --- STEP 1: RESOLVE & NAME MATCHING ---
+      // This backend call should verify the bank AND check if it matches the NIN name
+      setVerifyingStep("resolving");
+      const verifyResponse = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/paystack/verify-bank-details`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            accountNumber: bankForm.accountNumber,
+            bankCode: bankForm.bankCode, // FIXED: Removed hardcoded "001"
+            bvn: bankForm.bvn,
+          }),
         },
-        body: JSON.stringify(bankForm),
-      });
+      );
 
-      const data = await res.json();
+      const verifyData = await verifyResponse.json();
+      if (!verifyResponse.ok) throw new Error(verifyData.message);
 
-      if (data.success) {
-        if (data.isVerified) {
-          toast.success("Subaccount created and verified!");
-        } else {
-          // This is the specific notification you wanted
-          toast.warning(
-            "Subaccount created, but Paystack verification is pending. Payouts may be delayed.",
-          );
-        }
-        // Refresh your store global state here to update the UI status box
-        await fetchMe();
-      } else {
-        toast.error(data.message || "Failed to create subaccount");
+      setResolvedName(verifyData.accountName);
+
+      // --- STEP 2: CREATE SUBACCOUNT & ACTIVATE STORE ---
+      setVerifyingStep("creating");
+      const createResponse = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/paystack/subaccount`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...bankForm,
+            account_name: verifyData.accountName,
+          }),
+        },
+      );
+
+      const createData = await createResponse.json();
+      if (!createResponse.ok) throw new Error(createData.message);
+
+      if (createData.success) {
+        toast.success("Verification Complete! Store Dashboards Enabled.");
+
+        // Update local store state: Step 10 of your flow
+        // This unlocks the Product and Category dashboards in your Sidebar
+        setStoreData({
+          ...createData.store, // Contains subaccountCode AND isOnboarded: true
+        });
       }
     } catch (error) {
-      toast.error("An error occurred. Please check your internet.");
+      toast.error(error.message || "An unexpected error occurred");
     } finally {
       setIsUpdating(false);
+      setVerifyingStep("idle");
     }
   };
 
@@ -496,15 +569,15 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
   // console.log(store)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const section = params.get('section');
+    const section = params.get("section");
 
-    if (section === 'bank-details') {
-      setActiveSection('st'); // Set this to 'st' since that is your bank section key
-      
+    if (section === "bank-details") {
+      setActiveSection("st"); // Set this to 'st' since that is your bank section key
+
       // Optional: Smooth scroll to the anchor
       setTimeout(() => {
-        document.getElementById('bank-details-anchor')?.scrollIntoView({ 
-          behavior: 'smooth' 
+        document.getElementById("bank-details-anchor")?.scrollIntoView({
+          behavior: "smooth",
         });
       }, 100);
     }
@@ -529,7 +602,11 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
           >
             Settings
           </Typography>
-          <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-sm" sx={{ color: "#64748b" }}>
+          <Typography
+            className={`${isDark ? "text-slate-400!" : ""}`}
+            level="body-sm"
+            sx={{ color: "#64748b" }}
+          >
             Manage your store preferences and account settings
           </Typography>
         </Box>
@@ -544,7 +621,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
         >
           {/* Settings Sidebar Navigation */}
           <Sheet
-            className={`${isDark ? "bg-[#020618]! border-[#314158]!": ""}`}
+            className={`${isDark ? "bg-[#020618]! border-[#314158]!" : ""}`}
             variant="outlined"
             sx={{
               width: { xs: "100%", md: 240 },
@@ -578,7 +655,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
 
           {/* Settings Content Area */}
           <Sheet
-            className={`${isDark ? "bg-[#020618]! text-slate-200! border-[#314158]!": ""}`}
+            className={`${isDark ? "bg-[#020618]! text-slate-200! border-[#314158]!" : ""}`}
             variant="outlined"
             sx={{
               flex: 1,
@@ -591,10 +668,17 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
             {activeSection === "profile" && (
               <Stack gap={3}>
                 <Box>
-                  <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="h4" sx={{ fontWeight: 700 }}>
+                  <Typography
+                    className={`${isDark ? "text-slate-200!" : ""}`}
+                    level="h4"
+                    sx={{ fontWeight: 700 }}
+                  >
                     Store Profile
                   </Typography>
-                  <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-sm">
+                  <Typography
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    level="body-sm"
+                  >
                     This information will be displayed publicly to your
                     customers.
                   </Typography>
@@ -604,7 +688,12 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
 
                 {/* LOGO SECTION */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Store Logo</FormLabel>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    Store Logo
+                  </FormLabel>
                   <Stack direction="row" spacing={2} alignItems="center">
                     <Avatar
                       src={previewUrl}
@@ -640,7 +729,12 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                 </FormControl>
 
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Hero Background</FormLabel>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    Hero Background
+                  </FormLabel>
                   <Stack spacing={1.5} sx={{ flex: 1, maxWidth: 400 }}>
                     <Box
                       sx={{
@@ -738,7 +832,7 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                         💡 Pro Tip for a Better Storefront:
                       </Typography>
                       <Typography
-                      className={`${isDark ? "text-slate-400!" : ""}`}
+                        className={`${isDark ? "text-slate-400!" : ""}`}
                         level="body-xs"
                         sx={{ color: "text.secondary", lineHeight: 1.4 }}
                       >
@@ -749,46 +843,60 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                       </Typography>
                     </Box>
 
-                    <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="body-xs" sx={{ color: "text.tertiary" }}>
+                    <Typography
+                      className={`${isDark ? "text-slate-200!" : ""}`}
+                      level="body-xs"
+                      sx={{ color: "text.tertiary" }}
+                    >
                       Recommended: 1920x1080px • Max 2MB • JPG, PNG, WebP
                     </Typography>
                   </Stack>
                 </FormControl>
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Store Name</FormLabel>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    Store Name
+                  </FormLabel>
 
                   <Input
                     className="placeholder:capitalize!"
                     value={store?.name}
                     disabled
                     placeholder="Layemart Store"
-                    sx={{ 
-                      flex: 1, 
+                    sx={{
+                      flex: 1,
                       maxWidth: 400,
-                      borderRadius: 'lg',
+                      borderRadius: "lg",
                       // ✅ Handle colors based on isDark
-                      bgcolor: isDark ? 'slate.900' : 'neutral.50',
-                      borderColor: isDark ? 'slate.800' : 'neutral.200',
-                      color: isDark ? 'slate.400' : 'neutral.600',
-                      
+                      bgcolor: isDark ? "slate.900" : "neutral.50",
+                      borderColor: isDark ? "slate.800" : "neutral.200",
+                      color: isDark ? "slate.400" : "neutral.600",
+
                       // ✅ Specific override for the "Disabled" state
                       "&.Mui-disabled": {
-                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
-                        color: isDark ? 'slate.500' : 'neutral.500',
-                        borderColor: isDark ? 'slate.800' : 'neutral.200',
-                        textShadow: isDark ? 'none' : 'none',
-                        cursor: 'not-allowed',
+                        bgcolor: isDark
+                          ? "rgba(15, 23, 42, 0.5)"
+                          : "neutral.50",
+                        color: isDark ? "slate.500" : "neutral.500",
+                        borderColor: isDark ? "slate.800" : "neutral.200",
+                        textShadow: isDark ? "none" : "none",
+                        cursor: "not-allowed",
                         // Target the internal input element
                         "& input": {
-                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
-                        }
-                      }
+                          WebkitTextFillColor: isDark ? "#64748b" : "#64748b", // Ensures color isn't forced to grey by browser
+                        },
+                      },
                     }}
                   />
                 </FormControl>
                 {/* STORE DESCRIPTION SECTION */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
                     Store Description
                   </FormLabel>
                   <Box sx={{ flex: 1, maxWidth: 400 }}>
@@ -804,13 +912,15 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                       endDecorator={
                         <Typography
                           level="body-xs"
-                          sx={{ 
-                            ml: "auto", 
+                          sx={{
+                            ml: "auto",
                             fontWeight: 700,
                             // ✅ Dynamic character count color: turns brighter or subtle based on length
-                            color: isDark 
-                              ? (formDescription?.length >= 80 ? 'warning.400' : 'slate.500') 
-                              : 'neutral.500' 
+                            color: isDark
+                              ? formDescription?.length >= 80
+                                ? "warning.400"
+                                : "slate.500"
+                              : "neutral.500",
                           }}
                         >
                           {formDescription?.length || 0} / 85 characters
@@ -819,27 +929,31 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                       sx={{
                         borderRadius: "md",
                         // ✅ Main surface colors
-                        bgcolor: isDark ? '#0f172a' : 'white', // slate-900
-                        color: isDark ? '#f1f5f9' : 'inherit', // slate-100
-                        borderColor: isDark ? '#1e293b' : 'neutral.300', // slate-800
-                        
+                        bgcolor: isDark ? "#0f172a" : "white", // slate-900
+                        color: isDark ? "#f1f5f9" : "inherit", // slate-100
+                        borderColor: isDark ? "#1e293b" : "neutral.300", // slate-800
+
                         // ✅ Internal footer (endDecorator) styling
                         "& .MuiTextarea-endDecorator": {
-                          bgcolor: isDark ? 'rgba(30, 41, 59, 0.5)' : 'neutral.50',
-                          borderTop: '1px solid',
-                          borderColor: isDark ? '#1e293b' : 'neutral.200',
+                          bgcolor: isDark
+                            ? "rgba(30, 41, 59, 0.5)"
+                            : "neutral.50",
+                          borderTop: "1px solid",
+                          borderColor: isDark ? "#1e293b" : "neutral.200",
                         },
 
                         "&:focus-within": {
                           // ✅ Focus state adjusted for dark visibility
-                          borderColor: isDark ? 'primary.500' : '#0f172a',
-                          boxShadow: isDark ? '0 0 0 3px rgba(14, 165, 233, 0.15)' : 'none',
+                          borderColor: isDark ? "primary.500" : "#0f172a",
+                          boxShadow: isDark
+                            ? "0 0 0 3px rgba(14, 165, 233, 0.15)"
+                            : "none",
                         },
 
                         // ✅ Placeholder visibility
                         "& textarea::placeholder": {
-                          color: isDark ? '#64748b' : 'neutral.400', // slate-500
-                        }
+                          color: isDark ? "#64748b" : "neutral.400", // slate-500
+                        },
                       }}
                     />
                     <Typography
@@ -853,95 +967,152 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
 
                 {/* STORE TYPE SECTION */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Store Category</FormLabel>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    Store Category
+                  </FormLabel>
                   <Select
                     value={formStoreType}
                     onChange={(e, newValue) => setFormStoreType(newValue)}
                     variant={isDark ? "soft" : "outlined"}
-                    sx={{ 
-                      flex: 1, 
+                    sx={{
+                      flex: 1,
                       maxWidth: 400,
-                      borderRadius: 'lg',
+                      borderRadius: "lg",
                       // ✅ Use specific Slate-900 for the button background
-                      bgcolor: isDark ? '#0f172a' : 'white', 
-                      color: isDark ? '#f1f5f9' : 'inherit',
-                      borderColor: isDark ? '#1e293b' : 'neutral.300',
-                      '&:hover': {
-                        bgcolor: isDark ? '#1e293b' : 'neutral.50', // Slate-800
-                        borderColor: isDark ? '#334155' : 'neutral.400',
+                      bgcolor: isDark ? "#0f172a" : "white",
+                      color: isDark ? "#f1f5f9" : "inherit",
+                      borderColor: isDark ? "#1e293b" : "neutral.300",
+                      "&:hover": {
+                        bgcolor: isDark ? "#1e293b" : "neutral.50", // Slate-800
+                        borderColor: isDark ? "#334155" : "neutral.400",
                       },
-                      '&:focus-within': {
-                        borderColor: 'primary.500',
-                        outline: isDark ? '2px solid rgba(14, 165, 233, 0.2)' : 'none',
+                      "&:focus-within": {
+                        borderColor: "primary.500",
+                        outline: isDark
+                          ? "2px solid rgba(14, 165, 233, 0.2)"
+                          : "none",
                       },
-                      '& .MuiSelect-indicator': {
-                        color: isDark ? '#64748b' : 'inherit', // Slate-500
-                      }
+                      "& .MuiSelect-indicator": {
+                        color: isDark ? "#64748b" : "inherit", // Slate-500
+                      },
                     }}
                     slotProps={{
                       listbox: {
                         sx: {
                           // ✅ Match the deep Slate-950/900 palette for the menu
-                          bgcolor: isDark ? '#020617' : 'background.surface', 
-                          borderColor: isDark ? '#1e293b' : 'divider',
-                          boxShadow: isDark ? '0 20px 25px -5px rgba(0, 0, 0, 0.6)' : 'md',
-                          color: isDark ? '#e2e8f0' : 'inherit',
+                          bgcolor: isDark ? "#020617" : "background.surface",
+                          borderColor: isDark ? "#1e293b" : "divider",
+                          boxShadow: isDark
+                            ? "0 20px 25px -5px rgba(0, 0, 0, 0.6)"
+                            : "md",
+                          color: isDark ? "#e2e8f0" : "inherit",
                           p: 1,
                           gap: 0.5,
-                          '& .MuiOption-root': {
-                            borderRadius: 'md',
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                              bgcolor: isDark ? '#1e293b' : 'neutral.100',
-                              color: isDark ? '#fff' : 'inherit',
+                          "& .MuiOption-root": {
+                            borderRadius: "md",
+                            transition: "all 0.2s",
+                            "&:hover": {
+                              bgcolor: isDark ? "#1e293b" : "neutral.100",
+                              color: isDark ? "#fff" : "inherit",
                             },
                             '&[aria-selected="true"]': {
                               // High-contrast selection for dark mode
-                              bgcolor: isDark ? 'rgba(14, 165, 233, 0.15)' : 'primary.100',
-                              color: isDark ? '#38bdf8' : 'primary.700', // Slate-400 blue
+                              bgcolor: isDark
+                                ? "rgba(14, 165, 233, 0.15)"
+                                : "primary.100",
+                              color: isDark ? "#38bdf8" : "primary.700", // Slate-400 blue
                               fontWeight: 600,
-                            }
-                          }
-                        }
-                      }
+                            },
+                          },
+                        },
+                      },
                     }}
                   >
-                    <Option className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`} value="General Store">General Store</Option>
-                    <Option  className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}  value="Fashion">Fashion</Option>
-                    <Option className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}   value="Electronics">Electronics</Option>
-                    <Option className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}  value="Beauty & Health">Beauty & Health</Option>
-                    <Option className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}  value="Digital Products">Digital Products</Option>
+                    <Option
+                      className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
+                      value="General Store"
+                    >
+                      General Store
+                    </Option>
+                    <Option
+                      className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
+                      value="Fashion"
+                    >
+                      Fashion
+                    </Option>
+                    <Option
+                      className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
+                      value="Electronics"
+                    >
+                      Electronics
+                    </Option>
+                    <Option
+                      className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
+                      value="Beauty & Health"
+                    >
+                      Beauty & Health
+                    </Option>
+                    <Option
+                      className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
+                      value="Digital Products"
+                    >
+                      Digital Products
+                    </Option>
                   </Select>
                 </FormControl>
                 {/* SUPPORT EMAIL SECTION */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Support Email</FormLabel>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    Support Email
+                  </FormLabel>
                   <Box sx={{ flex: 1, maxWidth: 400 }}>
                     <Input
                       value={formEmail || ""}
                       onChange={(e) => setFormEmail(e.target.value)}
                       startDecorator={
-                        <Mail size={16} color={isDark ? "#94a3b8" : "#64748b"} />
+                        <Mail
+                          size={16}
+                          color={isDark ? "#94a3b8" : "#64748b"}
+                        />
                       }
                       endDecorator={
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          {formEmail === store?.email && store?.isEmailVerified ? (
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          {formEmail === store?.email &&
+                          store?.isEmailVerified ? (
                             <Typography
                               level="body-xs"
                               // ✅ Success color looks great in both modes
                               color="success"
-                              sx={{ fontWeight: "bold", pr: 0.5, letterSpacing: '0.05em' }}
+                              sx={{
+                                fontWeight: "bold",
+                                pr: 0.5,
+                                letterSpacing: "0.05em",
+                              }}
                             >
                               VERIFIED
                             </Typography>
                           ) : (
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
                               {resendTimer > 0 ? (
                                 <Typography
                                   level="body-xs"
-                                  sx={{ 
-                                    fontWeight: 700, 
-                                    color: isDark ? "slate.500" : "neutral.400" 
+                                  sx={{
+                                    fontWeight: 700,
+                                    color: isDark ? "slate.500" : "neutral.400",
                                   }}
                                 >
                                   {resendTimer}s
@@ -954,16 +1125,26 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                                   onClick={async () => {
                                     try {
                                       setLoading(true);
-                                      const res = await resendStoreVerification(formEmail);
+                                      const res =
+                                        await resendStoreVerification(
+                                          formEmail,
+                                        );
                                       if (res.isAutoVerified || res.store) {
-                                        toast.success("Email verified automatically!");
+                                        toast.success(
+                                          "Email verified automatically!",
+                                        );
                                         setFormEmail(res.store.email);
                                       } else {
-                                        toast.success(res.message || "Verification email sent!");
+                                        toast.success(
+                                          res.message ||
+                                            "Verification email sent!",
+                                        );
                                         setResendTimer(60);
                                       }
                                     } catch (err) {
-                                      const errorMessage = err.response?.data?.message || "Failed to resend email.";
+                                      const errorMessage =
+                                        err.response?.data?.message ||
+                                        "Failed to resend email.";
                                       toast.error(errorMessage);
                                     } finally {
                                       setLoading(false);
@@ -989,11 +1170,13 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                               )}
                               <Typography
                                 level="body-xs"
-                                sx={{ 
-                                  fontWeight: "bold", 
+                                sx={{
+                                  fontWeight: "bold",
                                   // ✅ Red-400 for dark mode, Red-600 for light mode
-                                  color: isDark ? "#fb7185 !important" : "#dc2626 !important",
-                                  letterSpacing: '0.05em'
+                                  color: isDark
+                                    ? "#fb7185 !important"
+                                    : "#dc2626 !important",
+                                  letterSpacing: "0.05em",
                                 }}
                               >
                                 UNVERIFIED
@@ -1011,12 +1194,14 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                         borderColor: isDark ? "#1e293b" : "#e2e8f0",
                         "&:focus-within": {
                           borderColor: isDark ? "#38bdf8" : "#0f172a",
-                          boxShadow: isDark ? "0 0 0 2px rgba(56, 189, 248, 0.15)" : "none",
+                          boxShadow: isDark
+                            ? "0 0 0 2px rgba(56, 189, 248, 0.15)"
+                            : "none",
                         },
                         // Fix for the input text color in dark mode
                         "& input": {
-                            color: isDark ? "#f8fafc" : "inherit",
-                        }
+                          color: isDark ? "#f8fafc" : "inherit",
+                        },
                       }}
                     />
                   </Box>
@@ -1047,10 +1232,17 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
             {activeSection === "notifications" && (
               <Stack gap={3}>
                 <Box>
-                  <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="h4" sx={{ fontWeight: 700 }}>
+                  <Typography
+                    className={`${isDark ? "text-slate-200!" : ""}`}
+                    level="h4"
+                    sx={{ fontWeight: 700 }}
+                  >
                     Notification Preferences
                   </Typography>
-                  <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-sm">
+                  <Typography
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    level="body-sm"
+                  >
                     Control how you receive updates about your store.
                   </Typography>
                 </Box>
@@ -1079,7 +1271,10 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                     }}
                   >
                     <Box>
-                      <Typography className={`${isDark ? "text-slate-400!" : ""}`} sx={{ fontWeight: 600 }}>
+                      <Typography
+                        className={`${isDark ? "text-slate-400!" : ""}`}
+                        sx={{ fontWeight: 600 }}
+                      >
                         {notif.title}
                       </Typography>
                       <Typography level="body-xs">{notif.desc}</Typography>
@@ -1093,16 +1288,28 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
             {activeSection === "account" && (
               <Stack gap={3}>
                 <Box>
-                  <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="h4" sx={{ fontWeight: 700 }}>
+                  <Typography
+                    className={`${isDark ? "text-slate-200!" : ""}`}
+                    level="h4"
+                    sx={{ fontWeight: 700 }}
+                  >
                     Account Information
                   </Typography>
-                  <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-sm">
+                  <Typography
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    level="body-sm"
+                  >
                     Manage your personal account details and security.
                   </Typography>
                 </Box>
 
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Profile Picture</FormLabel>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    Profile Picture
+                  </FormLabel>
                   <Stack direction="row" spacing={3} alignItems="center">
                     <Box
                       sx={{
@@ -1185,7 +1392,10 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                           }}
                         />
                       </Button>
-                      <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-xs">
+                      <Typography
+                        className={`${isDark ? "text-slate-400!" : ""}`}
+                        level="body-xs"
+                      >
                         JPG, GIF or PNG. Max size 2MB
                       </Typography>
                     </Stack>
@@ -1195,32 +1405,39 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                 <Divider />
 
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Full Name</FormLabel>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    Full Name
+                  </FormLabel>
                   <Input
                     value={fullName || ""}
                     onChange={(e) => setFullName(e.target.value)}
                     startDecorator={<Mail size={16} />}
-                    sx={{ 
-                      flex: 1, 
+                    sx={{
+                      flex: 1,
                       maxWidth: 400,
-                      borderRadius: 'lg',
+                      borderRadius: "lg",
                       // ✅ Handle colors based on isDark
-                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
-                      borderColor: isDark ? '#1d293d' : 'neutral.200',
-                      color: isDark ? '#90a1b9' : 'neutral.600',
-                      
+                      bgcolor: isDark ? "#0f172b" : "neutral.50",
+                      borderColor: isDark ? "#1d293d" : "neutral.200",
+                      color: isDark ? "#90a1b9" : "neutral.600",
+
                       // ✅ Specific override for the "Disabled" state
                       "&.Mui-disabled": {
-                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
-                        color: isDark ? '#62748e' : 'neutral.500',
-                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
-                        textShadow: isDark ? 'none' : 'none',
-                        cursor: 'not-allowed',
+                        bgcolor: isDark
+                          ? "rgba(15, 23, 42, 0.5)"
+                          : "neutral.50",
+                        color: isDark ? "#62748e" : "neutral.500",
+                        borderColor: isDark ? "#90a1b9" : "neutral.200",
+                        textShadow: isDark ? "none" : "none",
+                        cursor: "not-allowed",
                         // Target the internal input element
                         "& input": {
-                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
-                        }
-                      }
+                          WebkitTextFillColor: isDark ? "#64748b" : "#64748b", // Ensures color isn't forced to grey by browser
+                        },
+                      },
                     }}
                   />
                 </FormControl>
@@ -1242,63 +1459,77 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                 </Box>
                 {/* Email */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Email Address</FormLabel>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    Email Address
+                  </FormLabel>
                   <Input
                     value={user?.email || ""}
                     disabled
                     startDecorator={<Mail size={16} />}
-                                        sx={{ 
-                      flex: 1, 
+                    sx={{
+                      flex: 1,
                       maxWidth: 400,
-                      borderRadius: 'lg',
+                      borderRadius: "lg",
                       // ✅ Handle colors based on isDark
-                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
-                      borderColor: isDark ? '#1d293d' : 'neutral.200',
-                      color: isDark ? '#90a1b9' : 'neutral.600',
-                      
+                      bgcolor: isDark ? "#0f172b" : "neutral.50",
+                      borderColor: isDark ? "#1d293d" : "neutral.200",
+                      color: isDark ? "#90a1b9" : "neutral.600",
+
                       // ✅ Specific override for the "Disabled" state
                       "&.Mui-disabled": {
-                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
-                        color: isDark ? '#62748e' : 'neutral.500',
-                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
-                        textShadow: isDark ? 'none' : 'none',
-                        cursor: 'not-allowed',
+                        bgcolor: isDark
+                          ? "rgba(15, 23, 42, 0.5)"
+                          : "neutral.50",
+                        color: isDark ? "#62748e" : "neutral.500",
+                        borderColor: isDark ? "#90a1b9" : "neutral.200",
+                        textShadow: isDark ? "none" : "none",
+                        cursor: "not-allowed",
                         // Target the internal input element
                         "& input": {
-                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
-                        }
-                      }
+                          WebkitTextFillColor: isDark ? "#64748b" : "#64748b", // Ensures color isn't forced to grey by browser
+                        },
+                      },
                     }}
                   />
                 </FormControl>
 
                 {/* Role */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Account Role</FormLabel>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    Account Role
+                  </FormLabel>
                   <Input
                     value={user?.role === "OWNER" ? "Store Owner" : user?.role}
                     disabled
-                                        sx={{ 
-                      flex: 1, 
+                    sx={{
+                      flex: 1,
                       maxWidth: 400,
-                      borderRadius: 'lg',
+                      borderRadius: "lg",
                       // ✅ Handle colors based on isDark
-                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
-                      borderColor: isDark ? '#1d293d' : 'neutral.200',
-                      color: isDark ? '#90a1b9' : 'neutral.600',
-                      
+                      bgcolor: isDark ? "#0f172b" : "neutral.50",
+                      borderColor: isDark ? "#1d293d" : "neutral.200",
+                      color: isDark ? "#90a1b9" : "neutral.600",
+
                       // ✅ Specific override for the "Disabled" state
                       "&.Mui-disabled": {
-                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
-                        color: isDark ? '#62748e' : 'neutral.500',
-                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
-                        textShadow: isDark ? 'none' : 'none',
-                        cursor: 'not-allowed',
+                        bgcolor: isDark
+                          ? "rgba(15, 23, 42, 0.5)"
+                          : "neutral.50",
+                        color: isDark ? "#62748e" : "neutral.500",
+                        borderColor: isDark ? "#90a1b9" : "neutral.200",
+                        textShadow: isDark ? "none" : "none",
+                        cursor: "not-allowed",
                         // Target the internal input element
                         "& input": {
-                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
-                        }
-                      }
+                          WebkitTextFillColor: isDark ? "#64748b" : "#64748b", // Ensures color isn't forced to grey by browser
+                        },
+                      },
                     }}
                   />
                 </FormControl>
@@ -1307,17 +1538,29 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
 
                 {/* Password */}
                 <Box>
-                  <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="title-md" sx={{ fontWeight: 700 }}>
+                  <Typography
+                    className={`${isDark ? "text-slate-200!" : ""}`}
+                    level="title-md"
+                    sx={{ fontWeight: 700 }}
+                  >
                     Password
                   </Typography>
-                  <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-xs">
-                    When you Change your account password. A verification code will be
-                    sent to your email.
+                  <Typography
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    level="body-xs"
+                  >
+                    When you Change your account password. A verification code
+                    will be sent to your email.
                   </Typography>
                 </Box>
 
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>New Password</FormLabel>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    New Password
+                  </FormLabel>
                   <Input
                     className="border! border-slate-300!"
                     type="password"
@@ -1329,61 +1572,70 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                         newPassword: e.target.value,
                       })
                     }
-                                        sx={{ 
-                      flex: 1, 
+                    sx={{
+                      flex: 1,
                       maxWidth: 400,
-                      borderRadius: 'lg',
+                      borderRadius: "lg",
                       // ✅ Handle colors based on isDark
-                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
-                      borderColor: isDark ? '#1d293d' : 'neutral.200',
-                      color: isDark ? '#90a1b9' : 'neutral.600',
-                      
+                      bgcolor: isDark ? "#0f172b" : "neutral.50",
+                      borderColor: isDark ? "#1d293d" : "neutral.200",
+                      color: isDark ? "#90a1b9" : "neutral.600",
+
                       // ✅ Specific override for the "Disabled" state
                       "&.Mui-disabled": {
-                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
-                        color: isDark ? '#62748e' : 'neutral.500',
-                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
-                        textShadow: isDark ? 'none' : 'none',
-                        cursor: 'not-allowed',
+                        bgcolor: isDark
+                          ? "rgba(15, 23, 42, 0.5)"
+                          : "neutral.50",
+                        color: isDark ? "#62748e" : "neutral.500",
+                        borderColor: isDark ? "#90a1b9" : "neutral.200",
+                        textShadow: isDark ? "none" : "none",
+                        cursor: "not-allowed",
                         // Target the internal input element
                         "& input": {
-                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
-                        }
-                      }
+                          WebkitTextFillColor: isDark ? "#64748b" : "#64748b", // Ensures color isn't forced to grey by browser
+                        },
+                      },
                     }}
                   />
                 </FormControl>
 
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                  <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Confirm Password</FormLabel>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    Confirm Password
+                  </FormLabel>
                   <Box sx={{ flex: 1, maxWidth: 400 }}>
                     <Input
                       className="border! border-slate-300!"
                       type="password"
                       placeholder="••••••••"
                       value={passwords.confirmPassword}
-                                          sx={{ 
-                      flex: 1, 
-                      maxWidth: 400,
-                      borderRadius: 'lg',
-                      // ✅ Handle colors based on isDark
-                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
-                      borderColor: isDark ? '#1d293d' : 'neutral.200',
-                      color: isDark ? '#90a1b9' : 'neutral.600',
-                      
-                      // ✅ Specific override for the "Disabled" state
-                      "&.Mui-disabled": {
-                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
-                        color: isDark ? '#62748e' : 'neutral.500',
-                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
-                        textShadow: isDark ? 'none' : 'none',
-                        cursor: 'not-allowed',
-                        // Target the internal input element
-                        "& input": {
-                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
-                        }
-                      }
-                    }}
+                      sx={{
+                        flex: 1,
+                        maxWidth: 400,
+                        borderRadius: "lg",
+                        // ✅ Handle colors based on isDark
+                        bgcolor: isDark ? "#0f172b" : "neutral.50",
+                        borderColor: isDark ? "#1d293d" : "neutral.200",
+                        color: isDark ? "#90a1b9" : "neutral.600",
+
+                        // ✅ Specific override for the "Disabled" state
+                        "&.Mui-disabled": {
+                          bgcolor: isDark
+                            ? "rgba(15, 23, 42, 0.5)"
+                            : "neutral.50",
+                          color: isDark ? "#62748e" : "neutral.500",
+                          borderColor: isDark ? "#90a1b9" : "neutral.200",
+                          textShadow: isDark ? "none" : "none",
+                          cursor: "not-allowed",
+                          // Target the internal input element
+                          "& input": {
+                            WebkitTextFillColor: isDark ? "#64748b" : "#64748b", // Ensures color isn't forced to grey by browser
+                          },
+                        },
+                      }}
                       onChange={(e) =>
                         setPasswords({
                           ...passwords,
@@ -1430,7 +1682,10 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
                 {/* OTP INPUT (Appears After Sending OTP) */}
                 {isOtpSent && (
                   <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                    <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>
+                    <FormLabel
+                      className={`${isDark ? "text-slate-400!" : ""}`}
+                      sx={{ minWidth: 140 }}
+                    >
                       Verification Code
                     </FormLabel>
                     <Input
@@ -1483,337 +1738,247 @@ export default function SettingsPage({isDark, toggleDarkMode}) {
             )}
 
             {activeSection === "st" && (
-              <Stack gap={3} id="bank-details-anchor" sx={{ scrollMarginTop: '20px' }}>
+              <Stack
+                gap={3}
+                id="bank-details-anchor"
+                sx={{ scrollMarginTop: "20px" }}
+              >
                 <Box>
-                  <Typography className={`${isDark ? "text-slate-200!" : ""}`} level="h4" sx={{ fontWeight: 700 }}>
-                    Bank Details
+                  <Typography
+                    level="h4"
+                    sx={{
+                      fontWeight: 700,
+                      color: isDark ? "slate.200" : "inherit",
+                    }}
+                  >
+                    Financial Verification
                   </Typography>
-                  <Typography className={`${isDark ? "text-slate-400!" : ""}`} level="body-sm">
-                    Configure where your earnings will be deposited via
-                    Paystack.
+                  <Typography
+                    level="body-sm"
+                    sx={{ color: isDark ? "slate.400" : "neutral.600" }}
+                  >
+                    Step 2: Link your BVN and Bank Account to enable payouts.
                   </Typography>
                 </Box>
 
                 <Divider />
 
-                {/* Single Status Box */}
-                <Box
-                  className="flex! flex-wrap! items-center!"
-                  sx={{
-                    p: 2,
-                    borderRadius: "lg",
-                    border: "1px solid",
-                    gap: 2,
-                    bgcolor: !store?.paystack?.subaccountCode
-                      ? "neutral.softBg"
-                      : !store?.paystack?.verified
-                        ? "warning.softBg"
-                        : "success.softBg",
-                    borderColor: !store?.paystack?.subaccountCode
-                      ? "neutral.outlinedBorder"
-                      : !store?.paystack?.verified
-                        ? "warning.outlinedBorder"
-                        : "success.outlinedBorder",
-                  }}
-                >
-                  {/* Add an Icon for visual cues */}
-                  {!store?.paystack?.subaccountCode ? (
-                    <HelpCircle size={24} color="#64748b" />
-                  ) : !store?.paystack?.verified ? (
-                    <BellRing
-                      size={24}
-                      color="#b45309"
-                      className="animate-pulse"
-                    />
-                  ) : (
-                    <Package size={24} color="#15803d" />
-                  )}
-
-                  <Box>
-                    <Typography level="title-sm" sx={{ fontWeight: 700 }}>
-                      {!store?.paystack?.subaccountCode
-                        ? "Action Required: Bank Setup"
-                        : !store?.paystack?.verified
-                          ? "Verification Pending"
-                          : "Bank Details Verified"}
-                    </Typography>
-                    <Typography level="body-xs">
-                      {!store?.paystack?.subaccountCode
-                        ? "Connect your bank account to start receiving automated payouts."
-                        : !store?.paystack?.verified
-                          ? "Your account is created, but Paystack is currently verifying your bank details. You can receive orders, but payouts are on hold."
-                          : `Verified: ${store?.paystack?.bankName} • ${store?.paystack?.accountNumber}`}
-                    </Typography>
-                  </Box>
-                  <Box
-                    className="rlex! items-center! justify-between! flex-wrap!"
-                    sx={{
-                      p: 2,
-                      borderRadius: "lg",
-                      border: "1px solid",
-                      bgcolor: !store?.paystack?.verified
-                        ? "warning.softBg"
-                        : "success.softBg",
-                      borderColor: !store?.paystack?.verified
-                        ? "warning.outlinedBorder"
-                        : "success.outlinedBorder",
-                    }}
+                {/* Identity Lock: Step 7 of your Flow */}
+                {!store?.paystack?.ninVerified ? (
+                  <Alert
+                    variant="soft"
+                    color="warning"
+                    startDecorator={<Lock size={20} />}
                   >
-                    <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                    <Box>
+                      <Typography level="title-sm">
+                        Identity Verification Required
+                      </Typography>
+                      <Typography level="body-xs">
+                        Please complete the NIN verification in your Profile
+                        before configuring bank details.
+                      </Typography>
+                    </Box>
+                  </Alert>
+                ) : (
+                  <>
+                    {/* Unified Status Box */}
+                    <Box
+                      sx={{
+                        p: 2,
+                        borderRadius: "lg",
+                        border: "1px solid",
+                        gap: 2,
+                        display: "flex",
+                        alignItems: "center",
+                        bgcolor: store?.paystack?.verified
+                          ? "success.softBg"
+                          : "warning.softBg",
+                        borderColor: store?.paystack?.verified
+                          ? "success.outlinedBorder"
+                          : "warning.outlinedBorder",
+                      }}
+                    >
+                      {store?.paystack?.verified ? (
+                        <CheckCircle size={24} color="#15803d" />
+                      ) : (
+                        <BellRing
+                          size={24}
+                          color="#b45309"
+                          className="animate-pulse"
+                        />
+                      )}
                       <Box>
                         <Typography level="title-sm" sx={{ fontWeight: 700 }}>
                           {store?.paystack?.verified
-                            ? "Verified Account"
-                            : "Verification Pending"}
+                            ? "Bank Details Verified"
+                            : "Verification in Progress"}
                         </Typography>
                         <Typography level="body-xs">
                           {store?.paystack?.verified
-                            ? `Payouts active to ${store?.paystack.settlementBank}`
-                            : "We are waiting for Paystack to confirm your bank details."}
+                            ? `Payouts active to ${store?.paystack?.accountNumber} (${store?.paystack?.bankName})`
+                            : "Match your BVN with your Bank Account to finalize setup."}
                         </Typography>
                       </Box>
+                      {store?.paystack?.subaccountCode &&
+                        !store?.paystack?.verified && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            color="warning"
+                            loading={isRefreshing}
+                            onClick={handleRefreshStatus}
+                            startDecorator={<RefreshCcw size={16} />}
+                            sx={{ ml: "auto" }}
+                          >
+                            Refresh
+                          </Button>
+                        )}
                     </Box>
 
-                    {/* Only show refresh if not yet verified */}
-                    {store?.paystack?.subaccountCode &&
-                      !store?.paystack?.verified && (
-                        <Button
-                          className={`${isDark ? "text-slate-200!" : ""}`}
-                          size="sm"
-                          variant="ghost"
-                          color="warning"
-                          loading={isRefreshing}
-                          onClick={handleRefreshStatus}
-                          startDecorator={<RefreshCcw size={16} />}
-                        >
-                          Refresh Status
-                        </Button>
-                      )}
-                  </Box>
-
-                  {/* The Verification Badge / Requirements List */}
-                  {store?.paystack?.subaccountCode &&
-                    !store?.paystack?.verified && (
-                      <Box sx={{ mt: 1.5, px: 1 }}>
-                        <Typography
-                          level="body-xs"
-                          sx={{
-                            fontWeight: 600,
-                            mb: 1,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                          }}
-                        >
-                          <Info size={14} /> Why is my account unverified?
-                        </Typography>
-                        <Stack gap={0.5}>
-                          <RequirementBadge
-                            label="Bank Account Match"
-                            isDone={true}
-                          />
-                          <RequirementBadge
-                            label="KYC Validation"
-                            isDone={false}
-                          />
-                          <RequirementBadge
-                            label="Paystack Processing (30m - 24h)"
-                            isDone={false}
-                          />
-                        </Stack>
-                      </Box>
-                    )}
-                </Box>
-
-                {/* Verification Requirements Section */}
-                {store?.paystack?.subaccountCode &&
-                  !store?.paystack?.verified && (
-                    <Box sx={{ mt: 3, px: 1 }}>
-                      {/* Section Header */}
-                      <Typography
-                        level="title-sm"
-                        startDecorator={
-                          <Info size={18} className="text-amber-600" />
-                        }
-                        sx={{ mb: 2, display: "flex", alignItems: "center" }}
-                      >
-                        Next Steps for Payouts
-                      </Typography>
-
-                      <Stack
-                        spacing={1.5}
-                        sx={{
-                          position: "relative",
-                          "&::before": {
-                            content: '""',
-                            position: "absolute",
-                            left: "11px",
-                            top: "10px",
-                            bottom: "10px",
-                            width: "2px",
-                            bgcolor: "neutral.softBg",
-                            zIndex: 0,
-                          },
-                        }}
-                      >
-                        <RequirementItem
-                          label="Bank Account Connection"
-                          description="Your NUBAN and Bank details have been linked."
-                          isDone={!!store?.paystack?.accountNumber}
-                        />
-                        <RequirementItem
-                          label="Identity & Business Match"
-                          description="Paystack is cross-referencing your name with bank records."
-                          isDone={!!store?.paystack?.businessName}
-                        />
-                        <RequirementItem
-                          label="Compliance Review"
-                          description="Usually takes 30 mins to 24 hours for first-time setup."
-                          isDone={store?.paystack?.verified}
-                          isPending={!store?.paystack?.verified}
-                        />
-                      </Stack>
-                    </Box>
-                  )}
-
-                {/* Form */}
-                <Stack gap={2.5} sx={{ mt: 2 }}>
-                  <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                    <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Business Name</FormLabel>
-                    <Input
-                      placeholder="Registered Business Name"
-                      value={bankForm.businessName}
-                      onChange={(e) =>
-                        setBankForm({
-                          ...bankForm,
-                          businessName: e.target.value,
-                        })
-                      }
-                      sx={{ 
-                      flex: 1, 
-                      maxWidth: 400,
-                      borderRadius: 'lg',
-                      // ✅ Handle colors based on isDark
-                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
-                      borderColor: isDark ? '#1d293d' : 'neutral.200',
-                      color: isDark ? '#90a1b9' : 'neutral.600',
-                      
-                      // ✅ Specific override for the "Disabled" state
-                      "&.Mui-disabled": {
-                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
-                        color: isDark ? '#62748e' : 'neutral.500',
-                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
-                        textShadow: isDark ? 'none' : 'none',
-                        cursor: 'not-allowed',
-                        // Target the internal input element
-                        "& input": {
-                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
-                        }
-                      }
-                    }}
-                    />
-                  </FormControl>
-
-                  <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                    <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>
-                      Settlement Bank
-                    </FormLabel>
-                    <Select
-                      placeholder="Select bank"
-                      value={bankForm.bankCode}
-                      onChange={(e, newValue) =>
-                        setBankForm({ ...bankForm, bankCode: newValue })
-                      }
-                      sx={{ 
-                        maxWidth: 400,
-                        // Dynamic Dark Mode Styles
-                          backgroundColor: isDark ? '#0f172b' : '#fff', 
-                          color: isDark ? '#cbd5e1' : '#1f2937',
-                          borderColor: isDark ? '#334155' : '#d1d5db',
-                          '&:hover': {
-                          backgroundColor: isDark ? '#0f172b' : '#f9fafb',
-                          borderColor: isDark ? '#475569' : '#9ca3af',
-                          },
-                          '& .MuiSelect-listbox': {
-                          backgroundColor: isDark ? '#1e293b' : '#fff',
-                          color: isDark ? '#cbd5e1' : '#1f2937',
-                          }
+                    {/* The Form: Only editable if not verified */}
+                    <Stack
+                      gap={2.5}
+                      sx={{
+                        mt: 2,
+                        opacity: store?.paystack?.verified ? 0.7 : 1,
                       }}
                     >
-                      {banks.map((bank, id) => (
-                        <Option  className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`} key={id} value={bank.code}>
-                          {bank.name}
-                        </Option>
-                      ))}
-                    </Select>
-                  </FormControl>
+                      <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                        <FormLabel
+                          sx={{
+                            minWidth: 140,
+                            color: isDark ? "slate.400" : "inherit",
+                          }}
+                        >
+                          Business Name
+                        </FormLabel>
+                        <Input
+                          fullWidth
+                          disabled={store?.paystack?.verified}
+                          placeholder="e.g. Layemart Store"
+                          value={bankForm.businessName}
+                          onChange={(e) =>
+                            setBankForm({
+                              ...bankForm,
+                              businessName: e.target.value,
+                            })
+                          }
+                          sx={{ bgcolor: isDark ? "slate.900" : "neutral.50" }}
+                        />
+                      </FormControl>
 
-                  <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                    <FormLabel className={`${isDark ? "text-slate-400!" : ""}`} sx={{ minWidth: 140 }}>Account Number</FormLabel>
-                    <Input
-                      placeholder="0000000000"
-                      value={bankForm.accountNumber}
-                      onChange={(e) =>
-                        setBankForm({
-                          ...bankForm,
-                          accountNumber: e.target.value,
-                        })
-                      }
-                      sx={{ 
-                      flex: 1, 
-                      maxWidth: 400,
-                      borderRadius: 'lg',
-                      // ✅ Handle colors based on isDark
-                      bgcolor: isDark ? '#0f172b' : 'neutral.50',
-                      borderColor: isDark ? '#1d293d' : 'neutral.200',
-                      color: isDark ? '#90a1b9' : 'neutral.600',
-                      
-                      // ✅ Specific override for the "Disabled" state
-                      "&.Mui-disabled": {
-                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'neutral.50',
-                        color: isDark ? '#62748e' : 'neutral.500',
-                        borderColor: isDark ? '#90a1b9' : 'neutral.200',
-                        textShadow: isDark ? 'none' : 'none',
-                        cursor: 'not-allowed',
-                        // Target the internal input element
-                        "& input": {
-                          WebkitTextFillColor: isDark ? '#64748b' : '#64748b', // Ensures color isn't forced to grey by browser
-                        }
-                      }
-                    }}
-                    />
-                  </FormControl>
-                </Stack>
+                      <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                        <FormLabel
+                          sx={{
+                            minWidth: 140,
+                            color: isDark ? "slate.400" : "inherit",
+                          }}
+                        >
+                          Settlement Bank
+                        </FormLabel>
+                        <Select
+                          fullWidth
+                          disabled={store?.paystack?.verified}
+                          placeholder="Select bank"
+                          value={bankForm.bankCode}
+                          onChange={(_, val) =>
+                            setBankForm({ ...bankForm, bankCode: val })
+                          }
+                          sx={{ bgcolor: isDark ? "slate.900" : "neutral.50" }}
+                        >
+                          {banks.map((b) => (
+                            <Option key={b.code} value={b.code}>
+                              {b.name}
+                            </Option>
+                          ))}
+                        </Select>
+                      </FormControl>
 
-                <Divider />
+                      <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                        <FormLabel
+                          sx={{
+                            minWidth: 140,
+                            color: isDark ? "slate.400" : "inherit",
+                          }}
+                        >
+                          Account Number
+                        </FormLabel>
+                        <Input
+                          fullWidth
+                          disabled={store?.paystack?.verified}
+                          placeholder="0000000000"
+                          value={bankForm.accountNumber}
+                          onChange={(e) =>
+                            setBankForm({
+                              ...bankForm,
+                              accountNumber: e.target.value,
+                            })
+                          }
+                          sx={{ bgcolor: isDark ? "slate.900" : "neutral.50" }}
+                        />
+                      </FormControl>
 
-                <Box
-                  sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}
-                >
-                  <Button
-                    className={`${isDark ? "text-slate-200!" : ""}`}
-                    variant="plain"
-                    color="neutral"
-                    onClick={() =>
-                      setBankForm({
-                        businessName: "",
-                        bankCode: "",
-                        accountNumber: "",
-                      })
-                    }
-                  >
-                    Reset
-                  </Button>
-                  <Button
-                    loading={isUpdating}
-                    onClick={handleSaveBankDetails}
-                    sx={{ bgcolor: "#0f172a", borderRadius: "lg" }}
-                  >
-                    {store?.paystack?.subaccountCode
-                      ? "Update Details"
-                      : "Create Subaccount"}
-                  </Button>
-                </Box>
+                      <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                        <FormLabel
+                          sx={{
+                            minWidth: 140,
+                            color: isDark ? "slate.400" : "inherit",
+                          }}
+                        >
+                          BVN (Secure)
+                        </FormLabel>
+                        <Input
+                          fullWidth
+                          disabled={store?.paystack?.verified}
+                          type="password"
+                          placeholder="11-digit BVN"
+                          value={bankForm.bvn}
+                          onChange={(e) =>
+                            setBankForm({ ...bankForm, bvn: e.target.value })
+                          }
+                          slotProps={{ input: { maxLength: 11 } }}
+                          sx={{ bgcolor: isDark ? "slate.900" : "neutral.50" }}
+                        />
+                      </FormControl>
+                    </Stack>
+
+                    <Divider sx={{ my: 2 }} />
+
+                    {/* Action Button */}
+                    {!store?.paystack?.verified && (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                          gap: 2,
+                        }}
+                      >
+                        <Button
+                          variant="plain"
+                          color="neutral"
+                          onClick={() =>
+                            setBankForm({
+                              businessName: "",
+                              bankCode: "",
+                              accountNumber: "",
+                              bvn: "",
+                            })
+                          }
+                        >
+                          Reset
+                        </Button>
+                        <Button
+                          loading={isUpdating}
+                          onClick={handleSaveBankDetails}
+                          sx={{ bgcolor: "#0f172a", borderRadius: "lg", px: 4 }}
+                        >
+                          Verify & Create Subaccount
+                        </Button>
+                      </Box>
+                    )}
+                  </>
+                )}
               </Stack>
             )}
           </Sheet>
