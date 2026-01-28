@@ -107,9 +107,9 @@ export default function SignUpPage() {
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-200 blur-[100px] opacity-60"></div>
       <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[40%] rounded-full bg-indigo-200 blur-[120px] opacity-70"></div>
 
-      <div className="max-w-5xl w-full grid lg:grid-cols-2 bg-white rounded-[32px] shadow-2xl overflow-hidden z-10">
+      <div className="max-w-5xl w-full grid md:grid-cols-2 bg-white rounded-[32px] shadow-2xl overflow-hidden z-10">
         {/* Left Side: Marketing/Value Prop - Logic added to headline */}
-        <div className="hidden lg:flex flex-col justify-center p-12 bg-slate-900 text-white relative">
+        <div className="hidden md:flex flex-col justify-center p-12 bg-slate-900 text-white relative">
           <div className="absolute top-8 left-8 flex items-center gap-2">
             <div className="w-8 h-8 rounded-md bg-red-500" />
             <span className="font-bold tracking-tight text-lg text">
@@ -117,7 +117,7 @@ export default function SignUpPage() {
             </span>
           </div>
 
-          <h2 className="text-4xl font-bold leading-tight mb-6">
+          <h2 className="lg:text-4xl md:tetx-[26px] text-[24px] font-bold leading-tight mb-6">
             {step === 1
               ? "Start your journey to "
               : "Almost there! Verify your "}
@@ -198,8 +198,8 @@ export default function SignUpPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 space-x-4">
-                  <div className="flex flex-col gap-1.5">
+                <div className="grid lg:grid-cols-2 space-x-4">
+                  <div className="flex flex-col gap-1.5 lg:me-4 me-0">
                     <label className="text-[13px] font-semibold text-slate-600 ml-0.5">
                       Full Name
                     </label>
