@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import {
   Add,
+  Remove,
   ShoppingBagOutlined,
   ShoppingCartOutlined,
 } from "@mui/icons-material";
@@ -16,6 +17,7 @@ import { useProductStore } from "../../../../services/productService";
 import { getSubdomain } from "../../../../storeResolver";
 import { useCartStore } from "../../../../services/cartService";
 import { Link } from "react-router-dom";
+import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
 
 // 1. Define Content Mapping for Featured Section
 const FEATURED_CONTENT = {
@@ -52,6 +54,7 @@ const FEATURED_CONTENT = {
 const FeaturedPicksGrid = ({ storeType }) => {
   const { fetchStoreProducts, setLocalProducts, products, loading } =
     useProductStore();
+  const { customer } = useCustomerAuthStore();
   const { cart, addToCart, updateQuantity, removeItem } = useCartStore();
 
   const getItemQty = (productId) => {
@@ -115,7 +118,7 @@ const FeaturedPicksGrid = ({ storeType }) => {
   }, [fetchStoreProducts, setLocalProducts]);
 
   const displayProducts = products
-    .filter((p) => p.isFeatured === false)
+    .filter((p) => p.isFeatured === true)
     .slice(0, 8);
 
   if (loading) {
@@ -192,7 +195,7 @@ const FeaturedPicksGrid = ({ storeType }) => {
                   position: "relative",
                   bgcolor: "#f5f5f5",
                   overflow: "hidden",
-                  mb:2
+                  mb: 2,
                 }}
               >
                 <Box
@@ -236,20 +239,31 @@ const FeaturedPicksGrid = ({ storeType }) => {
               </Box>
 
               {/* Product Info */}
-              <Link className="cursore-pointer " to={`/shop/product/${product._id || product.id}`}>
-              
               <Stack className="px-4!" spacing={0.5}>
                 <Typography variant="body2" fontWeight="bold" noWrap>
                   {product.name}
                 </Typography>
-                <Typography variant="body2" fontWeight="800">
-                  ₦{(product.price || 0).toLocaleString()}
-                </Typography>
+                <div className="flex items-center justify-between">
+                  <Typography variant="body2" fontWeight="800">
+                    ₦{(product.price || 0).toLocaleString()}
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => navigate(`/shop/product/${product._id}`)}
+                    sx={{
+                      fontSize: 12,
+                      color: "#02489b",
+                      textTransform: "none",
+                    }}
+                  >
+                    View Details
+                  </Button>
+                </div>
               </Stack>
-              </Link>
 
               {/* Add-to-Cart / Quantity Controls */}
-              <div className="mt-3 p-3">
+              <div className="p-3">
                 {getItemQty(product._id || product.id) === 0 ? (
                   <button
                     disabled={processingId === (product._id || product.id)}

@@ -157,7 +157,6 @@ const NewArrivalsGrid = ({ subtitle }) => {
               </Box>
 
               {/* Product Info */}
-              <Link className="cursore-pointer " to={`/shop/product/${product._id || product.id}`}>
                 <Box sx={{ p: 2 }}>
                   <Typography variant="caption" color="text.secondary">
                     {product.brand}
@@ -177,7 +176,7 @@ const NewArrivalsGrid = ({ subtitle }) => {
                     <Button
                       size="small"
                       variant="text"
-                      onClick={() => navigate(`/product/${product._id}`)}
+                      onClick={() => navigate(`/shop/product/${product._id}`)}
                       sx={{
                         fontSize: 12,
                         color: "#02489b",
@@ -242,7 +241,6 @@ const NewArrivalsGrid = ({ subtitle }) => {
                     )}
                   </div>
                 </Box>
-              </Link>
             </Box>
           </motion.div>
         ))}

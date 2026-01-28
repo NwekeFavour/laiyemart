@@ -75,21 +75,13 @@ export default function CustomerAccountPage({ storeData, customer, isDark }) {
   const handleConfirmLogout = () => {
     logoutCustomer();
     setIsLogoutModalOpen(false);
-    setTimeout(() => navigate("/login"), 5000);
+    setTimeout(() => navigate("/login"), 2000);
     toast.success("Logged out successfully", {
       containerId: "STOREFRONT",
     });
   };
 
-  const menuItems = [
-    { id: "overview", label: "Account Overview", icon: <User size={20} /> },
-    { id: "orders", label: "My Orders", icon: <Package size={20} />, count: 2 },
-    { id: "saved", label: "Saved Items", icon: <Heart size={20} /> },
-    { id: "address", label: "Address Book", icon: <MapPin size={20} /> },
-  ];
-
-  useEffect(() => {
-    if (activeTab === "orders") {
+    useEffect(() => {
       const fetchOrders = async () => {
         try {
           setLoading(true);
@@ -113,8 +105,16 @@ export default function CustomerAccountPage({ storeData, customer, isDark }) {
         }
       };
       fetchOrders();
-    }
   }, [activeTab, token]);
+
+  const menuItems = [
+    { id: "overview", label: "Account Overview", icon: <User size={20} /> },
+    { id: "orders", label: "My Orders", icon: <Package size={20} />, count: orders?.length},
+    { id: "saved", label: "Saved Items", icon: <Heart size={20} /> },
+    { id: "address", label: "Address Book", icon: <MapPin size={20} /> },
+  ];
+
+
 
   useEffect(() => {
     if (isAddressModalOpen && customer?.address) {

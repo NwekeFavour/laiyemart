@@ -136,6 +136,8 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
             amount: currentTotal,
             storeId: storeData?._id,
             subaccount: storeData?.paystack?.subaccountCode,
+            storeName: storeData?.name,
+            storeLogo: storeData?.logo?.url,
             origin: window.location.origin,
           }),
         },

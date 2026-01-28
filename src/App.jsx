@@ -367,7 +367,7 @@ function App() {
         closeOnClick
         theme="light"
         pauseOnHover
-        limit={2} // Prevents "Toast Spam" if the user clicks Save many times
+        limit={3} // Prevents "Toast Spam" if the user clicks Save many times
       />
     </div>
   );
