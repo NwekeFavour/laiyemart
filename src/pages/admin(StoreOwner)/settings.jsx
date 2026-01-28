@@ -1708,12 +1708,12 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
 
                 {/* Unified Status Box */}
                 <Box
+                  className="md:flex block"
                   sx={{
                     p: 2,
                     borderRadius: "lg",
                     border: "1px solid",
                     gap: 2,
-                    display: "flex",
                     alignItems: "center",
                     bgcolor: store?.paystack?.verified
                       ? "success.softBg"
