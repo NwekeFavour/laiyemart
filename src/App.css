@@ -47,6 +47,13 @@ body{
   background-repeat: no-repeat;
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin 1s linear infinite;
+}
+
 .imgsec{
   background-image: url('./assets/img/jpeg.webp');
   height:  600px;

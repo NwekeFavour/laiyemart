@@ -917,7 +917,7 @@ function PricingCard({
           ? 99000
           : 299000;
 
-      const res = await fetch(`${BACKEND_URL}/api/payments/init`, {
+      const res = await fetch(`${BACKEND_URL}/api/paystack/init`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

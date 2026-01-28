@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -10,7 +10,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { ShoppingCartOutlined, Remove, Add } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useProductStore } from "../../../../services/productService";
 import { useCartStore } from "../../../../services/cartService";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
@@ -25,7 +25,7 @@ const NewArrivalsGrid = ({ subtitle }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
-
+  const [processingId, setProcessingId] = useState(null);
   useEffect(() => {
     const initData = async () => {
       const isDemo = localStorage.getItem("demo") === "true";
@@ -42,20 +42,38 @@ const NewArrivalsGrid = ({ subtitle }) => {
     return item ? item.quantity : 0;
   };
 
-  const handleCartAction = (product, action) => {
-    const currentQty = getItemQty(product._id);
+  const handleCartAction = async (product, action) => {
+    const productId = product._id || product.id;
+
     if (!customer) {
       navigate("/login");
       return;
     }
-    if (action === "increment") {
-      currentQty === 0
-        ? addToCart(product.store, product._id, 1)
-        : updateQuantity(product.store, product._id, currentQty + 1);
-    } else if (action === "decrement") {
-      currentQty === 1
-        ? removeItem(product.store, product._id)
-        : updateQuantity(product.store, product._id, currentQty - 1);
+
+    // 1. Start Preloader
+    setProcessingId(productId);
+
+    try {
+      const currentQty = getItemQty(productId);
+
+      if (action === "increment") {
+        if (currentQty === 0) {
+          await addToCart(product.store, productId, 1);
+        } else {
+          await updateQuantity(product.store, productId, currentQty + 1);
+        }
+      } else if (action === "decrement") {
+        if (currentQty === 1) {
+          await removeItem(product.store, productId);
+        } else {
+          await updateQuantity(product.store, productId, currentQty - 1);
+        }
+      }
+    } catch (error) {
+      console.error("Cart update failed", error);
+    } finally {
+      // 2. Stop Preloader - This runs for BOTH increment and decrement
+      setProcessingId(null);
     }
   };
 
@@ -139,79 +157,92 @@ const NewArrivalsGrid = ({ subtitle }) => {
               </Box>
 
               {/* Product Info */}
-              <Box sx={{ p: 2 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {product.brand}
-                </Typography>
-                <Typography variant="body2" fontWeight={700} noWrap>
-                  {product.name}
-                </Typography>
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  mt={1}
-                >
-                  <Typography variant="body2" fontWeight={800}>
-                    ₦{(product.price || 0).toLocaleString()}
+              <Link className="cursore-pointer " to={`/shop/product/${product._id || product.id}`}>
+                <Box sx={{ p: 2 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    {product.brand}
                   </Typography>
-                  <Button
-                    size="small"
-                    variant="text"
-                    onClick={() => navigate(`/product/${product._id}`)}
-                    sx={{
-                      fontSize: 12,
-                      color: "#02489b",
-                      textTransform: "none",
-                    }}
+                  <Typography variant="body2" fontWeight={700} noWrap>
+                    {product.name}
+                  </Typography>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    mt={1}
                   >
-                    View Details
-                  </Button>
-                </Stack>
-
-                {/* Add to Cart / Quantity Controls */}
-                <Box sx={{ mt: 2 }}>
-                  {getItemQty(product._id || product.id) === 0 ? (
+                    <Typography variant="body2" fontWeight={800}>
+                      ₦{(product.price || 0).toLocaleString()}
+                    </Typography>
                     <Button
-                      fullWidth
-                      variant="contained"
-                      startIcon={<ShoppingCartOutlined />}
-                      onClick={() => handleCartAction(product, "increment")}
+                      size="small"
+                      variant="text"
+                      onClick={() => navigate(`/product/${product._id}`)}
                       sx={{
-                        bgcolor: "black",
-                        color: "white",
-                        fontWeight: 700,
-                        "&:hover": { bgcolor: "#333" },
+                        fontSize: 12,
+                        color: "#02489b",
+                        textTransform: "none",
                       }}
                     >
-                      Add to Cart
+                      View Details
                     </Button>
-                  ) : (
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      justifyContent="space-between"
-                      spacing={1}
-                    >
-                      <IconButton
-                        sx={{ bgcolor: "#f5f5f5" }}
-                        onClick={() => handleCartAction(product, "decrement")}
-                      >
-                        <Remove />
-                      </IconButton>
-                      <Typography fontWeight={700}>
-                        {getItemQty(product._id || product.id)}
-                      </Typography>
-                      <IconButton
-                        sx={{ bgcolor: "#f5f5f5" }}
+                  </Stack>
+
+                  {/* Add to Cart / Quantity Controls */}
+                  <div className="mt-3">
+                    {getItemQty(product._id || product.id) === 0 ? (
+                      <button
+                        disabled={processingId === (product._id || product.id)}
                         onClick={() => handleCartAction(product, "increment")}
+                        className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
                       >
-                        <Add />
-                      </IconButton>
-                    </Stack>
-                  )}
+                        {processingId === (product._id || product.id) ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin-slow"></div>
+                            <span>Processing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCartOutlined size={18} /> Add to Cart
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <div className="flex items-center justify-between mt-1 gap-2 p-1 rounded-lg">
+                        <button
+                          disabled={
+                            processingId === (product._id || product.id)
+                          }
+                          className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
+                          onClick={() => handleCartAction(product, "decrement")}
+                        >
+                          <Remove fontSize="small" />
+                        </button>
+
+                        <div className="flex flex-col items-center min-w-[30px]">
+                          {processingId === (product._id || product.id) ? (
+                            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin-slow"></div>
+                          ) : (
+                            <span className="font-bold text-lg">
+                              {getItemQty(product._id || product.id)}
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          disabled={
+                            processingId === (product._id || product.id)
+                          }
+                          className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
+                          onClick={() => handleCartAction(product, "increment")}
+                        >
+                          <Add fontSize="small" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </Box>
-              </Box>
+              </Link>
             </Box>
           </motion.div>
         ))}

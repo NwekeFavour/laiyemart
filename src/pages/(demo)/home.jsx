@@ -257,7 +257,7 @@ function DemoHome({ storeSlug }) {
     return (
       <>
         <Helmet>
-          <title>{storeData.name} Store | Coming Soon</title>
+          <title>{storeData.name}  | Coming Soon</title>
         </Helmet>
         <UnderConstructionState 
           storeName={storeData.name} 

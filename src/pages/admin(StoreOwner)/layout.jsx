@@ -52,7 +52,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   const logout = useAuthStore((state) => state.logout);
   const [loading, setLoading] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { user, store,token, setStoreData } = useAuthStore();
+  const { user, store, token, setStoreData } = useAuthStore();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [error, setError] = useState("");
   const [hoveredItem, setHoveredItem] = useState(null);
@@ -60,7 +60,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   const location = useLocation();
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
+  const [isUpdating, setIsUpdating] = useState(false)
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
   const [showBankReminder, setShowBankReminder] = useState(false);
   const [openNinModal, setOpenNinModal] = useState(false);
@@ -69,46 +69,47 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  const handlePay = async () => {
-    try {
-      const { user, token, store } = useAuthStore.getState();
+const handlePay = async (planType) => {
+  try {
+    const { user, token, store } = useAuthStore.getState();
 
-      // 🔐 Must be logged in
-      if (!token || !user) {
-        window.location.href = "/auth/sign-in";
-        return;
-      }
-
-      // 🏪 Must have an active store
-      if (!store?._id) {
-        alert("No active store selected");
-        return;
-      }
-
-      const amount = 5000;
-      const res = await fetch(`${BACKEND_URL}/api/payments/init`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          email: user.email,
-          plan: "PAID",
-          amount,
-          storeId: store._id, // ✅ REQUIRED
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Payment failed");
-      console.log(data);
-      // 🚀 Redirect to Paystack
-      window.location.href = data.url;
-    } catch (err) {
-      alert(err.message);
+    // 🔐 Auth check
+    if (!token || !user) {
+      window.location.href = "/auth/sign-in";
+      return;
     }
-  };
+
+    // 🏪 Store check
+    if (!store?._id) {
+      toast.error("No active store selected");
+      return;
+    }
+
+    // Use a toast or loading state here if you have one
+    const res = await fetch(`${BACKEND_URL}/api/paystack/init`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        email: user.email,
+        plan: planType, // Now dynamic: "PROFESSIONAL" or "ENTERPRISE"
+        storeId: store._id,
+      }),
+    });
+
+    const data = await res.json();
+    
+    if (!res.ok) throw new Error(data.message || "Payment failed");
+
+    // 🚀 Redirect to Paystack Checkout
+    window.location.href = data.url;
+  } catch (err) {
+    console.error("Payment Error:", err.message);
+    toast.error(err.message);
+  }
+};
   useEffect(() => {
     // If store exists but no subaccount, show the reminder banner
     if (store && !store?.paystack?.subaccountCode) {
@@ -926,7 +927,8 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                 </Box>
               </Box>
               <Button
-                onClick={handlePay}
+                loading={isUpdating}
+                onClick={() => handlePay("professional")}
                 className="md:mt-0 mt-4!"
                 size="sm"
                 sx={{
@@ -945,7 +947,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
             <Box
               sx={{
                 mb: 3,
-                mt:2,
+                mt: 2,
                 p: 2,
                 display: "flex",
                 flexDirection: { xs: "column", sm: "row" },
@@ -965,18 +967,14 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     level="title-sm"
                     sx={{ color: isDark ? "#f8fafc" : "#92400e" }}
                   >
-                    {/* Logic based on your Process Flow document */}
-                    {!store?.paystack?.ninVerified
-                      ? "Step 1: Identity Verification"
-                      : "Step 2: Financial Verification"}
+                    Final Step: Activate Your Store
                   </Typography>
                   <Typography
                     level="body-xs"
                     sx={{ color: isDark ? "#94a3b8" : "#b45309" }}
                   >
-                    {!store?.paystack?.ninVerified
-                      ? "Provide your NIN to verify your identity and unlock store features."
-                      : "Identity verified! Now add your BVN and bank details to enable payouts."}
+                    Validate your identity and link your bank account to enable
+                    product listings and payouts.
                   </Typography>
                 </Box>
               </Box>
@@ -984,22 +982,19 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                 size="sm"
                 variant="solid"
                 onClick={() => {
-                  if (!store?.paystack?.ninVerified) {
-                    setOpenNinModal(true); // Trigger the NIN Modal
-                  } else {
-                    navigate("/dashboard/settings?section=bank-details"); // Navigate for Step 2
-                  }
+                  // Direct them straight to the Bank Details section where the
+                  // new Customer Validation logic lives.
+                  navigate("/dashboard/settings?section=bank-details");
                 }}
                 sx={{
                   borderRadius: "10px",
                   bgcolor: "#f59e0b",
                   color: "white",
+                  minWidth: "140px",
                   "&:hover": { bgcolor: "#d97706" },
                 }}
               >
-                {!store?.paystack?.ninVerified
-                  ? "Verify NIN"
-                  : "Configure Bank"}
+                Complete Verification
               </Button>
             </Box>
           )}

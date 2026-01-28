@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -15,6 +15,7 @@ import {
 import { useProductStore } from "../../../../services/productService";
 import { getSubdomain } from "../../../../storeResolver";
 import { useCartStore } from "../../../../services/cartService";
+import { Link } from "react-router-dom";
 
 // 1. Define Content Mapping for Featured Section
 const FEATURED_CONTENT = {
@@ -59,21 +60,40 @@ const FeaturedPicksGrid = ({ storeType }) => {
     );
     return item ? item.quantity : 0;
   };
+  const [processingId, setProcessingId] = useState(null);
 
-  const handleCartAction = (product, action) => {
-    const currentQty = getItemQty(product._id);
+  const handleCartAction = async (product, action) => {
+    const productId = product._id || product.id;
+
     if (!customer) {
       navigate("/login");
       return;
     }
-    if (action === "increment") {
-      currentQty === 0
-        ? addToCart(product.store, product._id, 1)
-        : updateQuantity(product.store, product._id, currentQty + 1);
-    } else if (action === "decrement") {
-      currentQty === 1
-        ? removeItem(product.store, product._id)
-        : updateQuantity(product.store, product._id, currentQty - 1);
+
+    // 1. Start Preloader
+    setProcessingId(productId);
+
+    try {
+      const currentQty = getItemQty(productId);
+
+      if (action === "increment") {
+        if (currentQty === 0) {
+          await addToCart(product.store, productId, 1);
+        } else {
+          await updateQuantity(product.store, productId, currentQty + 1);
+        }
+      } else if (action === "decrement") {
+        if (currentQty === 1) {
+          await removeItem(product.store, productId);
+        } else {
+          await updateQuantity(product.store, productId, currentQty - 1);
+        }
+      }
+    } catch (error) {
+      console.error("Cart update failed", error);
+    } finally {
+      // 2. Stop Preloader - This runs for BOTH increment and decrement
+      setProcessingId(null);
     }
   };
   // 2. Select the correct text based on storeType
@@ -95,7 +115,7 @@ const FeaturedPicksGrid = ({ storeType }) => {
   }, [fetchStoreProducts, setLocalProducts]);
 
   const displayProducts = products
-    .filter((p) => p.isFeatured === true)
+    .filter((p) => p.isFeatured === false)
     .slice(0, 8);
 
   if (loading) {
@@ -171,15 +191,14 @@ const FeaturedPicksGrid = ({ storeType }) => {
                 sx={{
                   position: "relative",
                   bgcolor: "#f5f5f5",
-                  borderRadius: "8px",
                   overflow: "hidden",
+                  mb:2
                 }}
               >
                 <Box
                   sx={{
                     width: "100%",
                     height: 320,
-                    borderRadius: 2,
                     overflow: "hidden",
                     bgcolor: "#f5f5f5",
                   }}
@@ -217,6 +236,8 @@ const FeaturedPicksGrid = ({ storeType }) => {
               </Box>
 
               {/* Product Info */}
+              <Link className="cursore-pointer " to={`/shop/product/${product._id || product.id}`}>
+              
               <Stack className="px-4!" spacing={0.5}>
                 <Typography variant="body2" fontWeight="bold" noWrap>
                   {product.name}
@@ -225,49 +246,57 @@ const FeaturedPicksGrid = ({ storeType }) => {
                   ₦{(product.price || 0).toLocaleString()}
                 </Typography>
               </Stack>
+              </Link>
 
               {/* Add-to-Cart / Quantity Controls */}
-              <Box sx={{ mt: 1, p: 2 }}>
-                {qty === 0 ? (
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    startIcon={<ShoppingCartOutlined />}
+              <div className="mt-3 p-3">
+                {getItemQty(product._id || product.id) === 0 ? (
+                  <button
+                    disabled={processingId === (product._id || product.id)}
                     onClick={() => handleCartAction(product, "increment")}
-                    sx={{
-                      bgcolor: "black",
-                      color: "white",
-                      fontWeight: 700,
-                      "&:hover": { bgcolor: "#333" },
-                      mt: 1,
-                    }}
+                    className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
                   >
-                    Add to Cart
-                  </Button>
+                    {processingId === (product._id || product.id) ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin-slow"></div>
+                        <span>Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCartOutlined size={18} /> Add to Cart
+                      </>
+                    )}
+                  </button>
                 ) : (
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    spacing={1}
-                    mt={1}
-                  >
-                    <IconButton
-                      sx={{ bgcolor: "#f5f5f5" }}
+                  <div className="flex items-center justify-between mt-1 gap-2 p-1 rounded-lg">
+                    <button
+                      disabled={processingId === (product._id || product.id)}
+                      className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
                       onClick={() => handleCartAction(product, "decrement")}
                     >
-                      <Remove />
-                    </IconButton>
-                    <Typography fontWeight={700}>{qty}</Typography>
-                    <IconButton
-                      sx={{ bgcolor: "#f5f5f5" }}
+                      <Remove fontSize="small" />
+                    </button>
+
+                    <div className="flex flex-col items-center min-w-[30px]">
+                      {processingId === (product._id || product.id) ? (
+                        <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin-slow"></div>
+                      ) : (
+                        <span className="font-bold text-lg">
+                          {getItemQty(product._id || product.id)}
+                        </span>
+                      )}
+                    </div>
+
+                    <button
+                      disabled={processingId === (product._id || product.id)}
+                      className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
                       onClick={() => handleCartAction(product, "increment")}
                     >
-                      <Add />
-                    </IconButton>
-                  </Stack>
+                      <Add fontSize="small" />
+                    </button>
+                  </div>
                 )}
-              </Box>
+              </div>
             </div>
           );
         })}

@@ -11,7 +11,7 @@ export const useCustomerAuthStore = create(
       customer: null,
       store: null,
       isAuthenticated: false,
-
+      setCustomer: (updatedCustomer) => set({ customer: updatedCustomer }),
       // ✅ Login customer
       login: ({ token, customer, store }) =>
         set({
@@ -22,19 +22,19 @@ export const useCustomerAuthStore = create(
         }),
 
       // 🚪 Logout customer
-// 🚪 Logout customer
+      // 🚪 Logout customer
       logout: () => {
         // 1. Clear Auth State in Zustand (this also updates localStorage because of 'persist')
-        set({ 
-          customer: null, 
-          token: null, 
+        set({
+          customer: null,
+          token: null,
           store: null,
-          isAuthenticated: false 
+          isAuthenticated: false,
         });
 
         // 2. Reset the Cart locally ONLY (No API call)
         // We use a new function called 'resetCartLocally' to avoid the 500 error
-        useCartStore.getState().resetCartLocally(); 
+        useCartStore.getState().resetCartLocally();
 
         // 3. Clear storage explicitly just in case
         localStorage.removeItem("layemart-customer-auth");
@@ -51,6 +51,6 @@ export const useCustomerAuthStore = create(
     }),
     {
       name: "layemart-customer-auth", // localStorage key
-    }
-  )
+    },
+  ),
 );

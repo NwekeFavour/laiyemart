@@ -174,6 +174,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
 
   const StatSkeleton = ({ isDark }) => (
     <Sheet
+      className="shadow-md!"
       variant="outlined"
       sx={{
         p: 2.5,
@@ -397,40 +398,59 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                 />
                 {store?.isOnboarded
                   ? "Your store is live at:"
-                  : "Your preview link (Under Construction):"}
+                  : "Store Status:"}
               </Typography>
 
-              <Typography
-                sx={{
-                  fontWeight: 600,
-                  fontSize: "14px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.5,
-                }}
-              >
-                <a
-                  href={
-                    store?.subdomain
-                      ? `http://${store.subdomain}.${window.location.hostname.replace("www.", "")}${window.location.port ? ":" + window.location.port : ""}`
-                      : "#"
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`flex items-center gap-1 transition-colors ${
-                    isDark
-                      ? "text-blue-400 hover:text-blue-300"
-                      : "text-blue-600 hover:text-blue-700"
-                  } hover:underline`}
+              {store?.isOnboarded ? (
+                /* Show this only when verified */
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                  }}
                 >
-                  {store?.subdomain
-                    ? `${store.subdomain}.layemart.com`
-                    : "mystore.layemart.com"}
-                  <ExternalLink size={14} className="mb-0.5" />
-                </a>
-              </Typography>
+                  <a
+                    href={
+                      store?.subdomain
+                        ? `http://${store.subdomain}.${window.location.hostname.replace("www.", "")}${window.location.port ? ":" + window.location.port : ""}`
+                        : "#"
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-1 transition-colors ${
+                      isDark
+                        ? "text-blue-400 hover:text-blue-300"
+                        : "text-blue-600 hover:text-blue-700"
+                    } hover:underline`}
+                  >
+                    {store?.subdomain
+                      ? `${store.subdomain}.layemart.com`
+                      : "mystore.layemart.com"}
+                    <ExternalLink size={14} className="mb-0.5" />
+                  </a>
+                </Typography>
+              ) : (
+                /* Show this placeholder when not verified */
+                <Typography
+                  level="body-sm"
+                  sx={{
+                    fontWeight: 500,
+                    color: "warning.700",
+                    bgcolor: isDark
+                      ? "rgba(245, 158, 11, 0.1)"
+                      : "rgba(245, 158, 11, 0.05)",
+                    px: 1,
+                    borderRadius: "4px",
+                  }}
+                >
+                  Verification Required to Generate Link
+                </Typography>
+              )}
 
-              {/* Conditional Helper Text for Unonboarded Stores */}
+              {/* Conditional Helper Text */}
               {!store?.isOnboarded && (
                 <Typography
                   level="body-xs"
@@ -441,8 +461,8 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                     mt: 0.5,
                   }}
                 >
-                  Note: Visitors will see a "Coming Soon" page until your bank
-                  details are verified.
+                  Note: Complete your bank details verification to launch your
+                  store domain.
                 </Typography>
               )}
             </div>
@@ -460,6 +480,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
             : stats.map((item, i) => (
                 <Grid key={i} xs={12} sm={6} md={3}>
                   <Sheet
+                    className="shadow-md!"
                     variant="outlined"
                     sx={{
                       p: 2.5,

@@ -23,6 +23,7 @@ const CustomerAccountLayout = ({ storeData, children, title }) => {
         <Footer 
             storeName={storeData?.name} 
             storeLogo={storeData?.logo?.url} 
+            storeDescription={storeData?.description}
         />
         </>
     );

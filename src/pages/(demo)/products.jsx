@@ -28,6 +28,7 @@ import { useNavigate } from "react-router-dom";
 import { useCartStore } from "../../../services/cartService";
 import { useCustomerAuthStore } from "../../store/useCustomerAuthStore";
 import { Add, Remove, ShoppingCartOutlined } from "@mui/icons-material";
+import Footer from "../admin(demo)/components/footer";
 
 // --- CONTENT & THEME CONFIGURATION ---
 const STORE_CONTENT_CONFIG = {
@@ -116,6 +117,7 @@ function Products({ storeSlug }) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const { cart, addToCart, updateQuantity, removeItem } = useCartStore();
   const { customer } = useCustomerAuthStore();
+  const [processingId, setProcessingId] = useState(null);
   const {
     products,
     loading: productsLoading,
@@ -128,22 +130,40 @@ function Products({ storeSlug }) {
     );
     return item ? item.quantity : 0;
   };
-  const handleCartAction = (product, action) => {
-    const currentQty = getItemQty(product._id);
-    if (!customer) {
-      navigate("/login");
-      return;
-    }
+const handleCartAction = async (product, action) => {
+  const productId = product._id || product.id;
+  
+  if (!customer) {
+    navigate("/login");
+    return;
+  }
+
+  // 1. Start Preloader
+  setProcessingId(productId);
+
+  try {
+    const currentQty = getItemQty(productId);
+
     if (action === "increment") {
-      currentQty === 0
-        ? addToCart(product.store, product._id, 1)
-        : updateQuantity(product.store, product._id, currentQty + 1);
+      if (currentQty === 0) {
+        await addToCart(product.store, productId, 1);
+      } else {
+        await updateQuantity(product.store, productId, currentQty + 1);
+      }
     } else if (action === "decrement") {
-      currentQty === 1
-        ? removeItem(product.store, product._id)
-        : updateQuantity(product.store, product._id, currentQty - 1);
+      if (currentQty === 1) {
+        await removeItem(product.store, productId);
+      } else {
+        await updateQuantity(product.store, productId, currentQty - 1);
+      }
     }
-  };
+  } catch (error) {
+    console.error("Cart update failed", error);
+  } finally {
+    // 2. Stop Preloader - This runs for BOTH increment and decrement
+    setProcessingId(null);
+  }
+};
 
   // Determine current config based on store industry/type
   const config = useMemo(() => {
@@ -466,31 +486,57 @@ function Products({ storeSlug }) {
                     <div className="mt-3">
                       {getItemQty(product._id || product.id) === 0 ? (
                         <button
+                          disabled={
+                            processingId === (product._id || product.id)
+                          }
                           onClick={() => handleCartAction(product, "increment")}
-                          className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-1"
+                          className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
                         >
-                          <ShoppingCartOutlined size={18} /> Add to Cart
+                          {processingId === (product._id || product.id) ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin-slow"></div>
+                              <span>Processing...</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingCartOutlined size={18} /> Add to Cart
+                            </>
+                          )}
                         </button>
                       ) : (
-                        <div className="flex items-center justify-between mt-1 gap-2">
+                        <div className="flex items-center justify-between mt-1 gap-2 bg-gray-50 p-1 rounded-lg border">
                           <button
-                            className="bg-gray-200 p-1 rounded"
+                            disabled={
+                              processingId === (product._id || product.id)
+                            }
+                            className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
                             onClick={() =>
                               handleCartAction(product, "decrement")
                             }
                           >
-                            <Remove />
+                            <Remove fontSize="small" />
                           </button>
-                          <span className="font-bold">
-                            {getItemQty(product._id || product.id)}
-                          </span>
+
+                          <div className="flex flex-col items-center min-w-[30px]">
+                            {processingId === (product._id || product.id) ? (
+                              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin-slow"></div>
+                            ) : (
+                              <span className="font-bold text-lg">
+                                {getItemQty(product._id || product.id)}
+                              </span>
+                            )}
+                          </div>
+
                           <button
-                            className="bg-gray-200 p-1 rounded"
+                            disabled={
+                              processingId === (product._id || product.id)
+                            }
+                            className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
                             onClick={() =>
                               handleCartAction(product, "increment")
                             }
                           >
-                            <Add/>
+                            <Add fontSize="small" />
                           </button>
                         </div>
                       )}
@@ -502,6 +548,8 @@ function Products({ storeSlug }) {
           </div>
         </div>
       </div>
+      <Footer storeName={storeData?.name} storeDescription={storeData?.description} storeLogo={storeData?.logo?.url} />      
+
     </div>
   );
 }

@@ -16,6 +16,7 @@ import { Menu, X, ShoppingBag, User, LogOut } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
 import { toast } from "react-toastify";
+import { useCartStore } from "../../../../services/cartService";
 
 export default function Header({ storeName, storeLogo }) {
   const [open, setOpen] = useState(false);
@@ -23,7 +24,8 @@ export default function Header({ storeName, storeLogo }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useCustomerAuthStore();
-
+  const { cart } = useCartStore();
+  const uniqueItemCount = cart?.items?.length || 0;
   const isDemo = localStorage.getItem("demo") === "true";
 
   const handleLogout = () => {
@@ -106,14 +108,42 @@ export default function Header({ storeName, storeLogo }) {
 
           {/* Right */}
           <Stack direction="row" spacing={2} alignItems="center">
-            <Link to={`${isDemo ? "#" : "/cart"} `}>
-              <Badge badgeContent={0} color="danger">
-                <ShoppingBag size={20} />
+            <Link
+              to={isDemo ? "#" : "/cart"}
+              style={{ textDecoration: "none", color: "inherit" }}
+            >
+              <Badge
+                // Show the actual count
+                badgeContent={uniqueItemCount}
+                // Only show the badge if there are items
+                invisible={uniqueItemCount === 0}
+                color="danger"
+                size="sm"
+                variant="solid"
+                sx={{
+                  // Optional: Add a little "pop" animation when count changes
+                  "& .MuiBadge-badge": {
+                    fontSize: "10px",
+                    fontWeight: "bold",
+                    minWidth: "18px",
+                    height: "18px",
+                    transition: "transform 0.2s ease-in-out",
+                  },
+                }}
+              >
+                <ShoppingBag
+                  size={22}
+                  strokeWidth={uniqueItemCount > 0 ? 2.5 : 2} // Bold the bag if it's full
+                />
               </Badge>
             </Link>
 
             {isDemo ? (
-              <Button size="sm" variant="soft" startDecorator={<User size={14} />}>
+              <Button
+                size="sm"
+                variant="soft"
+                startDecorator={<User size={14} />}
+              >
                 DEMO
               </Button>
             ) : (
@@ -231,10 +261,7 @@ export default function Header({ storeName, storeLogo }) {
           </Typography>
 
           <Stack direction="row" spacing={1.5} justifyContent="flex-end" mt={4}>
-            <Button
-              variant="plain"
-              onClick={() => setIsLogoutModalOpen(false)}
-            >
+            <Button variant="plain" onClick={() => setIsLogoutModalOpen(false)}>
               Stay Logged In
             </Button>
             <Button color="danger" onClick={handleLogout}>

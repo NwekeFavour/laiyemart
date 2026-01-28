@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Typography,
@@ -25,6 +25,7 @@ import { useCustomerAuthStore } from "../../store/useCustomerAuthStore";
 import { getSubdomain } from "../../../storeResolver";
 import Header from "../admin(demo)/components/header";
 import { toast } from "react-toastify";
+import Footer from "../admin(demo)/components/footer";
 
 const CartDashboard = ({ storeSlug: propStoreSlug }) => {
   const resolvedSlug = propStoreSlug || getSubdomain();
@@ -53,6 +54,14 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
     }
   }, [customer, navigate]);
 
+  const hasAddress = useMemo(() => {
+    return (
+      customer?.address?.street &&
+      customer?.address?.city &&
+      customer?.address?.phone
+    );
+  }, [customer]);
+  
   useEffect(() => {
     const validateStore = async () => {
       try {
@@ -81,6 +90,69 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
     }
   }, [storeData?._id, customer, fetchCart]);
 
+  const handleCustomerCheckout = async () => {
+    const currentTotal = cart?.cartTotal || 0;
+
+    if (!storeData || !storeData._id) {
+      console.error("Checkout failed: storeData is null", { storeData });
+      toast.error(
+        "Store information is still loading. Please try again in a second.",
+      );
+      return;
+    }
+    if (!customer || !storeData?.paystack?.subaccountCode) {
+      toast.error("Checkout unavailable. Vendor setup incomplete.");
+      return;
+    }
+
+    if (!storeData) {
+      toast.error("Store information is still loading. Please wait.");
+      return;
+    }
+
+    if (!customer || !storeData?.paystack?.subaccountCode) {
+      toast.error("Checkout unavailable. Vendor setup incomplete.");
+      return;
+    }
+
+    if (!storeData?.paystack?.subaccountCode) {
+      toast.error("Checkout unavailable. Vendor has no subaccount.");
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/paystack/customer-init`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // This uses the Customer's token, not the Store owner's
+            Authorization: `Bearer ${useCustomerAuthStore.getState().token}`,
+            "x-store-slug": resolvedSlug,
+          },
+          body: JSON.stringify({
+            email: customer.email,
+            amount: currentTotal,
+            storeId: storeData?._id,
+            subaccount: storeData?.paystack?.subaccountCode,
+            origin: window.location.origin,
+          }),
+        },
+      );
+
+      const data = await res.json();
+      console.log(data);
+      if (!res.ok) throw new Error(data.message);
+
+      // Redirect customer to Paystack
+      window.location.href = data.url;
+    } catch (err) {
+      toast.error(err.message, {
+        containerId: "STOREFRONT",
+      });
+    }
+  };
   // --- SKELETON COMPONENT ---
   const CartSkeleton = () => (
     <Box sx={{ maxWidth: "1200px", mx: "auto", p: { xs: 2, md: 4 } }}>
@@ -188,7 +260,7 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
               <Button
                 variant="solid"
                 color="primary"
-                onClick={() => navigate("/products")}
+                onClick={() => navigate("/shop")}
               >
                 Start Shopping
               </Button>
@@ -287,8 +359,8 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
                             <IconButton
                               size="sm"
                               variant="outlined"
-                              onClick={() =>
-                                updateQuantity(
+                              onClick={async () =>
+                                await updateQuantity(
                                   storeData._id,
                                   item.product._id,
                                   item.quantity - 1,
@@ -309,8 +381,8 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
                             <IconButton
                               size="sm"
                               variant="outlined"
-                              onClick={() =>
-                                updateQuantity(
+                              onClick={async () =>
+                                await updateQuantity(
                                   storeData._id,
                                   item.product._id,
                                   item.quantity + 1,
@@ -343,42 +415,70 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
                   <Typography level="title-lg" sx={{ mb: 2 }}>
                     Order Summary
                   </Typography>
-                  <Stack spacing={1.5}>
-                    <Stack direction="row" justifyContent="space-between">
-                      <Typography level="body-md" color="neutral">
-                        Subtotal
-                      </Typography>
-                      <Typography level="title-md">
-                        ₦{getTotalPrice().toLocaleString()}
-                      </Typography>
-                    </Stack>
-                    <Stack direction="row" justifyContent="space-between">
-                      <Typography level="body-md" color="neutral">
-                        Shipping
-                      </Typography>
-                      <Typography level="body-md" color="success">
-                        Calculated at checkout
-                      </Typography>
-                    </Stack>
-                    <Divider sx={{ my: 1 }} />
-                    <Stack direction="row" justifyContent="space-between">
-                      <Typography level="h4">Total</Typography>
-                      <Typography level="h4">
-                        ₦{getTotalPrice().toLocaleString()}
-                      </Typography>
-                    </Stack>
+                  {/* Replace all instances of getTotalPrice() with cart.cartTotal */}
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography level="body-md" color="neutral">
+                      Subtotal
+                    </Typography>
+                    <Typography level="title-md">
+                      {/* Use cartTotal directly from state */}₦
+                      {cart?.cartTotal?.toLocaleString() || 0}
+                    </Typography>
                   </Stack>
 
+                  {/* ... similar change for the Total row ... */}
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography level="h4">Total</Typography>
+                    <Typography level="h4">
+                      ₦{cart?.cartTotal?.toLocaleString() || 0}
+                    </Typography>
+                  </Stack>
+                  {/* ADDRESS DISCLAIMER */}
+                  {!hasAddress && (
+                    <Box
+                      sx={{
+                        mt: 3,
+                        p: 2,
+                        bgcolor: "warning.softBg",
+                        borderRadius: "md",
+                        border: "1px solid",
+                        borderColor: "warning.outlinedBorder",
+                      }}
+                    >
+                      <Typography
+                        level="body-xs"
+                        color="warning"
+                        fontWeight="bold"
+                      >
+                        Shipping Address Required
+                      </Typography>
+                      <Typography level="body-xs" sx={{ mb: 1, mt: 0.5 }}>
+                        Please add your shipping address in settings to proceed
+                        with this order.
+                      </Typography>
+                      <Button
+                        size="sm"
+                        variant="plain"
+                        color="warning"
+                        onClick={() => navigate("/account")} // or wherever your address form is
+                        sx={{ p: 0, textDecoration: "underline" }}
+                      >
+                        Go to Settings
+                      </Button>
+                    </Box>
+                  )}
                   <Button
                     fullWidth
                     size="lg"
                     variant="solid"
-                    color="neutral"
+                    disabled={!storeData?.paystack?.verified || !hasAddress} // 🔒 Don't let customers pay unverified vendors
                     startDecorator={<CreditCard />}
                     sx={{ mt: 4, bgcolor: "neutral.900" }}
-                    onClick={() => navigate("/checkout")}
+                    onClick={handleCustomerCheckout}
                   >
-                    Proceed to Checkout
+                    {storeData?.paystack?.verified
+                      ? "Proceed to Checkout"
+                      : "Checkout Unavailable"}
                   </Button>
                 </Sheet>
               </Box>
@@ -386,6 +486,11 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
           )}
         </Box>
       )}
+      <div className="mt-10!">
+        <div className="relative bottom-0 right-0  left-0">
+          <Footer storeDescription={storeData?.description} storeLogo={storeData?.logo?.url} storeName={storeData?.name}/>
+        </div>
+      </div>
     </div>
   );
 };

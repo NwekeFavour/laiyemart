@@ -33,6 +33,7 @@ import {
   CircleDashed,
   CheckCircle2,
   CheckCircle,
+  ShieldAlert,
 } from "lucide-react";
 import StoreOwnerLayout from "./layout";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -52,7 +53,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     newPassword: "",
     confirmPassword: "",
   });
-  const { store, user, token, setUser, setStoreData } = useAuthStore();
+  const { store, user, token, setUser, setStore } = useAuthStore();
   const [banks, setBanks] = useState([]);
   const [storeDits, setStoreDits] = useState(store);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -70,8 +71,6 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
   const [avatarPreview, setAvatarPreview] = useState(
     user?.profilePicture?.url || "",
   );
-  const [verifyingStep, setVerifyingStep] = useState("idle"); // 'idle' | 'resolving' | 'bvn_check' | 'ready'
-  const [resolvedName, setResolvedName] = useState("");
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const getPasswordStrength = (password) => {
     let score = 0;
@@ -87,41 +86,11 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     businessName: store?.paystack?.businessName || "",
     bankCode: store?.paystack?.bankCode || "",
     accountNumber: store?.paystack?.accountNumber || "",
+    // Add these two to fix the "uncontrolled to controlled" warning
+    firstName: store?.paystack?.firstName || "",
+    lastName: store?.paystack?.lastName || "",
     bvn: "",
   });
-
-  const handleVerifyAndCreate = async () => {
-    try {
-      setIsUpdating(true);
-
-      // STEP 1: Resolve Account Name
-      setVerifyingStep("resolving");
-      const res = await axios.post("/api/stores/verify-bank", {
-        accountNumber: bankForm.accountNumber,
-        bankCode: bankForm.bankCode,
-      });
-
-      setResolvedName(res.data.accountName);
-
-      // STEP 2: Optional BVN Check (If provided)
-      if (bankForm.bvn) {
-        setVerifyingStep("bvn_check");
-        // Call your BVN match endpoint here
-      }
-
-      // STEP 3: Final Creation
-      setVerifyingStep("ready");
-      const createRes = await axios.post("/api/stores/subaccount", bankForm);
-
-      toast.success("Subaccount created successfully!");
-      // Refresh store data...
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Verification failed");
-    } finally {
-      setIsUpdating(false);
-      setVerifyingStep("idle");
-    }
-  };
 
   useEffect(() => {
     const fetchBanks = async () => {
@@ -242,7 +211,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
         } else {
           toast.success("Store profile updated successfully");
         }
-
+          toast.success("Store profile updated successfully");
         // 4. Clear temporary file buffers only on SUCCESS
         setLogoFile(null);
         setHeroFile(null);
@@ -251,7 +220,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     } catch (err) {
       // 5. Advanced Error Parsing
       console.error("Save Error:", err);
-
+      toast.error(err.message)
       // Check for Multer/Busboy specific errors
       if (err.message?.includes("Unexpected end of form")) {
         toast.error(
@@ -399,44 +368,21 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     }
   };
 
-  const canCreateSubaccount =
-    store?.paystack?.ninVerified && store?.paystack?.bankVerified;
   const handleSaveBankDetails = async () => {
-    // Check for BVN as well, as per Step 7 of your process flow
-    if (!bankForm.accountNumber || !bankForm.bankCode || !bankForm.bvn) {
-      return toast.error("Please provide BVN, Account Number, and Bank.");
-    }
-
+    setIsUpdating(true);
     try {
-      setIsUpdating(true);
+      const selectedBank = banks.find((b) => b.code === bankForm.bankCode);
+      const payload = {
+        businessName: bankForm.businessName,
+        bankCode: bankForm.bankCode,
+        bankName: selectedBank ? selectedBank.name : "",
+        accountNumber: bankForm.accountNumber,
+        bvn: bankForm.bvn,
+        firstName: bankForm.firstName,
+        lastName: bankForm.lastName,
+      };
 
-      // --- STEP 1: RESOLVE & NAME MATCHING ---
-      // This backend call should verify the bank AND check if it matches the NIN name
-      setVerifyingStep("resolving");
-      const verifyResponse = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/paystack/verify-bank-details`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            accountNumber: bankForm.accountNumber,
-            bankCode: bankForm.bankCode, // FIXED: Removed hardcoded "001"
-            bvn: bankForm.bvn,
-          }),
-        },
-      );
-
-      const verifyData = await verifyResponse.json();
-      if (!verifyResponse.ok) throw new Error(verifyData.message);
-
-      setResolvedName(verifyData.accountName);
-
-      // --- STEP 2: CREATE SUBACCOUNT & ACTIVATE STORE ---
-      setVerifyingStep("creating");
-      const createResponse = await fetch(
+      const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/paystack/subaccount`,
         {
           method: "POST",
@@ -444,30 +390,25 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            ...bankForm,
-            account_name: verifyData.accountName,
-          }),
+          body: JSON.stringify(payload),
         },
       );
 
-      const createData = await createResponse.json();
-      if (!createResponse.ok) throw new Error(createData.message);
+      const data = await response.json();
 
-      if (createData.success) {
-        toast.success("Verification Complete! Store Dashboards Enabled.");
-
-        // Update local store state: Step 10 of your flow
-        // This unlocks the Product and Category dashboards in your Sidebar
-        setStoreData({
-          ...createData.store, // Contains subaccountCode AND isOnboarded: true
-        });
+      // fetch does not throw on 4xx/5xx errors, so we check response.ok
+      if (!response.ok) {
+        throw new Error(data.message || "Verification failed");
       }
-    } catch (error) {
-      toast.error(error.message || "An unexpected error occurred");
+
+      // Success path
+      setStore(data.store);
+      toast.success("Identity verified and store activated!");
+    } catch (err) {
+      // Catching both network errors and the manual error thrown above
+      toast.error(err.message || "An unexpected error occurred");
     } finally {
       setIsUpdating(false);
-      setVerifyingStep("idle");
     }
   };
 
@@ -974,6 +915,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                     Store Category
                   </FormLabel>
                   <Select
+                    className="capitalize! placeholder:capitalize!"
                     value={formStoreType}
                     onChange={(e, newValue) => setFormStoreType(newValue)}
                     variant={isDark ? "soft" : "outlined"}
@@ -1045,9 +987,9 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                     </Option>
                     <Option
                       className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
-                      value="Electronics"
+                      value="electronics"
                     >
-                      Electronics
+                      electronics
                     </Option>
                     <Option
                       className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
@@ -1751,233 +1693,265 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                       color: isDark ? "slate.200" : "inherit",
                     }}
                   >
-                    Financial Verification
+                    Financial & Identity Verification
                   </Typography>
                   <Typography
                     level="body-sm"
                     sx={{ color: isDark ? "slate.400" : "neutral.600" }}
                   >
-                    Step 2: Link your BVN and Bank Account to enable payouts.
+                    Provide your legal details to verify your identity and
+                    enable store payouts.
                   </Typography>
                 </Box>
 
                 <Divider />
 
-                {/* Identity Lock: Step 7 of your Flow */}
-                {!store?.paystack?.ninVerified ? (
-                  <Alert
-                    variant="soft"
-                    color="warning"
-                    startDecorator={<Lock size={20} />}
+                {/* Unified Status Box */}
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: "lg",
+                    border: "1px solid",
+                    gap: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    bgcolor: store?.paystack?.verified
+                      ? "success.softBg"
+                      : "warning.softBg",
+                    borderColor: store?.paystack?.verified
+                      ? "success.outlinedBorder"
+                      : "warning.outlinedBorder",
+                  }}
+                >
+                  {store?.paystack?.verified ? (
+                    <CheckCircle size={24} color="#15803d" />
+                  ) : (
+                    <ShieldAlert
+                      size={24}
+                      color="#b45309"
+                      className={
+                        !store?.paystack?.subaccountCode ? "" : "animate-pulse"
+                      }
+                    />
+                  )}
+                  <Box>
+                    <Typography level="title-sm" sx={{ fontWeight: 700 }}>
+                      {store?.paystack?.verified
+                        ? "Account Fully Verified"
+                        : store?.paystack?.subaccountCode
+                          ? "Verification in Progress"
+                          : "Verification Required"}
+                    </Typography>
+                    <Typography
+                      level="body-xs"
+                      sx={{
+                        color:
+                          store?.paystack?.status === "pending"
+                            ? "warning.main"
+                            : "inherit",
+                      }}
+                    >
+                      {store?.paystack?.status === "active"
+                        ? `Payouts active to ${store?.paystack?.accountNumber} (${store?.paystack?.bankName})`
+                        : store?.paystack?.status === "pending"
+                          ? "Verification in progress... We're confirming your details with Paystack."
+                          : "Complete the form below to validate your identity and link your bank."}
+                    </Typography>
+                  </Box>
+
+                  {store?.paystack?.subaccountCode &&
+                    !store?.paystack?.verified && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        color="warning"
+                        loading={isRefreshing}
+                        onClick={handleRefreshStatus}
+                        startDecorator={<RefreshCcw size={16} />}
+                        sx={{ ml: "auto" }}
+                      >
+                        Refresh
+                      </Button>
+                    )}
+                </Box>
+
+                {/* The Unified Form */}
+                <Stack
+                  gap={2.5}
+                  sx={{
+                    mt: 2,
+                    // Disable interaction if verified OR if a verification is currently pending
+                    opacity: (store?.paystack?.verified || store?.paystack?.status === "pending") ? 0.7 : 1,
+                    pointerEvents: (store?.paystack?.verified || store?.paystack?.status === "pending") ? "none" : "auto",
+                  }}
+                >
+                  <Stack
+                    gap={2.5}
+                    sx={{ mt: 2, opacity: store?.paystack?.verified ? 0.7 : 1 }}
                   >
-                    <Box>
-                      <Typography level="title-sm">
-                        Identity Verification Required
-                      </Typography>
-                      <Typography level="body-xs">
-                        Please complete the NIN verification in your Profile
-                        before configuring bank details.
-                      </Typography>
-                    </Box>
-                  </Alert>
-                ) : (
-                  <>
-                    {/* Unified Status Box */}
-                    <Box
-                      sx={{
-                        p: 2,
-                        borderRadius: "lg",
-                        border: "1px solid",
-                        gap: 2,
-                        display: "flex",
-                        alignItems: "center",
-                        bgcolor: store?.paystack?.verified
-                          ? "success.softBg"
-                          : "warning.softBg",
-                        borderColor: store?.paystack?.verified
-                          ? "success.outlinedBorder"
-                          : "warning.outlinedBorder",
-                      }}
-                    >
-                      {store?.paystack?.verified ? (
-                        <CheckCircle size={24} color="#15803d" />
-                      ) : (
-                        <BellRing
-                          size={24}
-                          color="#b45309"
-                          className="animate-pulse"
-                        />
-                      )}
-                      <Box>
-                        <Typography level="title-sm" sx={{ fontWeight: 700 }}>
-                          {store?.paystack?.verified
-                            ? "Bank Details Verified"
-                            : "Verification in Progress"}
-                        </Typography>
-                        <Typography level="body-xs">
-                          {store?.paystack?.verified
-                            ? `Payouts active to ${store?.paystack?.accountNumber} (${store?.paystack?.bankName})`
-                            : "Match your BVN with your Bank Account to finalize setup."}
-                        </Typography>
-                      </Box>
-                      {store?.paystack?.subaccountCode &&
-                        !store?.paystack?.verified && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            color="warning"
-                            loading={isRefreshing}
-                            onClick={handleRefreshStatus}
-                            startDecorator={<RefreshCcw size={16} />}
-                            sx={{ ml: "auto" }}
-                          >
-                            Refresh
-                          </Button>
-                        )}
-                    </Box>
-
-                    {/* The Form: Only editable if not verified */}
-                    <Stack
-                      gap={2.5}
-                      sx={{
-                        mt: 2,
-                        opacity: store?.paystack?.verified ? 0.7 : 1,
-                      }}
-                    >
-                      <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                    {/* Section: Legal Names - Now separated into individual FormControls */}
+                    <Stack direction={{ xs: "column", sm: "row" }} gap={2}>
+                      <FormControl sx={{ flex: 1 }}>
                         <FormLabel
-                          sx={{
-                            minWidth: 140,
-                            color: isDark ? "slate.400" : "inherit",
-                          }}
+                          sx={{ color: isDark ? "slate.400" : "inherit" }}
                         >
-                          Business Name
+                          First Name
                         </FormLabel>
                         <Input
-                          fullWidth
                           disabled={store?.paystack?.verified}
-                          placeholder="e.g. Layemart Store"
-                          value={bankForm.businessName}
+                          placeholder="Legal First Name"
+                          value={bankForm.firstName}
                           onChange={(e) =>
                             setBankForm({
                               ...bankForm,
-                              businessName: e.target.value,
+                              firstName: e.target.value,
                             })
                           }
                           sx={{ bgcolor: isDark ? "slate.900" : "neutral.50" }}
                         />
                       </FormControl>
 
-                      <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                      <FormControl sx={{ flex: 1 }}>
                         <FormLabel
-                          sx={{
-                            minWidth: 140,
-                            color: isDark ? "slate.400" : "inherit",
-                          }}
+                          sx={{ color: isDark ? "slate.400" : "inherit" }}
                         >
-                          Settlement Bank
-                        </FormLabel>
-                        <Select
-                          fullWidth
-                          disabled={store?.paystack?.verified}
-                          placeholder="Select bank"
-                          value={bankForm.bankCode}
-                          onChange={(_, val) =>
-                            setBankForm({ ...bankForm, bankCode: val })
-                          }
-                          sx={{ bgcolor: isDark ? "slate.900" : "neutral.50" }}
-                        >
-                          {banks.map((b) => (
-                            <Option key={b.code} value={b.code}>
-                              {b.name}
-                            </Option>
-                          ))}
-                        </Select>
-                      </FormControl>
-
-                      <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                        <FormLabel
-                          sx={{
-                            minWidth: 140,
-                            color: isDark ? "slate.400" : "inherit",
-                          }}
-                        >
-                          Account Number
+                          Last Name
                         </FormLabel>
                         <Input
-                          fullWidth
                           disabled={store?.paystack?.verified}
-                          placeholder="0000000000"
-                          value={bankForm.accountNumber}
+                          placeholder="Legal Last Name"
+                          value={bankForm.lastName}
                           onChange={(e) =>
                             setBankForm({
                               ...bankForm,
-                              accountNumber: e.target.value,
+                              lastName: e.target.value,
                             })
                           }
-                          sx={{ bgcolor: isDark ? "slate.900" : "neutral.50" }}
-                        />
-                      </FormControl>
-
-                      <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
-                        <FormLabel
-                          sx={{
-                            minWidth: 140,
-                            color: isDark ? "slate.400" : "inherit",
-                          }}
-                        >
-                          BVN (Secure)
-                        </FormLabel>
-                        <Input
-                          fullWidth
-                          disabled={store?.paystack?.verified}
-                          type="password"
-                          placeholder="11-digit BVN"
-                          value={bankForm.bvn}
-                          onChange={(e) =>
-                            setBankForm({ ...bankForm, bvn: e.target.value })
-                          }
-                          slotProps={{ input: { maxLength: 11 } }}
                           sx={{ bgcolor: isDark ? "slate.900" : "neutral.50" }}
                         />
                       </FormControl>
                     </Stack>
 
-                    <Divider sx={{ my: 2 }} />
-
-                    {/* Action Button */}
-                    {!store?.paystack?.verified && (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "flex-end",
-                          gap: 2,
-                        }}
+                    {/* Section: Business Name */}
+                    <FormControl>
+                      <FormLabel
+                        sx={{ color: isDark ? "slate.400" : "inherit" }}
                       >
-                        <Button
-                          variant="plain"
-                          color="neutral"
-                          onClick={() =>
-                            setBankForm({
-                              businessName: "",
-                              bankCode: "",
-                              accountNumber: "",
-                              bvn: "",
-                            })
-                          }
-                        >
-                          Reset
-                        </Button>
-                        <Button
-                          loading={isUpdating}
-                          onClick={handleSaveBankDetails}
-                          sx={{ bgcolor: "#0f172a", borderRadius: "lg", px: 4 }}
-                        >
-                          Verify & Create Subaccount
-                        </Button>
-                      </Box>
-                    )}
-                  </>
+                        Business Name
+                      </FormLabel>
+                      <Input
+                        disabled={store?.paystack?.verified}
+                        placeholder="e.g. Layemart Store"
+                        value={bankForm.businessName}
+                        onChange={(e) =>
+                          setBankForm({
+                            ...bankForm,
+                            businessName: e.target.value,
+                          })
+                        }
+                        sx={{ bgcolor: isDark ? "slate.900" : "neutral.50" }}
+                      />
+                    </FormControl>
+
+                    {/* Section: Bank Selection (Unique Key Fix) */}
+                    <FormControl>
+                      <FormLabel
+                        sx={{ color: isDark ? "slate.400" : "inherit" }}
+                      >
+                        Settlement Bank
+                      </FormLabel>
+                      <Select
+                        disabled={store?.paystack?.verified}
+                        placeholder="Select bank"
+                        value={bankForm.bankCode}
+                        onChange={(_, val) =>
+                          setBankForm({ ...bankForm, bankCode: val })
+                        }
+                        sx={{ bgcolor: isDark ? "slate.900" : "neutral.50" }}
+                      >
+                        {banks.map((b, index) => (
+                          <Option key={`${b.code}-${index}`} value={b.code}>
+                            {b.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    {/* Section: Account Number */}
+                    <FormControl>
+                      <FormLabel
+                        sx={{ color: isDark ? "slate.400" : "inherit" }}
+                      >
+                        Account Number
+                      </FormLabel>
+                      <Input
+                        disabled={store?.paystack?.verified}
+                        placeholder="0000000000"
+                        value={bankForm.accountNumber}
+                        onChange={(e) =>
+                          setBankForm({
+                            ...bankForm,
+                            accountNumber: e.target.value,
+                          })
+                        }
+                        sx={{ bgcolor: isDark ? "slate.900" : "neutral.50" }}
+                      />
+                    </FormControl>
+
+                    {/* Section: BVN */}
+                    <FormControl>
+                      <FormLabel
+                        sx={{ color: isDark ? "slate.400" : "inherit" }}
+                      >
+                        BVN (Secure)
+                      </FormLabel>
+                      <Input
+                        disabled={store?.paystack?.verified}
+                        type="password"
+                        placeholder="11-digit BVN"
+                        value={bankForm.bvn}
+                        onChange={(e) =>
+                          setBankForm({ ...bankForm, bvn: e.target.value })
+                        }
+                        slotProps={{ input: { maxLength: 11 } }}
+                        sx={{ bgcolor: isDark ? "slate.900" : "neutral.50" }}
+                      />
+                    </FormControl>
+                  </Stack>
+                </Stack>
+
+                <Divider sx={{ my: 2 }} />
+
+                {/* Action Button */}
+                {!store?.paystack?.verified && (
+                  <Box
+                    sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}
+                  >
+                    <Button
+                      variant="plain"
+                      color="neutral"
+                      disabled={isUpdating}
+                      onClick={() =>
+                        setBankForm({
+                          businessName: "",
+                          bankCode: "",
+                          accountNumber: "",
+                          bvn: "",
+                          firstName: "",
+                          lastName: "",
+                        })
+                      }
+                    >
+                      Reset
+                    </Button>
+                    <Button
+                      loading={isUpdating}
+                      onClick={handleSaveBankDetails}
+                      sx={{ bgcolor: "#0f172a", borderRadius: "lg", px: 4 }}
+                    >
+                      Verify & Activate Store
+                    </Button>
+                  </Box>
                 )}
               </Stack>
             )}
