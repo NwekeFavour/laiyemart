@@ -403,7 +403,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
 
       // Success path
       setStore(data.store);
-      if(response.data.success) {
+      if(data.success) {
   toast.info("Details submitted! Paystack is verifying your identity. This usually takes a few minutes.", {
     autoClose: 8000 // Give them time to read it
   });
@@ -1763,8 +1763,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                     </Typography>
                   </Box>
 
-                  {store?.paystack?.subaccountCode &&
-                    !store?.paystack?.verified && (
+                  {store?.paystack?.status === "pending"&&
                       <Button
                         size="sm"
                         variant="ghost"
@@ -1776,7 +1775,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                       >
                         Refresh
                       </Button>
-                    )}
+                    }
                 </Box>
 
                 {/* The Unified Form */}
