@@ -198,7 +198,7 @@ export default function SignUpPage() {
                   </div>
                 )}
 
-                <div className="grid lg:grid-cols-2 space-x-4">
+                <div className="grid lg:grid-cols-2 md:space-y-0 space-y-3 space-x-4">
                   <div className="flex flex-col gap-1.5 lg:me-4 me-0">
                     <label className="text-[13px] font-semibold text-slate-600 ml-0.5">
                       Full Name
