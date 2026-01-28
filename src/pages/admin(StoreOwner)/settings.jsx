@@ -211,7 +211,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
         } else {
           toast.success("Store profile updated successfully");
         }
-          toast.success("Store profile updated successfully");
+        toast.success("Store profile updated successfully");
         // 4. Clear temporary file buffers only on SUCCESS
         setLogoFile(null);
         setHeroFile(null);
@@ -220,7 +220,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     } catch (err) {
       // 5. Advanced Error Parsing
       console.error("Save Error:", err);
-      toast.error(err.message)
+      toast.error(err.message);
       // Check for Multer/Busboy specific errors
       if (err.message?.includes("Unexpected end of form")) {
         toast.error(
@@ -403,7 +403,11 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
 
       // Success path
       setStore(data.store);
-      toast.success("Identity verified and store activated!");
+      if(response.data.success) {
+  toast.info("Details submitted! Paystack is verifying your identity. This usually takes a few minutes.", {
+    autoClose: 8000 // Give them time to read it
+  });
+}
     } catch (err) {
       // Catching both network errors and the manual error thrown above
       toast.error(err.message || "An unexpected error occurred");
@@ -1738,7 +1742,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                     <Typography level="title-sm" sx={{ fontWeight: 700 }}>
                       {store?.paystack?.verified
                         ? "Account Fully Verified"
-                        : store?.paystack?.subaccountCode
+                        : store?.paystack?.status === "pending"
                           ? "Verification in Progress"
                           : "Verification Required"}
                     </Typography>
@@ -1780,9 +1784,16 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   gap={2.5}
                   sx={{
                     mt: 2,
-                    // Disable interaction if verified OR if a verification is currently pending
-                    opacity: (store?.paystack?.verified || store?.paystack?.status === "pending") ? 0.7 : 1,
-                    pointerEvents: (store?.paystack?.verified || store?.paystack?.status === "pending") ? "none" : "auto",
+                    opacity:
+                      store?.paystack?.verified ||
+                      store?.paystack?.status === "pending"
+                        ? 0.7
+                        : 1,
+                    pointerEvents:
+                      store?.paystack?.verified ||
+                      store?.paystack?.status === "pending"
+                        ? "none"
+                        : "auto",
                   }}
                 >
                   <Stack
