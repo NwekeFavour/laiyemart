@@ -1723,14 +1723,35 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   </Typography>
                 </Box>
 
+                {/* NEW: Pre-flight Disclaimer */}
+                {validationStep === 1 && (
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      bgcolor: "info.softBg",
+                      borderRadius: "sm",
+                      border: "1px solid",
+                      borderColor: "info.outlinedBorder",
+                    }}
+                  >
+                    <Typography level="body-xs" color="primary">
+                      <strong>Note:</strong> Please ensure your names match the
+                      records tied to your <strong>BVN</strong>. If you have
+                      verified your identity on another Paystack-powered
+                      platform, our system will automatically sync your records.
+                    </Typography>
+                  </Box>
+                )}
+
                 <Divider />
 
                 {/* STEP 1 FIELDS (Always visible, but disabled after validation) */}
                 <Stack gap={2} sx={{ opacity: validationStep === 2 ? 0.6 : 1 }}>
-                  <Stack direction="row" gap={2}>
+                  <Stack className="flex! flex-wrap!" direction="row"  gap={2}>
                     <FormControl sx={{ flex: 1 }}>
                       <FormLabel>First Name</FormLabel>
                       <Input
+                        className="shadow-sm!"
                         disabled={validationStep === 2}
                         value={bankForm.firstName}
                         onChange={(e) =>
@@ -1744,6 +1765,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                     <FormControl sx={{ flex: 1 }}>
                       <FormLabel>Last Name</FormLabel>
                       <Input
+                        className="shadow-sm!"
                         disabled={validationStep === 2}
                         value={bankForm.lastName}
                         onChange={(e) =>
@@ -1773,6 +1795,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   <FormControl>
                     <FormLabel>Account Number</FormLabel>
                     <Input
+                      className="shadow-sm!"                  
                       disabled={validationStep === 2}
                       value={bankForm.accountNumber}
                       onChange={(e) =>
@@ -1787,6 +1810,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   <FormControl>
                     <FormLabel>BVN</FormLabel>
                     <Input
+                      className="shadow-sm!"
                       type="password"
                       disabled={validationStep === 2}
                       value={bankForm.bvn}

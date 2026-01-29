@@ -19,7 +19,7 @@ export default function PaymentSuccess() {
 
     const verifyPayment = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/payments/verify?reference=${ref}`);
+        const res = await fetch(`${BACKEND_URL}/api/paystack/verify?reference=${ref}`);
         const data = await res.json();
 
         if (res.ok) {
@@ -103,7 +103,7 @@ export default function PaymentSuccess() {
                 If you were charged, don't worry—contact our team.
               </p>
               <button
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/dashboard/beta")}
                 className="mt-8 flex items-center justify-center gap-2 w-full py-4 bg-black text-white rounded-xl font-bold hover:bg-zinc-800 transition-all group"
               >
                 Go to Dashboard

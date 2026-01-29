@@ -397,7 +397,7 @@ export default function CategoriesTable({ isDark, toggleDarkMode }) {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-50" />
                 <input
                   placeholder="Search categories..."
-                  className={`${isDark ? "bg-[#020618]" : "bg-white border-gray-200"} pl-9 pr-4 py-1.5 text-sm rounded-md border   outline-none focus:border-slate-200 w-full sm:w-64`}
+                  className={`${isDark ? "bg-[#020618] border-slate-800" : "bg-white border-gray-200"} pl-9 pr-4 py-1.5 text-sm rounded-md border   outline-none w-full sm:w-64`}
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>

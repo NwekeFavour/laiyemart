@@ -474,6 +474,7 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
                     size="lg"
                     variant="solid"
                     disabled={!storeData?.paystack?.verified || !hasAddress} // 🔒 Don't let customers pay unverified vendors
+                    className="hover:bg-slate-800/90!"
                     startDecorator={<CreditCard />}
                     sx={{ mt: 4, bgcolor: "neutral.900" }}
                     onClick={handleCustomerCheckout}

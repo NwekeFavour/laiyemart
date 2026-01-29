@@ -476,11 +476,11 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                     "&::before": {
                       display: "none",
                     },
-                    border: "1px solid #fff",
+                    border: isDark? "1px solid #1d293d": "1px solid #fff",
                     // 2. Remove the default focus border/shadow
                     "&:focus-within": {
                       outline: "none",
-                      border: "1px solid #fff",
+                      border: isDark? "1px solid #1d293d": "1px solid #fff",
                     },
                   }}
                 />

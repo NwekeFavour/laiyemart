@@ -138,7 +138,7 @@ function CustomerList({ isDark, toggleDarkMode }) {
                 placeholder="Search by ID or Name"
                 className={`pl-9 pr-4 py-1.5 text-sm rounded-md border outline-none ${
                   isDark
-                    ? "bg-slate-800 border-slate-700"
+                    ? " border-slate-800"
                     : "bg-white border-gray-200"
                 }`}
                 value={searchQuery}

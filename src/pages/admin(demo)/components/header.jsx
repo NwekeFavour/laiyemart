@@ -153,7 +153,7 @@ export default function Header({ storeName, storeLogo }) {
                 sx={{ display: { xs: "none", md: "flex" } }}
               >
                 <Link to={isAuthenticated ? "/account" : "/login"}>
-                  <Button size="sm" variant="outlined">
+                  <Button className="px-5! border-slate-900! text-slate-800/90! hover:bg-slate-300/10!" size="sm" variant="outlined">
                     {isAuthenticated ? "My Account" : "Login"}
                   </Button>
                 </Link>

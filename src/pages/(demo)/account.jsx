@@ -81,7 +81,8 @@ export default function CustomerAccountPage({ storeData, customer, isDark }) {
     });
   };
 
-    useEffect(() => {
+  useEffect(() => {
+    if (activeTab === "orders") {
       const fetchOrders = async () => {
         try {
           setLoading(true);
@@ -105,16 +106,20 @@ export default function CustomerAccountPage({ storeData, customer, isDark }) {
         }
       };
       fetchOrders();
+    }
   }, [activeTab, token]);
 
   const menuItems = [
     { id: "overview", label: "Account Overview", icon: <User size={20} /> },
-    { id: "orders", label: "My Orders", icon: <Package size={20} />, count: orders?.length},
+    {
+      id: "orders",
+      label: "My Orders",
+      icon: <Package size={20} />,
+      count: orders?.length,
+    },
     { id: "saved", label: "Saved Items", icon: <Heart size={20} /> },
     { id: "address", label: "Address Book", icon: <MapPin size={20} /> },
   ];
-
-
 
   useEffect(() => {
     if (isAddressModalOpen && customer?.address) {
@@ -151,11 +156,11 @@ export default function CustomerAccountPage({ storeData, customer, isDark }) {
 
       if (!res.ok)
         throw new Error(result.message || "Failed to update address");
-
-      // Update your local store so the UI reflects the change immediately
+      // console.log(result);
       // Assuming your store has a setCustomer or update function
-      useCustomerAuthStore.getState().setCustomer(result.data);
-
+      useCustomerAuthStore
+        .getState()
+        .updateCustomer({ address: result.address });
       toast.success("Address updated successfully!", {
         containerId: "STOREFRONT",
       });
