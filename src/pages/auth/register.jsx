@@ -12,7 +12,11 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { registerStoreOwner, updateStorePlan, verifyOTP } from "../../../services/authService"; // Ensure verifyOTP is exported from your service
+import {
+  registerStoreOwner,
+  updateStorePlan,
+  verifyOTP,
+} from "../../../services/authService"; // Ensure verifyOTP is exported from your service
 import { toast } from "react-toastify";
 
 export default function SignUpPage() {
@@ -166,14 +170,20 @@ export default function SignUpPage() {
                   e.preventDefault();
                   setLoading(true);
                   try {
-                    await registerStoreOwner({
-                      fullName,
+                    const registrationData = {
                       email,
                       password,
-                      storeName,
-                      subdomain: storeName.toLowerCase().replace(/\s+/g, "-"),
+                      fullName: fullName || "", // Fallback to empty string
+                      storeName: storeName || "My Store", // Fallback to a default name
+                      // Only generate subdomain if storeName exists, otherwise empty string
+                      subdomain: storeName
+                        ? storeName.toLowerCase().trim().replace(/\s+/g, "-")
+                        : "",
                       plan: selectedPlan,
-                    });
+                    };
+
+                    // 2. Call the service
+                    await registerStoreOwner(registrationData);
                     setStep(2); // Move to OTP step
                   } catch (err) {
                     setError(
@@ -186,7 +196,7 @@ export default function SignUpPage() {
                         "password is shorter than the minimum allowed length",
                       );
                     }
-                    setTimeout(() => setError(null), 3000);
+                    setTimeout(() => setError(null), 4000);
                   } finally {
                     setLoading(false);
                   }
@@ -199,7 +209,7 @@ export default function SignUpPage() {
                 )}
 
                 <div className="grid lg:grid-cols-2 md:space-y-0 space-y-3 space-x-4">
-                  <div className="flex flex-col gap-1.5 lg:me-4 me-0">
+                  {/* <div className="flex flex-col gap-1.5 lg:me-4 me-0">
                     <label className="text-[13px] font-semibold text-slate-600 ml-0.5">
                       Full Name
                     </label>
@@ -245,7 +255,7 @@ export default function SignUpPage() {
                         .layemart.shop
                       </span>
                     </p>
-                  </div>
+                  </div> */}
                 </div>
 
                 <div className="flex flex-col gap-1.5">
@@ -539,7 +549,7 @@ export default function SignUpPage() {
                   try {
                     // Logic to save the plan selection to the backend
                     await updateStorePlan({ email, plan: selectedPlan });
-                    navigate("/dashboard");
+                    navigate("/dashboard/beta");
                   } catch (err) {
                     setError("Could not save plan. Please try again.");
                   } finally {

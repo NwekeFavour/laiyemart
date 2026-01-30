@@ -1917,7 +1917,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                     // 2. Remove the default focus border/shadow
                     "&:focus-within": {
                       outline: "none",
-                      border: "none",
+                      border: "1px solid #314158",
                     },
                   }}
                 />
@@ -1951,7 +1951,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                     bgcolor: isDark ? "transparent" : "",
                     border: isDark ? "1px solid #314158" : "none",
                     "&::before": { display: "none" },
-                    "&:focus-within": { outline: "none", border: "none" },
+                    "&:focus-within": { outline: "none", border: "1px solid #314158" },
                   }}
                 />
               </FormControl>

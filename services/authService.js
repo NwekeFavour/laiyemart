@@ -27,26 +27,28 @@ export const loginStoreOwner = async (email, password) => {
 };
 
 export const verifyOTP = async ({ email, otp }) => {
-  const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/verify-otp`, {
+  const res = await fetch(`${VITE_BACKEND_URL}/api/auth/verify-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, otp }),
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+
+  const data = await res.json();
+  if (!res.ok) throw data;
+
+  useAuthStore.getState().setUser({ isEmailVerified: true });
+
+  return data;
 };
 
 export const registerStoreOwner = async ({
-  fullName,
   email,
   password,
-  storeName,
-  subdomain,
 }) => {
   const res = await fetch(`${VITE_BACKEND_URL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fullName, email, password, storeName, subdomain }),
+    body: JSON.stringify({ email, password }),
   });
 
   const data = await res.json();
@@ -55,7 +57,13 @@ export const registerStoreOwner = async ({
     throw new Error(data.message || "Registration failed");
   }
 
-  return data;
+  useAuthStore.getState().login({
+    token: data.token,
+    user: data.user,
+    store: data.store,
+    isEmailVerified: data.isEmailVerified,
+    profilePicture: data.user.profilePicture,
+  });
 };
 
 

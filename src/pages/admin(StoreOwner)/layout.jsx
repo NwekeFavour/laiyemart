@@ -525,7 +525,7 @@ const handlePay = async (planType) => {
                     lineHeight: 1.2,
                   }}
                 >
-                  {store?.name.toUpperCase() + " Store" || "Sean"}
+                  {store?.name ? store?.name.toUpperCase() : (user?.fullName || "MY")} STORE
                 </Typography>
                 <Typography
                   className={`${isDark ? "text-emerald-400!" : ""}`}
@@ -1137,7 +1137,7 @@ const handlePay = async (planType) => {
             }}
           >
             <Button
-              className={`${isDark ? "text-slate-200!" : ""}`}
+              className={`${isDark ? "text-slate-200! hover:text-slate-800!" : ""}`}
               variant="plain"
               color="neutral"
               onClick={() => setIsLogoutModalOpen(false)}

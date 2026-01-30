@@ -34,6 +34,7 @@ import {
   CheckCircle2,
   CheckCircle,
   ShieldAlert,
+  CheckCircleIcon,
 } from "lucide-react";
 import StoreOwnerLayout from "./layout";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -41,7 +42,8 @@ import { toast } from "react-toastify";
 import { useStoreProfileStore } from "../../store/useStoreProfile";
 import { fetchMe } from "../../../services/authService";
 import { useLocation } from "react-router-dom";
-import { Alert, CircularProgress } from "@mui/material";
+import { Alert, CircularProgress, IconButton } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 export default function SettingsPage({ isDark, toggleDarkMode }) {
   const { updateStoreProfile, loading, resendStoreVerification } =
@@ -68,6 +70,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
   const [logoFile, setLogoFile] = useState(null);
   const [formStoreType, setFormStoreType] = useState(store?.storeType);
   const [avatarFile, setAvatarFile] = useState(null);
+  const [showBVN, setShowBVN] = React.useState(false);
   const [avatarPreview, setAvatarPreview] = useState(
     user?.profilePicture?.url || "",
   );
@@ -402,11 +405,11 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
   };
 
   const handleSaveBankDetails = async () => {
+    setIsUpdating(true);
     if (!bankForm.businessName) {
       return toast.error("Please enter your business name.");
     }
 
-    setIsUpdating(true);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/paystack/subaccount`,
@@ -420,12 +423,14 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
             businessName: bankForm.businessName,
             bankCode: bankForm.bankCode,
             accountNumber: bankForm.accountNumber,
+            verifiedName: verifiedInfo.name,
           }),
         },
       );
 
       const data = await response.json();
-
+      useAuthStore.getState().setStoreData(data.store);
+      useAuthStore.getState().setUser({ fullName: data.verifiedName });
       if (!response.ok) throw new Error(data.message);
 
       // Update the local store state to reflect the "Active" status
@@ -442,67 +447,6 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
       setIsUpdating(false);
     }
   };
-
-  const handleRefreshStatus = async () => {
-    try {
-      setIsRefreshing(true);
-      const API_URL = import.meta.env.VITE_BACKEND_URL;
-
-      const res = await fetch(`${API_URL}/api/paystack/refresh-status`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-
-      if (data.verified) {
-        toast.success(data.message);
-        // Logic to reload your store data (e.g., fetchStore())
-      } else {
-        toast.info(data.message);
-      }
-    } catch (error) {
-      toast.error("Could not refresh status.");
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  const RequirementItem = ({ label, isDone, isPending }) => (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-      <Box
-        sx={{
-          width: 16,
-          height: 16,
-          borderRadius: "50%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          bgcolor: isDone
-            ? "success.softBg"
-            : isPending
-              ? "warning.softBg"
-              : "neutral.softBg",
-        }}
-      >
-        {isDone ? (
-          <div className="w-2 h-2 rounded-full bg-green-500" />
-        ) : (
-          <div
-            className={`w-2 h-2 rounded-full ${isPending ? "bg-orange-400 animate-pulse" : "bg-gray-300"}`}
-          />
-        )}
-      </Box>
-      <Typography
-        level="body-xs"
-        sx={{ color: isDone ? "text.primary" : "text.secondary" }}
-      >
-        {label} {isPending && "(Processing...)"}
-      </Typography>
-    </Box>
-  );
 
   const RequirementBadge = ({ label, isDone }) => {
     return (
@@ -1713,10 +1657,16 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
             {activeSection === "st" && (
               <Stack gap={3}>
                 <Box>
-                  <Typography level="h4">
+                  <Typography
+                    level="h4"
+                    sx={{ color: isDark ? "neutral.100" : "neutral.900" }}
+                  >
                     Financial & Identity Verification
                   </Typography>
-                  <Typography level="body-sm">
+                  <Typography
+                    level="body-sm"
+                    sx={{ color: isDark ? "neutral.400" : "neutral.600" }}
+                  >
                     {validationStep === 1
                       ? "Step 1: Confirm your legal identity."
                       : "Step 2: Enter your business name to complete setup."}
@@ -1728,13 +1678,20 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   <Box
                     sx={{
                       p: 1.5,
-                      bgcolor: "info.softBg",
+                      bgcolor: isDark
+                        ? "rgba(10, 100, 255, 0.1)"
+                        : "info.softBg",
                       borderRadius: "sm",
                       border: "1px solid",
-                      borderColor: "info.outlinedBorder",
+                      borderColor: isDark
+                        ? "rgba(10, 100, 255, 0.2)"
+                        : "info.outlinedBorder",
                     }}
                   >
-                    <Typography level="body-xs" color="primary">
+                    <Typography
+                      level="body-xs"
+                      sx={{ color: isDark ? "info.300" : "primary.700" }}
+                    >
                       <strong>Note:</strong> Please ensure your names match the
                       records tied to your <strong>BVN</strong>. If you have
                       verified your identity on another Paystack-powered
@@ -1743,15 +1700,21 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   </Box>
                 )}
 
-                <Divider />
+                <Divider
+                  sx={{ borderColor: isDark ? "neutral.800" : "neutral.200" }}
+                />
 
-                {/* STEP 1 FIELDS (Always visible, but disabled after validation) */}
-                <Stack gap={2} sx={{ opacity: validationStep === 2 ? 0.6 : 1 }}>
-                  <Stack className="flex! flex-wrap!" direction="row"  gap={2}>
+                {/* STEP 1 FIELDS */}
+                <Stack gap={2} sx={{ opacity: validationStep === 2 ? 0.5 : 1 }}>
+                  <Stack className="flex! flex-wrap!" direction="row" gap={2}>
                     <FormControl sx={{ flex: 1 }}>
-                      <FormLabel>First Name</FormLabel>
+                      <FormLabel
+                        sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
+                      >
+                        First Name
+                      </FormLabel>
                       <Input
-                        className="shadow-sm!"
+                        variant={isDark ? "soft" : "outlined"}
                         disabled={validationStep === 2}
                         value={bankForm.firstName}
                         onChange={(e) =>
@@ -1760,32 +1723,142 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                             firstName: e.target.value,
                           })
                         }
+                        sx={{
+                          flex: 1,
+                          maxWidth: 400,
+                          borderRadius: "lg",
+                          // ✅ Handle colors based on isDark
+                          bgcolor: isDark ? "#0f172b" : "neutral.50",
+                          borderColor: isDark ? "#1d293d" : "neutral.200",
+                          color: isDark ? "#90a1b9" : "neutral.600",
+
+                          // ✅ Specific override for the "Disabled" state
+                          "&.Mui-disabled": {
+                            bgcolor: isDark
+                              ? "rgba(15, 23, 42, 0.5)"
+                              : "neutral.50",
+                            color: isDark ? "#62748e" : "neutral.500",
+                            borderColor: isDark ? "#90a1b9" : "neutral.200",
+                            textShadow: isDark ? "none" : "none",
+                            cursor: "not-allowed",
+                            // Target the internal input element
+                            "& input": {
+                              WebkitTextFillColor: isDark
+                                ? "#64748b"
+                                : "#64748b", // Ensures color isn't forced to grey by browser
+                            },
+                          },
+                        }}
                       />
                     </FormControl>
                     <FormControl sx={{ flex: 1 }}>
-                      <FormLabel>Last Name</FormLabel>
+                      <FormLabel
+                        sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
+                      >
+                        Last Name
+                      </FormLabel>
                       <Input
-                        className="shadow-sm!"
+                        variant={isDark ? "soft" : "outlined"}
                         disabled={validationStep === 2}
                         value={bankForm.lastName}
                         onChange={(e) =>
                           setBankForm({ ...bankForm, lastName: e.target.value })
                         }
+                        sx={{
+                          flex: 1,
+                          maxWidth: 400,
+                          borderRadius: "lg",
+                          // ✅ Handle colors based on isDark
+                          bgcolor: isDark ? "#0f172b" : "neutral.50",
+                          borderColor: isDark ? "#1d293d" : "neutral.200",
+                          color: isDark ? "#90a1b9" : "neutral.600",
+
+                          // ✅ Specific override for the "Disabled" state
+                          "&.Mui-disabled": {
+                            bgcolor: isDark
+                              ? "rgba(15, 23, 42, 0.5)"
+                              : "neutral.50",
+                            color: isDark ? "#62748e" : "neutral.500",
+                            borderColor: isDark ? "#90a1b9" : "neutral.200",
+                            textShadow: isDark ? "none" : "none",
+                            cursor: "not-allowed",
+                            // Target the internal input element
+                            "& input": {
+                              WebkitTextFillColor: isDark
+                                ? "#64748b"
+                                : "#64748b", // Ensures color isn't forced to grey by browser
+                            },
+                          },
+                        }}
                       />
                     </FormControl>
                   </Stack>
 
                   <FormControl>
-                    <FormLabel>Bank</FormLabel>
+                    <FormLabel
+                      sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
+                    >
+                      Bank
+                    </FormLabel>
                     <Select
+                      className={`${isDark ? "hover:bg-slate-800/90!" : ""} `}
+                      variant={isDark ? "soft" : "outlined"}
+                      placeholder="Search for your bank"
                       disabled={validationStep === 2}
                       value={bankForm.bankCode}
                       onChange={(_, val) =>
                         setBankForm({ ...bankForm, bankCode: val })
                       }
+                      slotProps={{
+                        listbox: {
+                          sx: {
+                            maxHeight: "240px",
+                            // ✅ Match your custom dark theme
+                            bgcolor: isDark ? "#0f172b" : "common.white",
+                            borderColor: isDark ? "#1d293d" : "neutral.200",
+                            boxShadow: "lg",
+                            // Target all Options within this listbox
+                            "& .MuiOption-root": {
+                              color: isDark ? "#94a3b8" : "neutral.800", // Slate-400 for dark, dark grey for light
+                              "&:hover": {
+                                color: isDark ? "#f8fafc" : "neutral.900",
+                              },
+                              '&[aria-selected="true"]': {
+                                bgcolor: isDark ? "#334155" : "primary.softBg",
+                                color: isDark ? "#fff" : "primary.solidColor",
+                              },
+                            },
+                          },
+                        },
+                      }}
+                      sx={{
+                        flex: 1,
+                        borderRadius: "lg",
+                        bgcolor: isDark ? "#0f172b" : "neutral.50",
+                        borderColor: isDark ? "#1d293d" : "neutral.200",
+                        color: isDark ? "#90a1b9" : "neutral.600",
+                        "&.Mui-disabled": {
+                          bgcolor: isDark
+                            ? "rgba(15, 23, 42, 0.5)"
+                            : "neutral.50",
+                          color: isDark ? "#475569" : "neutral.500", // Fixed visibility for dark disabled text
+                          borderColor: isDark ? "#1d293d" : "neutral.200",
+                          "& input": {
+                            WebkitTextFillColor: isDark ? "#475569" : "#94a3b8",
+                          },
+                        },
+                      }}
                     >
                       {banks.map((b, i) => (
-                        <Option key={i} value={b.code}>
+                        <Option
+                          className="hide-scrollbar"
+                          key={i}
+                          value={b.code}
+                          // Explicitly ensuring the individual option text isn't white unless hovered
+                          sx={{
+                            color: isDark ? "#94a3b8" : "neutral.900",
+                          }}
+                        >
                           {b.name}
                         </Option>
                       ))}
@@ -1793,9 +1866,13 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   </FormControl>
 
                   <FormControl>
-                    <FormLabel>Account Number</FormLabel>
+                    <FormLabel
+                      sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
+                    >
+                      Account Number
+                    </FormLabel>
                     <Input
-                      className="shadow-sm!"                  
+                      variant={isDark ? "soft" : "outlined"}
                       disabled={validationStep === 2}
                       value={bankForm.accountNumber}
                       onChange={(e) =>
@@ -1804,26 +1881,121 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                           accountNumber: e.target.value,
                         })
                       }
+                       sx={{
+                          flex: 1,
+                          borderRadius: "lg",
+                          // ✅ Handle colors based on isDark
+                          bgcolor: isDark ? "#0f172b" : "neutral.50",
+                          borderColor: isDark ? "#1d293d" : "neutral.200",
+                          color: isDark ? "#90a1b9" : "neutral.600",
+
+                          // ✅ Specific override for the "Disabled" state
+                          "&.Mui-disabled": {
+                            bgcolor: isDark
+                              ? "rgba(15, 23, 42, 0.5)"
+                              : "neutral.50",
+                            color: isDark ? "#62748e" : "neutral.500",
+                            borderColor: isDark ? "#90a1b9" : "neutral.200",
+                            textShadow: isDark ? "none" : "none",
+                            cursor: "not-allowed",
+                            // Target the internal input element
+                            "& input": {
+                              WebkitTextFillColor: isDark
+                                ? "#64748b"
+                                : "#64748b", // Ensures color isn't forced to grey by browser
+                            },
+                          },
+                        }}
                     />
                   </FormControl>
 
                   <FormControl>
-                    <FormLabel>BVN</FormLabel>
-                    <Input
-                      className="shadow-sm!"
-                      type="password"
-                      disabled={validationStep === 2}
-                      value={bankForm.bvn}
-                      onChange={(e) =>
-                        setBankForm({ ...bankForm, bvn: e.target.value })
-                      }
-                      slotProps={{ input: { maxLength: 11 } }}
-                    />
+                    <FormLabel
+                      sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
+                    >
+                      Identity Status
+                    </FormLabel>
+                    {store?.paystack?.verified ? (
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={1.5}
+                        sx={{
+                          p: 1.5,
+                          bgcolor: isDark
+                            ? "rgba(30, 70, 50, 0.3)"
+                            : "success.softBg",
+                          borderRadius: "md",
+                          border: "1px solid",
+                          borderColor: isDark
+                            ? "success.800"
+                            : "success.softBorder",
+                        }}
+                      >
+                        <CheckCircleIcon
+                          sx={{
+                            color: isDark ? "success.400" : "success.solidBg",
+                            fontSize: "xl",
+                          }}
+                        />
+                        <Box>
+                          <Typography
+                            level="title-sm"
+                            sx={{
+                              color: isDark ? "success.300" : "success.700",
+                            }}
+                          >
+                            BVN Verified
+                          </Typography>
+                          <Typography
+                            level="body-xs"
+                            sx={{
+                              color: isDark ? "neutral.400" : "neutral.600",
+                            }}
+                          >
+                            Linked to: {user?.fullName}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    ) : (
+                      <Input
+                        variant={isDark ? "soft" : "outlined"}
+                        type={showBVN ? "text" : "password"}
+                        placeholder="Enter 11-digit BVN"
+                        value={bankForm.bvn}
+                        onChange={(e) =>
+                          setBankForm({
+                            ...bankForm,
+                            bvn: e.target.value.replace(/\D/g, ""),
+                          })
+                        }
+                        slotProps={{ input: { maxLength: 11 } }}
+                        sx={{
+                          bgcolor: isDark ? "neutral.800" : "common.white",
+                        }}
+                        endDecorator={
+                          <IconButton
+                            onClick={() => setShowBVN(!showBVN)}
+                            sx={{
+                              color: isDark ? "neutral.400" : "neutral.600",
+                            }}
+                          >
+                            {showBVN ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        }
+                      />
+                    )}
                   </FormControl>
 
                   {validationStep === 1 && (
                     <Button
-                      className="bg-slate-800/90!"
+                      sx={{
+                        bgcolor: isDark ? "neutral.100" : "neutral.900",
+                        color: isDark ? "neutral.900" : "common.white",
+                        "&:hover": {
+                          bgcolor: isDark ? "neutral.300" : "neutral.800",
+                        },
+                      }}
                       loading={isUpdating}
                       onClick={handleIdentitySubmit}
                     >
@@ -1832,25 +2004,35 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   )}
                 </Stack>
 
-                {/* STEP 2: BUSINESS INFO (Appears after successful Step 1) */}
+                {/* STEP 2: BUSINESS INFO */}
                 {validationStep === 2 && (
                   <Stack
                     gap={2}
                     sx={{
                       p: 2,
-                      bgcolor: "success.softBg",
+                      bgcolor: isDark
+                        ? "rgba(30, 70, 50, 0.2)"
+                        : "success.softBg",
                       borderRadius: "md",
                       border: "1px dashed",
-                      borderColor: "success.main",
+                      borderColor: isDark ? "success.800" : "success.main",
                     }}
                   >
-                    <Typography level="title-md" color="success">
+                    <Typography
+                      level="title-md"
+                      sx={{ color: isDark ? "success.300" : "success.700" }}
+                    >
                       Verified: {verifiedInfo.name}
                     </Typography>
 
                     <FormControl>
-                      <FormLabel>Registered Store Name</FormLabel>
+                      <FormLabel
+                        sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
+                      >
+                        Registered Store Name
+                      </FormLabel>
                       <Input
+                        variant={isDark ? "soft" : "outlined"}
                         placeholder="This name appears on customer receipts"
                         value={bankForm.businessName}
                         onChange={(e) =>
@@ -1859,11 +2041,25 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                             businessName: e.target.value,
                           })
                         }
+                        sx={{
+                          bgcolor: isDark ? "neutral.800" : "common.white",
+                        }}
                       />
                     </FormControl>
-
+                    <Typography
+                      level="body-xs"
+                      sx={{
+                        color: isDark ? "neutral.400" : "neutral.600",
+                        mt: 1,
+                        fontStyle: "italic",
+                      }}
+                    >
+                      ℹ️ The name provided above will define your store identity
+                      and public URL.
+                    </Typography>
                     <Button
                       color="success"
+                      variant={isDark ? "solid" : "solid"}
                       loading={isUpdating}
                       onClick={handleSaveBankDetails}
                     >
