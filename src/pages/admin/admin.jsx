@@ -199,7 +199,7 @@ export default function SuperAdminDashboard() {
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Box className="capitalize!" sx={{ width: 40, height: 40, borderRadius: '10px', bgcolor: '#ef4444', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
-                          {store.name.charAt(0)}
+                          {store?.name?.charAt(0) || "S"}
                         </Box>
                         <Box>
                           <Typography sx={{ fontWeight: 700, fontSize: '14px' }}>{store.name}</Typography>
