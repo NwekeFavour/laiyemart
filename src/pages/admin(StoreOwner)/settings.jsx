@@ -14,6 +14,7 @@ import {
   Select,
   Option,
   Textarea,
+  Autocomplete,
 } from "@mui/joy";
 import {
   User,
@@ -92,8 +93,6 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     bankCode: store?.paystack?.bankCode || "",
     accountNumber: store?.paystack?.accountNumber || "",
     // Add these two to fix the "uncontrolled to controlled" warning
-    firstName: store?.paystack?.firstName || "",
-    lastName: store?.paystack?.lastName || "",
     bvn: "",
   });
 
@@ -429,10 +428,14 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
       );
 
       const data = await response.json();
-      useAuthStore.getState().setStoreData(data.store);
-      useAuthStore.getState().setUser({ fullName: data.verifiedName });
-      if (!response.ok) throw new Error(data.message);
 
+      if (!response.ok) throw new Error(data.message);
+      const nameToSet = data.verifiedName || data.store?.paystack?.accountName;
+      const currentUser = useAuthStore.getState().user;
+      useAuthStore.getState().setUser({ 
+        ...currentUser, 
+        fullName: nameToSet 
+      });
       // Update the local store state to reflect the "Active" status
       setStore(data.store);
       toast.success(
@@ -1705,94 +1708,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                 />
 
                 {/* STEP 1 FIELDS */}
-                <Stack gap={2} sx={{ opacity: validationStep === 2 ? 0.5 : 1 }}>
-                  <Stack className="flex! flex-wrap!" direction="row" gap={2}>
-                    <FormControl sx={{ flex: 1 }}>
-                      <FormLabel
-                        sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
-                      >
-                        First Name
-                      </FormLabel>
-                      <Input
-                        variant={isDark ? "soft" : "outlined"}
-                        disabled={validationStep === 2}
-                        value={bankForm.firstName}
-                        onChange={(e) =>
-                          setBankForm({
-                            ...bankForm,
-                            firstName: e.target.value,
-                          })
-                        }
-                        sx={{
-                          flex: 1,
-                          maxWidth: 400,
-                          borderRadius: "lg",
-                          // ✅ Handle colors based on isDark
-                          bgcolor: isDark ? "#0f172b" : "neutral.50",
-                          borderColor: isDark ? "#1d293d" : "neutral.200",
-                          color: isDark ? "#90a1b9" : "neutral.600",
-
-                          // ✅ Specific override for the "Disabled" state
-                          "&.Mui-disabled": {
-                            bgcolor: isDark
-                              ? "rgba(15, 23, 42, 0.5)"
-                              : "neutral.50",
-                            color: isDark ? "#62748e" : "neutral.500",
-                            borderColor: isDark ? "#90a1b9" : "neutral.200",
-                            textShadow: isDark ? "none" : "none",
-                            cursor: "not-allowed",
-                            // Target the internal input element
-                            "& input": {
-                              WebkitTextFillColor: isDark
-                                ? "#64748b"
-                                : "#64748b", // Ensures color isn't forced to grey by browser
-                            },
-                          },
-                        }}
-                      />
-                    </FormControl>
-                    <FormControl sx={{ flex: 1 }}>
-                      <FormLabel
-                        sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
-                      >
-                        Last Name
-                      </FormLabel>
-                      <Input
-                        variant={isDark ? "soft" : "outlined"}
-                        disabled={validationStep === 2}
-                        value={bankForm.lastName}
-                        onChange={(e) =>
-                          setBankForm({ ...bankForm, lastName: e.target.value })
-                        }
-                        sx={{
-                          flex: 1,
-                          maxWidth: 400,
-                          borderRadius: "lg",
-                          // ✅ Handle colors based on isDark
-                          bgcolor: isDark ? "#0f172b" : "neutral.50",
-                          borderColor: isDark ? "#1d293d" : "neutral.200",
-                          color: isDark ? "#90a1b9" : "neutral.600",
-
-                          // ✅ Specific override for the "Disabled" state
-                          "&.Mui-disabled": {
-                            bgcolor: isDark
-                              ? "rgba(15, 23, 42, 0.5)"
-                              : "neutral.50",
-                            color: isDark ? "#62748e" : "neutral.500",
-                            borderColor: isDark ? "#90a1b9" : "neutral.200",
-                            textShadow: isDark ? "none" : "none",
-                            cursor: "not-allowed",
-                            // Target the internal input element
-                            "& input": {
-                              WebkitTextFillColor: isDark
-                                ? "#64748b"
-                                : "#64748b", // Ensures color isn't forced to grey by browser
-                            },
-                          },
-                        }}
-                      />
-                    </FormControl>
-                  </Stack>
+                <Stack gap={2} sx={{ opacity: validationStep === 2 ? 0.5 : 1 }}>                  
 
                   <FormControl>
                     <FormLabel
@@ -1800,32 +1716,43 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                     >
                       Bank
                     </FormLabel>
-                    <Select
-                      className={`${isDark ? "hover:bg-slate-800/90!" : ""} `}
-                      variant={isDark ? "soft" : "outlined"}
+                    <Autocomplete
                       placeholder="Search for your bank"
-                      disabled={validationStep === 2}
-                      value={bankForm.bankCode}
-                      onChange={(_, val) =>
-                        setBankForm({ ...bankForm, bankCode: val })
+                      // Data props
+                      options={banks}
+                      getOptionLabel={(option) => option.name}
+                      // This correctly finds the bank object even if you only have the code stored
+                      value={
+                        banks.find((b) => b.code === bankForm.bankCode) || null
                       }
+                      onChange={(_, newValue) => {
+                        setBankForm({
+                          ...bankForm,
+                          bankCode: newValue?.code || "",
+                        });
+                      }}
+                      disabled={validationStep === 2}
+                      // Theme props
+                      variant={isDark ? "soft" : "outlined"}
                       slotProps={{
+                        input: {
+                          className: "hide-scrollbar",
+                        },
                         listbox: {
                           sx: {
                             maxHeight: "240px",
-                            // ✅ Match your custom dark theme
                             bgcolor: isDark ? "#0f172b" : "common.white",
                             borderColor: isDark ? "#1d293d" : "neutral.200",
                             boxShadow: "lg",
-                            // Target all Options within this listbox
-                            "& .MuiOption-root": {
-                              color: isDark ? "#94a3b8" : "neutral.800", // Slate-400 for dark, dark grey for light
-                              "&:hover": {
-                                color: isDark ? "#f8fafc" : "neutral.900",
-                              },
+                            "& .MuiAutocomplete-option": {
+                              color: isDark ? "#94a3b8" : "neutral.800",
                               '&[aria-selected="true"]': {
                                 bgcolor: isDark ? "#334155" : "primary.softBg",
                                 color: isDark ? "#fff" : "primary.solidColor",
+                              },
+                              "&:hover": {
+                                bgcolor: isDark ? "#1e293b" : "neutral.100",
+                                color: isDark ? "#f8fafc" : "neutral.900",
                               },
                             },
                           },
@@ -1836,33 +1763,20 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                         borderRadius: "lg",
                         bgcolor: isDark ? "#0f172b" : "neutral.50",
                         borderColor: isDark ? "#1d293d" : "neutral.200",
-                        color: isDark ? "#90a1b9" : "neutral.600",
+                        // Fixes the text color for what the user is actually typing
+                        "& .MuiAutocomplete-input": {
+                          color: isDark ? "#f8fafc" : "neutral.900",
+                        },
                         "&.Mui-disabled": {
                           bgcolor: isDark
                             ? "rgba(15, 23, 42, 0.5)"
                             : "neutral.50",
-                          color: isDark ? "#475569" : "neutral.500", // Fixed visibility for dark disabled text
-                          borderColor: isDark ? "#1d293d" : "neutral.200",
-                          "& input": {
+                          "& .MuiAutocomplete-input": {
                             WebkitTextFillColor: isDark ? "#475569" : "#94a3b8",
                           },
                         },
                       }}
-                    >
-                      {banks.map((b, i) => (
-                        <Option
-                          className="hide-scrollbar"
-                          key={i}
-                          value={b.code}
-                          // Explicitly ensuring the individual option text isn't white unless hovered
-                          sx={{
-                            color: isDark ? "#94a3b8" : "neutral.900",
-                          }}
-                        >
-                          {b.name}
-                        </Option>
-                      ))}
-                    </Select>
+                    />
                   </FormControl>
 
                   <FormControl>
@@ -1881,31 +1795,29 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                           accountNumber: e.target.value,
                         })
                       }
-                       sx={{
-                          flex: 1,
-                          borderRadius: "lg",
-                          // ✅ Handle colors based on isDark
-                          bgcolor: isDark ? "#0f172b" : "neutral.50",
-                          borderColor: isDark ? "#1d293d" : "neutral.200",
-                          color: isDark ? "#90a1b9" : "neutral.600",
+                      sx={{
+                        flex: 1,
+                        borderRadius: "lg",
+                        // ✅ Handle colors based on isDark
+                        bgcolor: isDark ? "#0f172b" : "neutral.50",
+                        borderColor: isDark ? "#1d293d" : "neutral.200",
+                        color: isDark ? "#90a1b9" : "neutral.600",
 
-                          // ✅ Specific override for the "Disabled" state
-                          "&.Mui-disabled": {
-                            bgcolor: isDark
-                              ? "rgba(15, 23, 42, 0.5)"
-                              : "neutral.50",
-                            color: isDark ? "#62748e" : "neutral.500",
-                            borderColor: isDark ? "#90a1b9" : "neutral.200",
-                            textShadow: isDark ? "none" : "none",
-                            cursor: "not-allowed",
-                            // Target the internal input element
-                            "& input": {
-                              WebkitTextFillColor: isDark
-                                ? "#64748b"
-                                : "#64748b", // Ensures color isn't forced to grey by browser
-                            },
+                        // ✅ Specific override for the "Disabled" state
+                        "&.Mui-disabled": {
+                          bgcolor: isDark
+                            ? "rgba(15, 23, 42, 0.5)"
+                            : "neutral.50",
+                          color: isDark ? "#62748e" : "neutral.500",
+                          borderColor: isDark ? "#90a1b9" : "neutral.200",
+                          textShadow: isDark ? "none" : "none",
+                          cursor: "not-allowed",
+                          // Target the internal input element
+                          "& input": {
+                            WebkitTextFillColor: isDark ? "#64748b" : "#64748b", // Ensures color isn't forced to grey by browser
                           },
-                        }}
+                        },
+                      }}
                     />
                   </FormControl>
 
@@ -1999,7 +1911,9 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                       loading={isUpdating}
                       onClick={handleIdentitySubmit}
                     >
-                      {store?.paystack?.verified ? "Update Bank Details" :"Verify My Identity"}
+                      {store?.paystack?.verified
+                        ? "Update Bank Details"
+                        : "Verify My Identity"}
                     </Button>
                   )}
                 </Stack>

@@ -130,40 +130,40 @@ function Products({ storeSlug }) {
     );
     return item ? item.quantity : 0;
   };
-const handleCartAction = async (product, action) => {
-  const productId = product._id || product.id;
-  
-  if (!customer) {
-    navigate("/login");
-    return;
-  }
+  const handleCartAction = async (product, action) => {
+    const productId = product._id || product.id;
 
-  // 1. Start Preloader
-  setProcessingId(productId);
-
-  try {
-    const currentQty = getItemQty(productId);
-
-    if (action === "increment") {
-      if (currentQty === 0) {
-        await addToCart(product.store, productId, 1);
-      } else {
-        await updateQuantity(product.store, productId, currentQty + 1);
-      }
-    } else if (action === "decrement") {
-      if (currentQty === 1) {
-        await removeItem(product.store, productId);
-      } else {
-        await updateQuantity(product.store, productId, currentQty - 1);
-      }
+    if (!customer) {
+      navigate("/login");
+      return;
     }
-  } catch (error) {
-    console.error("Cart update failed", error);
-  } finally {
-    // 2. Stop Preloader - This runs for BOTH increment and decrement
-    setProcessingId(null);
-  }
-};
+
+    // 1. Start Preloader
+    setProcessingId(productId);
+
+    try {
+      const currentQty = getItemQty(productId);
+
+      if (action === "increment") {
+        if (currentQty === 0) {
+          await addToCart(product.store, productId, 1);
+        } else {
+          await updateQuantity(product.store, productId, currentQty + 1);
+        }
+      } else if (action === "decrement") {
+        if (currentQty === 1) {
+          await removeItem(product.store, productId);
+        } else {
+          await updateQuantity(product.store, productId, currentQty - 1);
+        }
+      }
+    } catch (error) {
+      console.error("Cart update failed", error);
+    } finally {
+      // 2. Stop Preloader - This runs for BOTH increment and decrement
+      setProcessingId(null);
+    }
+  };
 
   // Determine current config based on store industry/type
   const config = useMemo(() => {
@@ -446,11 +446,16 @@ const handleCartAction = async (product, action) => {
             ) : (
               filteredProducts.map((product) => (
                 <div
-                  key={product._id}
-                  className="group relative cursor-pointer rounded-lg overflow-hidden bg-white shadow-md transition-all duration-300 hover:shadow-xl"
+                  key={product._id || product.id}
+                  className="group relative cursor-pointer rounded-lg overflow-hidden bg-white shadow-md transition-all duration-300 hover:shadow-xl flex flex-col"
+                  style={{ width:"100%", height: "380px" }} // 1. Fixed total card height
+                  onClick={() => navigate(`/shop/product/${product._id}`)}
                 >
-                  {/* Product Image */}
-                  <div className="relative aspect-square overflow-hidden bg-gray-100">
+                  {/* Product Image Section - Fixed Height */}
+                  <div
+                    className="relative overflow-hidden bg-gray-100"
+                    style={{ height: "240px" }}
+                  >
                     <img
                       src={
                         product.images?.[0]?.url ||
@@ -464,47 +469,53 @@ const handleCartAction = async (product, action) => {
 
                     {/* Featured Badge */}
                     {product.isFeatured && (
-                      <div className="absolute top-3 left-3 bg-black text-white px-2 py-0.5 text-[10px] font-bold rounded-sm tracking-wide">
+                      <div className="absolute top-3 left-3 bg-black text-white px-2 py-0.5 text-[10px] font-bold rounded-sm tracking-wide z-10">
                         FEATURED
                       </div>
                     )}
                   </div>
 
-                  {/* Product Info */}
-                  <div className="p-4 flex flex-col gap-1">
-                    <span className="text-xs font-bold text-gray-500">
-                      {product.brand || "OFFICIAL"}
-                    </span>
-                    <h3 className="text-sm md:text-base font-bold line-clamp-1">
-                      {product.name}
-                    </h3>
-                    <span className="text-sm font-extrabold mt-1">
-                      ₦{(product.price || 0).toLocaleString()}
-                    </span>
+                  {/* Product Info - Flex Grow pushes button to bottom */}
+                  <div className="p-4 flex flex-col flex-grow justify-between">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">
+                        {product.brand || "OFFICIAL"}
+                      </span>
+                      <h3 className="text-sm font-bold line-clamp-2 text-gray-800 h-10">
+                        {product.name}
+                      </h3>
+                      <span className="text-base font-extrabold text-black mt-1">
+                        ₦{(product.price || 0).toLocaleString()}
+                      </span>
+                    </div>
 
-                    {/* Add to Cart / Quantity Controls */}
-                    <div className="mt-3">
+                    {/* Add to Cart / Quantity Controls - Always stays at the bottom */}
+                    <div className="mt-auto pt-3">
                       {getItemQty(product._id || product.id) === 0 ? (
                         <button
                           disabled={
                             processingId === (product._id || product.id)
                           }
-                          onClick={() => handleCartAction(product, "increment")}
-                          className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+                          onClick={(e) => {
+                            e.stopPropagation(); // 2. Stop card click navigation
+                            handleCartAction(product, "increment");
+                          }}
+                          className="w-full bg-black text-white text-sm font-bold py-2.5 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed transition-colors"
                         >
                           {processingId === (product._id || product.id) ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin-slow"></div>
-                              <span>Processing...</span>
-                            </>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                           ) : (
                             <>
-                              <ShoppingCartOutlined size={18} /> Add to Cart
+                              <ShoppingCartOutlined sx={{ fontSize: 18 }} /> Add
+                              to Cart
                             </>
                           )}
                         </button>
                       ) : (
-                        <div className="flex items-center justify-between mt-1 gap-2 bg-gray-50 p-1 rounded-lg border">
+                        <div
+                          className="flex items-center justify-between gap-2 bg-gray-50 p-1 rounded-lg border"
+                          onClick={(e) => e.stopPropagation()} // 3. Prevent navigation when clicking controls
+                        >
                           <button
                             disabled={
                               processingId === (product._id || product.id)
@@ -519,9 +530,9 @@ const handleCartAction = async (product, action) => {
 
                           <div className="flex flex-col items-center min-w-[30px]">
                             {processingId === (product._id || product.id) ? (
-                              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin-slow"></div>
+                              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
                             ) : (
-                              <span className="font-bold text-lg">
+                              <span className="font-bold text-lg text-gray-900">
                                 {getItemQty(product._id || product.id)}
                               </span>
                             )}
@@ -548,8 +559,11 @@ const handleCartAction = async (product, action) => {
           </div>
         </div>
       </div>
-      <Footer storeName={storeData?.name} storeDescription={storeData?.description} storeLogo={storeData?.logo?.url} />      
-
+      <Footer
+        storeName={storeData?.name}
+        storeDescription={storeData?.description}
+        storeLogo={storeData?.logo?.url}
+      />
     </div>
   );
 }

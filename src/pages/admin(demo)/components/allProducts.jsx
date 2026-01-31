@@ -115,22 +115,31 @@ const AllProductsSection = ({ products }) => {
               >
                 <Box
                   sx={{
+                    bgcolor: "white",
                     borderRadius: 2,
                     overflow: "hidden",
                     position: "relative",
                     cursor: "pointer",
                     boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
                     transition: "0.3s",
+                    // ⬇️ New Flex logic to control vertical space
+                    height: "380px",
+                    display: "flex",
+                    flexDirection: "column",
+                    "&:hover": {
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                      "& img": { transform: "scale(1.05)" },
+                    },
                   }}
                 >
-                  {/* Image */}
+                  {/* Image Section - Fixed Height */}
                   <Box
                     sx={{
                       width: "100%",
-                      height: 320,
+                      height: 280, // Fixed height for image
                       overflow: "hidden",
                       bgcolor: "#f5f5f5",
-                      mb: 1,
+                      position: "relative",
                     }}
                   >
                     <img
@@ -149,114 +158,127 @@ const AllProductsSection = ({ products }) => {
                     />
                   </Box>
 
-                  {/* Info */}
-                  <Box sx={{ p: 2 }}>
-                    <Typography
-                      sx={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        letterSpacing: 1,
-                        color: "text.secondary",
-                      }}
-                    >
-                      {product.brand || "Collection"}
-                    </Typography>
-
-                    <Typography
-                      sx={{
-                        fontSize: 14,
-                        fontWeight: 700,
-                        color: "text.primary",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {product.name}
-                    </Typography>
-
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
-                      <Typography variant="body2" fontWeight={800}>
-                        ₦{(product.price || 0).toLocaleString()}
-                      </Typography>
-                      <Button
-                        size="small"
-                        variant="text"
-                        onClick={() => navigate(`/shop/product/${product._id}`)}
+                  {/* Info & Actions - Flex Grow fills the remaining card height */}
+                  <Box
+                    sx={{
+                      p: 2,
+                      flexGrow: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Box>
+                      <Typography
                         sx={{
-                          fontSize: 12,
-                          color: "#02489b",
-                          textTransform: "none",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: 1,
+                          color: "text.secondary",
+                          mb: 0.5,
                         }}
                       >
-                        View Details
-                      </Button>
-                    </Stack>
+                        {product.brand || "Collection"}
+                      </Typography>
 
-                    {/* Add to Cart / Quantity */}
-                    <div className="mt-3">
+                      <Typography
+                        sx={{
+                          fontSize: 14,
+                          fontWeight: 700,
+                          color: "text.primary",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2, // Allow up to 2 lines of text
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          mb: 1,
+                        }}
+                      >
+                        {product.name}
+                      </Typography>
+
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
+                      >
+                        <Typography variant="body2" fontWeight={800}>
+                          ₦{(product.price || 0).toLocaleString()}
+                        </Typography>
+                        <Button
+                          size="small"
+                          variant="text"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Stop navigation click
+                            navigate(`/shop/product/${product._id}`);
+                          }}
+                          sx={{
+                            fontSize: 12,
+                            color: "#02489b",
+                            textTransform: "none",
+                            minWidth: 0,
+                            p: 0,
+                          }}
+                        >
+                          View Details
+                        </Button>
+                      </Stack>
+                    </Box>
+
+                    {/* Add to Cart / Quantity - Always at the bottom */}
+                    <Box sx={{ mt: 2 }}>
                       {getItemQty(product._id || product.id) === 0 ? (
                         <button
                           disabled={
                             processingId === (product._id || product.id)
                           }
-                          onClick={() => handleCartAction(product, "increment")}
-                          className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCartAction(product, "increment");
+                          }}
+                          className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed transition-colors"
                         >
                           {processingId === (product._id || product.id) ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin-slow"></div>
-                              <span>Processing...</span>
-                            </>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                           ) : (
                             <>
-                              <ShoppingCartOutlined size={18} /> Add to Cart
+                              <ShoppingCartOutlined sx={{ fontSize: 18 }} /> Add
+                              to Cart
                             </>
                           )}
                         </button>
                       ) : (
-                        <div className="flex items-center justify-between mt-1 gap-2 p-1 rounded-lg">
+                        <div className="flex items-center justify-between gap-2 p-1 bg-gray-50 rounded-lg">
                           <button
-                            disabled={
-                              processingId === (product._id || product.id)
-                            }
-                            className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
-                            onClick={() =>
-                              handleCartAction(product, "decrement")
-                            }
+                            className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCartAction(product, "decrement");
+                            }}
                           >
                             <Remove fontSize="small" />
                           </button>
 
-                          <div className="flex flex-col items-center min-w-[30px]">
+                          <div className="font-bold text-lg">
                             {processingId === (product._id || product.id) ? (
-                              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin-slow"></div>
+                              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
                             ) : (
-                              <span className="font-bold text-lg">
-                                {getItemQty(product._id || product.id)}
-                              </span>
+                              getItemQty(product._id || product.id)
                             )}
                           </div>
 
                           <button
-                            disabled={
-                              processingId === (product._id || product.id)
-                            }
-                            className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
-                            onClick={() =>
-                              handleCartAction(product, "increment")
-                            }
+                            className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCartAction(product, "increment");
+                            }}
                           >
                             <Add fontSize="small" />
                           </button>
                         </div>
                       )}
-                    </div>
+                    </Box>
                   </Box>
                 </Box>
               </motion.div>

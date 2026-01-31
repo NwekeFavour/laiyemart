@@ -376,6 +376,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
               className={`${isDark ? "text-slate-200" : ""} flex items-center gap-2 mt-1 flex-wrap`}
             >
               <Typography
+                className="lg:text-[15px]! text-[14.5px]!"
                 level="div"
                 sx={{
                   color: isDark ? "neutral.400" : "neutral.500",

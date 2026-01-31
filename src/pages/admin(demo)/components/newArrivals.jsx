@@ -122,19 +122,28 @@ const NewArrivalsGrid = ({ subtitle }) => {
                 borderRadius: 2,
                 overflow: "hidden",
                 position: "relative",
+                // ⬇️ Updated Height
+                height: "380px",
+                display: "flex",
+                flexDirection: "column",
                 cursor: "pointer",
                 boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
                 transition: "0.3s",
+                "&:hover": {
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                  transform: "translateY(-4px)",
+                },
               }}
             >
-              {/* Product Image */}
+              {/* Product Image Container */}
               <Box
                 sx={{
                   position: "relative",
                   width: "100%",
-                  height: 0,
-                  paddingTop: "100%",
+                  // ⬇️ Adjusted for a slightly taller rectangular image (3:4 ratio)
+                  height: "220px",
                   overflow: "hidden",
+                  bgcolor: "#f9f9f9",
                 }}
               >
                 <img
@@ -156,21 +165,39 @@ const NewArrivalsGrid = ({ subtitle }) => {
                 />
               </Box>
 
-              {/* Product Info */}
-                <Box sx={{ p: 2 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    {product.brand}
+              {/* Product Info - Flex-grow makes this fill remaining space */}
+              <Box
+                sx={{
+                  p: 1.5,
+                  flexGrow: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: "block", mb: 0.5 }}
+                  >
+                    {product.brand || "Brand"}
                   </Typography>
-                  <Typography variant="body2" fontWeight={700} noWrap>
+                  <Typography
+                    variant="body2"
+                    fontWeight={700}
+                    noWrap
+                    sx={{ mb: 0.5 }}
+                  >
                     {product.name}
                   </Typography>
+
                   <Stack
                     direction="row"
                     justifyContent="space-between"
                     alignItems="center"
-                    mt={1}
                   >
-                    <Typography variant="body2" fontWeight={800}>
+                    <Typography variant="body2" fontWeight={800} color="black">
                       ₦{(product.price || 0).toLocaleString()}
                     </Typography>
                     <Button
@@ -178,69 +205,68 @@ const NewArrivalsGrid = ({ subtitle }) => {
                       variant="text"
                       onClick={() => navigate(`/shop/product/${product._id}`)}
                       sx={{
-                        fontSize: 12,
+                        fontSize: 11,
                         color: "#02489b",
                         textTransform: "none",
+                        minWidth: 0,
+                        p: 0,
                       }}
                     >
-                      View Details
+                      Details
                     </Button>
                   </Stack>
+                </Box>
 
-                  {/* Add to Cart / Quantity Controls */}
-                  <div className="mt-3">
-                    {getItemQty(product._id || product.id) === 0 ? (
+                {/* Add to Cart / Quantity Controls */}
+                <div className="mt-3">
+                  {getItemQty(product._id || product.id) === 0 ? (
+                    <button
+                      disabled={processingId === (product._id || product.id)}
+                      onClick={() => handleCartAction(product, "increment")}
+                      className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+                    >
+                      {processingId === (product._id || product.id) ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin-slow"></div>
+                          <span>Processing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCartOutlined size={18} /> Add to Cart
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-between mt-1 gap-2 p-1 rounded-lg">
                       <button
                         disabled={processingId === (product._id || product.id)}
-                        onClick={() => handleCartAction(product, "increment")}
-                        className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+                        className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
+                        onClick={() => handleCartAction(product, "decrement")}
                       >
-                        {processingId === (product._id || product.id) ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin-slow"></div>
-                            <span>Processing...</span>
-                          </>
-                        ) : (
-                          <>
-                            <ShoppingCartOutlined size={18} /> Add to Cart
-                          </>
-                        )}
+                        <Remove fontSize="small" />
                       </button>
-                    ) : (
-                      <div className="flex items-center justify-between mt-1 gap-2 p-1 rounded-lg">
-                        <button
-                          disabled={
-                            processingId === (product._id || product.id)
-                          }
-                          className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
-                          onClick={() => handleCartAction(product, "decrement")}
-                        >
-                          <Remove fontSize="small" />
-                        </button>
 
-                        <div className="flex flex-col items-center min-w-[30px]">
-                          {processingId === (product._id || product.id) ? (
-                            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin-slow"></div>
-                          ) : (
-                            <span className="font-bold text-lg">
-                              {getItemQty(product._id || product.id)}
-                            </span>
-                          )}
-                        </div>
-
-                        <button
-                          disabled={
-                            processingId === (product._id || product.id)
-                          }
-                          className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
-                          onClick={() => handleCartAction(product, "increment")}
-                        >
-                          <Add fontSize="small" />
-                        </button>
+                      <div className="flex flex-col items-center min-w-[30px]">
+                        {processingId === (product._id || product.id) ? (
+                          <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin-slow"></div>
+                        ) : (
+                          <span className="font-bold text-lg">
+                            {getItemQty(product._id || product.id)}
+                          </span>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </Box>
+
+                      <button
+                        disabled={processingId === (product._id || product.id)}
+                        className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
+                        onClick={() => handleCartAction(product, "increment")}
+                      >
+                        <Add fontSize="small" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </Box>
             </Box>
           </motion.div>
         ))}

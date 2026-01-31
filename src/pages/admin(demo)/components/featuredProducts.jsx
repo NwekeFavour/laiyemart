@@ -184,40 +184,50 @@ const FeaturedPicksGrid = ({ storeType }) => {
           const qty = getItemQty(product._id || product.id);
 
           return (
-            <div
+            <Box
               key={product._id || product.id}
-              className="relative cursor-pointer group rounded-lg overflow-hidden bg-white shadow-2xl transition-all duration-300 hover:shadow-lg"
+              sx={{
+                bgcolor: "white",
+                borderRadius: 2,
+                overflow: "hidden",
+                position: "relative",
+                height: "380px", // Total fixed height
+                display: "flex",
+                flexDirection: "column",
+                cursor: "pointer",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                transition: "0.3s",
+                "&:hover": {
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                },
+              }}
             >
-              {/* Image */}
-
+              {/* 1. Image Container - Fixed height relative to card */}
               <Box
                 sx={{
                   position: "relative",
-                  bgcolor: "#f5f5f5",
+                  width: "100%",
+                  height: "230px", // Controlled height for image
                   overflow: "hidden",
-                  mb: 2,
                 }}
               >
-                <Box
-                  sx={{
+                <img
+                  src={
+                    product.images?.[0]?.url ||
+                    product.image ||
+                    "https://via.placeholder.com/400"
+                  }
+                  alt={product.name}
+                  style={{
                     width: "100%",
-                    height: 320,
-                    overflow: "hidden",
-                    bgcolor: "#f5f5f5",
+                    height: "100%",
+                    objectFit: "cover",
+                    transition: "transform 0.5s",
                   }}
-                >
-                  <img
-                    src={
-                      product.image ||
-                      product.images?.[0]?.url ||
-                      "https://via.placeholder.com/400"
-                    }
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                </Box>
+                  className="group-hover:scale-110" // Using your previous scale effect
+                />
 
-                {/* Featured Badge */}
+                {/* Featured Badge from previous version */}
                 {product.isFeatured && (
                   <Box sx={{ position: "absolute", top: 12, left: 12 }}>
                     <Box
@@ -238,80 +248,109 @@ const FeaturedPicksGrid = ({ storeType }) => {
                 )}
               </Box>
 
-              {/* Product Info */}
-              <Stack className="px-4!" spacing={0.5}>
-                <Typography variant="body2" fontWeight="bold" noWrap>
-                  {product.name}
-                </Typography>
-                <div className="flex items-center justify-between">
-                  <Typography variant="body2" fontWeight="800">
-                    ₦{(product.price || 0).toLocaleString()}
+              {/* 2. Product Info Area */}
+              <Box
+                sx={{
+                  p: 2,
+                  flexGrow: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Stack spacing={0.5}>
+                  <Typography variant="caption" color="text.secondary">
+                    {product.brand || "Official Store"}
                   </Typography>
-                  <Button
-                    size="small"
-                    variant="text"
-                    onClick={() => navigate(`/shop/product/${product._id}`)}
-                    sx={{
-                      fontSize: 12,
-                      color: "#02489b",
-                      textTransform: "none",
-                    }}
-                  >
-                    View Details
-                  </Button>
-                </div>
-              </Stack>
+                  <Typography variant="body2" fontWeight={700} noWrap>
+                    {product.name}
+                  </Typography>
 
-              {/* Add-to-Cart / Quantity Controls */}
-              <div className="p-3">
-                {getItemQty(product._id || product.id) === 0 ? (
-                  <button
-                    disabled={processingId === (product._id || product.id)}
-                    onClick={() => handleCartAction(product, "increment")}
-                    className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    mt={0.5}
                   >
-                    {processingId === (product._id || product.id) ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin-slow"></div>
-                        <span>Processing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingCartOutlined size={18} /> Add to Cart
-                      </>
-                    )}
-                  </button>
-                ) : (
-                  <div className="flex items-center justify-between mt-1 gap-2 p-1 rounded-lg">
+                    <Typography variant="body2" fontWeight={800}>
+                      ₦{(product.price || 0).toLocaleString()}
+                    </Typography>
+                    <Button
+                      size="small"
+                      variant="text"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/shop/product/${product._id}`);
+                      }}
+                      sx={{
+                        fontSize: 12,
+                        color: "#02489b",
+                        textTransform: "none",
+                        p: 0,
+                        minWidth: 0,
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  </Stack>
+                </Stack>
+
+                {/* 3. Add to Cart Controls - Pushed to the bottom */}
+                <Box sx={{ mt: 2 }}>
+                  {getItemQty(product._id || product.id) === 0 ? (
                     <button
                       disabled={processingId === (product._id || product.id)}
-                      className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
-                      onClick={() => handleCartAction(product, "decrement")}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCartAction(product, "increment");
+                      }}
+                      className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed transition-all"
                     >
-                      <Remove fontSize="small" />
-                    </button>
-
-                    <div className="flex flex-col items-center min-w-[30px]">
                       {processingId === (product._id || product.id) ? (
-                        <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin-slow"></div>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       ) : (
-                        <span className="font-bold text-lg">
-                          {getItemQty(product._id || product.id)}
-                        </span>
+                        <>
+                          <ShoppingCartOutlined sx={{ fontSize: 18 }} /> Add to
+                          Cart
+                        </>
                       )}
-                    </div>
-
-                    <button
-                      disabled={processingId === (product._id || product.id)}
-                      className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
-                      onClick={() => handleCartAction(product, "increment")}
-                    >
-                      <Add fontSize="small" />
                     </button>
-                  </div>
-                )}
-              </div>
-            </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-2 p-1 bg-gray-50 rounded-lg">
+                      <button
+                        className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCartAction(product, "decrement");
+                        }}
+                      >
+                        <Remove fontSize="small" />
+                      </button>
+
+                      <div className="flex flex-col items-center min-w-[30px]">
+                        {processingId === (product._id || product.id) ? (
+                          <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <span className="font-bold text-lg">
+                            {getItemQty(product._id || product.id)}
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCartAction(product, "increment");
+                        }}
+                      >
+                        <Add fontSize="small" />
+                      </button>
+                    </div>
+                  )}
+                </Box>
+              </Box>
+            </Box>
           );
         })}
       </div>
