@@ -994,7 +994,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                 onClick={() => {
                   // Direct them straight to the Bank Details section where the
                   // new Customer Validation logic lives.
-                  navigate("/dashboard/settings?section=bank-details");
+                  navigate("/settings?section=bank-details");
                 }}
                 sx={{
                   borderRadius: "10px",

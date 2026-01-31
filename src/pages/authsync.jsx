@@ -36,33 +36,53 @@ export default function AuthSync() {
   }, [searchParams]);
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
-      <div className="relative flex items-center justify-center">
-        {/* Outer Pulsing Ring */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.1, 0.3] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute w-24 h-24 rounded-full bg-red-500"
-        />
-        
-        {/* Spinner */}
-        <div className="w-16 h-16 border-4 border-slate-200 border-t-red-500 rounded-full animate-spin" />
+<div className="flex flex-col items-center justify-center h-screen bg-white text-slate-900">
+      {/* Top Loading Bar (Stripe-style) */}
+      <motion.div 
+        initial={{ width: 0 }}
+        animate={{ width: "100%" }}
+        transition={{ duration: 2, ease: "easeInOut" }}
+        className="fixed top-0 left-0 h-1 bg-red-500 z-50"
+      />
 
-        {/* Layemart "L" Logo in center */}
-        <div className="absolute font-black text-red-500 text-xl">L</div>
+      <div className="flex flex-col items-center gap-6">
+        {/* Minimalist Logo Container */}
+        <div className="relative flex items-center justify-center w-20 h-20">
+          {/* Subtle Outer Glow */}
+          <motion.div
+            animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="absolute inset-0 bg-red-500 rounded-2xl blur-xl"
+          />
+          
+          {/* Main Logo Icon */}
+          <div className="relative w-16 h-16 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-center">
+            <span className="text-3xl font-black text-red-500 tracking-tighter">L</span>
+            
+            {/* Spinning Ring - Thin and elegant */}
+            <div className="absolute inset-[-4px] border-2 border-transparent border-t-red-500/30 rounded-2xl animate-spin" />
+          </div>
+        </div>
+
+        {/* Text Section */}
+        <div className="text-center space-y-1">
+          <h2 className="text-sm font-bold tracking-[0.2em] text-slate-400 uppercase">
+            Laye<span className="text-slate-900">mart</span>
+          </h2>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-xs text-slate-500 font-medium"
+          >
+            Verifying your credentials...
+          </motion.p>
+        </div>
       </div>
 
-      <div className="mt-8 text-center">
-        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
-          LAYE<span className="text-red-500">MART</span>
-        </h2>
-        {/* <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-slate-500 text-sm mt-2 font-medium"
-        >
-          Securing your session...
-        </motion.p> */}
+      {/* Footer Branding (Optional) */}
+      <div className="absolute bottom-10 text-[10px] text-slate-300 font-medium tracking-widest uppercase">
+        Secure Gateway
       </div>
     </div>
   );
