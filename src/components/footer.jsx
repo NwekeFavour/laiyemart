@@ -4,12 +4,9 @@ import { Twitter, Github, Linkedin } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 
 export default function Footer() {
-  const {isAuthenticated, user} = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   return (
-    <Box
-      component="footer"
-      className="bg-neutral-100 py-12 text-neutral-900"
-    >
+    <Box component="footer" className="bg-neutral-100 py-12 text-neutral-900">
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-10">
         {/* BRAND */}
         <div className="flex flex-col gap-3">
@@ -34,14 +31,22 @@ export default function Footer() {
 
         {/* PRODUCT LINKS */}
         <div className="flex flex-col gap-2">
-          <Typography fontWeight="bold" className="mb-2">Product</Typography>
-          <Link to="/features" className="text-sm text-gray-600 hover:underline">
+          <Typography fontWeight="bold" className="mb-2">
+            Product
+          </Typography>
+          <Link
+            to="/features"
+            className="text-sm text-gray-600 hover:underline"
+          >
             Features
           </Link>
           <Link to="/pricing" className="text-sm text-gray-600 hover:underline">
             Pricing
           </Link>
-          <Link to="/templates" className="text-sm text-gray-600 hover:underline">
+          <Link
+            to="/templates"
+            className="text-sm text-gray-600 hover:underline"
+          >
             Templates
           </Link>
           <Link to="/docs" className="text-sm text-gray-600 hover:underline">
@@ -51,35 +56,53 @@ export default function Footer() {
 
         {/* LEGAL LINKS */}
         <div className="flex flex-col gap-2">
-          <Typography fontWeight="bold" className="mb-2">Legal</Typography>
-          <Link to="/legal/terms" className="text-sm text-gray-600 hover:underline">
+          <Typography fontWeight="bold" className="mb-2">
+            Legal
+          </Typography>
+          <Link
+            to="/legal/terms"
+            className="text-sm text-gray-600 hover:underline"
+          >
             Terms of Service
           </Link>
-          <Link to="/legal/privacy" className="text-sm text-gray-600 hover:underline">
+          <Link
+            to="/legal/privacy"
+            className="text-sm text-gray-600 hover:underline"
+          >
             Privacy Policy
           </Link>
           <Link to="/contact" className="text-sm text-gray-600 hover:underline">
             Contact
           </Link>
           {!isAuthenticated ? (
-            <Link to="/auth/sign-in" className="text-sm text-gray-600 hover:underline">
+            <Link
+              to="/auth/sign-in"
+              className="text-sm text-gray-600 hover:underline"
+            >
               Login
             </Link>
           ) : (
-            <Link
-              to={
-                user.role === "SUPER_ADMIN"
-                  ? "/dashboard"
-                  : user.role === "OWNER"
-                  ? "/dashboard/beta"
-                  : "/"
-              }
+            <a
+              href={(() => {
+                const isLocal = window.location.hostname.includes("localhost");
+                const dashBase = isLocal
+                  ? "dashboard.localhost:5173"
+                  : "dashboard.layemart.com";
+                const protocol = window.location.protocol;
+
+                if (user?.role === "SUPER_ADMIN") {
+                  return `${protocol}//${dashBase}/dashboard`;
+                }
+                if (user?.role === "OWNER") {
+                  return `${protocol}//${dashBase}/`;
+                }
+                return "/"; // Fallback for customers
+              })()}
               className="text-sm text-gray-600 hover:underline"
             >
               Dashboard
-            </Link>
+            </a>
           )}
-
         </div>
       </div>
 

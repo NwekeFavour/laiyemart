@@ -60,7 +60,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   const location = useLocation();
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [isUpdating, setIsUpdating] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false);
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
   const [showBankReminder, setShowBankReminder] = useState(false);
   const [openNinModal, setOpenNinModal] = useState(false);
@@ -69,47 +69,47 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const handlePay = async (planType) => {
-  try {
-    const { user, token, store } = useAuthStore.getState();
+  const handlePay = async (planType) => {
+    try {
+      const { user, token, store } = useAuthStore.getState();
 
-    // 🔐 Auth check
-    if (!token || !user) {
-      window.location.href = "/auth/sign-in";
-      return;
+      // 🔐 Auth check
+      if (!token || !user) {
+        window.location.href = "/auth/sign-in";
+        return;
+      }
+
+      // 🏪 Store check
+      if (!store?._id) {
+        toast.error("No active store selected");
+        return;
+      }
+
+      // Use a toast or loading state here if you have one
+      const res = await fetch(`${BACKEND_URL}/api/paystack/init`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: user.email,
+          plan: planType, // Now dynamic: "PROFESSIONAL" or "ENTERPRISE"
+          storeId: store._id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Payment failed");
+
+      // 🚀 Redirect to Paystack Checkout
+      window.location.href = data.url;
+    } catch (err) {
+      console.error("Payment Error:", err.message);
+      toast.error(err.message);
     }
-
-    // 🏪 Store check
-    if (!store?._id) {
-      toast.error("No active store selected");
-      return;
-    }
-
-    // Use a toast or loading state here if you have one
-    const res = await fetch(`${BACKEND_URL}/api/paystack/init`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        email: user.email,
-        plan: planType, // Now dynamic: "PROFESSIONAL" or "ENTERPRISE"
-        storeId: store._id,
-      }),
-    });
-
-    const data = await res.json();
-    
-    if (!res.ok) throw new Error(data.message || "Payment failed");
-
-    // 🚀 Redirect to Paystack Checkout
-    window.location.href = data.url;
-  } catch (err) {
-    console.error("Payment Error:", err.message);
-    toast.error(err.message);
-  }
-};
+  };
   useEffect(() => {
     // If store exists but no subaccount, show the reminder banner
     if (store && !store?.paystack?.subaccountCode) {
@@ -134,7 +134,14 @@ const handlePay = async (planType) => {
     toast.success("Signed out successfully");
 
     // 3. Redirect to login page
-    navigate("/auth/sign-in");
+    localStorage.removeItem("layemart-auth");
+
+    // 2. Determine the path to the OTHER domain (e.g., localhost:5173)
+    const isLocal = window.location.hostname.includes("localhost");
+    const mainBase = isLocal ? "localhost:5173" : "layemart.com";
+
+    // This tells the main site to wipe its localStorage too
+    window.location.href = `${window.location.protocol}//${mainBase}/auth-sync?action=logout&redirect=/auth/sign-in`;
   };
 
   useEffect(() => {
@@ -157,37 +164,37 @@ const handlePay = async (planType) => {
       id: "ov",
       label: "Dashboard",
       icon: <LayoutGrid size={20} />,
-      path: "/dashboard/beta",
+      path: "/", // Changed from /dashboard/beta
     },
     {
       id: "pr",
       label: "Products",
       icon: <Package size={20} />,
-      path: "/dashboard/products",
+      path: "/products", // Changed from /dashboard/products
     },
     {
       id: "ca",
       label: "Categories",
       icon: <Layers size={20} />,
-      path: "/dashboard/categories",
+      path: "/categories", // Changed from /dashboard/categories
     },
     {
       id: "or",
       label: "Orders",
       icon: <ShoppingBag size={20} />,
-      path: "/dashboard/orders",
+      path: "/orders", // Changed from /dashboard/orders
     },
     {
       id: "cu",
       label: "Customers",
       icon: <Users size={20} />,
-      path: "/dashboard/customers",
+      path: "/customers", // Changed from /dashboard/customers
     },
     {
       id: "st",
       label: "Settings",
       icon: <Settings size={20} />,
-      path: "/dashboard/settings",
+      path: "/settings", // Changed from /dashboard/settings
     },
   ];
   useEffect(() => {
@@ -525,7 +532,10 @@ const handlePay = async (planType) => {
                     lineHeight: 1.2,
                   }}
                 >
-                  {store?.name ? store?.name.toUpperCase() : (user?.fullName || "MY")} STORE
+                  {store?.name
+                    ? store?.name.toUpperCase()
+                    : user?.fullName || "MY"}{" "}
+                  STORE
                 </Typography>
                 <Typography
                   className={`${isDark ? "text-emerald-400!" : ""}`}

@@ -415,7 +415,11 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                   <a
                     href={
                       store?.subdomain
-                        ? `http://${store.subdomain}.${window.location.hostname.replace("www.", "")}${window.location.port ? ":" + window.location.port : ""}`
+                        ? `http://${store.subdomain}.${
+                            window.location.hostname
+                              .replace("dashboard.", "") // 1. Remove dashboard prefix
+                              .replace("www.", "") // 2. Remove www prefix
+                          }${window.location.port ? ":" + window.location.port : ""}`
                         : "#"
                     }
                     target="_blank"

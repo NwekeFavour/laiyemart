@@ -1999,7 +1999,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                       loading={isUpdating}
                       onClick={handleIdentitySubmit}
                     >
-                      Verify My Identity
+                      {store?.paystack?.verified ? "Update Bank Details" :"Verify My Identity"}
                     </Button>
                   )}
                 </Stack>

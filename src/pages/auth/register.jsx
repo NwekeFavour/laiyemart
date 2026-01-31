@@ -150,7 +150,7 @@ export default function SignUpPage() {
           {step === 1 ? (
             /* --- STEP 1: REGISTRATION FORM --- */
             <>
-              <div className="mb-8">
+              <div className="md:mb-3 mb-1">
                 <h1 className="text-2xl font-extrabold text-slate-900">
                   Create your store account
                 </h1>
@@ -358,7 +358,7 @@ export default function SignUpPage() {
                   />
                 </button>
               </form>
-              <p className="text-end text-sm text-slate-500 mt-4">
+              <p className="text-sm text-slate-500 mt-4">
                 Already have an account?{" "}
                 <span
                   onClick={() => navigate("/auth/sign-in")}
@@ -549,7 +549,14 @@ export default function SignUpPage() {
                   try {
                     // Logic to save the plan selection to the backend
                     await updateStorePlan({ email, plan: selectedPlan });
-                    navigate("/dashboard/beta");
+                    const authString = localStorage.getItem("layemart-auth");
+                    const encodedAuth = encodeURIComponent(authString);
+                    const { protocol } = window.location;
+                    const base = window.location.hostname.includes("localhost")
+                      ? "dashboard.localhost:5173"
+                      : "dashboard.layemart.com";
+
+                    window.location.href = `${protocol}//${base}/auth-sync?data=${encodedAuth}`;
                   } catch (err) {
                     setError("Could not save plan. Please try again.");
                   } finally {
@@ -569,7 +576,7 @@ export default function SignUpPage() {
           )}
 
           {/* Footer disclaimer stays at the bottom */}
-          <p className="text-center text-xs text-slate-400 mt-6 px-6">
+          <p className=" text-xs text-slate-400 md:mt-3 mt-2 ">
             By clicking the button above, you agree to our
             <span className="text-slate-600 font-semibold cursor-pointer">
               {" "}

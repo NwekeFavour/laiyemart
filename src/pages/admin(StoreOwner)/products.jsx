@@ -811,11 +811,11 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                     </td>
                   </tr>
                 ) : (
-                  paginatedProducts.map((item) => {
+                  paginatedProducts.map((item, i) => {
                     const stock = getStockStatus(item.inventory);
 
                     return (
-                      <tr key={item._id} className={hoverRow}>
+                      <tr key={i} className={hoverRow}>
                         <td style={{ textAlign: "center" }}>
                           <Checkbox size="sm" />
                         </td>

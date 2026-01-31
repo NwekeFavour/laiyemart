@@ -31,6 +31,7 @@ export const useAuthStore = create(
             set({ token: null, user: null, store: null, isAuthenticated: false });
             localStorage.removeItem("layemart-auth")
             useProductStore.getState().resetProducts();
+            
         },
       setStore: (store) => set({ store }),
       setStoreData: (storeData) =>

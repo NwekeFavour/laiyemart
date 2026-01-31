@@ -5,31 +5,48 @@ import DemoHome from './src/pages/(demo)/home';
 
 // src/storeResolver.jsx (Simplifying it to just return the slug if exists)
 // storeResolver.js
+// storeResolver.js
+
 export const getSubdomain = () => {
   const hostname = window.location.hostname;
   const parts = hostname.split('.');
 
-  // 1. Handle Localhost (e.g., mystore.localhost)
+  let mainSubdomain = null;
+
+  // 1. Handle Localhost (e.g., mystore.layemart.localhost)
   if (hostname.includes('localhost')) {
-    return (parts.length > 1 && parts[0] !== 'localhost') ? parts[0] : null;
-  }
-
-  // 2. Handle Production (e.g., store.layemart.com)
-  // We expect at least 3 parts for a real subdomain (sub.domain.com)
-  if (parts.length >= 3) {
-    const mainSubdomain = parts[0].toLowerCase();
-    
-    // EXCLUDE THESE WORDS from being treated as store slugs
-    const reservedNames = ['www', 'layemart', 'admin', 'api', 'dashboard'];
-    
-    if (reservedNames.includes(mainSubdomain)) {
-      return null; // This triggers the "Main Landing Page" route
+    // If we have ["mystore", "layemart", "localhost"], parts.length is 3
+    if (parts.length > 2) {
+      mainSubdomain = parts[0].toLowerCase();
+    } 
+    // If we have ["mystore", "localhost"], parts.length is 2
+    else if (parts.length === 2 && parts[0] !== 'localhost') {
+      mainSubdomain = parts[0].toLowerCase();
     }
-    
-    return mainSubdomain;
+  } 
+  // 2. Handle Production (e.g., store.layemart.com)
+  else if (parts.length >= 3) {
+    mainSubdomain = parts[0].toLowerCase();
   }
 
-  return null;
+  // SYSTEM RESERVED WORDS
+  // If the subdomain is one of these, it is NOT a tenant store
+  const reservedNames = ['www', 'layemart', 'admin', 'api', 'dashboard', 'app'];
+  
+  if (mainSubdomain && reservedNames.includes(mainSubdomain)) {
+    return null; 
+  }
+
+  return mainSubdomain;
+};
+
+/**
+ * Explicit helper to check if the user is visiting the dashboard subdomain
+ */
+export const isDashboardSubdomain = () => {
+  const hostname = window.location.hostname.toLowerCase();
+  // Checks for dashboard.layemart.com or dashboard.localhost
+  return hostname.startsWith('dashboard.');
 };
 
 export default function StoreResolver() {
