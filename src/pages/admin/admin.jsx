@@ -1,17 +1,28 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   Users,
   Store,
-  Activity,
-  ShieldCheck,
   ArrowRight,
-  AlertCircle,
   DollarSign,
-  Globe,
   TrendingUp,
-  TrendingDown
+  Clock,
+  CheckCircle2,
+  Package,
+  ShoppingBag,
+  CreditCard,
 } from "lucide-react";
-import { Box, Typography, Button, Grid, Sheet, Chip, Skeleton, Divider } from "@mui/joy";
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  Sheet,
+  Chip,
+  Skeleton,
+  Divider,
+  Avatar,
+} from "@mui/joy";
+import { Stack } from "@mui/material";
 import SuperAdminLayout from "./layout";
 import { useAdminStore } from "../../../services/adminService";
 
@@ -19,241 +30,402 @@ export default function SuperAdminDashboard() {
   const {
     fetchStoreOwners,
     fetchAllStores,
+    fetchPlatformOrders,
+    fetchCategoryStats,
+    categoryStats,
+    orders,
     owners,
+    platformStats,
     stores,
     loadingOwners,
-    loadingStores,
-    error,
+    loading,
   } = useAdminStore();
 
   useEffect(() => {
     fetchStoreOwners();
     fetchAllStores();
-  }, [fetchStoreOwners, fetchAllStores]);
+    fetchPlatformOrders();
+    fetchCategoryStats();
+  }, [
+    fetchStoreOwners,
+    fetchAllStores,
+    fetchPlatformOrders,
+    fetchCategoryStats,
+  ]);
 
-  /* ------------------ Derived Data ------------------ */
-  const totalStores = stores?.count || 0;
-  const activeUsers = owners?.count || 0;
+  /* ------------------ Operational Metrics ------------------ */
+  const stats = useMemo(() => {
+    const totalStores = stores?.count || 0;
+    const totalOwners = owners?.count || 0;
 
-  const recentStores = [...(stores?.data || [])]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5);
+    return [
+      {
+        label: "Total Merchants",
+        value: totalOwners,
+        sub: "Registered Users",
+        icon: <Users />,
+        color: "#6366f1",
+      },
+      {
+        label: "Active Storefronts",
+        value: totalStores,
+        sub: "Public Shops",
+        icon: <Store />,
+        color: "#0ea5e9",
+      },
+      {
+        label: "Ecosystem GMV",
+        value: `₦${(platformStats?.totalGMV || 0).toLocaleString()}`,
+        sub: "Platform Wide",
+        icon: <ShoppingBag />,
+        color: "#10b981",
+      },
+      {
+        label: "Pending Reviews",
+        value: platformStats?.pendingReviews || 0,
+        sub: "Needs Attention",
+        icon: <Clock />,
+        color: "#f43f5e",
+      },
+    ];
+  }, [stores, owners, platformStats]);
 
-  const calculateGrowth = (current, previous) => {
-    if (previous === 0) return current > 0 ? "+100%" : "0%";
-    const growth = ((current - previous) / previous) * 100;
-    return `${growth >= 0 ? "+" : ""}${growth.toFixed(1)}%`;
-  };
-
-  const now = new Date();
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000);
-  const fourteenDaysAgo = new Date(now.getTime() - 14 * 86400000);
-
-  const storesThisWeek = (stores.data || []).filter(s => new Date(s.createdAt) >= sevenDaysAgo).length;
-  const storesLastWeek = (stores.data || []).filter(s => {
-    const d = new Date(s.createdAt);
-    return d >= fourteenDaysAgo && d < sevenDaysAgo;
-  }).length;
-
-  const ownersThisWeek = (owners.data || []).filter(o => new Date(o.createdAt) >= sevenDaysAgo).length;
-  const ownersLastWeek = (owners.data || []).filter(o => {
-    const d = new Date(o.createdAt);
-    return d >= fourteenDaysAgo && d < sevenDaysAgo;
-  }).length;
-
-  const stats = [
-    {
-      label: "Total Stores",
-      value: totalStores,
-      grow: calculateGrowth(storesThisWeek, storesLastWeek),
-      icon: <Store size={20} />,
-      color: "blue",
-    },
-    {
-      label: "Store Owners",
-      value: activeUsers,
-      grow: calculateGrowth(ownersThisWeek, ownersLastWeek),
-      icon: <Users size={20} />,
-      color: "indigo",
-    },
-    {
-      label: "System Revenue",
-      value: "₦42,000",
-      grow: "+12.5%", // Example static growth
-      icon: <DollarSign size={20} />,
-      color: "emerald",
-    },
-    {
-      label: "Server Health",
-      value: "99.9%",
-      grow: "Stable",
-      icon: <Activity size={20} />,
-      color: "rose",
-    },
-  ];
+  const recentStores = useMemo(
+    () =>
+      [...(stores?.data || [])]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 5),
+    [stores],
+  );
 
   return (
     <SuperAdminLayout>
-      <Box className="hide-scrollbar"  sx={{ p: { xs: 2, md: 4 }, minHeight: "100vh" }}>
-        
-        {/* Header */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", mb: 4, gap: 2 }}>
+      <Box sx={{ p: { xs: 2, md: 5 }, maxWidth: "1600px", mx: "auto" }}>
+        <Box
+          sx={{
+            mb: 5,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-end",
+          }}
+        >
           <Box>
-            <Typography level="h2" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-              System Overview
+            <Typography
+              level="h2"
+              sx={{
+                fontWeight: 800,
+                fontSize: "1.85rem",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Executive Summary
             </Typography>
             <Typography level="body-md" sx={{ color: "text.tertiary" }}>
-              Real-time monitoring of the Layemart ecosystem.
+              High-level performance and merchant acquisition data.
             </Typography>
           </Box>
           <Button
-            variant="solid"
-            startDecorator={<ShieldCheck size={18} />}
-            sx={{ bgcolor: "#0f172a", borderRadius: "12px", "&:hover": { bgcolor: "#1e293b" } }}
+            variant="outlined"
+            color="neutral"
+            startDecorator={<Package size={16} />}
           >
-            Security Audit
+            Download Report
           </Button>
         </Box>
 
-        {error && (
-          <Sheet color="danger" variant="soft" sx={{ p: 2, mb: 3, borderRadius: "lg", display: 'flex', alignItems: 'center', gap: 2 }}>
-            <AlertCircle size={20} />
-            <Typography fontWeight={700}>{error}</Typography>
-          </Sheet>
-        )}
-
-        {/* Stats Grid */}
-        <Grid container spacing={2} sx={{ mb: 4 }}>
-          {loadingStores || loadingOwners ? 
-            Array.from({ length: 4 }).map((_, i) => (
-              <Grid key={i} xs={12} sm={6} md={3}>
-                <Sheet sx={{ p: 2.5, borderRadius: "20px", border: '1px solid #e2e8f0' }}>
-                  <Skeleton variant="text" width="60%" />
-                  <Skeleton variant="text" level="h3" width="40%" />
-                </Sheet>
-              </Grid>
-            )) : 
-            stats.map((stat, i) => (
-              <Grid key={i} xs={12} sm={6} md={3}>
-                <Sheet
-                  variant="outlined"
-                  sx={{ p: 2.5, borderRadius: "24px", bgcolor: "white", boxShadow: "0 2px 8px rgba(0,0,0,0.02)" }}
-                >
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
-                    <Box sx={{ p: 1, borderRadius: '12px', bgcolor: `${stat.color}.50`, color: `${stat.color}.600` }}>
-                      {stat.icon}
-                    </Box>
-                    <Chip
-                      size="sm"
-                      variant="soft"
-                      color={stat.grow?.includes('-') ? "danger" : "success"}
-                      startDecorator={stat.grow?.includes('-') ? <TrendingDown size={14}/> : <TrendingUp size={14}/>}
-                      sx={{ fontWeight: 700 }}
+        {/* Core KPIs */}
+        <Grid container spacing={3} sx={{ mb: 5 }}>
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <Grid key={i} xs={12} sm={6} md={3}>
+                  <Skeleton
+                    variant="rectangular"
+                    height={120}
+                    sx={{ borderRadius: "24px" }}
+                  />
+                </Grid>
+              ))
+            : stats.map((stat, i) => (
+                <Grid key={i} xs={12} sm={6} md={3}>
+                  <Sheet
+                    variant="plain"
+                    sx={{
+                      p: 3,
+                      borderRadius: "24px",
+                      bgcolor: "white",
+                      border: "1px solid",
+                      borderColor: "neutral.100",
+                      boxShadow: "sm",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        mb: 2,
+                      }}
                     >
-                      {stat.grow}
-                    </Chip>
-                  </Box>
-                  <Typography level="body-sm" sx={{ color: "text.tertiary", fontWeight: 500 }}>
-                    {stat.label}
-                  </Typography>
-                  <Typography level="h3" sx={{ fontWeight: 800, mt: 0.5 }}>
-                    {stat.value}
-                  </Typography>
-                </Sheet>
-              </Grid>
-            ))
-          }
+                      <Box
+                        sx={{
+                          p: 1,
+                          borderRadius: "12px",
+                          bgcolor: `${stat.color}15`,
+                          color: stat.color,
+                        }}
+                      >
+                        {React.cloneElement(stat.icon, { size: 22 })}
+                      </Box>
+                      <Chip
+                        size="sm"
+                        variant="soft"
+                        color="success"
+                        startDecorator={<TrendingUp size={12} />}
+                      >
+                        12%
+                      </Chip>
+                    </Box>
+                    <Typography
+                      level="body-xs"
+                      sx={{
+                        fontWeight: 700,
+                        color: "neutral.500",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {stat.label}
+                    </Typography>
+                    <Typography level="h2" sx={{ fontWeight: 800, my: 0.5 }}>
+                      {stat.value}
+                    </Typography>
+                    <Typography level="body-xs" sx={{ color: "neutral.400" }}>
+                      {stat.sub}
+                    </Typography>
+                  </Sheet>
+                </Grid>
+              ))}
         </Grid>
 
-        {/* Main Content */}
-        <Grid container spacing={3}>
-          {/* Recent Stores Table */}
-          <Grid xs={12} md={8}>
-            <Sheet sx={{ p: 3, borderRadius: "24px", border: '1px solid #e2e8f0', bgcolor: 'white' }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: 'center', mb: 3 }}>
-                <Typography level="title-lg" sx={{ fontWeight: 700 }}>
-                  Newly Launched Stores
+        <Grid container spacing={4}>
+          {/* New Merchants List */}
+          <Grid xs={12} md={7}>
+            <Sheet
+              variant="outlined"
+              sx={{
+                borderRadius: "24px",
+                bgcolor: "white",
+                overflow: "hidden",
+              }}
+            >
+              <Box
+                sx={{
+                  p: 3,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Typography level="title-md" sx={{ fontWeight: 700 }}>
+                  Recently Joined Merchants
                 </Typography>
-                <Button variant="plain" size="sm" endDecorator={<ArrowRight size={16} />} sx={{ fontWeight: 600 }}>
-                  View All
+                <Button
+                  variant="plain"
+                  size="sm"
+                  endDecorator={<ArrowRight size={16} />}
+                >
+                  View Directory
                 </Button>
               </Box>
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {loadingStores ? (
-                  <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 'lg' }} />
-                ) : recentStores.length === 0 ? (
-                  <Box sx={{ textAlign: 'center', py: 4 }}>
-                    <Store className="w-25 mx-auto" size={40} style={{ opacity: 0.2, textAlign: "center", marginBottom: '8px' }} />
-                    <Typography color="neutral">No stores found</Typography>
-                  </Box>
-                ) : (
+              <Divider />
+              <Box sx={{ p: 1 }}>
+                {recentStores.length > 0 ? (
                   recentStores.map((store) => (
                     <Box
                       key={store._id}
                       sx={{
-                        display: "flex", justifyContent: "space-between", alignItems: "center",
-                        p: 1.5, borderRadius: '12px', transition: '0.2s',
-                        '&:hover': { bgcolor: '#f8fafc' }
+                        display: "flex",
+                        alignItems: "center",
+                        p: 2,
+                        borderRadius: "16px",
+                        "&:hover": { bgcolor: "neutral.50" },
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Box className="capitalize!" sx={{ width: 40, height: 40, borderRadius: '10px', bgcolor: '#ef4444', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
-                          {store?.name?.charAt(0) || "S"}
-                        </Box>
-                        <Box>
-                          <Typography sx={{ fontWeight: 700, fontSize: '14px' }}>{store.name}</Typography>
-                          <Typography sx={{ fontSize: '12px', color: "text.tertiary" }}>
-                            {store.owner?.email || 'No email attached'}
-                          </Typography>
-                        </Box>
+                      <Avatar
+                        color="primary"
+                        variant="soft"
+                        sx={{ borderRadius: "12px", mr: 2 }}
+                      >
+                        {store.name?.charAt(0) || "S"}
+                      </Avatar>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: "14px" }}>
+                          {store.name}
+                        </Typography>
+                        <Typography level="body-xs">
+                          Owner: {store.owner?.email || "N/A"}
+                        </Typography>
                       </Box>
                       <Chip
-                        variant="soft"
                         size="sm"
-                        color={store.status === "ACTIVE" ? "success" : "neutral"}
-                        sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '10px' }}
+                        color={
+                          store.status === "ACTIVE" ? "success" : "neutral"
+                        }
+                        variant="outlined"
                       >
                         {store.status}
                       </Chip>
                     </Box>
                   ))
+                ) : (
+                  /* --- EMPTY STATE BLOCK --- */
+                  <Box sx={{ py: 6, px: 2, textAlign: "center" }}>
+                    <Box
+                      sx={{
+                        display: "inline-flex",
+                        p: 2,
+                        borderRadius: "50%",
+                        bgcolor: "neutral.50",
+                        mb: 2,
+                      }}
+                    >
+                      <Store size={32} color="#94a3b8" />
+                    </Box>
+                    <Typography level="title-sm" sx={{ mb: 0.5 }}>
+                      No stores found
+                    </Typography>
+                    <Typography
+                      level="body-xs"
+                      sx={{
+                        color: "text.tertiary",
+                        maxWidth: "200px",
+                        mx: "auto",
+                      }}
+                    >
+                      New merchant deployments will appear here once they
+                      onboard.
+                    </Typography>
+                  </Box>
                 )}
               </Box>
             </Sheet>
           </Grid>
 
-          {/* System Alerts */}
-          <Grid xs={12} md={4}>
-            <Sheet sx={{ p: 3, borderRadius: "24px", border: '1px solid #e2e8f0', bgcolor: 'white', height: '100%' }}>
-              <Typography level="title-lg" sx={{ fontWeight: 700, mb: 3 }}>
-                Critical Alerts
-              </Typography>
+          {/* Business Insights Column */}
+          <Grid xs={12} md={5}>
+            <Stack spacing={3}>
+              {/* Revenue Snapshot */}
+              <Sheet
+                sx={{
+                  p: 3,
+                  borderRadius: "24px",
+                  bgcolor: "#0f172a",
+                  color: "white",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 3,
+                  }}
+                >
+                  <Typography sx={{ color: "white", fontWeight: 700 }}>
+                    Subscription Revenue
+                  </Typography>
+                  <CreditCard color="#94a3b8" />
+                </Box>
+                <Typography level="h1" sx={{ color: "white", fontWeight: 800 }}>
+                  ₦840,000
+                </Typography>
+                <Typography
+                  level="body-xs"
+                  sx={{ color: "neutral.400", mb: 3 }}
+                >
+                  Total commission & fees collected
+                </Typography>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Box sx={{ display: "flex", gap: 2 }}>
-                  <Box sx={{ color: 'rose.500', mt: 0.5 }}><AlertCircle size={20} /></Box>
-                  <Box>
-                    <Typography level="title-sm" sx={{ fontWeight: 700 }}>Security Protocol</Typography>
-                    <Typography sx={{ fontSize: '13px', color: 'text.secondary' }}>
-                      Monitor subdomain collisions & active store abuse.
+                <Stack spacing={2}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Typography level="body-xs" sx={{ color: "white" }}>
+                      Pro Plan (Active)
+                    </Typography>
+                    <Typography
+                      level="body-xs"
+                      sx={{ color: "white", fontWeight: 700 }}
+                    >
+                      42 Stores
                     </Typography>
                   </Box>
-                </Box>
-
-                <Divider sx={{ opacity: 0.5 }} />
-
-                <Box sx={{ display: "flex", gap: 2 }}>
-                  <Box sx={{ color: 'blue.500', mt: 0.5 }}><Globe size={20} /></Box>
-                  <Box>
-                    <Typography level="title-sm" sx={{ fontWeight: 700 }}>Regional Expansion</Typography>
-                    <Typography sx={{ fontSize: '13px', color: 'text.secondary' }}>
-                      24% growth detected in West African traffic this month.
-                    </Typography>
+                  <Box
+                    sx={{
+                      height: 4,
+                      bgcolor: "rgba(255,255,255,0.1)",
+                      borderRadius: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: "65%",
+                        height: "100%",
+                        bgcolor: "#10b981",
+                        borderRadius: 2,
+                      }}
+                    />
                   </Box>
-                </Box>
-              </Box>
-            </Sheet>
+                </Stack>
+              </Sheet>
+
+              {/* Actionable Tasks */}
+              <Stack spacing={3}>
+                {categoryStats.map((item, index) => {
+                  // Calculate percentage based on total GMV
+                  const percentage = (
+                    (item.totalSales / platformStats.totalGMV) *
+                    100
+                  ).toFixed(0);
+
+                  return (
+                    <Box key={index}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          mb: 1,
+                        }}
+                      >
+                        <Typography sx={{ fontSize: "14px", fontWeight: 600 }}>
+                          {item._id || "Uncategorized"}
+                        </Typography>
+                        <Typography sx={{ fontSize: "13px" }}>
+                          {percentage}%
+                        </Typography>
+                      </Box>
+                      <Box
+                        sx={{
+                          height: 6,
+                          borderRadius: 10,
+                          bgcolor: "neutral.100",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: `${percentage}%`,
+                            height: "100%",
+                            bgcolor: "#3b82f6",
+                            borderRadius: 10,
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </Stack>
+            </Stack>
           </Grid>
         </Grid>
       </Box>

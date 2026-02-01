@@ -15,7 +15,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // If they are a SUPER_ADMIN trying to hit an OWNER route (or vice versa)
     // Send them to their respective correct start page instead of a dead-end "/"
-    const fallbackPath = user.role === "SUPER_ADMIN" ? "/admin/dashboard" : "/dashboard";
+    const fallbackPath = user.role === "SUPER_ADMIN" ? "/admin/dashboard" : "/";
     return <Navigate to={fallbackPath} replace />;
   }
 

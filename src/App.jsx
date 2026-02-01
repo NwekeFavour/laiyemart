@@ -38,6 +38,8 @@ import { CircularProgress } from "@mui/joy";
 import OrderSuccess from "./pages/admin(demo)/components/orderS";
 import ProductPage from "./pages/(demo)/indoproducts";
 import AuthSync from "./pages/authsync";
+import StoreManagement from "./pages/admin/stores";
+import CustomerManagement from "./pages/admin/customers";
 
 function App() {
   const isDashboard = isDashboardSubdomain();
@@ -105,6 +107,12 @@ function App() {
               <Route path="/customers" element={<CustomerList isDark={isDark} toggleDarkMode={toggleDarkMode} />} />
               <Route element={<ProtectedRoute allowedRoles={["SUPER_ADMIN"]} />}>
                 <Route path="/admin/dashboard" element={<SuperAdminDashboard />} />
+              </Route>
+              <Route element={<ProtectedRoute allowedRoles={["SUPER_ADMIN"]} />}>
+                <Route path="/admin/stores" element={<StoreManagement />} />
+              </Route>
+              <Route element={<ProtectedRoute allowedRoles={["SUPER_ADMIN"]} />}>
+                <Route path="/admin/customers" element={<CustomerManagement />} />
               </Route>
             </Route>
           </>

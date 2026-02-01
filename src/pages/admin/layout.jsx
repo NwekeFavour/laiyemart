@@ -3,6 +3,7 @@ import { Bell, Search, Menu, X } from "lucide-react";
 import { Box, IconButton, Sheet, Badge, GlobalStyles } from "@mui/joy"; // Added GlobalStyles
 import Sidebar from '../../components/sidebar';
 import { useNavigate } from 'react-router-dom';
+import { useAdminStore } from '../../../services/adminService';
 
 export default function SuperAdminLayout({ children }) {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -70,11 +71,10 @@ export default function SuperAdminLayout({ children }) {
                 }}
             >
                 {/* Top Header Bar */}
-                <Sheet sx={{ 
+                <Sheet className="md:justify-end! justify-between!" sx={{ 
                     height: 70, 
                     display: 'flex', 
                     alignItems: 'center', 
-                    justifyContent: 'space-between', 
                     px: { xs: 2, md: 4 },
                     bgcolor: 'white',
                     borderBottom: '1px solid #e2e8f0',
@@ -88,16 +88,6 @@ export default function SuperAdminLayout({ children }) {
                     >
                         <Menu />
                     </IconButton>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, maxW: 400, ml: { lg: 0, xs: 2 } }}>
-                        <div className="relative w-full max-w-sm hidden md:block">
-                            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input 
-                                placeholder="Search stores..." 
-                                className="w-full bg-slate-50 border-none rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-slate-200 outline-none transition-all"
-                            />
-                        </div>
-                    </Box>
 
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Badge badgeContent={3} size="sm" color="danger" variant="solid">
