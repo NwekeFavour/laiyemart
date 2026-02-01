@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Stack,
@@ -12,11 +12,12 @@ import {
   Modal,
   ModalDialog,
 } from "@mui/joy";
-import { Menu, X, ShoppingBag, User, LogOut } from "lucide-react";
+import { Menu, X, ShoppingBag, User, LogOut, ChevronRight } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
 import { toast } from "react-toastify";
 import { useCartStore } from "../../../../services/cartService";
+import { useProductStore } from "../../../../services/productService";
 
 export default function Header({ storeName, storeLogo }) {
   const [open, setOpen] = useState(false);
@@ -25,6 +26,8 @@ export default function Header({ storeName, storeLogo }) {
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useCustomerAuthStore();
   const { cart } = useCartStore();
+  const { products } = useProductStore();
+
   const uniqueItemCount = cart?.items?.length || 0;
   const isDemo = localStorage.getItem("demo") === "true";
 
@@ -33,6 +36,11 @@ export default function Header({ storeName, storeLogo }) {
     toast.success("Signed out successfully");
     navigate("/login");
   };
+
+  const categories = useMemo(() => {
+    const names = products.map((p) => p.category?.name).filter(Boolean);
+    return [...new Set(names)];
+  }, [products]);
 
   const navItems = ["Home", "Shop"];
 
@@ -232,6 +240,57 @@ export default function Header({ storeName, storeLogo }) {
                 );
               })}
           </Stack>
+          {/* CATEGORIES SECTION */}
+          <Box sx={{ mt: 3 }}>
+            <Typography
+              level="body-xs"
+              sx={{
+                fontSize: 18,
+                textTransform: "capitalize",
+                fontWeight: 500,
+                letterSpacing: "1px",
+                color: "#111827",
+                mb: 2,
+              }}
+            >
+              Categories
+            </Typography>
+
+            <Stack spacing={2}>
+              {categories.length > 0 ? (
+                categories.map((category) => (
+                  <Link
+                    key={category} // Use the string as the key
+                    to="/shop"
+                    state={{
+                      selectedCategory: category, // This must match the string in your Products category list
+                    }}
+                    onClick={() => setOpen(false)}
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 500,
+                      color: "#111827",
+                      textDecoration: "none",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    {category}
+                    <ChevronRight size={16} opacity={0.5} />
+                  </Link>
+                ))
+              ) : (
+                // Optional: Loading state or fallback
+                <Typography
+                  level="body-xs"
+                  sx={{ fontStyle: "italic", color: "neutral.400" }}
+                >
+                  No categories found
+                </Typography>
+              )}
+            </Stack>
+          </Box>
 
           <Divider sx={{ my: 4 }} />
 

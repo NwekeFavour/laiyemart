@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { useProductStore } from "../../../services/productService";
 import { Helmet } from "react-helmet-async";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useCartStore } from "../../../services/cartService";
 import { useCustomerAuthStore } from "../../store/useCustomerAuthStore";
 import { Add, Remove, ShoppingCartOutlined } from "@mui/icons-material";
@@ -117,6 +117,7 @@ function Products({ storeSlug }) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const { cart, addToCart, updateQuantity, removeItem } = useCartStore();
   const { customer } = useCustomerAuthStore();
+  const location = useLocation();
   const [processingId, setProcessingId] = useState(null);
   const {
     products,
@@ -165,6 +166,15 @@ function Products({ storeSlug }) {
     }
   };
 
+
+  useEffect(() => {
+    if (location.state?.selectedCategory) {
+      setSelectedCategory(location.state.selectedCategory);
+      
+      // Optional: Clear the state so refreshing doesn't keep the filter locked
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
   // Determine current config based on store industry/type
   const config = useMemo(() => {
     return (
