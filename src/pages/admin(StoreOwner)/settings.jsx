@@ -432,9 +432,9 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
       if (!response.ok) throw new Error(data.message);
       const nameToSet = data.verifiedName || data.store?.paystack?.accountName;
       const currentUser = useAuthStore.getState().user;
-      useAuthStore.getState().setUser({ 
-        ...currentUser, 
-        fullName: nameToSet 
+      useAuthStore.getState().setUser({
+        ...currentUser,
+        fullName: nameToSet,
       });
       // Update the local store state to reflect the "Active" status
       setStore(data.store);
@@ -894,7 +894,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   </FormLabel>
                   <Select
                     className="capitalize! placeholder:capitalize!"
-                    value={formStoreType}
+                    value={formStoreType?.toLowerCase()}
                     onChange={(e, newValue) => setFormStoreType(newValue)}
                     variant={isDark ? "soft" : "outlined"}
                     sx={{
@@ -1708,8 +1708,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                 />
 
                 {/* STEP 1 FIELDS */}
-                <Stack gap={2} sx={{ opacity: validationStep === 2 ? 0.5 : 1 }}>                  
-
+                <Stack gap={2} sx={{ opacity: validationStep === 2 ? 0.5 : 1 }}>
                   <FormControl>
                     <FormLabel
                       sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
@@ -1964,12 +1963,24 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                       level="body-xs"
                       sx={{
                         color: isDark ? "neutral.400" : "neutral.600",
-                        mt: 1,
+                        mt: 1.5,
                         fontStyle: "italic",
+                        display: "flex",
+                        gap: 1,
+                        alignItems: "flex-start",
+                        lineHeight: 1.5,
                       }}
                     >
-                      ℹ️ The name provided above will define your store identity
-                      and public URL.
+                      <span>ℹ️</span>
+                      <span>
+                        The name provided above will define your store identity
+                        and public URL.
+                        <strong>
+                          {" "}
+                          Any spaces in your name will be replaced with hyphens
+                        </strong>{" "}
+                        (e.g., "My Shop" becomes "my-shop").
+                      </span>
                     </Typography>
                     <Button
                       color="success"

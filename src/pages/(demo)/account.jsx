@@ -28,10 +28,16 @@ import {
   ChevronRight,
   ShoppingBag,
   AlertTriangle,
+  ArrowLeft,
+  CreditCard,
+  Captions,
+  Truck,
+  WalletCards,
+  ScrollText,
 } from "lucide-react";
 import CustomerAccountLayout from "./layout";
 import { logoutCustomer } from "../../../services/customerService";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useCustomerAuthStore } from "../../store/useCustomerAuthStore";
 import {
@@ -45,9 +51,13 @@ import {
 import { getSubdomain } from "../../../storeResolver";
 
 export default function CustomerAccountPage({ storeData, customer, isDark }) {
-  const [activeTab, setActiveTab] = useState("overview");
+  const location = useLocation();
+const [searchParams] = useSearchParams();
+const initialTab = searchParams.get("tab") || location.state?.activeTab || "overview";
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false); // Modal state
   const [orders, setOrders] = useState([]);
+  const [selectedOrderDetail, setSelectedOrderDetail] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -82,7 +92,6 @@ export default function CustomerAccountPage({ storeData, customer, isDark }) {
   };
 
   useEffect(() => {
-    if (activeTab === "orders") {
       const fetchOrders = async () => {
         try {
           setLoading(true);
@@ -106,7 +115,6 @@ export default function CustomerAccountPage({ storeData, customer, isDark }) {
         }
       };
       fetchOrders();
-    }
   }, [activeTab, token]);
 
   const menuItems = [
@@ -173,6 +181,314 @@ export default function CustomerAccountPage({ storeData, customer, isDark }) {
       setIsSaving(false);
     }
   };
+
+  const OrderStepper = ({ status }) => {
+    // These steps represent the lifecycle of the package after the order is made
+    const steps = [
+      { id: "pending", label: "Order Placed", icon: <ScrollText size={16} /> },
+      { id: "confirmed", label: "Confirmed", icon: <Captions size={16} /> },
+      { id: "shipped", label: "Shipped", icon: <Truck size={16} /> },
+      { id: "delivered", label: "Delivered", icon: <Package size={16} /> },
+    ];
+
+    const getActiveIndex = (s) => {
+      const currentStatus = s?.toLowerCase();
+      if (currentStatus === "delivered") return 3;
+      if (currentStatus === "shipped") return 2;
+      if (currentStatus === "confirmed" || currentStatus === "processing")
+        return 1;
+      return 0; // Default to 'Order Placed'
+    };
+
+    const activeIndex = getActiveIndex(status);
+
+    return (
+      <div className="flex items-center justify-center flex-wrap lg:flex-nowrap gap-4 lg:gap-1.5 pt-5 mb-12">
+        {steps.map((step, index) => {
+          const isCompleted = index <= activeIndex;
+
+          return (
+            <React.Fragment key={step.id}>
+              <div
+                className={`text-sm leading-none relative flex items-center gap-1.5 px-4 h-9 rounded-full border font-bold transition-all duration-300
+                  ${
+                    isCompleted
+                      ? "border-[neutral.900]/20 bg-blue-300/30 text-cyan-600"
+                      : "border-zinc-200 text-zinc-400 bg-transparent"
+                  }`}
+              >
+                {/* Optional: Add a checkmark for completed steps */}
+                <span className="flex items-center justify-center">
+                  {step.icon}
+                </span>
+                {step.label}
+              </div>
+
+              {index < steps.length - 1 && (
+                <div
+                  className={`hidden lg:block w-12 h-px border-t border-dashed transition-colors duration-300
+                  ${index < activeIndex ? "border-[neutral.900]" : "border-zinc-300"}`}
+                ></div>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const OrderDetailsView = ({ order, onBack }) => (
+    <Box sx={{ animateIn: "fade-in", duration: "400ms" }}>
+      {/* Back Header */}
+      <Button
+        onClick={onBack}
+        variant="plain"
+        startDecorator={<ArrowLeft size={18} />}
+        sx={{
+          color: "neutral.900",
+          p: 0,
+          mb: 3,
+          fontWeight: 700,
+          "&:hover": { bgcolor: "transparent", textDecoration: "underline" },
+        }}
+      >
+        BACK TO ORDERS
+      </Button>
+
+      <div>
+        <p className="md:text-[20px] text-[17px] text-slate-800/90">
+          Order Summary
+        </p>
+        <p className=" text-slate-700 text-[14px] mb-4">
+          Review your items before checkout
+        </p>
+      </div>
+
+      <OrderStepper status={order.productStatus} />
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", lg: "2fr 1fr" },
+          gap: 3,
+        }}
+      >
+        {/* Left Column: Items & Delivery Info */}
+        <Stack spacing={3}>
+          <Card className="sm:p-2! p-0!" sx={{ borderRadius: "4px", border: "none", bgcolor: "transparent" }}>
+            <Stack spacing={2}>
+              {order.items?.map((item, idx) => (
+                <Box
+                  className="shadow-sm!"
+                  key={idx}
+                  sx={{
+                    display: "flex",
+                    gap: 2,
+                    maxHeight:120,
+                    p: 2, // Added internal padding
+                    bgcolor: "#fff",
+                    border: "1px solid #f0f0f0", // Subtle border for each item
+                    borderRadius: "8px",
+                    transition: "0.2s",
+                  }}
+                >
+                  {/* Product Image */}
+                  <Box
+                    sx={{
+                      width: 100,
+                      height: 80,
+                      flexShrink: 0,
+                      borderRadius: "12px", // Slightly rounded for a modern look
+                      overflow: "hidden",
+                      border: "1px solid #eee",
+                    }}
+                  >
+                    <img
+                      src={
+                        item.product?.images?.[0]?.url ||
+                        "/api/placeholder/100/100"
+                      }
+                      alt={item.product?.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </Box>
+
+                  {/* Product Details */}
+                  <Box
+                    sx={{ flex: 1, display: "flex", flexDirection: "column" }}
+                  >
+                    <Typography
+                      level="title-sm"
+                      sx={{
+                        fontWeight: 600,
+                        color: "#333",
+                        mb: 0.5,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {item.product?.name}
+                    </Typography>
+
+                    <Typography
+                      level="body-xs"
+                      sx={{
+                        color: "text.tertiary",
+                        bgcolor: "#f5f5f5",
+                        px: 1,
+                        py: 0.2,
+                        borderRadius: "4px",
+                        width: "fit-content",
+                        mb: 1,
+                      }}
+                    >
+                      Qty: {item.quantity}
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        mt: "auto",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-end",
+                      }}
+                    >
+                      <Box>
+                        <Typography
+                          className="text-slate-800/90! text-[14px]!"
+                          level="title-lg"
+                          sx={{
+                            fontWeight: 800,
+                            lineHeight: 1,
+                          }}
+                        >
+                          ₦{item.product?.price.toLocaleString()}
+                        </Typography>
+                      </Box>
+
+                      {/* Optional: Add a 'Buy Again' or 'Review' button for delivered items */}
+                      {order.status === "delivered" && (
+                        <Button
+                          size="sm"
+                          variant="outlined"
+                          color="neutral"
+                          sx={{ fontSize: "12px" }}
+                        >
+                          Review
+                        </Button>
+                      )}
+                    </Box>
+                  </Box>
+                </Box>
+              ))}
+            </Stack>
+          </Card>
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+              gap: 2,
+            }}
+          >
+            <Card
+              sx={{ p: 2, borderRadius: "4px", border: "1px solid #e5e5e5" }}
+            >
+              <Typography
+                level="title-sm"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  mb: 1.5,
+                  fontWeight: 700,
+                }}
+              >
+                <MapPin size={16} /> DELIVERY ADDRESS
+              </Typography>
+              <Typography level="body-xs" sx={{ lineHeight: 1.6 }}>
+                <strong>{order.shippingAddress?.fullName}</strong>
+                <br />
+                {order.shippingAddress?.street}
+                <br />
+                {order.shippingAddress?.city}, {order.shippingAddress?.state}
+              </Typography>
+            </Card>
+
+            <Card
+              sx={{ p: 2, borderRadius: "4px", border: "1px solid #e5e5e5" }}
+            >
+              <Typography
+                level="title-sm"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  mb: 1.5,
+                  fontWeight: 700,
+                }}
+              >
+                <CreditCard size={16} /> PAYMENT METHOD
+              </Typography>
+              <Typography level="body-xs" sx={{ textTransform: "capitalize" }}>
+                {order.paymentMethod || "Card Payment"}
+                <br />
+                Total amount: ₦{order.totalAmount?.toLocaleString()}
+              </Typography>
+            </Card>
+          </Box>
+        </Stack>
+
+        {/* Right Column: Summary Card */}
+        <Box>
+          <Card
+            sx={{
+              p: 2,
+              borderRadius: "4px",
+              bgcolor: "#f8f9fa",
+              border: "none",
+              position: "sticky",
+              top: 20,
+            }}
+          >
+            <Typography level="title-md" sx={{ mb: 2, fontWeight: 700 }}>
+              ORDER SUMMARY
+            </Typography>
+            <Stack spacing={1.5}>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography level="body-sm">Items total</Typography>
+                <Typography level="body-sm">
+                  ₦{order.totalAmount?.toLocaleString()}
+                </Typography>
+              </Box>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography level="body-sm">Delivery fees</Typography>
+                <Typography level="body-sm">₦0</Typography>
+              </Box>
+              <Divider />
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography level="title-lg" sx={{ fontWeight: 800 }}>
+                  Total
+                </Typography>
+                <Typography
+                  level="title-lg"
+                  sx={{ fontWeight: 800, color: "neutral.900" }}
+                >
+                  ₦{order.totalAmount?.toLocaleString()}
+                </Typography>
+              </Box>
+            </Stack>
+          </Card>
+        </Box>
+      </Box>
+    </Box>
+  );
 
   return (
     <CustomerAccountLayout storeData={storeData} title="My Account">
@@ -470,319 +786,339 @@ export default function CustomerAccountPage({ storeData, customer, isDark }) {
                     py: 2,
                   }}
                 >
-                  <Typography
-                    level="h4"
-                    sx={{
-                      mb: 3,
-                      fontWeight: 700,
-                      color: "#333",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                    }}
-                  >
-                    <Package size={24} /> My Orders
-                  </Typography>
+                  {selectedOrderDetail ? (
+                    <OrderDetailsView
+                      order={selectedOrderDetail}
+                      onBack={() => setSelectedOrderDetail(null)}
+                    />
+                  ) : (
+                    <>
+                      <Typography
+                        level="h4"
+                        sx={{
+                          mb: 3,
+                          fontWeight: 700,
+                          color: "#333",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <Package size={24} /> My Orders
+                      </Typography>
 
-                  {loading ? (
-                    /* --- JUMIA STYLE SKELETON PRELOADER --- */
-                    <Stack spacing={2}>
-                      {[1, 2, 3].map((i) => (
-                        <Card
-                          key={i}
-                          sx={{
-                            p: 2,
-                            bgcolor: "#fff",
-                            border: "1px solid #e5e5e5",
-                            borderRadius: "4px",
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              mb: 2,
-                            }}
-                          >
-                            <Box sx={{ width: "40%" }}>
-                              <Skeleton
-                                variant="text"
-                                width="80%"
-                                height="20px"
-                                sx={{ mb: 1 }}
-                              />
-                              <Skeleton
-                                variant="text"
-                                width="50%"
-                                height="15px"
-                              />
-                            </Box>
-                            <Skeleton
-                              variant="rectangular"
-                              width={80}
-                              height={24}
-                              sx={{ borderRadius: "2px" }}
-                            />
-                          </Box>
-                          <Divider />
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 2,
-                              py: 2,
-                            }}
-                          >
-                            <Skeleton
-                              variant="rectangular"
-                              width={80}
-                              height={80}
-                              sx={{ borderRadius: "4px" }}
-                            />
-                            <Box sx={{ flex: 1 }}>
-                              <Skeleton
-                                variant="text"
-                                width="40%"
-                                height="25px"
-                                sx={{ mb: 1 }}
-                              />
-                              <Skeleton
-                                variant="text"
-                                width="20%"
-                                height="20px"
-                              />
-                            </Box>
-                          </Box>
-                          <Box
-                            sx={{ display: "flex", justifyContent: "flex-end" }}
-                          >
-                            <Skeleton
-                              variant="rectangular"
-                              width={120}
-                              height={35}
-                              sx={{ borderRadius: "4px" }}
-                            />
-                          </Box>
-                        </Card>
-                      ))}
-                    </Stack>
-                  ) : orders.length > 0 ? (
-                    /* --- ACTUAL ORDERS LIST --- */
-                    <Stack spacing={2}>
-                      {orders.map((order) => (
-                        <Card
-                          key={order._id}
-                          sx={{
-                            p: 2,
-                            border: "1px solid #e5e5e5",
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                            borderRadius: "4px",
-                            bgcolor: "#fff",
-                            transition: "0.2s",
-                            "&:hover": {
-                              boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
-                            },
-                          }}
-                        >
-                          {/* Header: ID & Status */}
-                          <Box
-                            className="capitalize!"
-                            sx={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "flex-start",
-                              mb: 1.5,
-                            }}
-                          >
-                            <Box>
-                              <Typography
+                      {loading ? (
+                        /* --- JUMIA STYLE SKELETON PRELOADER --- */
+                        <Stack spacing={2}>
+                          {[1, 2, 3].map((i) => (
+                            <Card
+                              key={i}
+                              sx={{
+                                p: 2,
+                                bgcolor: "#fff",
+                                border: "1px solid #e5e5e5",
+                                borderRadius: "4px",
+                              }}
+                            >
+                              <Box
                                 sx={{
-                                  fontWeight: 700,
-                                  fontSize: "14px",
-                                  color: "#333",
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  mb: 2,
                                 }}
                               >
-                                ORDER:{" "}
-                                {order.paymentReference?.toUpperCase() ||
-                                  order._id.slice(-10).toUpperCase()}
-                              </Typography>
-                              <Typography
-                                level="body-xs"
-                                sx={{ color: "text.tertiary" }}
+                                <Box sx={{ width: "40%" }}>
+                                  <Skeleton
+                                    variant="text"
+                                    width="80%"
+                                    height="20px"
+                                    sx={{ mb: 1 }}
+                                  />
+                                  <Skeleton
+                                    variant="text"
+                                    width="50%"
+                                    height="15px"
+                                  />
+                                </Box>
+                                <Skeleton
+                                  variant="rectangular"
+                                  width={80}
+                                  height={24}
+                                  sx={{ borderRadius: "2px" }}
+                                />
+                              </Box>
+                              <Divider />
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 2,
+                                  py: 2,
+                                }}
                               >
-                                Placed on{" "}
-                                {new Date(order.createdAt).toLocaleDateString(
-                                  "en-GB",
-                                  {
-                                    day: "numeric",
-                                    month: "short",
-                                    year: "numeric",
-                                  },
-                                )}
-                              </Typography>
-                            </Box>
+                                <Skeleton
+                                  variant="rectangular"
+                                  width={80}
+                                  height={80}
+                                  sx={{ borderRadius: "4px" }}
+                                />
+                                <Box sx={{ flex: 1 }}>
+                                  <Skeleton
+                                    variant="text"
+                                    width="40%"
+                                    height="25px"
+                                    sx={{ mb: 1 }}
+                                  />
+                                  <Skeleton
+                                    variant="text"
+                                    width="20%"
+                                    height="20px"
+                                  />
+                                </Box>
+                              </Box>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "flex-end",
+                                }}
+                              >
+                                <Skeleton
+                                  variant="rectangular"
+                                  width={120}
+                                  height={35}
+                                  sx={{ borderRadius: "4px" }}
+                                />
+                              </Box>
+                            </Card>
+                          ))}
+                        </Stack>
+                      ) : orders.length > 0 ? (
+                        /* --- ACTUAL ORDERS LIST --- */
+                        <Stack spacing={2}>
+                          {orders.map((order) => (
+                            <Card
+                              key={order._id}
+                              sx={{
+                                p: 2,
+                                border: "1px solid #e5e5e5",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                                borderRadius: "4px",
+                                bgcolor: "#fff",
+                                transition: "0.2s",
+                                "&:hover": {
+                                  boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+                                },
+                              }}
+                            >
+                              {/* Header: ID & Status */}
+                              <Box
+                                className="capitalize!"
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "flex-start",
+                                  mb: 1.5,
+                                }}
+                              >
+                                <Box>
+                                  <Typography
+                                    sx={{
+                                      fontWeight: 700,
+                                      fontSize: "14px",
+                                      color: "#333",
+                                    }}
+                                  >
+                                    ORDER:{" "}
+                                    {order.paymentReference?.toUpperCase() ||
+                                      order._id.slice(-10).toUpperCase()}
+                                  </Typography>
+                                  <Typography
+                                    level="body-xs"
+                                    sx={{ color: "text.tertiary" }}
+                                  >
+                                    Placed on{" "}
+                                    {new Date(
+                                      order.createdAt,
+                                    ).toLocaleDateString("en-GB", {
+                                      day: "numeric",
+                                      month: "short",
+                                      year: "numeric",
+                                    })}
+                                  </Typography>
+                                </Box>
 
-                            {order.status}
-                          </Box>
+                                {order.status}
+                              </Box>
 
-                          <Divider sx={{ opacity: 0.5 }} />
+                              <Divider sx={{ opacity: 0.5 }} />
 
-                          {/* Product Gallery Section */}
+                              {/* Product Gallery Section */}
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 3,
+                                  py: 2.5,
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    gap: 1.5,
+                                    flex: 1,
+                                    overflowX: "auto",
+                                    pb: 0.5,
+                                  }}
+                                >
+                                  {order.items?.map((item, idx) => {
+                                    // Try to get image from populated product or fallback to placeholder
+                                    const imgSource =
+                                      item.product?.images?.[0]?.url ||
+                                      item.product?.images?.[0];
+
+                                    return (
+                                      <Box key={idx} sx={{ flexShrink: 0 }}>
+                                        <Box
+                                          key={idx}
+                                          sx={{
+                                            width: 60,
+
+                                            height: 60,
+
+                                            borderRadius: "4px",
+
+                                            border: "1px solid #eee",
+
+                                            overflow: "hidden",
+
+                                            flexShrink: 0,
+                                          }}
+                                        >
+                                          <img
+                                            src={
+                                              item.product?.images?.[0].url ||
+                                              "/api/placeholder/60/60"
+                                            }
+                                            alt="product"
+                                            style={{
+                                              width: "100%",
+
+                                              height: "100%",
+
+                                              objectFit: "cover",
+                                            }}
+                                          />
+                                        </Box>
+                                      </Box>
+                                    );
+                                  })}
+                                </Box>
+
+                                <Box
+                                  sx={{ textAlign: "right", minWidth: "100px" }}
+                                >
+                                  <Typography
+                                    sx={{
+                                      fontSize: "20px",
+                                      fontWeight: 800,
+                                      color: "#333",
+                                    }}
+                                  >
+                                    ₦{order.totalAmount.toLocaleString()}
+                                  </Typography>
+                                  <Typography
+                                    level="body-xs"
+                                    sx={{ fontWeight: 500 }}
+                                  >
+                                    {order.items.length}{" "}
+                                    {order.items.length === 1
+                                      ? "Item"
+                                      : "Items"}
+                                  </Typography>
+                                </Box>
+                              </Box>
+
+                              <Divider sx={{ opacity: 0.5 }} />
+
+                              {/* Action Button */}
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "flex-end",
+                                  mt: 1.5,
+                                }}
+                              >
+                                <Button
+                                  className="text-slate-800/90!"
+                                  onClick={() => setSelectedOrderDetail(order)}
+                                  variant="plain"
+                                  size="sm"
+                                  sx={{
+                                    color: "neutral.900", // Jumia Orange
+                                    fontWeight: 700,
+                                    fontSize: "13px",
+                                    "&:hover": {
+                                      bgcolor: "transparent",
+                                      textDecoration: "underline",
+                                    },
+                                  }}
+                                >
+                                  SEE DETAILS
+                                </Button>
+                              </Box>
+                            </Card>
+                          ))}
+                        </Stack>
+                      ) : (
+                        /* --- JUMIA EMPTY STATE --- */
+                        <Card
+                          sx={{
+                            textAlign: "center",
+                            py: 10,
+                            bgcolor: "#fff",
+                            border: "1px solid #e5e5e5",
+                            borderRadius: "4px",
+                          }}
+                        >
                           <Box
                             sx={{
+                              mb: 3,
                               display: "flex",
-                              alignItems: "center",
-                              gap: 3,
-                              py: 2.5,
+                              justifyContent: "center",
                             }}
                           >
                             <Box
                               sx={{
-                                display: "flex",
-                                gap: 1.5,
-                                flex: 1,
-                                overflowX: "auto",
-                                pb: 0.5,
+                                bgcolor: "#f1f1f1",
+                                p: 3,
+                                borderRadius: "50%",
                               }}
                             >
-                              {order.items?.map((item, idx) => {
-                                // Try to get image from populated product or fallback to placeholder
-                                const imgSource =
-                                  item.product?.images?.[0]?.url ||
-                                  item.product?.images?.[0];
-
-                                return (
-                                  <Box key={idx} sx={{ flexShrink: 0 }}>
-                                    <Box
-                                      key={idx}
-                                      sx={{
-                                        width: 60,
-
-                                        height: 60,
-
-                                        borderRadius: "4px",
-
-                                        border: "1px solid #eee",
-
-                                        overflow: "hidden",
-
-                                        flexShrink: 0,
-                                      }}
-                                    >
-                                      <img
-                                        src={
-                                          item.product?.images?.[0].url ||
-                                          "/api/placeholder/60/60"
-                                        }
-                                        alt="product"
-                                        style={{
-                                          width: "100%",
-
-                                          height: "100%",
-
-                                          objectFit: "cover",
-                                        }}
-                                      />
-                                    </Box>
-                                  </Box>
-                                );
-                              })}
-                            </Box>
-
-                            <Box sx={{ textAlign: "right", minWidth: "100px" }}>
-                              <Typography
-                                sx={{
-                                  fontSize: "20px",
-                                  fontWeight: 800,
-                                  color: "#333",
-                                }}
-                              >
-                                ₦{order.totalAmount.toLocaleString()}
-                              </Typography>
-                              <Typography
-                                level="body-xs"
-                                sx={{ fontWeight: 500 }}
-                              >
-                                {order.items.length}{" "}
-                                {order.items.length === 1 ? "Item" : "Items"}
-                              </Typography>
+                              <ShoppingBag size={60} color="#ccc" />
                             </Box>
                           </Box>
-
-                          <Divider sx={{ opacity: 0.5 }} />
-
-                          {/* Action Button */}
-                          <Box
-                            sx={{
-                              display: "flex",
-                              justifyContent: "flex-end",
-                              mt: 1.5,
-                            }}
+                          <Typography
+                            level="title-lg"
+                            sx={{ mb: 1, fontWeight: 700 }}
                           >
-                            <Button
-                              variant="plain"
-                              size="sm"
-                              sx={{
-                                color: "#f68b1e", // Jumia Orange
-                                fontWeight: 700,
-                                fontSize: "13px",
-                                "&:hover": {
-                                  bgcolor: "transparent",
-                                  color: "#cc3333",
-                                  textDecoration: "underline",
-                                },
-                              }}
-                            >
-                              SEE DETAILS
-                            </Button>
-                          </Box>
+                            You have no orders yet!
+                          </Typography>
+                          <Typography
+                            level="body-sm"
+                            sx={{ mb: 4, maxWidth: "300px", mx: "auto" }}
+                          >
+                            All your orders will be saved here for you to access
+                            and manage anytime.
+                          </Typography>
+                          <Link
+                            className="bg-neutral-800 px-8 py-3 text-white hover:bg-[#e67a0d] transition-colors rounded-sm text-center no-underline font-bold shadow-md uppercase text-sm"
+                            to="/shop"
+                          >
+                            Start Shopping
+                          </Link>
                         </Card>
-                      ))}
-                    </Stack>
-                  ) : (
-                    /* --- JUMIA EMPTY STATE --- */
-                    <Card
-                      sx={{
-                        textAlign: "center",
-                        py: 10,
-                        bgcolor: "#fff",
-                        border: "1px solid #e5e5e5",
-                        borderRadius: "4px",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          mb: 3,
-                          display: "flex",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Box
-                          sx={{ bgcolor: "#f1f1f1", p: 3, borderRadius: "50%" }}
-                        >
-                          <ShoppingBag size={60} color="#ccc" />
-                        </Box>
-                      </Box>
-                      <Typography
-                        level="title-lg"
-                        sx={{ mb: 1, fontWeight: 700 }}
-                      >
-                        You have no orders yet!
-                      </Typography>
-                      <Typography
-                        level="body-sm"
-                        sx={{ mb: 4, maxWidth: "300px", mx: "auto" }}
-                      >
-                        All your orders will be saved here for you to access and
-                        manage anytime.
-                      </Typography>
-                      <Link
-                        className="bg-[#f68b1e] px-8 py-3 text-white hover:bg-[#e67a0d] transition-colors rounded-sm text-center no-underline font-bold shadow-md uppercase text-sm"
-                        to="/shop"
-                      >
-                        Start Shopping
-                      </Link>
-                    </Card>
+                      )}
+                    </>
                   )}
                 </Box>
               )}

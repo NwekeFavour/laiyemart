@@ -829,8 +829,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                               color: "#475569",
                             }}
                           >
-                            PROD -{" "}
-                            {item?._id?.slice(-6).toUpperCase() || "......"}
+                            #{item?._id?.slice(-6).toUpperCase() || "......"}
                           </Typography>
                         </td>
 

@@ -23,11 +23,22 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobileOpen, set
   ];
 
   const handleLogout = () => {
+    // 1. Clear state and storage
     logout();
-    toast.success("Signed out successfully", { theme: "colored", icon: "👋" });
-    navigate("/auth/sign-in");
-  };
 
+    // 2. Trigger a well-designed success toast
+    toast.success("Signed out successfully");
+
+    // 3. Redirect to login page
+    localStorage.removeItem("layemart-auth");
+
+    // 2. Determine the path to the OTHER domain (e.g., localhost:5173)
+    const isLocal = window.location.hostname.includes("localhost");
+    const mainBase = isLocal ? "localhost:5173" : "layemart.com";
+
+    // This tells the main site to wipe its localStorage too
+    window.location.href = `${window.location.protocol}//${mainBase}/auth-sync?action=logout&redirect=/auth/sign-in`;
+  };
   /**
    * Internal Menu Component to reuse logic between Desktop and Mobile
    */

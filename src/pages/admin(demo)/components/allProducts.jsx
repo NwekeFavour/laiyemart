@@ -312,6 +312,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useCartStore } from "../../../../services/cartService";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
+import { Loader2 } from "lucide-react";
 
 const DUMMY_PRODUCTS = [
   {
@@ -383,7 +384,7 @@ export default function AllProducts() {
   }, [products]);
 
   if (loading)
-    return <div className="py-20 text-center">Loading collection...</div>;
+    return <Loader2/>;
 
   return <AllProductsSection products={displayProducts} />;
 }

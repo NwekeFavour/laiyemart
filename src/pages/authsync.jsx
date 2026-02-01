@@ -69,14 +69,6 @@ export default function AuthSync() {
           <h2 className="text-sm font-bold tracking-[0.2em] text-slate-400 uppercase">
             Laye<span className="text-slate-900">mart</span>
           </h2>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-xs text-slate-500 font-medium"
-          >
-            Verifying your credentials...
-          </motion.p>
         </div>
       </div>
 

@@ -832,7 +832,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                       >
                         <Link
                           className="flex items-center w-full gap-3"
-                          to={"/dashboard/settings/"}
+                          to={"/settings"}
                         >
                           <Settings size={20} /> Settings
                         </Link>
@@ -944,13 +944,77 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                 sx={{
                   bgcolor: isDark ? "black" : "white",
                   color: isDark ? "#fff" : "#0f172a",
-                  "&:hover": { bgcolor: "#f1f5f9" },
+                  "&:hover": { bgcolor: isDark ? "#0f172b" : "#f1f5f9" },
                   borderRadius: "lg",
                 }}
               >
                 Upgrade to Pro
               </Button>
             </Sheet>
+          )}
+
+          {store?.plan === "starter" && (
+            <Box
+              className="fixed! z-20! bottom-0! end-5  md:end-20"
+              sx={{
+                mt: "auto", // Pushes it to the bottom if in a flex container (like a sidebar)
+                pt: 3,
+                pb: 2,
+                display: "flex",
+                flexDirection: "column", // Stacked looks cleaner in dashboard panels
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 0.5,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  color: "text.tertiary",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                }}
+              >
+                Powered by
+              </Typography>
+
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                {/* Optional: Add a small logo icon here if you have one */}
+                <Typography
+                  sx={{
+                    fontSize: "12px",
+                    fontWeight: 900,
+                    color: "text.primary",
+                    letterSpacing: "-0.2px",
+                  }}
+                >
+                  LAYEMART
+                </Typography>
+
+                {/* A small "Starter" badge makes it look like a feature of the dashboard */}
+                <Box
+                  sx={{
+                    px: 0.8,
+                    py: 0.1,
+                    bgcolor: "warning.softBg",
+                    borderRadius: "4px",
+                    border: "1px solid",
+                    borderColor: "warning.outlineBorder",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: "8px",
+                      fontWeight: 800,
+                      color: "warning.darkerText",
+                    }}
+                  >
+                    STARTER
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
           )}
           {/* --- DYNAMIC VERIFICATION REMINDER BANNER --- */}
           {!store?.isOnboarded && (

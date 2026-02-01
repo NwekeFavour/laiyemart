@@ -14,6 +14,7 @@ import {
   ShoppingBag,
   PackageOpenIcon,
   Filter,
+  Trash2,
 } from "lucide-react";
 import {
   Box,
@@ -49,6 +50,7 @@ import { useCategoryStore } from "../../../services/categoryService";
 import { InventoryCard } from "../../components/inventory";
 import { useStoreProfileStore } from "../../store/useStoreProfile";
 import BestSellersCard from "../../components/bestSeller";
+import useOrderStore from "../../../services/orderService";
 
 export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
   // Stats reflecting a brand new store
@@ -61,11 +63,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
   const { totalCustomers, setTotalCustomers, fetchTotalCustomers } =
     useStoreProfileStore();
   const { categories, getCategories } = useCategoryStore();
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const [previewImage, setPreviewImage] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [orders, setOrders] = useState([]);
+  const {fetchVendorOrders, orders} = useOrderStore()
   // Form State
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -76,6 +74,12 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
   useEffect(() => {
     getCategories();
   }, []);
+
+useEffect(() => {
+    fetchVendorOrders();
+  }, [fetchVendorOrders]);
+  
+  // console.log(orders)
 
   useEffect(() => {
     const loadStats = async () => {
@@ -669,14 +673,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                   <th
                     className={`px-4 py-3 w-12 text-center border-r ${isDark ? "border-[#314158] border-r" : "border-slate-100"}`}
                   >
-                    <input
-                      type="checkbox"
-                      checked={
-                        selected.length > 0 && selected.length === orders.length
-                      }
-                      onChange={toggleAll}
-                      className="rounded-sm accent-blue-600"
-                    />
+                    S/N
                   </th>
 
                   <th className={`w-37.5 ${thStyle} `}>Order ID</th>
@@ -691,9 +688,9 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                 className={`divide-y ${isDark ? "divide-slate-800" : "divide-gray-100"}`}
               >
                 {orders.length > 0 ? (
-                  orders.map((order) => (
+                  orders.slice(0,5).map((order, i) => (
                     <tr
-                      key={order._id}
+                      key={i}
                       className={`text-[13px] transition-colors hover:bg-gray-50 ${
                         isDark ? "hover:bg-slate-800/40" : ""
                       }`}
@@ -703,16 +700,11 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                           isDark ? "border-slate-800" : "border-slate-100"
                         }`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={selected.includes(order._id)}
-                          onChange={() => handleSelect(order._id)}
-                          className="rounded-sm accent-blue-600"
-                        />
+                        {i + 1}
                       </td>
 
                       <td className={`${tdStyle} font-medium text-blue-600`}>
-                        #{order._id?.slice(-6).toUpperCase()}
+                        ORD - {order._id?.slice(-6).toUpperCase()}
                       </td>
 
                       <td className={tdStyle}>
@@ -751,25 +743,11 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                           {order.status}
                         </span>
                       </td>
-
-                      <td className="px-4 py-3 text-center">
-                        <div className="flex justify-center gap-2">
-                          <IconButton
-                            size="sm"
-                            variant="plain"
-                            onClick={() => handleView(order)}
-                          >
-                            <Eye size={16} />
-                          </IconButton>
-                          <IconButton
-                            size="sm"
-                            variant="plain"
-                            color="danger"
-                            onClick={() => handleDelete(order)}
-                          >
-                            <Trash2 size={16} />
-                          </IconButton>
-                        </div>
+                      <td>
+                        <Link className="text-blue-400 flex flex-col justify-center text-center">
+                        details
+                        <div className=" w-10 border-t mx-auto border-dashed border-blue-400" />
+                        </Link>
                       </td>
                     </tr>
                   ))

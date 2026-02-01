@@ -212,7 +212,7 @@ const OrderSuccess = () => {
                     color="neutral"
                     startDecorator={<ReceiptText size={18} />}
                     // This will take them to nike.layemart.com/account
-                    onClick={() => navigate("/account")}
+                    onClick={() => navigate("/account?tab=orders")}
                   >
                     View My Orders
                   </Button>

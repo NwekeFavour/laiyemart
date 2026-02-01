@@ -152,11 +152,41 @@ export default function Header({ storeName, storeLogo }) {
                 spacing={1}
                 sx={{ display: { xs: "none", md: "flex" } }}
               >
-                <Link to={isAuthenticated ? "/account" : "/login"}>
-                  <Button className="px-5! border-slate-900! text-slate-800/90! hover:bg-slate-300/10!" size="sm" variant="outlined">
-                    {isAuthenticated ? "My Account" : "Login"}
-                  </Button>
-                </Link>
+                {isAuthenticated ? (
+                  <Link to="/account">
+                    <Button
+                      className="px-5! border-slate-900! text-slate-800/90! hover:bg-slate-300/10!"
+                      size="sm"
+                      variant="outlined"
+                    >
+                      My Account
+                    </Button>
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    {/* Login Button - Outlined Slate */}
+                    <Link to="/login">
+                      <Button
+                        className="px-5! border-slate-900! text-slate-800/90! hover:bg-slate-300/10!"
+                        size="sm"
+                        variant="outlined"
+                      >
+                        Login
+                      </Button>
+                    </Link>
+
+                    {/* Register Button - Solid Slate (Primary Action) */}
+                    <Link to="/register">
+                      <Button
+                        className="px-5! bg-slate-900! text-white! border-slate-900! hover:bg-slate-800!"
+                        size="sm"
+                        variant="filled"
+                      >
+                        Register
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </Stack>
             )}
           </Stack>
@@ -216,7 +246,12 @@ export default function Header({ storeName, storeLogo }) {
             </Button>
           ) : (
             <Link to="/login">
-              <Button fullWidth>Login to Account</Button>
+              <Button
+                className="bg-slate-800! hover:bg-slate-800/90! "
+                fullWidth
+              >
+                Login to Account
+              </Button>
             </Link>
           )}
         </Box>

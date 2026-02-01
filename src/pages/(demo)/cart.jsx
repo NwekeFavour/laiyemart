@@ -10,6 +10,11 @@ import {
   Avatar,
   Card,
   Skeleton,
+  Modal,
+  ModalDialog,
+  FormControl,
+  Input,
+  FormLabel,
 } from "@mui/joy";
 import {
   Trash2,
@@ -43,6 +48,15 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
   const [isStoreLoading, setIsStoreLoading] = useState(true);
   const [error, setError] = useState(false);
   const navigate = useNavigate();
+  const [payLoading, setPayLoading] = useState(false)
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    street: "",
+    city: "",
+    state: "",
+    phone: ""
+  });
 
   useEffect(() => {
     if (!customer) {
@@ -61,7 +75,7 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
       customer?.address?.phone
     );
   }, [customer]);
-  
+
   useEffect(() => {
     const validateStore = async () => {
       try {
@@ -90,7 +104,48 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
     }
   }, [storeData?._id, customer, fetchCart]);
 
+  const handleAddressSubmit = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+
+    try {
+      const API_URL =
+        import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+      const token = useCustomerAuthStore.getState().token;
+
+      const res = await fetch(`${API_URL}/api/address/save`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "x-store-slug": resolvedSlug,
+        },
+        body: JSON.stringify(addressForm),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok)
+        throw new Error(result.message || "Failed to update address");
+      // console.log(result);
+      // Assuming your store has a setCustomer or update function
+      useCustomerAuthStore
+        .getState()
+        .updateCustomer({ address: result.address });
+      toast.success("Address updated successfully!", {
+        containerId: "STOREFRONT",
+      });
+      setIsAddressModalOpen(false);
+    } catch (err) {
+      toast.error(err.message, {
+        containerId: "STOREFRONT",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
   const handleCustomerCheckout = async () => {
+    setPayLoading(true)
     const currentTotal = cart?.cartTotal || 0;
 
     if (!storeData || !storeData._id) {
@@ -153,6 +208,8 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
       toast.error(err.message, {
         containerId: "STOREFRONT",
       });
+    } finally{
+      setPayLoading(false)
     }
   };
   // --- SKELETON COMPONENT ---
@@ -260,6 +317,7 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
                 Looks like you haven't added anything to your cart yet.
               </Typography>
               <Button
+                className="bg-slate-900!"
                 variant="solid"
                 color="primary"
                 onClick={() => navigate("/shop")}
@@ -437,42 +495,151 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
                   </Stack>
                   {/* ADDRESS DISCLAIMER */}
                   {!hasAddress && (
-                    <Box
-                      sx={{
-                        mt: 3,
-                        p: 2,
-                        bgcolor: "warning.softBg",
-                        borderRadius: "md",
-                        border: "1px solid",
-                        borderColor: "warning.outlinedBorder",
-                      }}
-                    >
-                      <Typography
-                        level="body-xs"
-                        color="warning"
-                        fontWeight="bold"
+                    <>
+                      <Box
+                        sx={{
+                          mt: 3,
+                          p: 2,
+                          borderRadius: "md",
+                          border: "1px solid",
+                          bgcolor: "warning.softBg",
+                          borderColor: "warning.outlinedBorder",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                        }}
                       >
-                        Shipping Address Required
-                      </Typography>
-                      <Typography level="body-xs" sx={{ mb: 1, mt: 0.5 }}>
-                        Please add your shipping address in settings to proceed
-                        with this order.
-                      </Typography>
-                      <Button
-                        size="sm"
-                        variant="plain"
-                        color="warning"
-                        onClick={() => navigate("/account")} // or wherever your address form is
-                        sx={{ p: 0, textDecoration: "underline" }}
+                        <Typography
+                          level="body-xs"
+                          color="warning"
+                          fontWeight="bold"
+                        >
+                          Shipping Address Required
+                        </Typography>
+                        <Typography level="body-xs">
+                          Please add your shipping address to proceed with this
+                          order.
+                        </Typography>
+                        <Button
+                          className="text-[13px]!"
+                          size="sm"
+                          variant="solid"
+                          color="warning"
+                          onClick={() => setIsAddressModalOpen(true)} // Open the modal
+                          sx={{ mt: 1, width: "fit-content" }}
+                        >
+                          Add Shipping Address
+                        </Button>
+                      </Box>
+
+                      {/* THE MODAL */}
+                      <Modal
+                        open={isAddressModalOpen}
+                        onClose={() => setIsAddressModalOpen(false)}
                       >
-                        Go to Settings
-                      </Button>
-                    </Box>
+                        <ModalDialog
+                          sx={{
+                            width: "100%",
+                            maxWidth: 450,
+                            borderRadius: "md",
+                          }}
+                        >
+                          <Typography level="h4" fontWeight="xl">
+                            Add Shipping Address
+                          </Typography>
+                          <Typography level="body-sm" sx={{ mb: 2 }}>
+                            Your address is needed for delivery calculation and
+                            shipping.
+                          </Typography>
+
+                          <form onSubmit={handleAddressSubmit}>
+                            <Stack spacing={2}>
+                              <FormControl required>
+                                <FormLabel>Street Address</FormLabel>
+                                <Input
+                                  className="border! border-slate-900/30!"
+                                  name="street"
+                                  placeholder="123 Main St"
+                                  value={addressForm.street}
+                                  onChange={(e) =>
+                                    setAddressForm({
+                                      ...addressForm,
+                                      street: e.target.value,
+                                    })
+                                  }
+                                />
+                              </FormControl>
+
+                              <div className="flex flex-wrap gap-3">
+                                <FormControl required sx={{ flex: 1 }}>
+                                  <FormLabel>City</FormLabel>
+                                  <Input
+                                  className="border! border-slate-900/30! w-full sm:w-46 md:w-49"
+
+                                    name="city"
+                                    value={addressForm.city}
+                                    onChange={(e) =>
+                                      setAddressForm({
+                                        ...addressForm,
+                                        city: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </FormControl>
+                                <FormControl required sx={{ flex: 1 }}>
+                                  <FormLabel>State</FormLabel>
+                                  <Input
+                                  className="border! border-slate-900/30! w-full sm:w-46 md:w-49"
+
+                                    name="state"
+                                    value={addressForm.state}
+                                    onChange={(e) =>
+                                      setAddressForm({
+                                        ...addressForm,
+                                        state: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </FormControl>
+                              </div>
+
+                              <FormControl required>
+                                <FormLabel>Phone Number</FormLabel>
+                                <Input
+                                  className="border! border-slate-900/30!"
+                                  name="phone"
+                                  placeholder="080..."
+                                  value={addressForm.phone}
+                                  onChange={(e) =>
+                                    setAddressForm({
+                                      ...addressForm,
+                                      phone: e.target.value,
+                                    })
+                                  }
+                                />
+                              </FormControl>
+
+                              <Button
+                                type="submit"
+                                loading={isSaving}
+                                variant="solid"
+                                color="primary"
+                                fullWidth
+                                sx={{ mt: 1 }}
+                              >
+                                Save Address & Continue
+                              </Button>
+                            </Stack>
+                          </form>
+                        </ModalDialog>
+                      </Modal>
+                    </>
                   )}
                   <Button
                     fullWidth
                     size="lg"
                     variant="solid"
+                    loading={payLoading}
                     disabled={!storeData?.paystack?.verified || !hasAddress} // 🔒 Don't let customers pay unverified vendors
                     className="hover:bg-slate-800/90!"
                     startDecorator={<CreditCard />}
@@ -491,7 +658,11 @@ const CartDashboard = ({ storeSlug: propStoreSlug }) => {
       )}
       <div className="mt-10!">
         <div className="relative bottom-0 right-0  left-0">
-          <Footer storeDescription={storeData?.description} storeLogo={storeData?.logo?.url} storeName={storeData?.name}/>
+          <Footer
+            storeDescription={storeData?.description}
+            storeLogo={storeData?.logo?.url}
+            storeName={storeData?.name}
+          />
         </div>
       </div>
     </div>

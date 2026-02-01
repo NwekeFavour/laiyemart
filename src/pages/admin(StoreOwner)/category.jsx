@@ -423,15 +423,7 @@ export default function CategoriesTable({ isDark, toggleDarkMode }) {
                   <th
                     className={`px-4 py-3 w-12 text-center border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
                   >
-                    <input
-                      type="checkbox"
-                      checked={
-                        selected.length > 0 &&
-                        selected.length === filteredData.length
-                      }
-                      onChange={toggleAll}
-                      className="rounded-sm accent-blue-600"
-                    />
+                    S/N
                   </th>
 
                   <th className={`w-[250px] ${thStyle}`}>
@@ -470,20 +462,15 @@ export default function CategoriesTable({ isDark, toggleDarkMode }) {
                 className={`divide-y ${isDark ? "divide-slate-800" : "divide-gray-100"}`}
               >
                 {paginatedData.length > 0 ? (
-                  paginatedData.map((cat) => (
+                  paginatedData.map((cat, i) => (
                     <tr
-                      key={cat._id}
+                      key={i}
                       className={`text-[13px] transition-colors hover:bg-gray-50 ${isDark ? "hover:bg-slate-800/40" : ""}`}
                     >
                       <td
                         className={`px-4 py-3 text-center border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={selected.includes(cat._id)}
-                          onChange={() => {}}
-                          className="rounded-sm accent-blue-600"
-                        />
+                        {i + 1}
                       </td>
 
                       <td className={` border-r! ${tdStyle}`}>
@@ -759,7 +746,7 @@ export default function CategoriesTable({ isDark, toggleDarkMode }) {
                   />
                 </FormControl>
 
-                {/* FEATURED TOGGLE */}
+                {/* FEATURED TOGGLE
                 <FormControl
                   orientation="horizontal"
                   sx={{
@@ -786,7 +773,7 @@ export default function CategoriesTable({ isDark, toggleDarkMode }) {
                     color={isFeatured ? "success" : "neutral"}
                     variant={isDark ? "solid" : "soft"}
                   />
-                </FormControl>
+                </FormControl> */}
               </Stack>
             </DialogContent>
 

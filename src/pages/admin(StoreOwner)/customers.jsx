@@ -72,6 +72,7 @@ function CustomerList({ isDark, toggleDarkMode }) {
         if (data.success) {
           setCustomers(data.customers);
         }
+        
         // console.log(data)
       } catch (err) {
         setError("Failed to load customers");
@@ -338,7 +339,7 @@ function CustomerList({ isDark, toggleDarkMode }) {
             className={`px-6 py-4  flex justify-between items-center text-sm`}
           >
             <p className="text-gray-500">
-              Showing {customers.length} customers
+              Showing {customers?.length} customers
             </p>
             <div className="flex gap-1">
               <button
@@ -354,9 +355,13 @@ function CustomerList({ isDark, toggleDarkMode }) {
                   onClick={() => setCurrentPage(i + 1)}
                   className={`w-8 h-8 rounded border text-xs font-bold ${
                     currentPage === i + 1
-                      ? "bg-slate-800 text-white"
-                      : "hover:bg-gray-100"
-                  }`}
+                      ? " text-white"
+                      : ""
+                  }
+                  
+                    ${
+                    isDark ? "bg-slate-800/90 text-slate-200!" : "bg-slate-200/10 text-slate-900!"
+                    }`}
                 >
                   {i + 1}
                 </button>
