@@ -191,18 +191,6 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
     }, 150);
   };
 
-
-  const inputRef = useRef(null);
-
-  useEffect(() => {
-    const handleWheel = (e) => e.preventDefault();
-    const input = inputRef.current?.querySelector('input');
-    
-    if (input) {
-      input.addEventListener("wheel", handleWheel, { passive: false });
-    }
-    return () => input.removeEventListener("wheel", handleWheel);
-  }, []);
   const handleCreateProduct = async () => {
     if (
       !name ||
@@ -488,11 +476,11 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                     "&::before": {
                       display: "none",
                     },
-                    border: isDark? "1px solid #1d293d": "1px solid #fff",
+                    border: isDark ? "1px solid #1d293d" : "1px solid #fff",
                     // 2. Remove the default focus border/shadow
                     "&:focus-within": {
                       outline: "none",
-                      border: isDark? "1px solid #1d293d": "1px solid #fff",
+                      border: isDark ? "1px solid #1d293d" : "1px solid #fff",
                     },
                   }}
                 />
@@ -1413,15 +1401,14 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                     Inventory / Stock
                   </FormLabel>
                   <Input
-                    onKeyDown={(e) => ["e", "E", "-", "+"].includes(e.key) && e.preventDefault()}
-                    ref={inputRef}
-                    type="number"
+                    type="text" // 1. Changed to text
                     value={inventory}
                     onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === "" || Number(val) >= 0) {
-                        setInventory(val);
-                      }
+                      // 2. Extract value and replace anything that isn't a digit with an empty string
+                      const val = e.target.value.replace(/\D/g, "");
+
+                      // 3. Update state (if you want to allow empty string for backspacing)
+                      setInventory(val);
                     }}
                     endDecorator={
                       <Typography level="body-xs">units</Typography>
@@ -1429,7 +1416,6 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                     variant="soft"
                     sx={{
                       borderRadius: "lg",
-                      // ✅ Select styling for dark mode
                       bgcolor: isDark ? "transparent" : "neutral.100",
                       color: isDark ? "#f1f5f9" : "inherit",
                       border: isDark
@@ -1439,15 +1425,19 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                       "&:hover": {
                         bgcolor: isDark ? "transparent" : "neutral.200",
                       },
-                      // Target the icon
+                      // Note: MuiSelect-indicator styles may not be needed if this isn't a Select
                       "& .MuiSelect-indicator": {
                         color: isDark ? "#94a3b8" : "inherit",
                       },
                     }}
                     slotProps={{
+                      // 4. Removed 'min' and 'step' as they don't apply to type="text"
+                      input: {
+                        inputMode: "numeric", // Triggers numeric keypad on mobile devices
+                        pattern: "[0-9]*", // Extra hint for browsers
+                      },
                       listbox: {
                         sx: {
-                          // ✅ Dropdown menu styling
                           bgcolor: isDark ? "#0f172a" : "background.surface",
                           borderColor: isDark ? "#334155" : "divider",
                           boxShadow: "xl",
@@ -1456,11 +1446,6 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                             bgcolor: isDark ? "#1e293b" : "neutral.100",
                           },
                         },
-                      },
-                      input: {
-                        min: 0,
-                        step: 1, 
-                        onWheel: (e) => e.target.blur(),
                       },
                     }}
                   />
@@ -1480,7 +1465,10 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                       >
                         Featured Product
                       </FormLabel>
-                      <Typography className={`${isDark && "text-slate-200!"}`} level="body-xs">
+                      <Typography
+                        className={`${isDark && "text-slate-200!"}`}
+                        level="body-xs"
+                      >
                         Appear on home page
                       </Typography>
                     </div>
@@ -1517,7 +1505,10 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                       >
                         Unlimited Stock
                       </FormLabel>
-                      <Typography className={`${isDark && "text-slate-200!"}`} level="body-xs">
+                      <Typography
+                        className={`${isDark && "text-slate-200!"}`}
+                        level="body-xs"
+                      >
                         Disable stock limits
                       </Typography>
                     </div>
@@ -1974,7 +1965,10 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                     bgcolor: isDark ? "transparent" : "",
                     border: isDark ? "1px solid #314158" : "none",
                     "&::before": { display: "none" },
-                    "&:focus-within": { outline: "none", border: "1px solid #314158" },
+                    "&:focus-within": {
+                      outline: "none",
+                      border: "1px solid #314158",
+                    },
                   }}
                 />
               </FormControl>
