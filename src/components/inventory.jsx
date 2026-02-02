@@ -36,7 +36,7 @@ export function InventoryCard({ isDark, products = [] }) {
             <span className="text-xs px-2 py-1 bg-slate-100  rounded-md text-slate-500">
                 {products.length} Items
             </span>
-            <Link to={'/dashboard/products'} className="text-blue-500 hover:underline capitalize">see all</Link>
+            <Link to={'/products'} className="text-blue-500 hover:underline capitalize">see all</Link>
         </div>
       </div>
 

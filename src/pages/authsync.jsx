@@ -36,9 +36,9 @@ export default function AuthSync() {
   }, [searchParams]);
 
   return (
-<div className="flex flex-col items-center justify-center h-screen bg-white text-slate-900">
+    <div className="flex flex-col items-center justify-center h-screen bg-white text-slate-900">
       {/* Top Loading Bar (Stripe-style) */}
-      <motion.div 
+      <motion.div
         initial={{ width: 0 }}
         animate={{ width: "100%" }}
         transition={{ duration: 2, ease: "easeInOut" }}
@@ -54,11 +54,13 @@ export default function AuthSync() {
             transition={{ duration: 3, repeat: Infinity }}
             className="absolute inset-0 bg-red-500 rounded-2xl blur-xl"
           />
-          
+
           {/* Main Logo Icon */}
           <div className="relative w-16 h-16 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-center">
-            <span className="text-3xl font-black text-red-500 tracking-tighter">L</span>
-            
+            <span className="text-3xl font-black text-red-500 tracking-tighter">
+              L
+            </span>
+
             {/* Spinning Ring - Thin and elegant */}
             <div className="absolute inset-[-4px] border-2 border-transparent border-t-red-500/30 rounded-2xl animate-spin" />
           </div>

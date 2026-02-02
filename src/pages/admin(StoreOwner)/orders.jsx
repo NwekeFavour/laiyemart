@@ -27,6 +27,8 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
   const [showArrow, setShowArrow] = useState(true);
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
   const [viewingOrder, setViewingOrder] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const { fetchVendorOrders, orders, updateStatus, isLoading } =
     useOrderStore();
 
@@ -65,6 +67,16 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
 
     return orderId.includes(searchStr) || customer.includes(searchStr);
   });
+
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+const indexOfLastItem = currentPage * itemsPerPage;
+const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+
+// Reset to page 1 whenever search term changes
+useEffect(() => {
+  setCurrentPage(1);
+}, [searchTerm]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -286,7 +298,7 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
                 <tbody
                   className={`divide-y ${isDark ? "divide-slate-800" : "divide-slate-100"}`}
                 >
-                  {filteredOrders.map((row, i) => (
+                  {currentOrders.map((row, i) => (
                     <tr
                       key={i}
                       className={`text-[13px] transition-colors ${isDark ? "hover:bg-slate-800/40" : "hover:bg-gray-50/50"}`}
@@ -382,6 +394,56 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
                   ))}
                 </tbody>
               </table>
+              {/* PAGINATION CONTROLS */}
+{filteredOrders.length > 0 && (
+  <div className={`flex items-center justify-between px-6 py-4 border-t ${isDark ? "border-slate-800" : "border-slate-100"}`}>
+    <Typography level="body-sm" className={isDark ? "text-slate-400!" : "text-slate-500"}>
+      Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredOrders.length)} of {filteredOrders.length} orders
+    </Typography>
+    
+    <div className="flex gap-2">
+      <button
+        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1}
+        className={`px-3 py-1 rounded-md border text-sm transition-all ${
+          isDark 
+            ? "border-slate-800 hover:bg-slate-800 disabled:opacity-30 text-slate-300" 
+            : "border-slate-200 hover:bg-gray-50 disabled:opacity-50 text-slate-600"
+        }`}
+      >
+        Previous
+      </button>
+      
+      {[...Array(totalPages)].map((_, i) => (
+        <button
+          key={i}
+          onClick={() => setCurrentPage(i + 1)}
+          className={`w-8 h-8 rounded-md text-sm font-medium transition-all ${
+            currentPage === i + 1
+              ? "bg-blue-600 text-white"
+              : isDark 
+                ? "text-slate-400 hover:bg-slate-800" 
+                : "text-slate-600 hover:bg-gray-100"
+          }`}
+        >
+          {i + 1}
+        </button>
+      ))}
+
+      <button
+        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+        disabled={currentPage === totalPages}
+        className={`px-3 py-1 rounded-md border text-sm transition-all ${
+          isDark 
+            ? "border-slate-800 hover:bg-slate-800 disabled:opacity-30 text-slate-300" 
+            : "border-slate-200 hover:bg-gray-50 disabled:opacity-50 text-slate-600"
+        }`}
+      >
+        Next
+      </button>
+    </div>
+  </div>
+)}
             </div>
           )}
         </div>

@@ -212,7 +212,7 @@ const NewArrivalsGrid = ({ subtitle }) => {
                         p: 0,
                       }}
                     >
-                      Details
+                      View Details
                     </Button>
                   </Stack>
                 </Box>

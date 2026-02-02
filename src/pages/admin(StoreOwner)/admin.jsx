@@ -57,13 +57,15 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
   const [error, setError] = useState("");
   const { user, store } = useAuthStore();
   const navigate = useNavigate();
-  const total_orders = 0;
+
   const [loading, setLoading] = useState(false);
   const { products, fetchMyProducts, createProduct } = useProductStore();
   const { totalCustomers, setTotalCustomers, fetchTotalCustomers } =
     useStoreProfileStore();
   const { categories, getCategories } = useCategoryStore();
-  const {fetchVendorOrders, orders} = useOrderStore()
+  const { fetchVendorOrders, orders } = useOrderStore();
+  const total_orders = orders.length;
+
   // Form State
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -75,10 +77,10 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
     getCategories();
   }, []);
 
-useEffect(() => {
+  useEffect(() => {
     fetchVendorOrders();
   }, [fetchVendorOrders]);
-  
+
   // console.log(orders)
 
   useEffect(() => {
@@ -111,13 +113,14 @@ useEffect(() => {
   const stats = useMemo(() => {
     const totalProducts = products.length;
 
-    const outOfStock = products.filter((p) => p.inventory === 0).length;
+    const totalSales = orders
+      ?.filter(order => order.status === "paid") // Only count successful payments
+      .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
 
-    const inventoryValue = products.reduce(
-      (sum, p) => sum + (Number(p.price) || 0) * (Number(p.inventory) || 0),
-      0,
-    );
-
+    // 2. Stock Worth (Potential Revenue)
+    const stockWorth = products?.reduce((sum, product) => {
+      return sum + (product.price * (product.inventory || 0));
+    }, 0);
     // 1. Core stats that always show
     const baseStats = [
       {
@@ -133,17 +136,17 @@ useEffect(() => {
         icon: "👥",
       },
       {
-        label: "Sales",
-        value: `₦0`,
-        sub: "Stock worth",
+        label: "Total Revenue",
+        value: `₦${totalSales?.toLocaleString() || 0}`,
+        sub: `₦${stockWorth?.toLocaleString()} in inventory`, 
         icon: "💰",
       },
       {
         label: "Total Orders",
-        value: `₦0`,
-        sub: "Needs restock",
-        icon: "⚠️",
-      },
+        value: `${orders?.length || 0}`,
+        sub: "Lifetime orders", // or "Completed sales"
+        icon: "🛍️", // Shopping bag icon
+      }
     ];
 
     return [...baseStats].filter(Boolean);
@@ -153,6 +156,12 @@ useEffect(() => {
     fetchMyProducts();
   }, []);
 
+  const pendingOrders = orders
+    .filter(
+      (order) => order.status !== "Delivered" && order.status !== "Cancelled",
+    )
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Latest first
+    .slice(0, 3); // Show only top 5
   // console.log(products)
 
   useEffect(() => {
@@ -570,59 +579,73 @@ useEffect(() => {
               <h3 className="font-semibold">Pending Orders</h3>
               <button
                 className={`text-sm ${isDark ? "text-blue-400" : "text-blue-600"}`}
+                onClick={() => navigate("/orders")}
               >
                 See All
               </button>
             </div>
 
-            <div className="flex flex-col flex-1 p-5">
-              {/* Dummy Chart */}
-              {/* <ul className="space-y-2 text-sm">
-                {[
-                  ["Nike Shift Runner", 4],
-                  ["Puma Wace Strike", 7],
-                  ["Adidas Xtreme High", 1],
-                ].map(([name, qty]) => (
-                  <li
-                    key={name}
-                    className={`flex items-center justify-between rounded-lg px-3 py-2
-                ${isDark ? "bg-slate-800 text-slate-200" : "bg-gray-50 text-gray-900"}`}
-                  >
-                    <span>{name}</span>
-                    <span
-                      className={`${isDark ? "text-slate-400" : "text-gray-500"}`}
+            <div className="flex flex-col flex-1 p-3">
+              {pendingOrders.length > 0 ? (
+                <ul className="space-y-3">
+                  {pendingOrders.map((order) => (
+                    <li
+                      key={order._id}
+                      className={`flex items-start justify-between rounded-xl px-4 py-3 border transition-all
+            ${
+              isDark
+                ? "bg-slate-900/50 border-slate-800 hover:bg-slate-800/80"
+                : "bg-slate-50 border-slate-100 hover:bg-gray-100"
+            }`}
                     >
-                      Qty: {qty} ·{" "}
-                      <button
-                        className={`${isDark ? "text-blue-400" : "text-blue-600"}`}
-                      >
-                        Order
-                      </button>
-                    </span>
-                  </li>
-                ))}
-              </ul> */}
-              <div className="flex flex-col items-center justify-center flex-1 py-10 px-6 text-center">
-                <div
-                  className={`p-4 rounded-full mb-4 ${isDark ? "bg-slate-800" : "bg-slate-50"}`}
-                >
-                  <PackageOpenIcon
-                    size={32}
-                    className={isDark ? "text-slate-500" : "text-slate-300"}
-                  />
+                      <div className="flex flex-col gap-1">
+                        <span
+                          className={`text-sm font-semibold ${isDark ? "text-slate-200" : "text-slate-900"}`}
+                        >
+                          {order.customerName}
+                        </span>
+                        <span
+                          className={`text-[11px] ${isDark ? "text-slate-500" : "text-slate-400"}`}
+                        >
+                          ORD-{order._id.slice(-6).toUpperCase()} •{" "}
+                          {order.items.length}{" "}
+                          {order.items.length > 1 ? "items" : "item"}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1">
+                        <span
+                          className={`text-sm font-bold ${isDark ? "text-blue-400" : "text-blue-600"}`}
+                        >
+                          ₦{order.totalAmount.toLocaleString()}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                /* EMPTY STATE - Shows if no pending orders exist */
+                <div className="flex flex-col items-center justify-center flex-1 py-10 px-6 text-center">
+                  <div
+                    className={`p-4 rounded-full mb-4 ${isDark ? "bg-slate-800" : "bg-slate-50"}`}
+                  >
+                    <PackageOpenIcon
+                      size={32}
+                      className={isDark ? "text-slate-500" : "text-slate-300"}
+                    />
+                  </div>
+                  <p
+                    className={`text-sm font-bold ${isDark ? "text-slate-300" : "text-slate-700"}`}
+                  >
+                    All caught up!
+                  </p>
+                  <p
+                    className={`text-xs mt-1 ${isDark ? "text-slate-500" : "text-slate-400"}`}
+                  >
+                    No pending orders to process right now.
+                  </p>
                 </div>
-                <p
-                  className={`text-sm font-bold ${isDark ? "text-slate-300" : "text-slate-700"}`}
-                >
-                  No orders recorded yet
-                </p>
-                <p
-                  className={`text-xs mt-1 ${isDark ? "text-slate-500" : "text-slate-400"}`}
-                >
-                  Once you start getting orders, your pending orders will appear
-                  here.
-                </p>
-              </div>
+              )}
             </div>
           </div>
           <div>
@@ -688,7 +711,7 @@ useEffect(() => {
                 className={`divide-y ${isDark ? "divide-slate-800" : "divide-gray-100"}`}
               >
                 {orders.length > 0 ? (
-                  orders.slice(0,5).map((order, i) => (
+                  orders.slice(0, 5).map((order, i) => (
                     <tr
                       key={i}
                       className={`text-[13px] transition-colors hover:bg-gray-50 ${
@@ -745,8 +768,8 @@ useEffect(() => {
                       </td>
                       <td>
                         <Link className="text-blue-400 flex flex-col justify-center text-center">
-                        details
-                        <div className=" w-10 border-t mx-auto border-dashed border-blue-400" />
+                          details
+                          <div className=" w-10 border-t mx-auto border-dashed border-blue-400" />
                         </Link>
                       </td>
                     </tr>

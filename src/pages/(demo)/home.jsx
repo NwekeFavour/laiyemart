@@ -9,7 +9,7 @@ import NewsletterSignup from "../admin(demo)/components/newsletter";
 import Footer from "../admin(demo)/components/footer";
 import StoreNotFound from "../../components/storenotfound";
 import { Helmet } from "react-helmet-async";
-import Header from "../admin(demo)/components/header"
+import Header from "../admin(demo)/components/header";
 
 // 1. Define Content Strategies for each Store Type
 const STORE_CONTENT_CONFIG = {
@@ -128,24 +128,49 @@ function DemoHome({ storeSlug }) {
 
   if (loading && !localStorage.getItem("demo")) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          flexDirection: "column",
-          gap: 2,
-        }}
-      >
-        <CircularProgress color="danger" thickness={4} />
-        <Typography
-          level="body-sm"
-          sx={{ letterSpacing: "2px", fontWeight: 700 }}
-        >
-          LAYEMART
-        </Typography>
-      </Box>
+      <div className="flex flex-col items-center justify-center h-screen bg-white text-slate-900">
+        {/* Top Loading Bar (Stripe-style) */}
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: "100%" }}
+          transition={{ duration: 2, ease: "easeInOut" }}
+          className="fixed top-0 left-0 h-1 bg-red-500 z-50"
+        />
+
+        <div className="flex flex-col items-center gap-6">
+          {/* Minimalist Logo Container */}
+          <div className="relative flex items-center justify-center w-20 h-20">
+            {/* Subtle Outer Glow */}
+            <motion.div
+              animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="absolute inset-0 bg-red-500 rounded-2xl blur-xl"
+            />
+
+            {/* Main Logo Icon */}
+            <div className="relative w-16 h-16 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-center">
+              <span className="text-3xl font-black text-red-500 tracking-tighter">
+                L
+              </span>
+
+              {/* Spinning Ring - Thin and elegant */}
+              <div className="absolute inset-[-4px] border-2 border-transparent border-t-red-500/30 rounded-2xl animate-spin" />
+            </div>
+          </div>
+
+          {/* Text Section */}
+          <div className="text-center space-y-1">
+            <h2 className="text-sm font-bold tracking-[0.2em] text-slate-400 uppercase">
+              Laye<span className="text-slate-900">mart</span>
+            </h2>
+          </div>
+        </div>
+
+        {/* Footer Branding (Optional) */}
+        <div className="absolute bottom-10 text-[10px] text-slate-300 font-medium tracking-widest uppercase">
+          Secure Gateway
+        </div>
+      </div>
     );
   }
   const metaConfig =
@@ -184,16 +209,25 @@ function DemoHome({ storeSlug }) {
         transition={{ duration: 0.6 }}
       >
         {storeLogo ? (
-          <img src={storeLogo} alt={storeName} style={{ height: '60px', marginBottom: '16px' }} />
+          <img
+            src={storeLogo}
+            alt={storeName}
+            style={{ height: "60px", marginBottom: "16px" }}
+          />
         ) : (
-          <Typography level="h2" sx={{ mb: 1, fontWeight: 800, color: '#111' }}>
+          <Typography level="h2" sx={{ mb: 1, fontWeight: 800, color: "#111" }}>
             {storeName?.toUpperCase()}
           </Typography>
         )}
 
         {/* Construction Visual */}
-        <Box sx={{ position: 'relative', my: 4 }}>
-          <Typography sx={{ fontSize: "5rem", filter: "drop-shadow(0 10px 15px rgba(0,0,0,0.1))" }}>
+        <Box sx={{ position: "relative", my: 4 }}>
+          <Typography
+            sx={{
+              fontSize: "5rem",
+              filter: "drop-shadow(0 10px 15px rgba(0,0,0,0.1))",
+            }}
+          >
             🏗️
           </Typography>
           <CircularProgress
@@ -201,11 +235,11 @@ function DemoHome({ storeSlug }) {
             size="lg"
             thickness={2}
             sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              '--CircularProgress-size': '120px'
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              "--CircularProgress-size": "120px",
             }}
           />
         </Box>
@@ -213,36 +247,60 @@ function DemoHome({ storeSlug }) {
         <Typography level="h3" sx={{ mb: 1, fontWeight: 700 }}>
           Coming Soon
         </Typography>
-        <Typography level="body-lg" sx={{ color: "text.secondary", maxWidth: 500, mx: "auto", mb: 4 }}>
-          We are currently building something amazing for you. <strong>{storeName}</strong> is putting on the finishing touches.
+        <Typography
+          level="body-lg"
+          sx={{ color: "text.secondary", maxWidth: 500, mx: "auto", mb: 4 }}
+        >
+          We are currently building something amazing for you.{" "}
+          <strong>{storeName}</strong> is putting on the finishing touches.
         </Typography>
 
         {/* Layemart Ad / Branding */}
-        <Box 
-          sx={{ 
-            pt: 4, 
-            borderTop: '1px solid', 
-            borderColor: 'neutral.200',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 1
+        <Box
+          sx={{
+            pt: 4,
+            borderTop: "1px solid",
+            borderColor: "neutral.200",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 1,
           }}
         >
-          <Typography level="body-xs" sx={{ letterSpacing: '1px', textTransform: 'uppercase', color: 'neutral.500' }}>
-            Powered By
-          </Typography>
-          <Typography 
-            level="title-md" 
-            sx={{ 
-              fontWeight: 900, 
-              color: '#ef4444', // Your branding color
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 0.5 
+          <Typography
+            level="body-xs"
+            sx={{
+              letterSpacing: "1px",
+              textTransform: "uppercase",
+              color: "neutral.500",
             }}
           >
-            LAYEMART <Box component="span" sx={{ fontSize: '10px', px: 0.5, py: 0.2, bgcolor: '#ef4444', color: '#fff', borderRadius: '2px' }}>PRO</Box>
+            Powered By
+          </Typography>
+          <Typography
+            level="title-md"
+            sx={{
+              fontWeight: 900,
+              color: "#ef4444", // Your branding color
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+            }}
+          >
+            LAYEMART{" "}
+            <Box
+              component="span"
+              sx={{
+                fontSize: "10px",
+                px: 0.5,
+                py: 0.2,
+                bgcolor: "#ef4444",
+                color: "#fff",
+                borderRadius: "2px",
+              }}
+            >
+              PRO
+            </Box>
           </Typography>
           <Typography level="body-xs" sx={{ mt: 1 }}>
             Create your own professional store in minutes.
@@ -252,16 +310,15 @@ function DemoHome({ storeSlug }) {
     </Box>
   );
 
-
   if (storeData && storeData.isOnboarded === false) {
     return (
       <>
         <Helmet>
-          <title>{storeData.name}  | Coming Soon</title>
+          <title>{storeData.name} | Coming Soon</title>
         </Helmet>
-        <UnderConstructionState 
-          storeName={storeData.name} 
-          storeLogo={storeData.logo?.url} 
+        <UnderConstructionState
+          storeName={storeData.name}
+          storeLogo={storeData.logo?.url}
         />
       </>
     );
@@ -340,7 +397,11 @@ function DemoHome({ storeSlug }) {
 
         <NewsletterSignup storeType={storeData?.storeType} />
 
-        <Footer storeName={storeData?.name} storeDescription={storeData?.description} storeLogo={storeData?.logo?.url} />
+        <Footer
+          storeName={storeData?.name}
+          storeDescription={storeData?.description}
+          storeLogo={storeData?.logo?.url}
+        />
       </div>
     </div>
   );
