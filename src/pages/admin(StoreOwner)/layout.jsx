@@ -15,13 +15,13 @@ import {
   Layers,
   UserCircle,
   User2,
-  BellRing,
   Moon,
   Laptop,
   HelpCircle,
   MenuIcon,
   Zap,
   SunDim,
+  BellOff,
 } from "lucide-react";
 import {
   Box,
@@ -66,7 +66,8 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   const [openNinModal, setOpenNinModal] = useState(false);
   const [nin, setNin] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
-
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   const handlePay = async (planType) => {
@@ -123,9 +124,96 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
     if (!store?.paystack?.subaccountCode) return;
     setIsBankModalOpen(false);
   };
-  const handleOpen = (event) => setAnchorEl(event.currentTarget);
-  const handleClose = () => setAnchorEl(null);
 
+  const handleToggle = (event) => {
+    // If anchorEl has a value, it means the menu is open, so we set it to null to close it.
+    // Otherwise, we set it to the current target to open it.
+    setAnchorEl((prev) => (prev ? null : event.currentTarget));
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/notifications`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          // Add Authorization header if you use JWT tokens
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      const data = await response.json();
+      setNotifications(data.notifications || []);
+      setUnreadCount(data.unreadCount || 0);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      const response = await fetch(
+        `${BACKEND_URL}/api/notifications/read-all`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Adjust based on your auth storage
+          },
+        },
+      );
+
+      if (response.ok) {
+        await fetchNotifications(); // Refresh the list and count
+      } else {
+        console.error("Failed to mark notifications as read");
+      }
+    } catch (err) {
+      console.error("Error marking all read:", err);
+    }
+  };
+
+  // const handleNotificationClick = async (e, notif) => {
+  //  e?.preventDefault?.();
+  // e?.stopPropagation?.();
+
+  //   setAnchorEl(null);
+
+  //   if (notif.link) {
+  //   navigate(notif.link);
+  // }
+  //   // 1. If unread, hit the API to mark it read
+  //   if (!notif.isRead) {
+  //     try {
+
+  //       setNotifications(prev => 
+  //       prev.map(n => n._id === notif._id ? { ...n, isRead: true } : n)
+  //     );
+  //     setUnreadCount(prev => Math.max(0, prev - 1));
+  //       await fetch(`${BACKEND_URL}/api/notifications/${notif._id}/read`, {
+  //         method: "PATCH",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+  //     } catch (err) {
+  //       console.error("Error updating notification status:", err);
+  //       fetchNotifications(); // Re-sync on error
+  //     }
+  //   }
+
+  //   // 2. UI Actions
+  //   setAnchorEl(null); // Close the dropdown
+
+  // };
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000);
+    return () => clearInterval(interval);
+  }, []);
   const handleLogout = () => {
     // 1. Clear state and storage
     logout();
@@ -731,18 +819,149 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Badge badgeContent={3} size="sm" color="danger" variant="solid">
+            {/* Notification Bell */}
+            <Badge
+              badgeContent={unreadCount > 0 ? unreadCount : null}
+              size="sm"
+              color="danger"
+              variant="solid"
+              // Hide badge if count is 0
+              sx={{
+                "& .MuiBadge-badge": {
+                  display: unreadCount === 0 ? "none" : "flex",
+                },
+              }}
+            >
               <IconButton
-                className={`${isDark ? "hover:bg-slate-950!" : ""}`}
+                onClick={handleToggle}
+                className={`${isDark ? "hover:bg-slate-800!" : "hover:bg-transparent!"}`}
                 variant="plain"
                 sx={{ borderRadius: "xl" }}
               >
                 <Bell
-                  className={`${isDark ? "text-slate-200" : ""}`}
+                  className={isDark ? "text-slate-200" : "text-slate-600"}
                   size={20}
                 />
               </IconButton>
             </Badge>
+
+            {/* Notification Dropdown Menu */}
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={() => setAnchorEl(null)}
+              // On mobile, we center it; on desktop, we align to the bell icon
+              placement={window.innerWidth < 600 ? "bottom" : "bottom-end"}
+              variant="outlined"
+              sx={{
+                // 📱 Mobile: 95% of screen width | 💻 Desktop: 360px
+                width: { xs: "95vw", sm: 360 },
+                // Prevent the menu from being off-center on mobile
+                marginLeft: { xs: "2.5vw", sm: 0 },
+                maxHeight: { xs: "60vh", sm: 500 },
+                p: 0,
+                boxShadow: "20px 20px 60px rgba(0,0,0,0.2)",
+                bgcolor: isDark ? "#020618" : "background.body",
+                color: isDark ? "neutral.200" : "text.primary",
+                borderColor: isDark ? "slate.800" : "neutral.outlineBorder",
+                // Fixes the "Menu" from floating too far from the header on mobile
+                mt: 1,
+                "& .MuiList-root": {
+                  p: 0,
+                },
+              }}
+            >
+              {/* Header: Sticky so it stays visible while scrolling notifications */}
+              <Box
+                sx={{
+                  p: 2,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  position: "sticky",
+                  top: 0,
+                  bgcolor: "inherit",
+                  zIndex: 10,
+                  borderBottom: "1px solid",
+                  bgColor: isDark ? "#1d293d" : "background.body",
+                  color: isDark ? "neutral.100" : "text.primary",
+                  borderColor: isDark ? "slate.800" : "neutral.outlineBorder",
+                }}
+              >
+                <Typography className={`${isDark && "text-neutral-100! "}`} level="title-md" fontWeight="bold">
+                  Notifications
+                </Typography>
+                {unreadCount > 0 && (
+                  <Button
+                    size="sm"
+                    variant="plain"
+                    className={`${isDark && "text-neutral-100!"}`}
+                    onClick={handleMarkAllRead}
+                    sx={{ fontSize: "10px", minHeight: 0, py: 0.5 }}
+                  >
+                    Mark all read
+                  </Button>
+                )}
+                <IconButton
+                  size="sm"
+                  variant="plain"
+                  onClick={() => setAnchorEl(null)}
+                  sx={{ display: { sm: "none" } }} // Show close "X" only on mobile
+                >
+                  <X size={18} />
+                </IconButton>
+              </Box>
+
+              <Box sx={{ overflowY: "auto" }}>
+                {notifications.length === 0 ? (
+                  <Box className="flex! items-center! justify-center! flex-col!" sx={{ p: 5, textAlign: "center", color: isDark ? "neutral.400" : "neutral.500" }}>
+                    <BellOff
+                      size={32}
+                      style={{ opacity: 0.2, marginBottom: 8 }}
+                    />
+                    <Typography level="body-xs">All caught up!</Typography>
+                  </Box>
+                ) : (
+                  notifications.slice(0, 4).map((notif) => (
+                    <MenuItem
+                      key={notif._id}
+                      className={`${isDark && "text-neutral-100!  hover:bg-transparent!"}`}
+                      sx={{
+                        py: 2, // Larger touch target for mobile fingers
+                        px: 2,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        whiteSpace: "normal", // Critical: allow text to wrap on small screens
+                        borderBottom: "1px solid",
+                        borderColor: isDark ? "slate.900" : "neutral.softBg",
+                        color: isDark ? "neutral.200" : "text.primary",
+                        bgcolor: !notif.isRead
+                          ? isDark
+                            ? "#f8fafc"
+                            : "rgba(59, 130, 246, 0.05)"
+                          : "transparent",
+                      }}
+                    >
+                      <Typography
+                      className={`${isDark && "text-neutral-100!"}`}
+                        level="title-sm"
+                        sx={{ fontSize: "14px", mb: 0.5 }}
+                      >
+                        {notif.title}
+                      </Typography>
+                      <Typography
+                      className={`${isDark && "text-neutral-400!"}`}
+                        level="body-xs"
+                        sx={{ fontSize: "12px", lineHeight: 1.5 }}
+                      >
+                        {notif.message}
+                      </Typography>
+                    </MenuItem>
+                  ))
+                )}
+              </Box>
+            </Menu>
             <Box
               sx={{
                 width: 34,
@@ -955,64 +1174,86 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
           {store?.plan === "starter" && (
             <Box
-              className="fixed! z-20! bottom-0! end-5  md:end-20"
+              className={`fixed z-20 bottom-4 end-5 md:end-10 transition-all duration-300`}
               sx={{
-                mt: "auto", // Pushes it to the bottom if in a flex container (like a sidebar)
-                pt: 3,
-                pb: 2,
                 display: "flex",
-                flexDirection: "column", // Stacked looks cleaner in dashboard panels
+                flexDirection: "column",
                 alignItems: "center",
-                justifyContent: "center",
-                gap: 0.5,
+                px: 2,
+                py: 1,
+                borderRadius: "12px",
+                // Glassmorphism logic based on isDark
+                bgcolor: isDark
+                  ? "rgba(15, 23, 42, 0.7)"
+                  : "rgba(255, 255, 255, 0.7)",
+                backdropFilter: "blur(10px)",
+                border: "1px solid",
+                borderColor: isDark
+                  ? "rgba(51, 65, 85, 0.5)"
+                  : "rgba(226, 232, 240, 0.8)",
+                boxShadow: isDark
+                  ? "0 4px 15px -3px rgba(0, 0, 0, 0.5)"
+                  : "0 4px 15px -3px rgba(0, 0, 0, 0.08)",
+                "&:hover": {
+                  transform: "translateY(-3px)",
+                  borderColor: isDark
+                    ? "rgba(59, 130, 246, 0.4)"
+                    : "rgba(59, 130, 246, 0.2)",
+                  bgcolor: isDark ? "rgba(15, 23, 42, 0.9)" : "#ffffff",
+                },
               }}
             >
               <Typography
                 sx={{
-                  fontSize: "9px",
-                  fontWeight: 700,
-                  color: "text.tertiary",
+                  fontSize: "8px",
+                  fontWeight: 800,
+                  // Text color shifts for readability
+                  color: isDark ? "#94a3b8" : "#64748b",
                   textTransform: "uppercase",
-                  letterSpacing: "1px",
+                  letterSpacing: "1.5px",
+                  mb: 0.3,
                 }}
               >
                 Powered by
               </Typography>
 
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                {/* Optional: Add a small logo icon here if you have one */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
+                {/* Animated Logo Mark */}
+                <Box
+                  sx={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: "4px",
+                    background:
+                      "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 2px 6px rgba(37, 99, 235, 0.4)",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "1px",
+                      bgcolor: "white",
+                    }}
+                  />
+                </Box>
+
                 <Typography
                   sx={{
-                    fontSize: "12px",
+                    fontSize: "11px",
                     fontWeight: 900,
-                    color: "text.primary",
-                    letterSpacing: "-0.2px",
+                    // LAYEMART text turns white in dark mode
+                    color: isDark ? "#f8fafc" : "#0f172a",
+                    letterSpacing: "0.5px",
+                    fontFamily: "'Inter', sans-serif",
                   }}
                 >
                   LAYEMART
                 </Typography>
-
-                {/* A small "Starter" badge makes it look like a feature of the dashboard */}
-                <Box
-                  sx={{
-                    px: 0.8,
-                    py: 0.1,
-                    bgcolor: "warning.softBg",
-                    borderRadius: "4px",
-                    border: "1px solid",
-                    borderColor: "warning.outlineBorder",
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: "8px",
-                      fontWeight: 800,
-                      color: "warning.darkerText",
-                    }}
-                  >
-                    STARTER
-                  </Typography>
-                </Box>
               </Box>
             </Box>
           )}
