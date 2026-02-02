@@ -1403,7 +1403,12 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                   <Input
                     type="number"
                     value={inventory}
-                    onChange={(e) => setInventory(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "" || Number(val) >= 0) {
+                        setInventory(val);
+                      }
+                    }}
                     endDecorator={
                       <Typography level="body-xs">units</Typography>
                     }
@@ -1437,6 +1442,10 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                             bgcolor: isDark ? "#1e293b" : "neutral.100",
                           },
                         },
+                      },
+                      input: {
+                        min: 0,
+                        step: 1, // Optional: keeps it to whole units
                       },
                     }}
                   />
