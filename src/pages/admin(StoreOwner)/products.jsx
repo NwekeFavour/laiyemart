@@ -191,6 +191,18 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
     }, 150);
   };
 
+
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    const handleWheel = (e) => e.preventDefault();
+    const input = inputRef.current?.querySelector('input');
+    
+    if (input) {
+      input.addEventListener("wheel", handleWheel, { passive: false });
+    }
+    return () => input.removeEventListener("wheel", handleWheel);
+  }, []);
   const handleCreateProduct = async () => {
     if (
       !name ||
@@ -1401,6 +1413,8 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                     Inventory / Stock
                   </FormLabel>
                   <Input
+                    onKeyDown={(e) => ["e", "E", "-", "+"].includes(e.key) && e.preventDefault()}
+                    ref={inputRef}
                     type="number"
                     value={inventory}
                     onChange={(e) => {
@@ -1445,7 +1459,8 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                       },
                       input: {
                         min: 0,
-                        step: 1, // Optional: keeps it to whole units
+                        step: 1, 
+                        onWheel: (e) => e.target.blur(),
                       },
                     }}
                   />
