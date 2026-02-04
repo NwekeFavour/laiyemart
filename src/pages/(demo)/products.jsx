@@ -493,7 +493,7 @@ function Products({ storeSlug, isStarter }) {
                         stiffness: 300,
                         damping: 20,
                       }}
-                      className="w-full max-w-100 mx-auto md:max-w-[280px]"
+                      className="w-full max-w-100 mx-auto md:max-w-97.5 lg:max-w-70"
                     >
                       <Box
                         sx={{

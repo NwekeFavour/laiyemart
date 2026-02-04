@@ -141,7 +141,7 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter }) => {
             key={product._id || product.id}
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className="w-full max-w-100 mx-auto md:max-w-[280px]" // ⬅️ Limits the card width
+            className="w-full max-w-100 mx-auto md:max-w-[390px] lg:max-w-[280px]" // ⬅️ Limits the card width
           >
             <Box
               sx={{

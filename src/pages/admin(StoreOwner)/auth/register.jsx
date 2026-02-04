@@ -23,7 +23,6 @@ export default function CustomerSignUp({ isStarter, storeSlug, storeData }) {
     email: "",
     password: "",
   });
-  const login = useCustomerAuthStore((s) => s.login);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -32,58 +31,55 @@ export default function CustomerSignUp({ isStarter, storeSlug, storeData }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    if (!storeSlug) {
-      setError("We couldn't identify which store you are joining.");
-      return;
-    }
-    setError(null);
-    try {
-      const data = await registerCustomer({
-        name: formData.firstName + " " + formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        storeSlug, // 👈 important (subdomain)
-      });
+const handleRegister = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  console.log(storeSlug)
+  if (!storeSlug) {
+    setError("We couldn't identify which store you are joining.");
+    setLoading(false);
+    return;
+  }
+  
+  setError(null);
+  
+  try {
+    const data = await registerCustomer({
+      name: formData.firstName + " " + formData.lastName,
+      email: formData.email,
+      password: formData.password,
+      storeSlug: storeSlug 
+    });
 
-      /**
-       * Expected backend response:
-       * {
-       *   token,
-       *   customer,
-       *   store
-       * }
-       */
+    /**
+     * Updated Backend Response:
+     * { message: "OTP sent to email.", email: "user@example.com" }
+     */
 
-      // ✅ Store auth in Zustand
-      login({
-        token: data.token,
-        customer: data.customer,
-        store: data.store,
-      });
+    toast.success("Registration started! Please check your email for the OTP.", {
+      containerId: "STOREFRONT",
+    });
 
-      // ✅ Redirect to store home or account
-      toast.success("User Registered Successfully", {
-        containerId: "STOREFRONT",
+    // ✅ Redirect to OTP Verification page instead of logging in
+    // We pass the email in the state so the OTP page knows who is verifying
+    setTimeout(() => {
+      navigate(getStorePath(`/verify-otp`), { 
+        state: { email: formData.email } 
       });
-      setTimeout(() => {
-        navigate(getStorePath(`/`));
-      }, 3000);
-    } catch (err) {
-      toast.error(err.message, {
-        containerId: "STOREFRONT",
-      });
-      setTimeout(() => {
-        setError(err.message || "Registration failed. Please try again.");
-      }, 2000);
-      setTimeout(() => setError(null), 7000);
-    } finally {
-      setError(null);
-      setLoading(false);
-    }
-  };
+    }, 2000);
+
+  } catch (err) {
+    toast.error(err.message, {
+      containerId: "STOREFRONT",
+    });
+    setError(err.message || "Registration failed. Please try again.");
+    setTimeout(() => setError(null), 7000);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   const getStorePath = (path) => {
     return isStarter ? `/${storeSlug}${path}` : path;

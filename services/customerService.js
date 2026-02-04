@@ -23,6 +23,29 @@ export const loginCustomer = async ({ email, password, storeSlug }) => {
   return data;
 };
 
+export const verifyCustomerOTP = async ({ email, otp, storeSlug }) => {
+  const res = await fetch(`${API_URL}/api/customers/verify-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, otp, storeSlug }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Verification failed");
+return data;
+};
+
+
+export const resendCustomerOTP = async ({ email, storeSlug }) => {
+  const res = await fetch(`${API_URL}/api/customers/resend-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, storeSlug }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to resend code");
+  return data;
+};
 // 📝 Register
 export const registerCustomer = async ({ email, password, name, storeSlug }) => {
   const res = await fetch(`${API_URL}/api/customers/register`, {

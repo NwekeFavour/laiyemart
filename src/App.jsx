@@ -41,6 +41,7 @@ import AuthSync from "./pages/authsync";
 import StoreManagement from "./pages/admin/stores";
 import CustomerManagement from "./pages/admin/customers";
 import NotFound from "./components/notfound";
+import VerifyOTP from "./pages/admin(StoreOwner)/auth/verify";
 
 function App() {
   const isDashboard = isDashboardSubdomain();
@@ -307,6 +308,7 @@ function App() {
                 <DemoHome storeSlug={activeSlug} resolverType={resType} />
               }
             />
+            <Route path="verify-otp" element={<VerifyOTP storeSlug={activeSlug}/>}/>
             <Route
               path="login"
               element={
