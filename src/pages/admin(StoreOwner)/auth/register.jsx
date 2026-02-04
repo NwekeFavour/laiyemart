@@ -99,7 +99,7 @@ export default function CustomerSignUp({ isStarter, storeSlug, storeData }) {
             </h2>
 
             {/* Store Branding */}
-            <div className="flex items-center gap-3 justify-start w-full my-3">
+            <div onClick={() => navigate(getStorePath("/"))} className="flex items-center gap-3 justify-start w-full my-3 cursor-pointer"> 
               {/* LOGO SECTION */}
               <div className="relative">
                 {storeData?.logo?.url ? (

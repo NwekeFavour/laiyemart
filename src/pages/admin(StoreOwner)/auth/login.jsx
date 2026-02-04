@@ -170,9 +170,9 @@ export default function AuthPage({ isDark, storeSlug, isStarter, storeData }) {
            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-3">
               Welcome back!
             </h2>
-          <div className="flex items-center gap-3 justify-start w-full">
+          <div onClick={() => navigate(getStorePath("/"))} className="flex items-center gap-3 justify-start w-full cursor-pointer">
             {/* LOGO SECTION */}
-            <div className="relative">
+            <div  className="relative cursor-pointer">
               {storeData?.logo?.url ? (
                 <img
                   src={storeData.logo.url}
