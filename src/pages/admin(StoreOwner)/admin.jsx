@@ -932,9 +932,8 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                           : isDark
                             ? "neutral.200"
                             : "neutral.700",
-                        textDecoration: item.done ? "line-through" : "none",
-                         textDecorationColor: 'red'
-                         ,textDecorationStyle: 'solid'
+                        textDecoration: item.done ? "line-through neutral.900" : "none",
+                        
                       }}
                     >
                       {item.task}

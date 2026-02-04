@@ -47,7 +47,7 @@ const HERO_CONTENT = {
   },
 };
 
-export default function Hero({ onCreateStore, storeName, storeLogo, storeType, storeHero }) {
+export default function Hero({ onCreateStore, storeName, storeLogo, storeType, storeHero, storeHeroTitle, storeHeroSubtitle }) {
   const content = HERO_CONTENT[storeType] || HERO_CONTENT["General Store"];
 
   const heroStyle = {
@@ -102,7 +102,8 @@ export default function Hero({ onCreateStore, storeName, storeLogo, storeType, s
             leading-[0.9] tracking-tighter
             ${storeHero ? "text-white drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]" : "text-black"}
           `}>
-            {content.headline}
+            {!storeHeroSubtitle ? content.subtext : storeHeroSubtitle}
+
           </h1>
 
           {/* Separator Line */}
@@ -113,7 +114,8 @@ export default function Hero({ onCreateStore, storeName, storeLogo, storeType, s
             md:text-[20px] text-[16px]
             ${storeHero ? "text-white/90" : "text-neutral-600"}
           `}>
-            {content.subtext}
+            {!storeHeroTitle ? content.headline : storeHeroTitle}
+
           </p>
 
           <div className="mt-12">

@@ -56,7 +56,10 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     newPassword: "",
     confirmPassword: "",
   });
+  
   const { store, user, token, setUser, setStore } = useAuthStore();
+  const [formHeroTitle, setFormHeroTitle] = useState(store?.heroTitle || "");
+const [formHeroSubtitle, setFormHeroSubtitle] = useState(store?.heroSubtitle || "");
   const [banks, setBanks] = useState([]);
   const [storeDits, setStoreDits] = useState(store);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -225,6 +228,8 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
         email: formEmail,
         storeType: formStoreType,
         description: formDescription,
+        heroTitle: formHeroTitle,
+      heroSubtitle: formHeroSubtitle,
         heroFile: heroFile, // Key name matches Zustand expectations
         logo: logoFile,
         token,
@@ -235,11 +240,16 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
       if (result && result.store) {
         // Synchronize your local display state immediately
         setStoreDits(result.store);
-       
-          toast.success(formEmail !== store?.email ? "Changes saved! Check your inbox to verify." : "Store profile updated successfully", {
-            icon:  formEmail !== store?.email && "📩",
+
+        toast.success(
+          formEmail !== store?.email
+            ? "Changes saved! Check your inbox to verify."
+            : "Store profile updated successfully",
+          {
+            icon: formEmail !== store?.email && "📩",
             duration: 6000,
-          });        
+          },
+        );
 
         setLogoFile(null);
         setHeroFile(null);
@@ -468,8 +478,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
           sx={{
             color: isDone ? "text.primary" : "text.tertiary",
             fontWeight: isDone ? 500 : 400,
-            textDecoration: isDone ? "line-through" : "none", // Optional: strikes through finished tasks
-             textDecorationColor: 'red',textDecorationStyle: 'solid',
+            textDecoration: isDone ? "line-through neutral.900" : "none", // Optional: strikes through finished tasks
             opacity: isDone ? 0.7 : 1,
           }}
         >
@@ -764,6 +773,98 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                       Recommended: 1920x1080px • Max 2MB • JPG, PNG, WebP
                     </Typography>
                   </Stack>
+                </FormControl>
+                {/* --- HERO TITLE SECTION --- */}
+                <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    Hero Title
+                  </FormLabel>
+                  <Box sx={{ flex: 1, maxWidth: 400 }}>
+                    <Input
+                      placeholder="e.g. Quality Gear for Modern Living"
+                      value={formHeroTitle}
+                      onChange={(e) => {
+                        if (e.target.value.length <= 40)
+                          setFormHeroTitle(e.target.value);
+                      }}
+                      endDecorator={
+                        <Typography
+                          level="body-xs"
+                          sx={{
+                            fontWeight: 700,
+                            color: isDark ? "slate.500" : "neutral.500",
+                          }}
+                        >
+                          {formHeroTitle?.length || 0} / 40
+                        </Typography>
+                      }
+                      sx={{
+                        borderRadius: "lg",
+                        bgcolor: isDark ? "#0f172a" : "white",
+                        color: isDark ? "#f1f5f9" : "inherit",
+                        borderColor: isDark ? "#1e293b" : "#e2e8f0",
+                      }}
+                    />
+                  </Box>
+                </FormControl>
+
+                {/* --- HERO SUBTITLE / PARAGRAPH SECTION --- */}
+                <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    Hero Paragraph
+                  </FormLabel>
+                  <Box sx={{ flex: 1, maxWidth: 400 }}>
+                    <Textarea
+                      minRows={3}
+                      placeholder="Describe your store in detail..."
+                      value={formHeroSubtitle}
+                      onChange={(e) => {
+                        if (e.target.value.length <= 120)
+                          setFormHeroSubtitle(e.target.value);
+                      }}
+                      endDecorator={
+                        <Typography
+                          level="body-xs"
+                          sx={{
+                            ml: "auto",
+                            fontWeight: 700,
+                            color: isDark
+                              ? formHeroSubtitle?.length >= 120
+                                ? "warning.400"
+                                : "slate.500"
+                              : "neutral.500",
+                          }}
+                        >
+                          {formHeroSubtitle?.length || 0} / 120 characters
+                        </Typography>
+                      }
+                      sx={{
+                        borderRadius: "md",
+                        bgcolor: isDark ? "#0f172a" : "white",
+                        color: isDark ? "#f1f5f9" : "inherit",
+                        borderColor: isDark ? "#1e293b" : "neutral.300",
+                        "& .MuiTextarea-endDecorator": {
+                          bgcolor: isDark
+                            ? "rgba(30, 41, 59, 0.5)"
+                            : "neutral.50",
+                          borderColor: isDark ? "#1e293b" : "neutral.200",
+                        },
+                      }}
+                    />
+                    <Typography
+                      level="body-xs"
+                      sx={{ mt: 1, color: "text.tertiary" }}
+                    >
+                      This appears directly under your store name on the
+                      homepage.
+                    </Typography>
+                  </Box>
                 </FormControl>
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
                   <FormLabel
@@ -1074,8 +1175,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                                     color: isDark ? "#38bdf8" : "#2563eb",
                                     "&:hover": {
                                       bgcolor: "transparent",
-                                      textDecoration: "underline",
-                                      textDecorationColor: 'red',textDecorationStyle: 'solid',
+                                      textDecoration: "underline neutral.900",
                                       color: isDark ? "#7dd3fc" : "#1d4ed8",
                                     },
                                   }}
@@ -1121,9 +1221,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                     />
                   </Box>
                 </FormControl>
-                <Box
-                  sx={{ display: "flex", justifyContent: "start", gap: 2 }}
-                >
+                <Box sx={{ display: "flex", justifyContent: "start", gap: 2 }}>
                   <Button
                     variant="plain"
                     color="neutral"
@@ -1611,9 +1709,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   </FormControl>
                 )}
 
-                <Box
-                  sx={{ display: "flex", justifyContent: "start", gap: 2 }}
-                >
+                <Box sx={{ display: "flex", justifyContent: "start", gap: 2 }}>
                   <Button
                     className={`${isDark ? "text-slate-200!" : ""}`}
                     variant="plain"

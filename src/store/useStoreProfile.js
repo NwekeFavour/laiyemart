@@ -16,7 +16,7 @@ export const useStoreProfileStore = create((set, get) => ({
   // ============================
 
   setStore: (storeData) => set({ store: storeData }),
-  updateStoreProfile: async ({ email, logo, storeType, description, heroFile, token }) => {
+  updateStoreProfile: async ({ email, logo, storeType, description, heroFile, heroTitle, heroSubtitle, token }) => {
     set({ loading: true, error: null, success: null });
 
     try {
@@ -24,6 +24,8 @@ export const useStoreProfileStore = create((set, get) => ({
       if (email) formData.append("email", email);
       if (logo) formData.append("logo", logo);
       if(description) formData.append("description", description);
+      if(heroTitle) formData.append("heroTitle", heroTitle);
+      if(heroSubtitle) formData.append("heroSubtitle", heroSubtitle);
       if(storeType) formData.append("storeType", storeType);    
       if (heroFile) formData.append("heroImage", heroFile); // Must match backend field name
       const res = await fetch(`${API_URL}/api/stores/profile`, {

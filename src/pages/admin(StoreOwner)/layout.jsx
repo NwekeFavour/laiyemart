@@ -188,7 +188,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   //   if (!notif.isRead) {
   //     try {
 
-  //       setNotifications(prev => 
+  //       setNotifications(prev =>
   //       prev.map(n => n._id === notif._id ? { ...n, isRead: true } : n)
   //     );
   //     setUnreadCount(prev => Math.max(0, prev - 1));
@@ -310,50 +310,88 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
       >
         {/* <div className="w-8 h-8 rounded-lg bg-slate-900 flex-shrink-0" /> */}
         {(!isCollapsed || isMobile) && (
-          <div>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Box
-                sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "6px",
-                  bgcolor: "#ef4444",
-                  flexShrink: 0,
-                }}
-              />
-              {(!isCollapsed || isMobile) && (
-                <Typography
-                  className="text lg:text-[17px] text-[13px]!"
-                  sx={{ color: "#0f172a", whiteSpace: "nowrap" }}
-                >
-                  LAIYE
-                  <span className="text" style={{ color: "#ef4444" }}>
-                    MART
-                  </span>
-                </Typography>
-              )}
-            </Box>
-            {(!isCollapsed || isMobile) && (
-              <Box sx={{ py: 1.5, mb: 1 }}>
-                <Typography
-                  level="body-xs"
+          <div className="flex flex-col min-w-0 py-2">
+            {/* Store Logo Section */}
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}
+            >
+              {store?.logo ? (
+                <Box
+                  component="img"
+                  src={store.logo}
+                  alt="Store Logo"
                   sx={{
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    color: "neutral.500",
-                    textTransform: "uppercase",
+                    width: 32,
+                    height: 32,
+                    borderRadius: "8px",
+                    objectFit: "cover",
+                    flexShrink: 0,
+                    border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
+                  }}
+                />
+              ) : (
+                /* Fallback: First letter of Store Name */
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "8px",
+                    bgcolor: "#ef4444",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    color: "white",
+                    fontWeight: 800,
+                    fontSize: "14px",
                   }}
                 >
-                  Current Store
-                </Typography>
-                <Typography
-                  level="title-md"
-                  sx={{ color: "#0f172a", fontWeight: 800 }}
-                >
-                  {store?.name || "Layemart Store"}
-                </Typography>
-              </Box>
-            )}
+                  {store?.name?.charAt(0).toUpperCase() || "S"}
+                </Box>
+              )}
+
+              {/* Store Branding - Replacing Laiye Mart */}
+              <Typography
+                className={`${isDark ? "text-slate-100!" : ""}`}
+                sx={{
+                  fontSize: "15px",
+                  fontWeight: 800,
+                  color: "#0f172a",
+                  whiteSpace: "nowrap",
+                  letterSpacing: "-0.01em",
+                  textTransform: "uppercase",
+                }}
+              >
+                {store?.name || "STORE PANEL"}
+              </Typography>
+            </Box>
+
+            {/* Status Indicator (Matching your preferred style) */}
+            <div className="flex flex-col pl-0.5">
+              <Typography
+                className={`${isDark ? "text-emerald-400!" : ""}`}
+                level="body-xs"
+                sx={{
+                  color: user ? "success.600" : "danger.500",
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.7,
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    user
+                      ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                      : "bg-red-500"
+                  }`}
+                />
+                {user ? "System Online" : "System Offline"}
+              </Typography>
+            </div>
           </div>
         )}
       </Box>
@@ -370,7 +408,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
             <NavLink
               to={item.path}
               onClick={() => isMobile && setIsMobileOpen(false)}
-              style={({ isActive }) => ({                
+              style={({ isActive }) => ({
                 width: "100%",
                 display: "block",
                 // We use the isActive boolean provided by NavLink or your item.active prop
@@ -887,7 +925,11 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                   borderColor: isDark ? "slate.800" : "neutral.outlineBorder",
                 }}
               >
-                <Typography className={`${isDark && "text-neutral-100! "}`} level="title-md" fontWeight="bold">
+                <Typography
+                  className={`${isDark && "text-neutral-100! "}`}
+                  level="title-md"
+                  fontWeight="bold"
+                >
                   Notifications
                 </Typography>
                 {unreadCount > 0 && (
@@ -913,7 +955,14 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
               <Box sx={{ overflowY: "auto" }}>
                 {notifications.length === 0 ? (
-                  <Box className="flex! items-center! justify-center! flex-col!" sx={{ p: 5, textAlign: "center", color: isDark ? "neutral.400" : "neutral.500" }}>
+                  <Box
+                    className="flex! items-center! justify-center! flex-col!"
+                    sx={{
+                      p: 5,
+                      textAlign: "center",
+                      color: isDark ? "neutral.400" : "neutral.500",
+                    }}
+                  >
                     <BellOff
                       size={32}
                       style={{ opacity: 0.2, marginBottom: 8 }}
@@ -943,14 +992,14 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                       }}
                     >
                       <Typography
-                      className={`${isDark && "text-neutral-100!"}`}
+                        className={`${isDark && "text-neutral-100!"}`}
                         level="title-sm"
                         sx={{ fontSize: "14px", mb: 0.5 }}
                       >
                         {notif.title}
                       </Typography>
                       <Typography
-                      className={`${isDark && "text-neutral-400!"}`}
+                        className={`${isDark && "text-neutral-400!"}`}
                         level="body-xs"
                         sx={{ fontSize: "12px", lineHeight: 1.5 }}
                       >

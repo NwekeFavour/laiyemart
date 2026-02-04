@@ -363,7 +363,7 @@ const handleAddToCart = async () => {
                 fontSize: "14px",
                 fontWeight: 700,
                 color: "#F68B1E",
-                "&:hover": {  textDecoration: "underline", textDecorationColor: 'red',textDecorationStyle: 'solid' },
+                "&:hover": {  textDecoration: "underline neutral.900"  },
               }}
             >
               SEE ALL <ChevronRight size={16} />
@@ -483,7 +483,7 @@ const ProductSliderItem = ({ item, navigate }) => (
     {item.price && (
       <Typography
         level="body-xs"
-        sx={{ textDecoration: "line-through", textDecorationColor: 'red',textDecorationStyle: 'solid', color: "#75757A" }}
+        sx={{ textDecoration: "line-through neutral.900",color: "#75757A" }}
       >
         ₦{(item.price * 1.2).toLocaleString()}
       </Typography>

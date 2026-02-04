@@ -376,6 +376,8 @@ useEffect(() => {
           storeLogo={storeData?.logo?.url}
           storeType={storeData?.storeType}
           storeHero={storeData?.heroImage?.url}
+          storeHeroSubtitle={storeData?.heroTitle}
+          storeHeroTitle={storeData?.heroSubtitle}
         />
 
         {/* Dynamic New Arrivals Heading passed via props if Slider supports it */}

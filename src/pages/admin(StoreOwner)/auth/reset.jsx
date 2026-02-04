@@ -189,7 +189,7 @@ export default function ResetPasswordPage({ isDark }) {
             to="/login"
             variant="plain"
             startDecorator={<ArrowLeft size={16} />}
-            sx={{ color: colors.textMuted, fontSize: "14px", "&:hover": { bgcolor: "transparent", textDecoration: "underline", textDecorationColor: 'red',textDecorationStyle: 'solid' } }}
+            sx={{ color: colors.textMuted, fontSize: "14px", "&:hover": { bgcolor: "transparent", textDecoration: "underline neutral.900"} }}
           >
             Back to Login
           </Button>

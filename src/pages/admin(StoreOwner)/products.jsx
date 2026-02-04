@@ -551,7 +551,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
               <thead>
                 <tr>
                   <th style={{ width: 48, textAlign: "center" }}>
-                    <Checkbox size="sm" />
+                    S/N
                   </th>
                   {[
                     { label: "Product ID", width: 140 },
@@ -827,7 +827,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                     return (
                       <tr key={i} className={hoverRow}>
                         <td style={{ textAlign: "center" }}>
-                          <Checkbox size="sm" />
+                          {i + 1}
                         </td>
 
                         <td>

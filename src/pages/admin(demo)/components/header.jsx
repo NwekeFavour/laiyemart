@@ -127,9 +127,7 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
                   key={item}
                   to={targetPath}
                   style={{
-                    textDecoration: active ? "underline" : "none",
-                    textDecorationColor: 'neutral.900',
-                    textDecorationStyle: 'solid',
+                    textDecoration: active ? "underline neutral.900" : "none",
                     color: "#111827",
                     fontWeight: 600,
                     fontSize: 14,
@@ -268,10 +266,8 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
                     style={{
                       fontSize: 18,
                       fontWeight: active ? 700 : 500,
-                      textDecoration: active ? "underline" : "none",                      
-                      textDecorationStyle: 'solid',
+                      textDecoration: active ? "underline #ef4444" : "none",                      
                       textUnderlineOffset: "6px",
-                      textDecorationColor: "#ef4444",
                       color: "#111827",
                     }}
                   >

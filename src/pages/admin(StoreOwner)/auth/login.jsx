@@ -310,7 +310,7 @@ export default function AuthPage({ isDark, storeSlug, isStarter, storeData }) {
                           fontWeight: 600,
                           color: "#ef4444",
                           cursor: "pointer",
-                          "&:hover": { textDecoration: "underline" , textDecorationColor: 'red',textDecorationStyle: 'solid'},
+                          "&:hover": { textDecoration: "underline neutral.900"},
                         }}
                       >
                         Forgot?

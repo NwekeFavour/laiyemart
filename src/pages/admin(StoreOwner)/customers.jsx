@@ -30,6 +30,7 @@ function CustomerList({ isDark, toggleDarkMode }) {
   const { store } = useAuthStore.getState();
   const storeId = store?._id;
   // console.log(storeId);
+  const [stats, setStats] = useState({ total: 0, verified: 0, leads: 0 });
   const [error, setError] = useState(null);
   const { token } = useAuthStore.getState();
   const [showMore, setShowMore] = useState(false);
@@ -83,17 +84,31 @@ function CustomerList({ isDark, toggleDarkMode }) {
     if (storeId) fetchCustomers();
   }, [storeId]);
 
+
+  useEffect(() => {
+  const fetchStats = async () => {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/customers/${storeId}/customers/stats`, {
+       headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.success) setStats(data.stats);
+  };
+  if (token && storeId) fetchStats();
+}, [storeId]);
+
+// console.log(stats)
+
   const filteredCustomers = customers.filter(
-    (customer) =>
-      customer.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer._id?.toLowerCase().includes(searchQuery.toLowerCase()),
+    (c) =>
+      c.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage) || 1;
   const currentItems = filteredCustomers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
+  // console.log(customers)
   return (
     <StoreOwnerLayout isDark={isDark} toggleDarkMode={toggleDarkMode}>
       <div
@@ -164,30 +179,29 @@ function CustomerList({ isDark, toggleDarkMode }) {
                   <tr
                     className={`text-[12px] font-bold uppercase tracking-wider ${themeHeader}`}
                   >
-                    <th
-                      className={`px-6 py-4 w-10 border-b border-r ${borderColor} sticky left-0 z-10 ${
-                        isDark ? "bg-slate-800/50" : "bg-white"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        className="rounded-sm accent-blue-600"
-                      />
-                    </th>
-
                     {["S/N", "Customer", "Orders", "Status", "Created At"].map(
                       (header) => (
                         <th
                           key={header}
-                          className={`px-4 py-4 border-b border-r ${borderColor} whitespace-nowrap`}
+                          className={`px-4 py-4 border-b border-r last:border-r-0 ${borderColor} whitespace-nowrap`}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            {header}
-                            <HeaderDropdown
-                              isDark={isDark}
-                              onSortAsc={() => handleSort(header, "asc")}
-                              onSortDesc={() => handleSort(header, "desc")}
-                            />
+                            <span
+                              className={
+                                isDark ? "text-slate-300" : "text-gray-600"
+                              }
+                            >
+                              {header}
+                            </span>
+
+                            {/* Only show sorting for columns that actually need it */}
+                            {header !== "S/N" && (
+                              <HeaderDropdown
+                                isDark={isDark}
+                                onSortAsc={() => handleSort(header, "asc")}
+                                onSortDesc={() => handleSort(header, "desc")}
+                              />
+                            )}
                           </div>
                         </th>
                       ),
@@ -197,93 +211,39 @@ function CustomerList({ isDark, toggleDarkMode }) {
 
                 <tbody className={isDark ? "bg-slate-900" : "bg-white"}>
                   {loading ? (
-                    // 2. LOADING STATE
-                    [...Array(5)].map((_, i) => (
-                      <div>
-                        <div className="flex flex-col items-center justify-center h-screen bg-white text-slate-900">
-                          {/* Top Loading Bar (Stripe-style) */}
+                    /* CORRECTED LOADING STATE */
+                    <tr>
+                      <td colSpan={5} className="py-20">
+                        <div className="flex flex-col items-center justify-center min-h-[400px]">
+                          {/* Top Loading Bar - Stripe-style */}
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: "100%" }}
                             transition={{ duration: 2, ease: "easeInOut" }}
                             className="fixed top-0 left-0 h-1 bg-red-500 z-50"
                           />
-
-                          <div className="flex flex-col items-center gap-6">
-                            {/* Minimalist Logo Container */}
-                            <div className="relative flex items-center justify-center w-20 h-20">
-                              {/* Subtle Outer Glow */}
-                              <motion.div
-                                animate={{
-                                  scale: [1, 1.1, 1],
-                                  opacity: [0.1, 0.2, 0.1],
-                                }}
-                                transition={{ duration: 3, repeat: Infinity }}
-                                className="absolute inset-0 bg-red-500 rounded-2xl blur-xl"
-                              />
-
-                              {/* Main Logo Icon */}
-                              <div className="relative w-16 h-16 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-center">
-                                <span className="text-3xl font-black text-red-500 tracking-tighter">
-                                  L
-                                </span>
-
-                                {/* Spinning Ring - Thin and elegant */}
-                                <div className="absolute inset-[-4px] border-2 border-transparent border-t-red-500/30 rounded-2xl animate-spin" />
-                              </div>
-                            </div>
-                          </div>
                         </div>
-                        <tr key={i} className="animate-pulse">
-                          <td
-                            colSpan={7}
-                            className={`px-6 py-6 border-b ${borderColor}`}
-                          >
-                            <div
-                              className={`h-4 w-full rounded ${
-                                isDark ? "bg-slate-800" : "bg-gray-100"
-                              }`}
-                            />
-                          </td>
-                        </tr>
-                      </div>
-                    ))
+                      </td>
+                    </tr>
                   ) : currentItems.length > 0 ? (
-                    // 3. DATA STATE
+                    /* DATA STATE (Matches the 5 column headers) */
                     currentItems.map((customer, idx) => (
                       <tr
-                        key={customer._id}
+                        key={customer._id || idx}
                         className={`${themeBody} ${hoverRow} transition-colors group`}
                       >
-                        {/* Ch eckbox Cell - Sticky for better mobile UX */}
                         <td
-                          className={`px-6 py-4 border-b border-r ${borderColor} sticky left-0 z-10 ${
-                            isDark ? "bg-slate-950" : "bg-white"
-                          }`}
+                          className={`px-4 py-4 border-b border-r ${borderColor} font-medium text-slate-600 whitespace-nowrap`}
                         >
-                          <input
-                            type="checkbox"
-                            className="rounded-sm accent-slate-600"
-                          />
+                          {(currentPage - 1) * itemsPerPage + idx + 1}
                         </td>
-
-                        <td
-                          className={`px-4 py-4 border-b border-r ${borderColor} ${
-                            isDark ? "text-slate-300" : ""
-                          } font-medium text-slate-600 whitespace-nowrap`}
-                        >
-                          {idx + 1}
-                        </td>
-
                         <td
                           className={`px-6 py-4 border-b border-r ${borderColor} whitespace-nowrap`}
                         >
                           <div className="flex items-center gap-3">
                             <div className="leading-tight">
                               <div
-                                className={`font-bold ${
-                                  isDark ? "text-slate-200" : "text-gray-900"
-                                }`}
+                                className={`font-bold ${isDark ? "text-slate-200" : "text-gray-900"}`}
                               >
                                 {customer.name}
                               </div>
@@ -293,17 +253,11 @@ function CustomerList({ isDark, toggleDarkMode }) {
                             </div>
                           </div>
                         </td>
-
                         <td
                           className={`px-4 py-4 border-b border-r ${borderColor} text-center font-semibold whitespace-nowrap`}
                         >
-                          {customer.orders}
+                          {customer.orderCount || 0}
                         </td>
-                        {/*             
-                                    <td className={`px-4 py-4 border-b border-r ${borderColor} whitespace-nowrap`}>
-                                    ₦{customer.avgSpent.toFixed(2)}
-                                    </td> */}
-
                         <td
                           className={`px-4 py-4 border-b border-r ${borderColor} whitespace-nowrap`}
                         >
@@ -314,12 +268,11 @@ function CustomerList({ isDark, toggleDarkMode }) {
                                 : "bg-amber-500/10 text-amber-500"
                             }`}
                           >
-                            {customer.status}
+                            {customer.isVerified ? "Verified" : "Lead"}
                           </span>
                         </td>
-
                         <td
-                          className={`px-4 py-4 border-b border-r ${borderColor} whitespace-nowrap`}
+                          className={`px-4 py-4 border-b border-r last:border-r-0 ${borderColor} whitespace-nowrap`}
                         >
                           {customer.createdAt
                             ? new Date(customer.createdAt).toLocaleDateString(

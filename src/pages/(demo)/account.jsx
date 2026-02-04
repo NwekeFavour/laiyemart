@@ -253,7 +253,7 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
           p: 0,
           mb: 3,
           fontWeight: 700,
-          "&:hover": { bgcolor: "transparent", textDecoration: "underline",textDecorationColor: 'neutral.900', textDecorationStyle: 'solid' },
+          "&:hover": { bgcolor: "transparent", textDecoration: "underline neutral.900" },
         }}
       >
         BACK TO ORDERS
@@ -675,7 +675,7 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
                               pt: 2,
                               cursor: "pointer",
                               fontWeight: 700,
-                              "&:hover": { textDecoration: "underline", textDecorationColor: 'red',textDecorationStyle: 'solid' },
+                              "&:hover": { textDecoration: "underline neutral.900"  },
                             }}
                           >
                             {hasAddress ? "EDIT ADDRESS" : "ADD ADDRESS"}
@@ -1065,9 +1065,8 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
                                     fontSize: "13px",
                                     "&:hover": {
                                       bgcolor: "transparent",
-                                      textDecoration: "underline",
-                                      textDecorationColor: 'neutral.900',
-                                      textDecorationStyle: 'solid'
+                                      textDecoration: "underline neutral.900"
+                                      
                                     },
                                   }}
                                 >
