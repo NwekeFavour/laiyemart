@@ -332,7 +332,7 @@ const handleAddToCart = async () => {
                 className="text-slate-900/80! underline!"
                 variant="plain"
                 size="sm"
-                onClick={() => navigate("/shop")}
+                onClick={() => navigate(getStorePath("/shop"))}
                 fullWidth
                 sx={{ mt: 2, color: "#F68B1E" }}
               >
@@ -358,7 +358,7 @@ const handleAddToCart = async () => {
             </Typography>
             <Link
               className="text-slate-900/80! underline!"
-              onClick={() => navigate(`/shop`)}
+              onClick={() => navigate(getStorePath(`/shop`))}
               sx={{
                 fontSize: "14px",
                 fontWeight: 700,
@@ -380,7 +380,7 @@ const handleAddToCart = async () => {
             {relatedProducts.map((item) => (
               <Box
                 key={item._id}
-                onClick={() => navigate(`/shop/product/${item._id}`)}
+                onClick={() => navigate(getStorePath(`/shop/product/${item._id}`))}
                 sx={{
                   p: 1,
                   cursor: "pointer",
