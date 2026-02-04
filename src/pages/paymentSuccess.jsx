@@ -25,7 +25,7 @@ export default function PaymentSuccess() {
         if (res.ok) {
           setStatus("success");
           // Hold the success screen for a moment for UX
-          setTimeout(() => navigate("/dashboard/beta"), 3000);
+          setTimeout(() => navigate("/auth/sign-in"), 3000);
         } else {
           setStatus("error");
         }
