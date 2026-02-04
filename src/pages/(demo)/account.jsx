@@ -50,7 +50,7 @@ import {
 } from "@mui/material";
 import { getSubdomain } from "../../../storeResolver";
 
-export default function CustomerAccountPage({ storeData, customer, isDark }) {
+export default function CustomerAccountPage({storeSlug, storeData, customer, isDark , isStarter}) {
   const location = useLocation();
 const [searchParams] = useSearchParams();
 const initialTab = searchParams.get("tab") || location.state?.activeTab || "overview";
@@ -82,10 +82,14 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
     textMuted: isDark ? "#94a3b8" : "#64748b",
   };
 
+
+  const getStorePath = (path) => {
+    return isStarter ? `/${storeSlug}${path}` : path;
+  };
   const handleConfirmLogout = () => {
     logoutCustomer();
     setIsLogoutModalOpen(false);
-    setTimeout(() => navigate("/login"), 2000);
+    setTimeout(() => navigate(getStorePath("/login")), 2000);
     toast.success("Logged out successfully", {
       containerId: "STOREFRONT",
     });
@@ -99,7 +103,7 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
-              "x-store-slug": subdomain,
+              "x-store-slug": storeSlug,
             },
           });
           const data = await response.json(); // Fix: Must await .json()
@@ -249,7 +253,7 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
           p: 0,
           mb: 3,
           fontWeight: 700,
-          "&:hover": { bgcolor: "transparent", textDecoration: "underline" },
+          "&:hover": { bgcolor: "transparent", textDecoration: "underline",textDecorationColor: 'neutral.900', textDecorationStyle: 'solid' },
         }}
       >
         BACK TO ORDERS
@@ -491,7 +495,7 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
   );
 
   return (
-    <CustomerAccountLayout storeData={storeData} title="My Account">
+    <CustomerAccountLayout storeData={storeData} title="My Account" isStarter={isStarter} storeSlug={storeSlug}>
       <Box sx={{ bgcolor: colors.bg, py: { xs: 4, md: 8 }, minHeight: "70vh" }}>
         <Box sx={{ maxWidth: 1200, mx: "auto", px: 2 }}>
           <Grid container spacing={3}>
@@ -499,6 +503,8 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
             <Grid xs={12} md={3.5}>
               <Card
                 sx={{
+                  position: { md: 'sticky' }, // Only sticky on desktop
+                  top: { md: '60px', lg: "100px", xl: "50px"},
                   p: 0,
                   bgcolor: colors.card,
                   border: "1px solid",
@@ -669,7 +675,7 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
                               pt: 2,
                               cursor: "pointer",
                               fontWeight: 700,
-                              "&:hover": { textDecoration: "underline" },
+                              "&:hover": { textDecoration: "underline", textDecorationColor: 'red',textDecorationStyle: 'solid' },
                             }}
                           >
                             {hasAddress ? "EDIT ADDRESS" : "ADD ADDRESS"}
@@ -1060,6 +1066,8 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
                                     "&:hover": {
                                       bgcolor: "transparent",
                                       textDecoration: "underline",
+                                      textDecorationColor: 'neutral.900',
+                                      textDecorationStyle: 'solid'
                                     },
                                   }}
                                 >

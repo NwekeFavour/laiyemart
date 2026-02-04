@@ -30,15 +30,37 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
 
   const uniqueItemCount = cart?.items?.length || 0;
 
+    const getStorePath = (path) => {
+    // 1. Clean the path to ensure it starts with / and has no double slashes
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+    // 2. Determine if we are ALREADY on a subdomain
+    const hostname = window.location.hostname;
+    const isCurrentlySubdomain =
+      hostname.split(".").length > 2 ||
+      (hostname.includes("localhost") &&
+        hostname.split(".").length > 1 &&
+        !hostname.startsWith("localhost"));
+
+    // 3. If we are on a subdomain (Professional), NEVER use the slug in the path
+    if (isCurrentlySubdomain) {
+      return cleanPath;
+    }
+
+    // 4. If we are on the main domain (Starter), we MUST use the slug
+    // Handle the "Home" case where path is just "/"
+    if (cleanPath === "/") return `/${storeSlug}`;
+
+    return `/${storeSlug}${cleanPath}`;
+  };
+
+
   const handleLogout = () => {
     logout();
     toast.success("Signed out successfully");
-    navigate("/login");
+    navigate(getStorePath("/login"));
   };
 
-      const getStorePath = (path) => {
-    return isStarter ? `/${storeSlug}${path}` : path;
-  };
 
   const categories = useMemo(() => {
     const names = products.map((p) => p.category?.name).filter(Boolean);
@@ -95,28 +117,19 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
             sx={{ display: { xs: "none", md: "flex" } }}
           >
             {navItems.map((item) => {
-              // 1. Logic for Path Construction
-              const base = isStarter ? `/${storeSlug}` : "";
-              let targetPath;
-
-              if (item === "Home") {
-                targetPath = isStarter ? `${base}` : "/";
-              } else {
-                // Assuming "Shop" or other items
-                targetPath = `${base}/${item.toLowerCase()}`;
-              }
-
-              // 2. Logic for Active State
+              // Convert "Home" to "/", others to "/shop", "/about", etc.
+              const rawPath = item === "Home" ? "/" : `/${item.toLowerCase()}`;
+              const targetPath = getStorePath(rawPath);
               const active = pathname === targetPath;
 
               return (
                 <Link
                   key={item}
-                  to={targetPath} // Removed localStorage check to prevent flickering
+                  to={targetPath}
                   style={{
                     textDecoration: active ? "underline" : "none",
-                    textUnderlineOffset: "6px",
-                    textDecorationColor: "#ef4444",
+                    textDecorationColor: 'red',
+                    textDecorationStyle: 'solid',
                     color: "#111827",
                     fontWeight: 600,
                     fontSize: 14,
@@ -130,8 +143,8 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
           {/* Right */}
           <Stack direction="row" spacing={2} alignItems="center">
             <Link
-              to={localStorage.getItem("demo") ? "#" : "/cart"}
-              style={{ textDecoration: "none", color: "inherit" }}
+              to={localStorage.getItem("demo") ? "#" : getStorePath("/cart")}
+              style={{  color: "inherit" }}
             >
               <Badge
                 // Show the actual count
@@ -174,7 +187,7 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
                 sx={{ display: { xs: "none", md: "flex" } }}
               >
                 {isAuthenticated ? (
-                  <Link to="/account">
+                  <Link to={getStorePath("/account")}>
                     <Button
                       className="px-5! border-slate-900! text-slate-800/90! hover:bg-slate-300/10!"
                       size="sm"
@@ -255,7 +268,8 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
                     style={{
                       fontSize: 18,
                       fontWeight: active ? 700 : 500,
-                      textDecoration: active ? "underline" : "none",
+                      textDecoration: active ? "underline" : "none",                      
+                      textDecorationStyle: 'solid',
                       textUnderlineOffset: "6px",
                       textDecorationColor: "#ef4444",
                       color: "#111827",
@@ -287,7 +301,7 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
                 categories.map((category) => (
                   <Link
                     key={category} // Use the string as the key
-                    to="/shop"
+                    to={getStorePath("/shop")}
                     state={{
                       selectedCategory: category, // This must match the string in your Products category list
                     }}
@@ -296,7 +310,6 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
                       fontSize: 16,
                       fontWeight: 500,
                       color: "#111827",
-                      textDecoration: "none",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",

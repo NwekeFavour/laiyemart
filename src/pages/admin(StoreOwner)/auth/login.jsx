@@ -35,7 +35,6 @@ import { toast } from "react-toastify";
 
 export default function AuthPage({ isDark, storeSlug, isStarter, storeData }) {
   const [showPassword, setShowPassword] = useState(false);
-  const { storeSlug: paramSlug } = useParams();
   const [isForgotMode, setIsForgotMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -54,12 +53,18 @@ export default function AuthPage({ isDark, storeSlug, isStarter, storeData }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const activeSlug = paramSlug || getSubdomain();
 
+
+    const getStorePath = (path) => {
+    return isStarter ? `/${storeSlug}${path}` : path;
+  };
+
+  
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
 
     try {
       await loginCustomer({
@@ -67,7 +72,7 @@ export default function AuthPage({ isDark, storeSlug, isStarter, storeData }) {
         password: formData.password,
         // Even though your service doesn't take storeSlug yet,
         // we'll pass it to be safe for multi-tenant logic
-        storeSlug: activeSlug,
+        storeSlug
       });
 
       // Redirect to store home on success
@@ -75,7 +80,7 @@ export default function AuthPage({ isDark, storeSlug, isStarter, storeData }) {
         containerId: "STOREFRONT",
       });
       setTimeout(() => {
-        navigate(`/`);
+        navigate(getStorePath(`/`));
       }, 4000);
     } catch (err) {
       toast.error(err.message, {
@@ -91,6 +96,7 @@ export default function AuthPage({ isDark, storeSlug, isStarter, storeData }) {
     }
   };
 
+
   const handleForgotPassword = async (e) => {
     e.preventDefault();
 
@@ -105,7 +111,7 @@ export default function AuthPage({ isDark, storeSlug, isStarter, storeData }) {
     try {
       await forgotPasswordCustomer({
         email: formData.email.trim(),
-        storeSlug: activeSlug,
+        storeSlug
       });
 
       toast.success("Reset link sent to your email!", {
@@ -132,9 +138,7 @@ export default function AuthPage({ isDark, storeSlug, isStarter, storeData }) {
     }
   };
 
-  const getStorePath = (path) => {
-    return isStarter ? `/${storeSlug}${path}` : path;
-  };
+
 
   return (
     <Box
@@ -306,7 +310,7 @@ export default function AuthPage({ isDark, storeSlug, isStarter, storeData }) {
                           fontWeight: 600,
                           color: "#ef4444",
                           cursor: "pointer",
-                          "&:hover": { textDecoration: "underline" },
+                          "&:hover": { textDecoration: "underline" , textDecorationColor: 'red',textDecorationStyle: 'solid'},
                         }}
                       >
                         Forgot?

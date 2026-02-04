@@ -370,8 +370,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
             <NavLink
               to={item.path}
               onClick={() => isMobile && setIsMobileOpen(false)}
-              style={({ isActive }) => ({
-                textDecoration: "none",
+              style={({ isActive }) => ({                
                 width: "100%",
                 display: "block",
                 // We use the isActive boolean provided by NavLink or your item.active prop

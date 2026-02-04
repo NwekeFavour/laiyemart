@@ -36,6 +36,7 @@ import { getSubdomain } from "../../../storeResolver";
 import { toast } from "react-toastify";
 import Header from "../admin(demo)/components/header";
 import Footer from "../admin(demo)/components/footer";
+import { useCustomerAuthStore } from "../../store/useCustomerAuthStore";
 
 const responsive = {
   desktop: { breakpoint: { max: 3000, min: 1024 }, items: 5 },
@@ -43,68 +44,87 @@ const responsive = {
   mobile: { breakpoint: { max: 464, min: 0 }, items: 2 },
 };
 
-const ProductPage = ({storeSlug}) => {
+const ProductPage = ({ storeSlug, isStarter, storeData }) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const resolvedSlug = getSubdomain();
+  const sub = getSubdomain();
+  const pathParts = window.location.pathname.split("/").filter(Boolean);
+  const resolvedSlug = sub || pathParts[0];
   const { addToCart, loading: cartLoading } = useCartStore();
-
+  const {customer} = useCustomerAuthStore();
   const [product, setProduct] = useState(null);
-  const [storeData, setStoreData] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [allProducts, setAllProducts] = useState([]);
+  // 1. Optimized useEffect to prevent unnecessary flicker
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const API_URL =
-          import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+  let isMounted = true;
 
-        // Fetch Product
-        const pRes = await fetch(`${API_URL}/api/products/${id}`);
-        const pData = await pRes.json();
-        setProduct(pData.product);
-
-        // // Fetch Store & Related
-        const sRes = await fetch(
-          `${API_URL}/api/stores/public/${resolvedSlug}`,
-        );
-        const sData = await sRes.json();
-        setStoreData(sData.data);
-        // console.log(storeData)
-
-        const rRes = await fetch(
-          `${API_URL}/api/products/public/${resolvedSlug}`,
-        );
-        const rData = await rRes.json();
-
-        setRelatedProducts(rData.products.filter((p) => p._id !== id));
-        setAllProducts(rData.products);
-        // Keep the full list for "All Products"
-        setAllProducts(rData.products);
-      } catch (err) {
-        toast.error("Error loading product");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [id, resolvedSlug]);
-
-  const handleAddToCart = async () => {
+  const fetchData = async () => {
+    if (!id || !resolvedSlug) return;
+    
     try {
-      await addToCart(storeData._id, product._id, quantity);
-      toast.success("Added to bag!", {
-        position: "bottom-right",
-        autoClose: 2000,
-      });
-      console.log("added");
+      setLoading(true);
+      const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
+      const [pRes, rRes] = await Promise.all([
+        fetch(`${API_URL}/api/products/${id}`),
+        fetch(`${API_URL}/api/products/public/${resolvedSlug}`),
+      ]);
+
+      const pData = await pRes.json();
+      const rData = await rRes.json();
+
+      if (isMounted) {
+        if (pData.product) setProduct(pData.product);
+        if (rData.products) {
+          setRelatedProducts(rData.products.filter((p) => p._id !== id));
+        }
+      }
     } catch (err) {
-      toast.error("Could not add to cart");
+      console.error("Fetch Error:", err);
+    } finally {
+      if (isMounted) setLoading(false);
     }
   };
+
+  fetchData();
+  return () => { isMounted = false; }; // Cleanup to prevent memory leaks
+}, [id, resolvedSlug]);
+// Use resolvedSlug instead of window.location.hostname
+
+  const getStorePath = (path) => {
+    return isStarter ? `/${storeSlug}${path}` : path;
+  };
+const handleAddToCart = async () => {
+  // console.log("Store ID:", storeData?._id, "Product ID:", product?._id);
+  
+  if (!customer) {
+    toast.info("Please login to add items to cart");
+    navigate(getStorePath("/login"));
+    return;
+  }
+
+  if (!storeData?._id || !product?._id) {
+    toast.error("Loading product data, please wait...", {containerId: "STOREFRONT"});
+    return;
+  }
+       
+  try {
+    // Note: Ensuring we pass strings to the store
+    await addToCart(storeData._id, product._id, quantity);
+    
+    toast.success("Added to bag!", {
+      position: "bottom-right",
+      autoClose: 2000,
+      containerId: "STOREFRONT",
+    });
+  } catch (err) {
+    console.error("Cart Error:", err);
+    toast.error(err.response?.data?.message || "Could not add to cart", {containerId: "STOREFRONT"});
+  }
+};
 
   if (loading) return <ProductSkeleton />;
 
@@ -193,7 +213,7 @@ const ProductPage = ({storeSlug}) => {
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Typography
                       level="body-sm"
-                      sx={{ textDecoration: "line-through", color: "#75757A" }}
+                      sx={{ textDecoration: "line-through", textDecorationColor: 'red',textDecorationStyle: 'solid', color: "#75757A" }}
                     >
                       ₦ {(product.price * 1.25).toLocaleString()}
                     </Typography>
@@ -357,8 +377,7 @@ const ProductPage = ({storeSlug}) => {
                 fontSize: "14px",
                 fontWeight: 700,
                 color: "#F68B1E",
-                textDecoration: "none",
-                "&:hover": { textDecoration: "underline" },
+                "&:hover": {  textDecoration: "underline", textDecorationColor: 'red',textDecorationStyle: 'solid' },
               }}
             >
               SEE ALL <ChevronRight size={16} />
@@ -418,7 +437,7 @@ const ProductPage = ({storeSlug}) => {
                 {/* Optional: Add a discount tag if you want the Jumia vibe */}
                 <Typography
                   level="body-xs"
-                  sx={{ textDecoration: "line-through", color: "#75757A" }}
+                  sx={{ textDecoration: "line-through", textDecorationColor: 'red',textDecorationStyle: 'solid', color: "#75757A" }}
                 >
                   ₦{(item.price * 1.2).toLocaleString()}
                 </Typography>
@@ -485,7 +504,7 @@ const ProductSliderItem = ({ item, navigate }) => (
     {item.price && (
       <Typography
         level="body-xs"
-        sx={{ textDecoration: "line-through", color: "#75757A" }}
+        sx={{ textDecoration: "line-through", textDecorationColor: 'red',textDecorationStyle: 'solid', color: "#75757A" }}
       >
         ₦{(item.price * 1.2).toLocaleString()}
       </Typography>

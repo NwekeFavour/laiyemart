@@ -469,6 +469,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
             color: isDone ? "text.primary" : "text.tertiary",
             fontWeight: isDone ? 500 : 400,
             textDecoration: isDone ? "line-through" : "none", // Optional: strikes through finished tasks
+             textDecorationColor: 'red',textDecorationStyle: 'solid',
             opacity: isDone ? 0.7 : 1,
           }}
         >
@@ -1074,6 +1075,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                                     "&:hover": {
                                       bgcolor: "transparent",
                                       textDecoration: "underline",
+                                      textDecorationColor: 'red',textDecorationStyle: 'solid',
                                       color: isDark ? "#7dd3fc" : "#1d4ed8",
                                     },
                                   }}

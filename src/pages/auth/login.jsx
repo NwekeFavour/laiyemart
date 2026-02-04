@@ -336,7 +336,7 @@ export default function LoginPage() {
                 sx={{
                   color: "#3b82f6",
                   cursor: "pointer",
-                  "&:hover": { textDecoration: "underline" },
+                  "&:hover": {textDecoration: "underline", textDecorationColor: 'red',textDecorationStyle: 'solid' },
                 }}
               >
                 <Link
@@ -383,7 +383,7 @@ export default function LoginPage() {
               color: "#3b82f6",
               fontWeight: 700,
               cursor: "pointer",
-              "&:hover": { textDecoration: "underline" },
+              "&:hover": { textDecoration: "underline", textDecorationColor: 'red',textDecorationStyle: 'solid' },
             }}
           >
             <a

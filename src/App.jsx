@@ -62,6 +62,7 @@ function App() {
 
   useEffect(() => {
     const validateStore = async () => {
+      const host = window.location.hostname;
       const currentPath = window.location.pathname.split("/").filter(Boolean);
       const reserved = [
         "auth",
@@ -69,37 +70,32 @@ function App() {
         "payment",
         "admin",
         "unauthorized",
+        "verify-store-email",
       ];
 
+      // 1. DASHBOARD / RESERVED CHECK
+      // Allow if it's a subdomain even if path is empty
+      const sub = getSubdomain();
       if (
-        currentPath.length === 0 ||
-        reserved.includes(currentPath[0]) ||
-        isDashboard
+        !sub &&
+        (isDashboard ||
+          currentPath.length === 0 ||
+          reserved.includes(currentPath[0]))
       ) {
         setLoading(false);
         return;
       }
-      // 1. Define the base domain correctly
-      const host = window.location.host; // e.g., "localhost:5173" or "layemart.com"
-      const isLocal = host.includes("localhost");
-      // This removes the subdomain if it exists to get the "root" domain
-      const baseDomain = isLocal
-        ? "localhost:5173"
-        : host.split(".").slice(-2).join(".");
 
-      let detectedSlug = subdomain;
+      // 2. IDENTIFY RESOLUTION
+      let detectedIdentifier = sub;
       let resolutionType = "subdomain";
 
-      if (
-        !detectedSlug &&
-        currentPath.length > 0 &&
-        !reserved.includes(currentPath[0])
-      ) {
-        detectedSlug = currentPath[0];
+      if (!detectedIdentifier && currentPath.length > 0) {
+        detectedIdentifier = currentPath[0];
         resolutionType = "path";
       }
 
-      if (!detectedSlug || isDashboard) {
+      if (!detectedIdentifier) {
         setLoading(false);
         return;
       }
@@ -107,42 +103,79 @@ function App() {
       try {
         const API_URL =
           import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-        const res = await fetch(`${API_URL}/api/stores/public/${detectedSlug}`);
+        const res = await fetch(
+          `${API_URL}/api/stores/public/${detectedIdentifier}`,
+        );
         const result = await res.json();
 
         if (res.ok && result.success) {
           const store = result.data;
+          const hostParts = host.split(".");
 
-          // --- PLAN ENFORCEMENT REDIRECTS ---
+          // --- IMPROVED BASE DOMAIN CALCULATION ---
+          let baseDomain;
+          const isLocal = host.includes("localhost") || host === "127.0.0.1";
 
-          // A. STARTER PLAN using a SUBDOMAIN (Wrong! Send to Path)
+          if (isLocal) {
+            // If nike.localhost, take "localhost". If localhost, take "localhost"
+            baseDomain = hostParts.includes("localhost") ? "localhost" : host;
+            if (window.location.port) baseDomain += `:${window.location.port}`;
+          } else {
+            // Takes the last two parts: "layemart.com"
+            baseDomain = hostParts.slice(-2).join(".");
+          }
+
+          // --- THE "LOOP KILLER" GUARD ---
+          const targetSub = (store.subdomain || store.slug).toLowerCase();
+          const currentFirstPart = hostParts[0].toLowerCase();
+
+          // 3. STARTER REDIRECT (From Subdomain to Path)
           if (resolutionType === "subdomain" && store?.plan === "starter") {
-            // Redirect from mystore.layemart.com/shop -> layemart.com/mystore/shop
-            window.location.href = `${window.location.protocol}//${baseDomain}/${store.subdomain}${window.location.pathname}`;
+            const newUrl = `${window.location.protocol}//${baseDomain}/${store.slug}${window.location.pathname}`;
+            window.location.replace(newUrl);
             return;
           }
 
-          // B. PRO PLAN using a PATH (Wrong! Send to Subdomain)
-          if (resolutionType === "path" && store?.plan === "professional") {
-            const cleanPath =
-              window.location.pathname.replace(`/${detectedSlug}`, "") || "/";
-            // Redirect from layemart.com/mystore/shop -> mystore.layemart.com/shop
-            window.location.href = `${window.location.protocol}//${store.subdomain}.${baseDomain}${cleanPath}`;
-            return;
+          // 4. PRO/ENTERPRISE REDIRECT (From Path to Subdomain)
+          if (
+            resolutionType === "path" &&
+            (store?.plan === "professional" || store?.plan === "enterprise")
+          ) {
+            // Only redirect if we AREN'T already on the subdomain
+            if (currentFirstPart !== targetSub) {
+              const cleanPath =
+                window.location.pathname.replace(
+                  `/${detectedIdentifier}`,
+                  "",
+                ) || "/";
+              const newUrl = `${window.location.protocol}//${targetSub}.${baseDomain}${cleanPath}`;
+              window.location.replace(newUrl);
+              return;
+            }
           }
 
+          // 5. SUCCESS: Set the state
           setStoreData(store);
           setResType(resolutionType);
-          if (resolutionType === "path") setPathSlug(detectedSlug);
+          if (resolutionType === "path") setPathSlug(detectedIdentifier);
+        } else {
+          setStoreData(null);
         }
       } catch (err) {
-        console.error("Validation Error:", err);
+        console.error("Store Validation Error:", err);
+        setError(true);
       } finally {
         setLoading(false);
       }
     };
+
     validateStore();
-  }, [subdomain, isDashboard]);
+  }, [
+    subdomain,
+    isDashboard,
+    window.location.pathname,
+    window.location.hostname,
+  ]);
   // Unified context check
   const activeSlug = subdomain || pathSlug;
   const isStorefront = activeSlug && !isDashboard;
@@ -257,7 +290,7 @@ function App() {
         )}
 
         {/* --- CASE 2: STOREFRONT (Subdomain OR Path) --- */}
-        {isStorefront && (
+        {isStorefront && storeData && (
           <Route path={pathSlug ? `/${pathSlug}` : "/"}>
             {/* 'index' matches the base path exactly */}
             <Route
@@ -306,13 +339,14 @@ function App() {
             />
             <Route
               path="shop/product/:id"
-              element={<ProductPage storeSlug={activeSlug} />}
+              element={<ProductPage storeSlug={activeSlug} storeData={storeData} />}
+              isStarter={storeData?.plan === "starter"}
             />
             <Route
               path="cart"
-              element={<CartDashboard storeSlug={activeSlug} />}
+              element={<CartDashboard isStarter={storeData?.plan === "starter"} storeSlug={activeSlug}  storeData={storeData}/>}
             />
-            <Route path="order-success" element={<OrderSuccess />} />
+            <Route path="order-success" element={<OrderSuccess isStarter={storeData?.plan === "starter"} storeSlug={activeSlug} />} />
             <Route
               path="account"
               element={
@@ -320,6 +354,8 @@ function App() {
                   storeData={storeData}
                   customer={customer}
                   isDark={isDark}
+                  isStarter={storeData?.plan === "starter"}
+                  storeSlug={activeSlug}
                 />
               }
             />
@@ -349,7 +385,7 @@ function App() {
 
         {/* --- GLOBAL ROUTES --- */}
         <Route path="/unauthorized" element={<Unauthorized />} />
-         <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
       {/* --- TOAST CONTAINERS --- */}

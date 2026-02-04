@@ -22,7 +22,7 @@ import { useStoreProfileStore } from "../../../store/useStoreProfile";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
 import { getSubdomain } from "../../../../storeResolver";
 
-const OrderSuccess = () => {
+const OrderSuccess = ({isStarter, storeSlug}) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const subdomain = getSubdomain();
@@ -64,6 +64,9 @@ const OrderSuccess = () => {
     verifyPayment();
   }, [reference]);
 
+    const getStorePath = (path) => {
+    return isStarter ? `/${storeSlug}${path}` : path;
+  };
   return (
     <Box
       sx={{
@@ -195,7 +198,7 @@ const OrderSuccess = () => {
                   <Button
                     size="lg"
                     // Just use '/shop'. The browser already knows you are on the subdomain.
-                    onClick={() => navigate("/shop")}
+                    onClick={() => navigate(getStorePath("/shop"))}
                     sx={{
                       bgcolor: brandColor,
                       "&:hover": { bgcolor: brandColor, opacity: 0.9 },
@@ -212,7 +215,7 @@ const OrderSuccess = () => {
                     color="neutral"
                     startDecorator={<ReceiptText size={18} />}
                     // This will take them to nike.layemart.com/account
-                    onClick={() => navigate("/account?tab=orders")}
+                    onClick={() => navigate(getStorePath("/account?tab=orders"))}
                   >
                     View My Orders
                   </Button>
@@ -241,7 +244,7 @@ const OrderSuccess = () => {
           /* Error State UI */
           <Stack alignItems="center" spacing={2}>
             <Typography level="h4">Payment Verification Failed</Typography>
-            <Button variant="outlined" onClick={() => navigate("/cart")}>
+            <Button variant="outlined" onClick={() => navigate(getStorePath("/cart"))}>
               Try Again
             </Button>
           </Stack>

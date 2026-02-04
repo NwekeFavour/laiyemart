@@ -222,23 +222,31 @@ function Products({ storeSlug, isStarter }) {
   }, [config]);
 
   useEffect(() => {
-    const validateStore = async () => {
+    const fetchStoreInfo = async () => {
+      if (!storeSlug) return;
+
       try {
         setStoreLoading(true);
         const API_URL =
           import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
         const res = await fetch(`${API_URL}/api/stores/public/${storeSlug}`);
         const result = await res.json();
-        if (!res.ok || !result.success) setStoreError(true);
-        else setStoreData(result.data);
+
+        if (res.ok && result.success) {
+          setStoreData(result.data);
+        } else {
+          setStoreError(true);
+        }
       } catch (err) {
+        console.error("Shop Data Fetch Error:", err);
         setStoreError(true);
       } finally {
         setStoreLoading(false);
       }
     };
-    if (storeSlug) validateStore();
-  }, [storeSlug]);
+
+    fetchStoreInfo();
+  }, [storeSlug]); // Removed window.location.hostname to prevent unnecessary re-runs
 
   useEffect(() => {
     if (storeSlug) fetchStoreProducts(storeSlug);
@@ -581,6 +589,9 @@ function Products({ storeSlug, isStarter }) {
         storeName={storeData?.name}
         storeDescription={storeData?.description}
         storeLogo={storeData?.logo?.url}
+        storeId={storeData?._id}
+        isStarter={storeData?.plan === "starter"}
+        storeSlug={storeSlug}
       />
     </div>
   );

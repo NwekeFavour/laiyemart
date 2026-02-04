@@ -69,7 +69,7 @@ export default function CustomerSignUp({ isStarter, storeSlug, storeData }) {
         containerId: "STOREFRONT",
       });
       setTimeout(() => {
-        navigate(`/`);
+        navigate(getStorePath(`/`));
       }, 3000);
     } catch (err) {
       toast.error(err.message, {

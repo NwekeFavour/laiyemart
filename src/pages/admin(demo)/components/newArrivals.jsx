@@ -39,10 +39,22 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter }) => {
     initData();
   }, [fetchStoreProducts, setLocalProducts, storeSlug]);
 
+const getStorePath = (path) => {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  
+  // Check if we are physically on a subdomain right now
+  const hostname = window.location.hostname;
+  const isActuallySubdomain = hostname.split('.').length > 2 || 
+    (hostname.includes('localhost') && hostname.split('.').length > 1 && !hostname.startsWith('localhost'));
 
-  const getStorePath = (path) => {
-    return isStarter ? `/${storeSlug}${path}` : path;
-  };
+  // If we are on a subdomain (Professional), NEVER prepend the slug
+  if (isActuallySubdomain) {
+    return cleanPath;
+  }
+
+  // Only prepend if we are on the main domain (Starter)
+  return `/${storeSlug}${cleanPath}`;
+};
   const getItemQty = (productId) => {
     const item = cart?.items?.find(
       (i) => i.product._id === productId || i.product === productId,
@@ -52,12 +64,18 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter }) => {
 
   const handleCartAction = async (product, action) => {
     const productId = product._id || product.id;
-
+    const targetStoreId = product.store || product.storeId;
     if (!customer) {
       navigate(getStorePath("/login"));
       return;
     }
 
+    if (!targetStoreId) {
+    console.error("Missing Store ID for product:", product);
+    // If you don't have the ID on the product, you might need to find it 
+    // from the storeSlug or a global store state.
+    return;
+  }
     // 1. Start Preloader
     setProcessingId(productId);
 
@@ -66,9 +84,9 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter }) => {
 
       if (action === "increment") {
         if (currentQty === 0) {
-          await addToCart(product.store, productId, 1);
+          await addToCart(targetStoreId, productId, 1);
         } else {
-          await updateQuantity(product.store, productId, currentQty + 1);
+          await updateQuantity(targetStoreId, productId, currentQty + 1);
         }
       } else if (action === "decrement") {
         if (currentQty === 1) {

@@ -5,11 +5,12 @@ import Hero from "../admin(demo)/components/hero1";
 import NewArrivalsSlider from "../admin(demo)/components/newArrivals";
 import FeaturedPicksGrid from "../admin(demo)/components/featuredProducts";
 import AllProducts from "../admin(demo)/components/allProducts";
-import NewsletterSignup from "../admin(demo)/components/newsletter";
+// import NewsletterSignup from "../admin(demo)/components/newsletter";
 import Footer from "../admin(demo)/components/footer";
 import StoreNotFound from "../../components/storenotfound";
 import { Helmet } from "react-helmet-async";
 import Header from "../admin(demo)/components/header";
+import { getSubdomain } from "../../../storeResolver";
 
 // 1. Define Content Strategies for each Store Type
 const STORE_CONTENT_CONFIG = {
@@ -67,61 +68,42 @@ function DemoHome({ storeSlug, resolverType }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    const validateStore = async () => {
-      try {
-        setLoading(true);
-        const API_URL =
-          import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+useEffect(() => {
+  const fetchStoreDetails = async () => {
+    // 1. Resolve the identifier: Priority to prop/params, then subdomain
+    const sub = getSubdomain();
+    const identifier = storeSlug || sub;
 
-        // 1. Fetch store data using the slug
-        const res = await fetch(`${API_URL}/api/stores/public/${storeSlug}`);
-        const result = await res.json();
+    if (!identifier || identifier === 'www' || identifier === 'dashboard' || identifier === 'localhost') {
+      setLoading(false);
+      // You might want to redirect to the main Layemart landing page here
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      setError(false);  
+      const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+      
+      // Use the resolved identifier here
+      const res = await fetch(`${API_URL}/api/stores/public/${identifier}`);
+      const result = await res.json();
 
-        if (!res.ok || !result.success) {
-          setError(true);
-          return;
-        }
-
-        const store = result.data;
-
-        // 2. PLAN & RESOLUTION VALIDATION
-        // Check if the resolution type (passed as a prop) matches the store plan
-
-        // IF: They are on a subdomain but have a Starter plan
-        if (resolverType === "subdomain" && store?.plan === "starter") {
-          console.warn(
-            "Starter plan accessed via subdomain. Redirecting to path...",
-          );
-          // Redirect to layemart.com/storename
-          window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/${store.subdomain}${window.location.pathname}`;
-          return;
-        }
-
-        // IF: (Optional) They are on a path but have a Professional plan
-        // You might want to force them to use their branded subdomain
-        if (resolverType === "path" && store?.plan === "professional") {
-          console.info(
-            "Pro plan accessed via path. Redirecting to subdomain...",
-          );
-          // Redirect to storename.layemart.com
-          window.location.href = `https://${store.subdomain}.${import.meta.env.VITE_FRONTEND_URL}${window.location.pathname.replace(`/${storeSlug}`, "")}`;
-          return;
-        }
-
-        // 3. Success: Set the store data
-        setStoreData(store);
-      } catch (err) {
-        console.error("Store Fetch Error:", err);
+      if (res.ok && result.success) {
+        setStoreData(result.data);
+      } else {
         setError(true);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (err) {
+      console.error("Fetch Error:", err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    if (storeSlug) validateStore();
-  }, [storeSlug, resolverType]); // Add resolverType as a dependency
-
+  fetchStoreDetails();
+}, [storeSlug]); // It will also re-run if the component remounts on the new subdomain
   // 2. Determine content config based on storeType
   const config =
     STORE_CONTENT_CONFIG[storeData?.storeType] ||
@@ -439,12 +421,16 @@ function DemoHome({ storeSlug, resolverType }) {
 
         <AllProducts isStarter={storeData?.plan === "starter"} storeSlug={storeSlug}/>
 
-        <NewsletterSignup storeType={storeData?.storeType} />
+        {/* <NewsletterSignup storeType={storeData?.storeType} /> */}
 
         <Footer
           storeName={storeData?.name}
           storeDescription={storeData?.description}
           storeLogo={storeData?.logo?.url}
+          storeId={storeData?._id}
+          isStarter={storeData?.plan === "starter"}
+          storeSlug={storeSlug}
+
         />
       </div>
     </div>
