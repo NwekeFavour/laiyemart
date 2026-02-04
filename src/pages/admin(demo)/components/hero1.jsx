@@ -102,7 +102,7 @@ export default function Hero({ onCreateStore, storeName, storeLogo, storeType, s
             leading-[0.9] tracking-tighter
             ${storeHero ? "text-white drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]" : "text-black"}
           `}>
-            {!storeHeroSubtitle ? content.subtext : storeHeroSubtitle}
+            {!storeHeroSubtitle ? content.headline : storeHeroSubtitle}
 
           </h1>
 
@@ -114,7 +114,8 @@ export default function Hero({ onCreateStore, storeName, storeLogo, storeType, s
             md:text-[20px] text-[16px]
             ${storeHero ? "text-white/90" : "text-neutral-600"}
           `}>
-            {!storeHeroTitle ? content.headline : storeHeroTitle}
+            {!storeHeroTitle ? content.subtext : storeHeroTitle}
+
 
           </p>
 

@@ -56,10 +56,12 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     newPassword: "",
     confirmPassword: "",
   });
-  
+
   const { store, user, token, setUser, setStore } = useAuthStore();
   const [formHeroTitle, setFormHeroTitle] = useState(store?.heroTitle || "");
-const [formHeroSubtitle, setFormHeroSubtitle] = useState(store?.heroSubtitle || "");
+  const [formHeroSubtitle, setFormHeroSubtitle] = useState(
+    store?.heroSubtitle || "",
+  );
   const [banks, setBanks] = useState([]);
   const [storeDits, setStoreDits] = useState(store);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -229,7 +231,7 @@ const [formHeroSubtitle, setFormHeroSubtitle] = useState(store?.heroSubtitle || 
         storeType: formStoreType,
         description: formDescription,
         heroTitle: formHeroTitle,
-      heroSubtitle: formHeroSubtitle,
+        heroSubtitle: formHeroSubtitle,
         heroFile: heroFile, // Key name matches Zustand expectations
         logo: logoFile,
         token,
@@ -775,6 +777,7 @@ const [formHeroSubtitle, setFormHeroSubtitle] = useState(store?.heroSubtitle || 
                   </Stack>
                 </FormControl>
                 {/* --- HERO TITLE SECTION --- */}
+                {/* --- HERO TITLE SECTION --- */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
                   <FormLabel
                     className={`${isDark ? "text-slate-400!" : ""}`}
@@ -785,6 +788,7 @@ const [formHeroSubtitle, setFormHeroSubtitle] = useState(store?.heroSubtitle || 
                   <Box sx={{ flex: 1, maxWidth: 400 }}>
                     <Input
                       placeholder="e.g. Quality Gear for Modern Living"
+                      name="heroTitle" // Essential for subaccount transactions
                       value={formHeroTitle}
                       onChange={(e) => {
                         if (e.target.value.length <= 40)
@@ -808,11 +812,19 @@ const [formHeroSubtitle, setFormHeroSubtitle] = useState(store?.heroSubtitle || 
                         borderColor: isDark ? "#1e293b" : "#e2e8f0",
                       }}
                     />
+                    <Typography
+                      level="body-xs"
+                      sx={{ mt: 1, color: "text.tertiary" }}
+                    >
+                      The main large headline displayed on your hero banner.
+                    </Typography>
                   </Box>
                 </FormControl>
 
-                {/* --- HERO SUBTITLE / PARAGRAPH SECTION --- */}
-                <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                {/* --- HERO PARAGRAPH (SUBTITLE) SECTION --- */}
+                <FormControl
+                  sx={{ display: { sm: "flex-row" }, gap: 2, mt: 3 }}
+                >
                   <FormLabel
                     className={`${isDark ? "text-slate-400!" : ""}`}
                     sx={{ minWidth: 140 }}
@@ -822,7 +834,8 @@ const [formHeroSubtitle, setFormHeroSubtitle] = useState(store?.heroSubtitle || 
                   <Box sx={{ flex: 1, maxWidth: 400 }}>
                     <Textarea
                       minRows={3}
-                      placeholder="Describe your store in detail..."
+                      name="heroSubtitle" // Essential for subaccount transactions
+                      placeholder="e.g. Discover thoughtfully designed pieces made for comfort..."
                       value={formHeroSubtitle}
                       onChange={(e) => {
                         if (e.target.value.length <= 120)
@@ -841,7 +854,7 @@ const [formHeroSubtitle, setFormHeroSubtitle] = useState(store?.heroSubtitle || 
                               : "neutral.500",
                           }}
                         >
-                          {formHeroSubtitle?.length || 0} / 120 characters
+                          {formHeroSubtitle?.length || 0} / 120
                         </Typography>
                       }
                       sx={{
@@ -861,8 +874,7 @@ const [formHeroSubtitle, setFormHeroSubtitle] = useState(store?.heroSubtitle || 
                       level="body-xs"
                       sx={{ mt: 1, color: "text.tertiary" }}
                     >
-                      This appears directly under your store name on the
-                      homepage.
+                      The sub-text that appears beneath your hero title.
                     </Typography>
                   </Box>
                 </FormControl>
