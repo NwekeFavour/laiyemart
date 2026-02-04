@@ -2,6 +2,7 @@ import React from "react";
 import {
   Box,
   Button,
+  CircularProgress,
   IconButton,
   Rating,
   Stack,
@@ -10,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { motion } from "framer-motion";
-const AllProductsSection = ({ products }) => {
+const AllProductsSection = ({ products, isStarter, storeSlug }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
@@ -18,6 +19,10 @@ const AllProductsSection = ({ products }) => {
   const { customer } = useCustomerAuthStore();
   const navigate = useNavigate();
   const [processingId, setProcessingId] = useState(null);
+    const getStorePath = (path) => {
+    return isStarter ? `/${storeSlug}${path}` : path;
+  };
+
   const getItemQty = (productId) => {
     const item = cart?.items?.find(
       (i) => i.product._id === productId || i.product === productId,
@@ -28,7 +33,7 @@ const AllProductsSection = ({ products }) => {
     const productId = product._id || product.id;
 
     if (!customer) {
-      navigate("/login");
+      navigate(getStorePath("/login"));
       return;
     }
 
@@ -289,7 +294,7 @@ const AllProductsSection = ({ products }) => {
         {/* View All Button */}
         <div className="flex justify-center mt-10">
           <Link
-            to={"/shop"}
+            to={getStorePath("/shop")}
             className="px-8 py-3 bg-black text-white text-sm font-bold rounded-full hover:bg-neutral-800 transition shadow-lg"
           >
             VIEW ALL PRODUCTS
@@ -353,17 +358,20 @@ const DUMMY_PRODUCTS = [
   },
 ];
 
-export default function AllProducts() {
+export default function AllProducts({isStarter, storeSlug}) {
   const { fetchStoreProducts, setLocalProducts, products, loading } =
     useProductStore();
   const [displayProducts, setDisplayProducts] = useState([]);
 
+
+
+
   useEffect(() => {
     const initPage = async () => {
-      const isDemo = localStorage.getItem("demo") === "true";
+      
       const subdomain = getSubdomain();
 
-      if (isDemo || !subdomain) {
+      if (localStorage.getItem("demo")) {
         // Set Zustand store and local state with dummy data
         setLocalProducts(DUMMY_PRODUCTS);
         setDisplayProducts(DUMMY_PRODUCTS);
@@ -383,8 +391,12 @@ export default function AllProducts() {
     }
   }, [products]);
 
-  if (loading)
-    return <Loader2/>;
-
-  return <AllProductsSection products={displayProducts} />;
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", p: 10 }}>
+        <CircularProgress color="inherit" />
+      </Box>
+    );
+  }
+  return <AllProductsSection products={displayProducts} isStarter={isStarter} storeSlug={storeSlug} />;
 }

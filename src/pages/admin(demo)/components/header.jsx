@@ -19,7 +19,7 @@ import { toast } from "react-toastify";
 import { useCartStore } from "../../../../services/cartService";
 import { useProductStore } from "../../../../services/productService";
 
-export default function Header({ storeName, storeLogo }) {
+export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
   const [open, setOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const { pathname } = useLocation();
@@ -29,12 +29,15 @@ export default function Header({ storeName, storeLogo }) {
   const { products } = useProductStore();
 
   const uniqueItemCount = cart?.items?.length || 0;
-  const isDemo = localStorage.getItem("demo") === "true";
 
   const handleLogout = () => {
     logout();
     toast.success("Signed out successfully");
     navigate("/login");
+  };
+
+      const getStorePath = (path) => {
+    return isStarter ? `/${storeSlug}${path}` : path;
   };
 
   const categories = useMemo(() => {
@@ -92,13 +95,24 @@ export default function Header({ storeName, storeLogo }) {
             sx={{ display: { xs: "none", md: "flex" } }}
           >
             {navItems.map((item) => {
-              const path = item === "Home" ? "/" : "/shop";
-              const active = pathname === path;
+              // 1. Logic for Path Construction
+              const base = isStarter ? `/${storeSlug}` : "";
+              let targetPath;
+
+              if (item === "Home") {
+                targetPath = isStarter ? `${base}` : "/";
+              } else {
+                // Assuming "Shop" or other items
+                targetPath = `${base}/${item.toLowerCase()}`;
+              }
+
+              // 2. Logic for Active State
+              const active = pathname === targetPath;
 
               return (
                 <Link
                   key={item}
-                  to={`${isDemo ? "#" : path}`}
+                  to={targetPath} // Removed localStorage check to prevent flickering
                   style={{
                     textDecoration: active ? "underline" : "none",
                     textUnderlineOffset: "6px",
@@ -113,11 +127,10 @@ export default function Header({ storeName, storeLogo }) {
               );
             })}
           </Stack>
-
           {/* Right */}
           <Stack direction="row" spacing={2} alignItems="center">
             <Link
-              to={isDemo ? "#" : "/cart"}
+              to={localStorage.getItem("demo") ? "#" : "/cart"}
               style={{ textDecoration: "none", color: "inherit" }}
             >
               <Badge
@@ -146,7 +159,7 @@ export default function Header({ storeName, storeLogo }) {
               </Badge>
             </Link>
 
-            {isDemo ? (
+            {localStorage.getItem("demo") ? (
               <Button
                 size="sm"
                 variant="soft"
@@ -173,7 +186,7 @@ export default function Header({ storeName, storeLogo }) {
                 ) : (
                   <div className="flex items-center gap-3">
                     {/* Login Button - Outlined Slate */}
-                    <Link to="/login">
+                    <Link to={getStorePath(`/login`)}>
                       <Button
                         className="px-5! border-slate-900! text-slate-800/90! hover:bg-slate-300/10!"
                         size="sm"
@@ -184,7 +197,7 @@ export default function Header({ storeName, storeLogo }) {
                     </Link>
 
                     {/* Register Button - Solid Slate (Primary Action) */}
-                    <Link to="/register">
+                    <Link to={getStorePath(`/register`)}>
                       <Button
                         className="px-5! bg-slate-900! text-white! border-slate-900! hover:bg-slate-800!"
                         size="sm"
@@ -217,7 +230,20 @@ export default function Header({ storeName, storeLogo }) {
             {["home", "shop", "account"]
               .filter((item) => (item === "account" ? isAuthenticated : true))
               .map((item) => {
-                const path = item === "home" ? "/" : `/${item}`;
+                // 1. Determine the Base Path
+                // If Starter: /storename
+                // If Pro: /
+                const base = isStarter ? `/${storeSlug}` : "";
+
+                // 2. Build the specific route
+                let path;
+                if (item === "home") {
+                  path = isStarter ? `${base}` : "/";
+                } else {
+                  path = `${base}/${item}`;
+                }
+
+                // 3. Match active state correctly
                 const active = pathname === path;
 
                 return (

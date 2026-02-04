@@ -41,6 +41,8 @@ export const useStoreProfileStore = create((set, get) => ({
         store: data.store,
         success: "Profile updated successfully",
       });
+
+      return data;
     } catch (err) {
       set({ error: err.message || "Update failed" });
     } finally {

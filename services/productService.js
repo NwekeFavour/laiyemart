@@ -111,11 +111,11 @@ export const useProductStore = create((set, get) => ({
     }
   },
 
-  fetchStoreProducts: async (subdomain) => {
+  fetchStoreProducts: async (slug) => {
     set({ loading: true, error: null });
     try {
       // Note: No token needed for public view
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products/public/${subdomain}`);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products/public/${slug}`);
       const data = await response.json();
 
       if (response.ok) {

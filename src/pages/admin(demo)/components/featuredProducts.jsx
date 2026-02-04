@@ -4,7 +4,6 @@ import {
   Typography,
   CircularProgress,
   Stack,
-  IconButton,
   Button,
 } from "@mui/material";
 import {
@@ -51,11 +50,17 @@ const FEATURED_CONTENT = {
   },
 };
 
-const FeaturedPicksGrid = ({ storeType }) => {
+
+
+const FeaturedPicksGrid = ({ storeType, storeSlug, isStarter }) => {
   const { fetchStoreProducts, setLocalProducts, products, loading } =
     useProductStore();
   const { customer } = useCustomerAuthStore();
   const { cart, addToCart, updateQuantity, removeItem } = useCartStore();
+
+    const getStorePath = (path) => {
+    return isStarter ? `/${storeSlug}${path}` : path;
+  };
 
   const getItemQty = (productId) => {
     const item = cart?.items?.find(
@@ -69,7 +74,7 @@ const FeaturedPicksGrid = ({ storeType }) => {
     const productId = product._id || product.id;
 
     if (!customer) {
-      navigate("/login");
+      navigate(getStorePath("/login"));
       return;
     }
 
@@ -105,10 +110,9 @@ const FeaturedPicksGrid = ({ storeType }) => {
 
   useEffect(() => {
     const initData = async () => {
-      const isDemo = localStorage.getItem("demo") === "true";
       const subdomain = getSubdomain();
 
-      if (isDemo || !subdomain) {
+      if (localStorage.getItem("demo")) {
         setLocalProducts(DUMMY_FEATURED);
       } else {
         await fetchStoreProducts(subdomain);

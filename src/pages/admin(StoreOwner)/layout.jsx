@@ -1174,7 +1174,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
           {store?.plan === "starter" && (
             <Box
-              className={`fixed z-20 bottom-4 end-5 md:end-10 transition-all duration-300`}
+              className={`fixed z-20 w-30 mx-auto bottom-2 end-5 md:start-10 transition-all duration-300`}
               sx={{
                 display: "flex",
                 flexDirection: "column",

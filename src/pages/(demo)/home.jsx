@@ -62,7 +62,7 @@ const STORE_CONTENT_CONFIG = {
   },
 };
 
-function DemoHome({ storeSlug }) {
+function DemoHome({ storeSlug, resolverType }) {
   const [storeData, setStoreData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -73,14 +73,44 @@ function DemoHome({ storeSlug }) {
         setLoading(true);
         const API_URL =
           import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
+        // 1. Fetch store data using the slug
         const res = await fetch(`${API_URL}/api/stores/public/${storeSlug}`);
         const result = await res.json();
 
         if (!res.ok || !result.success) {
           setError(true);
-        } else {
-          setStoreData(result.data);
+          return;
         }
+
+        const store = result.data;
+
+        // 2. PLAN & RESOLUTION VALIDATION
+        // Check if the resolution type (passed as a prop) matches the store plan
+
+        // IF: They are on a subdomain but have a Starter plan
+        if (resolverType === "subdomain" && store?.plan === "starter") {
+          console.warn(
+            "Starter plan accessed via subdomain. Redirecting to path...",
+          );
+          // Redirect to layemart.com/storename
+          window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/${store.subdomain}${window.location.pathname}`;
+          return;
+        }
+
+        // IF: (Optional) They are on a path but have a Professional plan
+        // You might want to force them to use their branded subdomain
+        if (resolverType === "path" && store?.plan === "professional") {
+          console.info(
+            "Pro plan accessed via path. Redirecting to subdomain...",
+          );
+          // Redirect to storename.layemart.com
+          window.location.href = `https://${store.subdomain}.${import.meta.env.VITE_FRONTEND_URL}${window.location.pathname.replace(`/${storeSlug}`, "")}`;
+          return;
+        }
+
+        // 3. Success: Set the store data
+        setStoreData(store);
       } catch (err) {
         console.error("Store Fetch Error:", err);
         setError(true);
@@ -90,7 +120,7 @@ function DemoHome({ storeSlug }) {
     };
 
     if (storeSlug) validateStore();
-  }, [storeSlug]);
+  }, [storeSlug, resolverType]); // Add resolverType as a dependency
 
   // 2. Determine content config based on storeType
   const config =
@@ -348,7 +378,12 @@ function DemoHome({ storeSlug }) {
       </Helmet>
 
       <div>
-        <Header storeName={storeData?.name} storeLogo={storeData?.logo?.url} />
+        <Header
+          storeName={storeData?.name}
+          storeLogo={storeData?.logo?.url}
+          storeSlug={storeSlug} // Pass the slug
+          isStarter={storeData?.plan === "starter"} // Pass the plan check
+        />
 
         <Hero
           storeName={storeData?.name}
@@ -358,7 +393,12 @@ function DemoHome({ storeSlug }) {
         />
 
         {/* Dynamic New Arrivals Heading passed via props if Slider supports it */}
-        <NewArrivalsSlider subtitle={config.arrivalSub} />
+        <NewArrivalsSlider
+          subtitle={config.arrivalSub}
+          storeId={storeData?._id}
+          storeSlug={storeSlug}
+          isStarter={storeData?.plan === "starter"}
+        />
 
         {/* Dynamic Marquee Section */}
         {/* <Box
@@ -391,9 +431,9 @@ function DemoHome({ storeSlug }) {
           </motion.div>
         </Box> */}
 
-        <FeaturedPicksGrid storeType={storeData?.storeType} />
+        <FeaturedPicksGrid storeType={storeData?.storeType} isStarter={storeData?.plan === "starter"} storeSlug={storeSlug} />
 
-        <AllProducts />
+        <AllProducts isStarter={storeData?.plan === "starter"} storeSlug={storeSlug}/>
 
         <NewsletterSignup storeType={storeData?.storeType} />
 

@@ -114,12 +114,12 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
     const totalProducts = products.length;
 
     const totalSales = orders
-      ?.filter(order => order.status === "paid") // Only count successful payments
+      ?.filter((order) => order.status === "paid") // Only count successful payments
       .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
 
     // 2. Stock Worth (Potential Revenue)
     const stockWorth = products?.reduce((sum, product) => {
-      return sum + (product.price * (product.inventory || 0));
+      return sum + product.price * (product.inventory || 0);
     }, 0);
     // 1. Core stats that always show
     const baseStats = [
@@ -138,7 +138,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
       {
         label: "Total Revenue",
         value: `₦${totalSales?.toLocaleString() || 0}`,
-        sub: `₦${stockWorth?.toLocaleString()} in inventory`, 
+        sub: `₦${stockWorth?.toLocaleString()} in inventory`,
         icon: "💰",
       },
       {
@@ -146,7 +146,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
         value: `${orders?.length || 0}`,
         sub: "Lifetime orders", // or "Completed sales"
         icon: "🛍️", // Shopping bag icon
-      }
+      },
     ];
 
     return [...baseStats].filter(Boolean);
@@ -416,7 +416,6 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
               </Typography>
 
               {store?.isOnboarded ? (
-                /* Show this only when verified */
                 <Typography
                   sx={{
                     fontWeight: 600,
@@ -427,15 +426,25 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                   }}
                 >
                   <a
-                    href={
-                      store?.subdomain
-                        ? `http://${store.subdomain}.${
-                            window.location.hostname
-                              .replace("dashboard.", "") // 1. Remove dashboard prefix
-                              .replace("www.", "") // 2. Remove www prefix
-                          }${window.location.port ? ":" + window.location.port : ""}`
-                        : "#"
-                    }
+                    href={(() => {
+                      if (!store?.subdomain) return "#";
+
+                      // Base domain cleanup (removes dashboard. and www.)
+                      const baseDomain = window.location.hostname
+                        .replace("dashboard.", "")
+                        .replace("www.", "");
+                      const port = window.location.port
+                        ? ":" + window.location.port
+                        : "";
+
+                      // If Starter plan: layemart.com/slug
+                      if (store.plan === "starter") {
+                        return `${window.location.protocol}//${baseDomain}${port}/${store.subdomain}`;
+                      }
+
+                      // If Professional plan: slug.layemart.com
+                      return `${window.location.protocol}//${store.subdomain}.${baseDomain}${port}`;
+                    })()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`flex items-center gap-1 transition-colors ${
@@ -444,14 +453,14 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                         : "text-blue-600 hover:text-blue-700"
                     } hover:underline`}
                   >
-                    {store?.subdomain
-                      ? `${store.subdomain}.layemart.com`
-                      : "mystore.layemart.com"}
+                    {/* Dynamic Text Display */}
+                    {store.plan === "starter"
+                      ? `layemart.com/${store.subdomain}`
+                      : `${store.subdomain}.layemart.com`}
                     <ExternalLink size={14} className="mb-0.5" />
                   </a>
                 </Typography>
               ) : (
-                /* Show this placeholder when not verified */
                 <Typography
                   level="body-sm"
                   sx={{

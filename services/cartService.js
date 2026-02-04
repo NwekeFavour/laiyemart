@@ -1,14 +1,14 @@
-import { create } from 'zustand';
-import { useCustomerAuthStore } from '../src/store/useCustomerAuthStore';
-import { getSubdomain } from '../storeResolver';
+import { create } from "zustand";
+import { useCustomerAuthStore } from "../src/store/useCustomerAuthStore";
+import { getSubdomain } from "../storeResolver";
 
-const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 // Helper to handle fetch responses and errors
 const handleResponse = async (response) => {
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.message || 'Something went wrong');
+    throw new Error(data.message || "Something went wrong");
   }
   return data;
 };
@@ -18,25 +18,24 @@ export const useCartStore = create((set, get) => ({
   loading: false,
   error: null,
 
-
   resetCartLocally: () => {
-    set({ 
-      cart: { items: [], cartTotal: 0 }, 
-      loading: false 
+    set({
+      cart: { items: [], cartTotal: 0 },
+      loading: false,
     });
   },
   // Helper to get Auth Headers
   getHeaders: () => {
     // FIX: Access the token property specifically from your auth store
-    const { token } = useCustomerAuthStore.getState(); 
+    const { token } = useCustomerAuthStore.getState();
     const subdomain = getSubdomain();
     if (!token) {
-    console.warn("No token found in store!");
-  }
+      console.warn("No token found in store!");
+    }
     return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'x-store-slug': subdomain // Pass it as a custom header!
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "x-store-slug": subdomain, // Pass it as a custom header!
     };
   },
 
@@ -46,14 +45,15 @@ export const useCartStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await fetch(`${API_URL}/api/cart/${storeId}`, {
-        method: 'GET',
+        method: "GET",
         headers: get().getHeaders(),
       });
       const data = await handleResponse(response);
       if (data.success) set({ cart: data.data });
     } catch (err) {
       set({ error: err.message });
-      if (err.message.includes('401')) set({ cart: { items: [], cartTotal: 0 } });
+      if (err.message.includes("401"))
+        set({ cart: { items: [], cartTotal: 0 } });
     } finally {
       set({ loading: false });
     }
@@ -64,7 +64,7 @@ export const useCartStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await fetch(`${API_URL}/api/cart/`, {
-        method: 'POST',
+        method: "POST",
         headers: get().getHeaders(),
         body: JSON.stringify({ storeId, productId, quantity }),
       });
@@ -78,70 +78,83 @@ export const useCartStore = create((set, get) => ({
   },
 
   // 3. Update Quantity (Optimistic)
-updateQuantity: async (storeId, productId, newQuantity) => {
-  // 1. OPTIMISTIC UPDATE (Instant UI change)
-  set((state) => {
-    if (!state.cart) return state;
-    const updatedItems = state.cart.items.map((item) =>
-      item.product._id === productId ? { ...item, quantity: newQuantity } : item
-    );
-    const newTotal = updatedItems.reduce((acc, item) => {
-      const price = item.priceAtAddition || item.product.price;
-      return acc + (item.quantity * price);
-    }, 0);
-    return { cart: { ...state.cart, items: updatedItems, cartTotal: newTotal } };
-  });
-
-  // 2. SERVER SYNC
-  try {
-    const response = await fetch(`${API_URL}/api/cart/quantity`, {
-      method: 'PATCH',
-      headers: {
-        ...get().getHeaders(),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ storeId, productId, quantity: newQuantity }),
+  updateQuantity: async (storeId, productId, newQuantity) => {
+    // 1. OPTIMISTIC UPDATE (Instant UI change)
+    set((state) => {
+      if (!state.cart) return state;
+      const updatedItems = state.cart.items.map((item) =>
+        item.product._id === productId
+          ? { ...item, quantity: newQuantity }
+          : item,
+      );
+      const newTotal = updatedItems.reduce((acc, item) => {
+        const price = item.priceAtAddition || item.product.price;
+        return acc + item.quantity * price;
+      }, 0);
+      return {
+        cart: { ...state.cart, items: updatedItems, cartTotal: newTotal },
+      };
     });
 
-    // Check if response is actually JSON before parsing
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      const text = await response.text(); // Get the HTML/Text error from server
-      console.error("Server sent non-JSON response:", text);
-      throw new Error("Server error: Check backend logs");
+    // 2. SERVER SYNC
+    try {
+      const response = await fetch(`${API_URL}/api/cart/quantity`, {
+        method: "PATCH",
+        headers: {
+          ...get().getHeaders(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ storeId, productId, quantity: newQuantity }),
+      });
+
+      // Check if response is actually JSON before parsing
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text(); // Get the HTML/Text error from server
+        console.error("Server sent non-JSON response:", text);
+        throw new Error("Server error: Check backend logs");
+      }
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result?.message || "Failed to update quantity");
+      }
+
+      // 3. FINAL SYNC
+      set({ cart: result.data });
+    } catch (err) {
+      console.error("Update Quantity Error:", err.message);
+      // REVERT: If server fails, re-fetch the real cart so the UI doesn't stay wrong
+      const currentStoreId = storeId;
+      get().fetchCart(currentStoreId);
+
+      toast.error("Could not update quantity. Please try again.");
     }
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(result?.message || 'Failed to update quantity');
-    }
-
-    // 3. FINAL SYNC
-    set({ cart: result.data });
-
-  } catch (err) {
-    console.error("Update Quantity Error:", err.message);
-    // REVERT: If server fails, re-fetch the real cart so the UI doesn't stay wrong
-    const currentStoreId = storeId; 
-    get().fetchCart(currentStoreId); 
-    
-    toast.error("Could not update quantity. Please try again.");
-  }
-},
+  },
 
   // 4. Remove Item
   removeItem: async (storeId, productId) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch(`${API_URL}/api/cart/item/${storeId}/${productId}`, {
-        method: 'DELETE',
-        headers: get().getHeaders(),
-      });
+      const response = await fetch(
+        `${API_URL}/api/cart/item/${storeId}/${productId}`,
+        {
+          method: "DELETE",
+          headers: get().getHeaders(),
+        },
+      );
+
       const data = await handleResponse(response);
-      if (data.success) set({ cart: data.data });
+
+      if (data.success) {
+        // Ensure we are setting the full cart object
+        // data.data should look like { items: [...], cartTotal: 5000 }
+        set({ cart: data.data });
+      }
     } catch (err) {
       set({ error: err.message });
+      toast.error("Could not remove item");
     } finally {
       set({ loading: false });
     }
@@ -156,7 +169,7 @@ updateQuantity: async (storeId, productId, newQuantity) => {
   clearCart: async (storeId) => {
     try {
       const response = await fetch(`${API_URL}/api/cart/${storeId}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: get().getHeaders(),
       });
       await handleResponse(response);

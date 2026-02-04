@@ -13,7 +13,15 @@ import {
   Select,
   Option,
 } from "@mui/joy";
-import { Search, Filter, Edit3, X, Printer, ChevronDown, Loader2 } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Edit3,
+  X,
+  Printer,
+  ChevronDown,
+  Loader2,
+} from "lucide-react";
 import StoreOwnerLayout from "./layout";
 import useOrderStore from "../../../services/orderService";
 import { toast } from "react-toastify";
@@ -29,6 +37,8 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
   const [viewingOrder, setViewingOrder] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [activeTab, setActiveTab] = useState("all");
+  const [loadingId, setLoadingId] = useState(null); // To track loading state for specific order
   const { fetchVendorOrders, orders, updateStatus, isLoading } =
     useOrderStore();
 
@@ -60,23 +70,30 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
     setDetailsModalOpen(true);
   };
 
-  const filteredOrders = orders.filter((order) => {
-    const searchStr = searchTerm.toLowerCase();
-    const orderId = order._id?.toLowerCase() || "";
-    const customer = order.customerName?.toLowerCase() || "";
+const filteredOrders = orders.filter((order) => {
+  const searchStr = searchTerm.toLowerCase();
+  const orderId = order._id?.toLowerCase() || "";
+  const customer = order.customerName?.toLowerCase() || "";
+  
+  // 1. Check if the order matches the search string
+  const matchesSearch = orderId.includes(searchStr) || customer.includes(searchStr);
 
-    return orderId.includes(searchStr) || customer.includes(searchStr);
-  });
+  // 2. Check if the order matches the active tab status
+  // Handle "all" vs specific productStatus
+  const matchesTab = activeTab === "all" || (order.productStatus?.toLowerCase() === activeTab.toLowerCase());
+
+  return matchesSearch && matchesTab;
+});
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-const indexOfLastItem = currentPage * itemsPerPage;
-const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
 
-// Reset to page 1 whenever search term changes
-useEffect(() => {
-  setCurrentPage(1);
-}, [searchTerm]);
+  // Reset to page 1 whenever search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -92,6 +109,23 @@ useEffect(() => {
         return "neutral";
     }
   };
+
+  console.log(orders);
+  const getCount = (status) => {
+    if (status === "all") return orders.length;
+    // Map "In Transit" tab to "shipped" productStatus from your data
+    if (status === "shipped")
+      return orders.filter((o) => o.productStatus === "shipped").length;
+    return orders.filter((o) => o.productStatus === status).length;
+  };
+
+  const tabs = [
+    { id: "all", label: "All" },
+    { id: "processing", label: "Processing" }, // You can map "In Transit" to shipped
+    { id: "shipped", label: "In Transit" },
+    { id: "delivered", label: "Delivered" },
+    { id: "cancelled", label: "Cancelled" },
+  ];
 
   return (
     <StoreOwnerLayout isDark={isDark} toggleDarkMode={toggleDarkMode}>
@@ -129,18 +163,51 @@ useEffect(() => {
           className={`w-full overflow-hidden rounded-xl border ${isDark ? "border-slate-800 bg-slate-950" : "border-slate-100 bg-white"}`}
         >
           <Sheet
-            className={` ${isDark ? "border-none!" : "border-slate-100!"} bg-transparent! justify-end!`}
+            className={` ${isDark ? "border-none!" : "border-slate-100!"} bg-transparent! justify-between!`}
             variant="outlined"
             sx={{
-              p: 2,
+              pt: 2,
+              px: 2,
               display: "flex",
               gap: 2,
               flexWrap: "wrap",
               alignItems: "center",
             }}
           >
-            <div className="relative flex items-center">
+            <div className="flex items-center gap-8  overflow-x-auto">
+              {tabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                const count = getCount(tab.id);
+
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative pb-4 flex items-center gap-2 transition-all whitespace-nowrap ${
+                      isActive
+                        ? "text-blue-600 border-b-2 border-blue-600"
+                        : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                    }`}
+                  >
+                    <span className="text-sm font-medium">{tab.label}</span>
+
+                    {/* The Pill Counter */}
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                        isActive
+                          ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20"
+                          : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="relative py-2 flex items-center">
               {/* Search Icon */}
+
               <div className="absolute left-3 flex items-center pointer-events-none">
                 <Search
                   size={18}
@@ -165,7 +232,7 @@ useEffect(() => {
               />
             </div>
 
-            {selected.length === 1 && (
+            {/* {selected.length === 1 && (
               <button
                 onClick={() => {
                   const orderToEdit = orders.find((o) => o._id === selected[0]);
@@ -176,16 +243,7 @@ useEffect(() => {
                 <Edit3 size={16} />
                 Edit Order
               </button>
-            )}
-            <Button
-              className={` ${isDark ? "bg-slate-900!  text-slate-200!" : "bg-transparent! text-slate-900/80!"}  border! border-slate-900/30! `}
-              startDecorator={<Filter size={18} />}
-              variant="soft"
-              color="neutral"
-              sx={{ borderRadius: "lg" }}
-            >
-              Filters
-            </Button>
+            )} */}
           </Sheet>
           {filteredOrders.length === 0 ? (
             /* EMPTY STATE */
@@ -262,7 +320,7 @@ useEffect(() => {
                       { label: "Customer", width: "w-[200px]" },
                       { label: "Amount", width: "w-[130px]" },
                       { label: "Method", width: "w-[150px]" },
-                      { label: "Status", width: "w-[140px]" },
+                      { label: "Status", width: "w-[100px]" },
                     ].map((head) => (
                       <th
                         key={head.label}
@@ -289,7 +347,7 @@ useEffect(() => {
                       </th>
                     ))}
 
-                    <th className="px-4 py-3 w-[100px] text-center font-semibold">
+                    <th className="px-4 py-3 w-[140px] text-center font-semibold">
                       Action
                     </th>
                   </tr>
@@ -298,152 +356,232 @@ useEffect(() => {
                 <tbody
                   className={`divide-y ${isDark ? "divide-slate-800" : "divide-slate-100"}`}
                 >
-                  {currentOrders.map((row, i) => (
-                    <tr
-                      key={i}
-                      className={`text-[13px] transition-colors ${isDark ? "hover:bg-slate-800/40" : "hover:bg-gray-50/50"}`}
-                    >
-                      <td
-                        className={`px-4 py-3 text-center border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
+                  {currentOrders.map((row, i) => {
+                    const isThisRowLoading = loadingId === row._id;
+                    return (
+                      <tr
+                        key={i}
+                        className={`text-[13px] transition-colors ${isDark ? "hover:bg-slate-800/40" : "hover:bg-gray-50/50"}`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={selected.includes(row._id)}
-                          onChange={() => handleSelect(row._id)}
-                          className="rounded-sm accent-blue-600 cursor-pointer"
-                        />
-                      </td>
+                        <td
+                          className={`px-4 py-3 text-center border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected.includes(row._id)}
+                            onChange={() => handleSelect(row._id)}
+                            className="rounded-sm accent-blue-600 cursor-pointer"
+                          />
+                        </td>
 
-                      <td
-                        className={`px-4 py-3 border-r font-medium ${isDark ? "border-slate-800 text-slate-200" : "border-slate-100 text-slate-700"}`}
-                      >
-                        ORD - {row._id?.slice(-6).toUpperCase()}
-                      </td>
+                        <td
+                          className={`px-4 py-3 border-r font-medium ${isDark ? "border-slate-800 text-slate-200" : "border-slate-100 text-slate-700"}`}
+                        >
+                          ORD - {row._id?.slice(-6).toUpperCase()}
+                        </td>
 
-                      <td
-                        className={`px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-400" : "border-slate-100 text-slate-500"}`}
-                      >
-                        <div className="flex flex-col leading-tight">
-                          <span className="font-medium">
-                            {new Date(row.updatedAt).toLocaleDateString(
-                              "en-GB",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              },
+                        <td
+                          className={`px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-400" : "border-slate-100 text-slate-500"}`}
+                        >
+                          <div className="flex flex-col leading-tight">
+                            <span className="font-medium">
+                              {new Date(row.updatedAt).toLocaleDateString(
+                                "en-GB",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )}
+                            </span>
+                            <span className="text-[11px] text-gray-400">
+                              {new Date(row.updatedAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td
+                          className={`px-4 py-3 border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
+                        >
+                          <span
+                            className={`font-semibold ${isDark ? "text-slate-200" : "text-slate-900"}`}
+                          >
+                            {row.customerName}
+                          </span>
+                        </td>
+
+                        <td
+                          className={`px-4 py-3 border-r font-bold ${isDark ? "border-slate-800 text-slate-200" : "border-slate-100 text-slate-900"}`}
+                        >
+                          {row.totalAmount}
+                        </td>
+
+                        <td
+                          className={`px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-400" : "border-slate-100 text-slate-500"} capitalize`}
+                        >
+                          {row.paymentMethod || "Mastercard"}
+                        </td>
+
+                        <td
+                          className={`px-4 py-3 border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
+                        >
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                              row.status === "paid"
+                                ? "bg-green-100 text-green-600"
+                                : "bg-red-100 text-red-600"
+                            }`}
+                          >
+                            {row.status}
+                          </span>
+                        </td>
+
+                        {/* ACTION COLUMN */}
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex flex-col gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenDetails(row);
+                              }}
+                              className="text-slate-500 font-bold hover:underline"
+                            >
+                              Details
+                            </button>
+
+                            {/* FULFILLMENT UPDATE BUTTON */}
+                            {!["delivered", "cancelled"].includes(
+                              row.productStatus?.toLowerCase(),
+                            ) && (
+                              <button
+                                disabled={loadingId !== null} // Disable all buttons if one is loading
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+
+                                  const nextStatusMap = {
+                                    pending: "processing",
+                                    processing: "shipped",
+                                    shipped: "delivered",
+                                  };
+
+                                  const nextStatus =
+                                    nextStatusMap[
+                                      row.productStatus?.toLowerCase() ||
+                                        "pending"
+                                    ];
+                                  if (!nextStatus) return;
+
+                                  setLoadingId(row._id); // Set the specific ID being loaded
+                                  try {
+                                    const res = await updateStatus(
+                                      row._id,
+                                      nextStatus,
+                                    );
+                                    if (res.success) {
+                                      toast.success(
+                                        `Order updated to ${nextStatus}`,
+                                        {
+                                          containerId: "DASHBOARD_TOAST",
+                                        },
+                                      );
+                                      // Call your data refresh function here
+                                    }
+                                  } finally {
+                                    setLoadingId(null); // Reset after done
+                                  }
+                                }}
+                                className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all flex items-center justify-center
+                  ${loadingId !== null ? "opacity-50 cursor-not-allowed" : "active:scale-95"}
+                  ${row.productStatus === "shipped" ? "bg-green-600 hover:bg-green-700" : "bg-slate-900 hover:bg-black"}
+                  text-white`}
+                              >
+                                {isThisRowLoading ? (
+                                  <Loader2 className="animate-spin" size={14} />
+                                ) : (
+                                  <>
+                                    {(row.productStatus === "pending" ||
+                                      !row.productStatus) &&
+                                      "Process"}
+                                    {row.productStatus === "processing" &&
+                                      "Ship"}
+                                    {row.productStatus === "shipped" &&
+                                      "Deliver"}
+                                  </>
+                                )}
+                              </button>
                             )}
-                          </span>
-                          <span className="text-[11px] text-gray-400">
-                            {new Date(row.updatedAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td
-                        className={`px-4 py-3 border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
-                      >
-                        <span
-                          className={`font-semibold ${isDark ? "text-slate-200" : "text-slate-900"}`}
-                        >
-                          {row.customerName}
-                        </span>
-                      </td>
-
-                      <td
-                        className={`px-4 py-3 border-r font-bold ${isDark ? "border-slate-800 text-slate-200" : "border-slate-100 text-slate-900"}`}
-                      >
-                        {row.totalAmount}
-                      </td>
-
-                      <td
-                        className={`px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-400" : "border-slate-100 text-slate-500"} capitalize`}
-                      >
-                        {row.paymentMethod || "Mastercard"}
-                      </td>
-
-                      <td
-                        className={`px-4 py-3 border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}
-                      >
-                        <span
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                            row.status === "Delivered"
-                              ? "bg-green-100 text-green-600"
-                              : row.status === "Cancelled"
-                                ? "bg-red-100 text-red-600"
-                                : "bg-orange-100 text-orange-600"
-                          }`}
-                        >
-                          {row.status}
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={() => handleOpenDetails(row)} // 👈 Add this
-                          className="text-slate-500 font-bold hover:underline"
-                        >
-                          Details
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
               {/* PAGINATION CONTROLS */}
-{filteredOrders.length > 0 && (
-  <div className={`flex items-center justify-between px-6 py-4 border-t ${isDark ? "border-slate-800" : "border-slate-100"}`}>
-    <Typography level="body-sm" className={isDark ? "text-slate-400!" : "text-slate-500"}>
-      Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredOrders.length)} of {filteredOrders.length} orders
-    </Typography>
-    
-    <div className="flex gap-2">
-      <button
-        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-        disabled={currentPage === 1}
-        className={`px-3 py-1 rounded-md border text-sm transition-all ${
-          isDark 
-            ? "border-slate-800 hover:bg-slate-800 disabled:opacity-30 text-slate-300" 
-            : "border-slate-200 hover:bg-gray-50 disabled:opacity-50 text-slate-600"
-        }`}
-      >
-        Previous
-      </button>
-      
-      {[...Array(totalPages)].map((_, i) => (
-        <button
-          key={i}
-          onClick={() => setCurrentPage(i + 1)}
-          className={`w-8 h-8 rounded-md text-sm font-medium transition-all ${
-            currentPage === i + 1
-              ? "bg-blue-600 text-white"
-              : isDark 
-                ? "text-slate-400 hover:bg-slate-800" 
-                : "text-slate-600 hover:bg-gray-100"
-          }`}
-        >
-          {i + 1}
-        </button>
-      ))}
+              {filteredOrders.length > 0 && (
+                <div
+                  className={`flex flex-wrap items-center justify-between px-6 py-4 border-t ${isDark ? "border-slate-800" : "border-slate-100"}`}
+                >
+                  <Typography
+                    level="body-sm"
+                    className={isDark ? "text-slate-400!" : "text-slate-500"}
+                  >
+                    Showing {indexOfFirstItem + 1} to{" "}
+                    {Math.min(indexOfLastItem, filteredOrders.length)} of{" "}
+                    {filteredOrders.length} orders
+                  </Typography>
 
-      <button
-        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-        disabled={currentPage === totalPages}
-        className={`px-3 py-1 rounded-md border text-sm transition-all ${
-          isDark 
-            ? "border-slate-800 hover:bg-slate-800 disabled:opacity-30 text-slate-300" 
-            : "border-slate-200 hover:bg-gray-50 disabled:opacity-50 text-slate-600"
-        }`}
-      >
-        Next
-      </button>
-    </div>
-  </div>
-)}
+                  <div className="flex gap-2 sm:mt-0 mt-3">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md border text-sm transition-all ${
+                        isDark
+                          ? "border-slate-800 hover:bg-slate-800 disabled:opacity-30 text-slate-300"
+                          : "border-slate-200 hover:bg-gray-50 disabled:opacity-50 text-slate-600"
+                      }`}
+                    >
+                      Previous
+                    </button>
+
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`w-8 h-8 rounded-md text-sm font-medium transition-all ${
+                          currentPage === i + 1
+                            ? "bg-slate-800/90 text-white"
+                            : isDark
+                              ? "text-slate-400 hover:bg-slate-800"
+                              : "text-slate-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md border text-sm transition-all ${
+                        isDark
+                          ? "border-slate-800 hover:bg-slate-800 disabled:opacity-30 text-slate-300"
+                          : "border-slate-200 hover:bg-gray-50 disabled:opacity-50 text-slate-600"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -531,7 +669,7 @@ useEffect(() => {
                         ? "bg-green-600"
                         : "bg-slate-600"
                     }
-                    ${isDark && editingOrder.productStatus === "shipped" && "bg-green-900" }
+                    ${isDark && editingOrder.productStatus === "shipped" && "bg-green-900"}
                     text-white`}
                   >
                     {isLoading ? (
@@ -563,7 +701,7 @@ useEffect(() => {
         {isDetailsModalOpen && viewingOrder && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <div
-              className={`w-full h-150 hide-scrollbar max-w-lg overflow-scroll rounded-2xl shadow-2xl transition-all ${isDark ? "bg-slate-900 border border-slate-800 text-slate-100" : "bg-white text-slate-900"}`}
+              className={`w-full h-120! hide-scrollbar max-w-lg overflow-scroll rounded-2xl shadow-2xl transition-all ${isDark ? "bg-slate-900 border border-slate-800 text-slate-100" : "bg-white text-slate-900"}`}
             >
               {/* Receipt Header */}
               <div

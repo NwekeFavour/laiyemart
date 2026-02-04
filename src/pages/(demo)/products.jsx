@@ -109,7 +109,7 @@ const STORE_CONTENT_CONFIG = {
   },
 };
 
-function Products({ storeSlug }) {
+function Products({ storeSlug, isStarter }) {
   const [storeData, setStoreData] = useState(null);
   const [storeLoading, setStoreLoading] = useState(true);
   const [storeError, setStoreError] = useState(false);
@@ -131,11 +131,15 @@ function Products({ storeSlug }) {
     );
     return item ? item.quantity : 0;
   };
+
+  const getStorePath = (path) => {
+    return isStarter ? `/${storeSlug}${path}` : path;
+  };
   const handleCartAction = async (product, action) => {
     const productId = product._id || product.id;
 
     if (!customer) {
-      navigate("/login");
+      navigate(getStorePath("/login"));
       return;
     }
 
@@ -166,11 +170,10 @@ function Products({ storeSlug }) {
     }
   };
 
-
   useEffect(() => {
     if (location.state?.selectedCategory) {
       setSelectedCategory(location.state.selectedCategory);
-      
+
       // Optional: Clear the state so refreshing doesn't keep the filter locked
       window.history.replaceState({}, document.title);
     }
@@ -341,7 +344,12 @@ function Products({ storeSlug }) {
         style={{ backgroundColor: config.bg }}
         className="min-h-screen pb-20 transition-colors duration-500"
       >
-        <Header storeName={storeData?.name} storeLogo={storeData?.logo?.url} />
+        <Header
+          storeName={storeData?.name}
+          storeLogo={storeData?.logo?.url}
+          storeSlug={storeSlug} // Pass the slug
+          isStarter={storeData?.plan === "starter"} // Pass the plan check
+        />
 
         {/* --- HERO SECTION --- */}
         {storeLoading ? (
@@ -458,7 +466,7 @@ function Products({ storeSlug }) {
                 <div
                   key={product._id || product.id}
                   className="group relative cursor-pointer rounded-lg overflow-hidden bg-white shadow-md transition-all duration-300 hover:shadow-xl flex flex-col"
-                  style={{ width:"100%", height: "380px" }} // 1. Fixed total card height
+                  style={{ width: "100%", height: "380px" }} // 1. Fixed total card height
                   onClick={() => navigate(`/shop/product/${product._id}`)}
                 >
                   {/* Product Image Section - Fixed Height */}

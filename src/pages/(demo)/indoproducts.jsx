@@ -43,7 +43,7 @@ const responsive = {
   mobile: { breakpoint: { max: 464, min: 0 }, items: 2 },
 };
 
-const ProductPage = () => {
+const ProductPage = ({storeSlug}) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const resolvedSlug = getSubdomain();
@@ -68,7 +68,9 @@ const ProductPage = () => {
         setProduct(pData.product);
 
         // // Fetch Store & Related
-        const sRes = await fetch(`${API_URL}/api/stores/public/${resolvedSlug}`);
+        const sRes = await fetch(
+          `${API_URL}/api/stores/public/${resolvedSlug}`,
+        );
         const sData = await sRes.json();
         setStoreData(sData.data);
         // console.log(storeData)
@@ -98,7 +100,7 @@ const ProductPage = () => {
         position: "bottom-right",
         autoClose: 2000,
       });
-      console.log("added")
+      console.log("added");
     } catch (err) {
       toast.error("Could not add to cart");
     }
@@ -107,8 +109,13 @@ const ProductPage = () => {
   if (loading) return <ProductSkeleton />;
 
   return (
-    <Box sx={{ bgcolor: "#F1F1F2", minHeight: "100vh", }}>
-      <Header storeName={storeData?.name} storeLogo={storeData?.logo?.url} />
+    <Box sx={{ bgcolor: "#F1F1F2", minHeight: "100vh" }}>
+      <Header
+        storeName={storeData?.name}
+        storeLogo={storeData?.logo?.url}
+        storeSlug={storeSlug} // Pass the slug
+        isStarter={storeData?.plan === "starter"} // Pass the plan check
+      />
 
       {/* 1. Breadcrumbs */}
       <Box sx={{ maxWidth: "1200px", mx: "auto", px: 2, py: 1.5 }}>
@@ -344,7 +351,7 @@ const ProductPage = () => {
               Customers also viewed
             </Typography>
             <Link
-                className="text-slate-900/80! underline!"
+              className="text-slate-900/80! underline!"
               onClick={() => navigate(`/shop`)}
               sx={{
                 fontSize: "14px",

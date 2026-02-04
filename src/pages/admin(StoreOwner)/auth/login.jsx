@@ -33,7 +33,7 @@ import {
 import { getSubdomain } from "../../../../storeResolver";
 import { toast } from "react-toastify";
 
-export default function AuthPage({ isDark }) {
+export default function AuthPage({ isDark, storeSlug, isStarter, storeData }) {
   const [showPassword, setShowPassword] = useState(false);
   const { storeSlug: paramSlug } = useParams();
   const [isForgotMode, setIsForgotMode] = useState(false);
@@ -111,7 +111,7 @@ export default function AuthPage({ isDark }) {
       toast.success("Reset link sent to your email!", {
         containerId: "STOREFRONT",
       });
-      setFormData({email: ""})
+      setFormData({ email: "" });
 
       setIsForgotMode(false);
     } catch (err) {
@@ -130,6 +130,10 @@ export default function AuthPage({ isDark }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getStorePath = (path) => {
+    return isStarter ? `/${storeSlug}${path}` : path;
   };
 
   return (
@@ -161,34 +165,70 @@ export default function AuthPage({ isDark }) {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            mb: 4,
           }}
         >
-          <div className="flex items-center justify-between  gap-2">
-            <div className="w-8 h-8 rounded-md bg-red-500" />
+           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-3">
+              Welcome back!
+            </h2>
+          <div className="flex items-center gap-3 justify-start w-full">
+            {/* LOGO SECTION */}
+            <div className="relative">
+              {storeData?.logo?.url ? (
+                <img
+                  src={storeData.logo.url}
+                  alt={storeData.name}
+                  className="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-100 dark:ring-slate-800"
+                />
+              ) : (
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)",
+                  }}
+                >
+                  <span className="text-white font-bold text-xl">
+                    {storeData?.name?.charAt(0).toUpperCase() || "S"}
+                  </span>
+                </div>
+              )}
 
-            <Typography
-              className="text lg:text-[16px]! text-[13px]!"
-              sx={{
-                fontWeight: 800,
-                fontSize: "22px",
-                color: colors.primary,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              LAYE
-              <span className="text" style={{ color: "#ef4444" }}>
-                MART
-              </span>
-            </Typography>
-          </div>
-          <Typography
-            sx={{ color: colors.textMuted, fontSize: "14px", mt: 0.5 }}
-          >
-            {isForgotMode
-              ? "Recover your account"
-              : "The all-in-one slate marketplace"}
-          </Typography>
+              {/* Status Indicator (Green dot if Onboarded/Verified) */}
+              {storeData?.paystack?.verified && (
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-[#0f172a] rounded-full" />
+              )}
+            </div>
+
+            {/* NAME & PLAN SECTION */}
+            <div className="flex flex-col justify-center">
+              <Typography
+                sx={{
+                  fontWeight: 800,
+                  fontSize: { xs: "15px", lg: "18px" },
+                  color: isDark ? "white" : "neutral.900",
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1,
+                  textTransform: "uppercase",
+                }}
+              >
+                {storeData?.name || "My Store"}
+              </Typography>
+
+              <Typography
+                level="body-xs"
+                sx={{
+                  mt: 0.5,
+                  fontWeight: 600,
+                  color: "neutral.500",
+                  fontSize: "10px",
+                  letterSpacing: "0.05em",
+                  textTransform: "uppercase",
+                }}
+              >
+                {storeData?.plan || "Starter"} Plan
+              </Typography>
+            </div>
+          </div>          
         </Box>
 
         <Tabs defaultValue={0} sx={{ bgcolor: "transparent" }}>
@@ -350,7 +390,7 @@ export default function AuthPage({ isDark }) {
             Don't have an account?{" "}
             <Link
               className="text-[#64748b] hover:text-[#0f172a] hover:underline"
-              to={`/register`}
+              to={getStorePath(`/register`)}
             >
               Create Account
             </Link>

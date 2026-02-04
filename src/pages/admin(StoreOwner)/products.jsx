@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import {motion} from "framer-motion";
 import {
   Box,
   Typography,
@@ -413,6 +414,15 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
   };
   return (
     <StoreOwnerLayout isDark={isDark} toggleDarkMode={toggleDarkMode}>
+       {loading && (
+      <motion.div
+        initial={{ width: 0, opacity: 0 }}
+        animate={{ width: "100%", opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+        className="fixed top-0 left-0 h-1 bg-red-500 z-9999"
+      />
+    )}
       <Box
         sx={{ display: "flex", flexDirection: "column", gap: 3, p: { xs: 2 } }}
       >
@@ -2120,23 +2130,50 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                   Inventory / Stock
                 </FormLabel>
                 <Input
-                  type="number"
-                  className={`${isDark ? "placeholder:text-slate-200! text-slate-200!" : ""}`}
-                  value={isUnlimited ? 0 : inventory}
-                  onChange={(e) => setInventory(e.target.value)}
-                  placeholder="Quantity available"
-                  endDecorator={
-                    <Typography level="body-xs" sx={{ color: "neutral.500" }}>
-                      units
-                    </Typography>
-                  }
+                  type="text" // 1. Changed to text
+                  value={inventory}
+                  onChange={(e) => {
+                    // 2. Extract value and replace anything that isn't a digit with an empty string
+                    const val = e.target.value.replace(/\D/g, "");
+
+                    // 3. Update state (if you want to allow empty string for backspacing)
+                    setInventory(val);
+                  }}
+                  endDecorator={<Typography level="body-xs">units</Typography>}
                   variant="soft"
                   sx={{
-                    bgcolor: isDark ? "transparent" : "",
                     borderRadius: "lg",
-                    border: isDark ? "1px solid #314158" : "none",
+                    bgcolor: isDark ? "transparent" : "neutral.100",
+                    color: isDark ? "#f1f5f9" : "inherit",
+                    border: isDark
+                      ? "1px solid #334155"
+                      : "1px solid transparent",
                     "&::before": { display: "none" },
-                    "&:focus-within": { outline: "none", border: "none" },
+                    "&:hover": {
+                      bgcolor: isDark ? "transparent" : "neutral.200",
+                    },
+                    // Note: MuiSelect-indicator styles may not be needed if this isn't a Select
+                    "& .MuiSelect-indicator": {
+                      color: isDark ? "#94a3b8" : "inherit",
+                    },
+                  }}
+                  slotProps={{
+                    // 4. Removed 'min' and 'step' as they don't apply to type="text"
+                    input: {
+                      inputMode: "numeric", // Triggers numeric keypad on mobile devices
+                      pattern: "[0-9]*", // Extra hint for browsers
+                    },
+                    listbox: {
+                      sx: {
+                        bgcolor: isDark ? "#0f172a" : "background.surface",
+                        borderColor: isDark ? "#334155" : "divider",
+                        boxShadow: "xl",
+                        color: isDark ? "#f1f5f9" : "inherit",
+                        "& .MuiOption-root:hover": {
+                          bgcolor: isDark ? "#1e293b" : "neutral.100",
+                        },
+                      },
+                    },
                   }}
                 />
                 <Typography

@@ -16,7 +16,7 @@ import { useCartStore } from "../../../../services/cartService";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
 import { motion } from "framer-motion";
 
-const NewArrivalsGrid = ({ subtitle }) => {
+const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter }) => {
   const { products, fetchStoreProducts, setLocalProducts, loading } =
     useProductStore();
   const { cart, addToCart, updateQuantity, removeItem } = useCartStore();
@@ -28,13 +28,21 @@ const NewArrivalsGrid = ({ subtitle }) => {
   const [processingId, setProcessingId] = useState(null);
   useEffect(() => {
     const initData = async () => {
-      const isDemo = localStorage.getItem("demo") === "true";
-      if (isDemo) setLocalProducts(DUMMY_PRODUCTS);
-      else await fetchStoreProducts();
+      if (localStorage.getItem("demo")) {
+      setLocalProducts(DUMMY_PRODUCTS);
+      return;
+      } else if (storeSlug) {
+        setLocalProducts([]);
+        await fetchStoreProducts(storeSlug);
+      }
     };
     initData();
-  }, [fetchStoreProducts, setLocalProducts]);
+  }, [fetchStoreProducts, setLocalProducts, storeSlug]);
 
+
+  const getStorePath = (path) => {
+    return isStarter ? `/${storeSlug}${path}` : path;
+  };
   const getItemQty = (productId) => {
     const item = cart?.items?.find(
       (i) => i.product._id === productId || i.product === productId,
@@ -46,7 +54,7 @@ const NewArrivalsGrid = ({ subtitle }) => {
     const productId = product._id || product.id;
 
     if (!customer) {
-      navigate("/login");
+      navigate(getStorePath("/login"));
       return;
     }
 
@@ -203,7 +211,7 @@ const NewArrivalsGrid = ({ subtitle }) => {
                     <Button
                       size="small"
                       variant="text"
-                      onClick={() => navigate(`/shop/product/${product._id}`)}
+                      onClick={() => navigate(getStorePath(`/shop/product/${product._id}`))}
                       sx={{
                         fontSize: 11,
                         color: "#02489b",

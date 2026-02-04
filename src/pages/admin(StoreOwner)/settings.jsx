@@ -235,19 +235,12 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
       if (result && result.store) {
         // Synchronize your local display state immediately
         setStoreDits(result.store);
-
-        if (formEmail !== store?.email) {
-          toast.success("Changes saved! Check your inbox to verify.", {
-            icon: "📩",
+       
+          toast.success(formEmail !== store?.email ? "Changes saved! Check your inbox to verify." : "Store profile updated successfully", {
+            icon:  formEmail !== store?.email && "📩",
             duration: 6000,
-          });
-        } else {
-          toast.success("Store profile updated successfully", {
-            position: "top-right",
-            autoClose: 2000,
-          });
-        }
-        // 4. Clear temporary file buffers only on SUCCESS
+          });        
+
         setLogoFile(null);
         setHeroFile(null);
         // Note: previewUrls stay visible because they now point to store.heroImage.url
@@ -953,13 +946,13 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   >
                     <Option
                       className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
-                      value="General Store"
+                      value="general store"
                     >
                       General Store
                     </Option>
                     <Option
                       className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
-                      value="Fashion"
+                      value="fashion"
                     >
                       Fashion
                     </Option>
@@ -1126,9 +1119,8 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                     />
                   </Box>
                 </FormControl>
-                <Divider />
                 <Box
-                  sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}
+                  sx={{ display: "flex", justifyContent: "start", gap: 2 }}
                 >
                   <Button
                     variant="plain"
@@ -1364,7 +1356,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                 <Box
                   sx={{
                     display: "flex",
-                    justifyContent: "flex-end",
+                    justifyContent: "start",
                     mt: 1,
                     mb: 2,
                   }}
@@ -1618,7 +1610,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                 )}
 
                 <Box
-                  sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}
+                  sx={{ display: "flex", justifyContent: "start", gap: 2 }}
                 >
                   <Button
                     className={`${isDark ? "text-slate-200!" : ""}`}

@@ -18,7 +18,7 @@ import {
   Filter,
   RefreshCw,
 } from "lucide-react";
-
+import { motion } from "framer-motion";
 import StoreOwnerLayout from "./layout";
 import { useAuthStore } from "../../store/useAuthStore";
 
@@ -26,7 +26,7 @@ function CustomerList({ isDark, toggleDarkMode }) {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
-  const [currentFilter, setFilterStatus] = useState('all');
+  const [currentFilter, setFilterStatus] = useState("all");
   const { store } = useAuthStore.getState();
   const storeId = store?._id;
   // console.log(storeId);
@@ -51,9 +51,7 @@ function CustomerList({ isDark, toggleDarkMode }) {
   }`;
   // Fetch data from your backend
 
-  const handleSort = () => {
-
-  }
+  const handleSort = () => {};
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
@@ -72,7 +70,7 @@ function CustomerList({ isDark, toggleDarkMode }) {
         if (data.success) {
           setCustomers(data.customers);
         }
-        
+
         // console.log(data)
       } catch (err) {
         setError("Failed to load customers");
@@ -138,9 +136,7 @@ function CustomerList({ isDark, toggleDarkMode }) {
               <input
                 placeholder="Search by ID or Name"
                 className={`pl-9 pr-4 py-1.5 text-sm rounded-md border outline-none ${
-                  isDark
-                    ? " border-slate-800"
-                    : "bg-white border-gray-200"
+                  isDark ? " border-slate-800" : "bg-white border-gray-200"
                 }`}
                 value={searchQuery}
                 onChange={(e) => {
@@ -157,7 +153,9 @@ function CustomerList({ isDark, toggleDarkMode }) {
             </div>
           </div>
           {/* Scrollable Table Body */}
-          <div className={`w-full overflow-hidden   ${isDark ? "bg-slate-950!" : ""}`}>
+          <div
+            className={`w-full overflow-hidden   ${isDark ? "bg-slate-950!" : ""}`}
+          >
             {/* 2. Scroll Container: 'hide-scrollbar' keeps it clean, 'w-full' ensures it fits parent */}
             <div className="overflow-x-auto hide-scrollbar">
               {/* 3. Table: Set a 'min-w' to prevent columns from collapsing on small screens */}
@@ -201,18 +199,54 @@ function CustomerList({ isDark, toggleDarkMode }) {
                   {loading ? (
                     // 2. LOADING STATE
                     [...Array(5)].map((_, i) => (
-                      <tr key={i} className="animate-pulse">
-                        <td
-                          colSpan={7}
-                          className={`px-6 py-6 border-b ${borderColor}`}
-                        >
-                          <div
-                            className={`h-4 w-full rounded ${
-                              isDark ? "bg-slate-800" : "bg-gray-100"
-                            }`}
+                      <div>
+                        <div className="flex flex-col items-center justify-center h-screen bg-white text-slate-900">
+                          {/* Top Loading Bar (Stripe-style) */}
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: "100%" }}
+                            transition={{ duration: 2, ease: "easeInOut" }}
+                            className="fixed top-0 left-0 h-1 bg-red-500 z-50"
                           />
-                        </td>
-                      </tr>
+
+                          <div className="flex flex-col items-center gap-6">
+                            {/* Minimalist Logo Container */}
+                            <div className="relative flex items-center justify-center w-20 h-20">
+                              {/* Subtle Outer Glow */}
+                              <motion.div
+                                animate={{
+                                  scale: [1, 1.1, 1],
+                                  opacity: [0.1, 0.2, 0.1],
+                                }}
+                                transition={{ duration: 3, repeat: Infinity }}
+                                className="absolute inset-0 bg-red-500 rounded-2xl blur-xl"
+                              />
+
+                              {/* Main Logo Icon */}
+                              <div className="relative w-16 h-16 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-center">
+                                <span className="text-3xl font-black text-red-500 tracking-tighter">
+                                  L
+                                </span>
+
+                                {/* Spinning Ring - Thin and elegant */}
+                                <div className="absolute inset-[-4px] border-2 border-transparent border-t-red-500/30 rounded-2xl animate-spin" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <tr key={i} className="animate-pulse">
+                          <td
+                            colSpan={7}
+                            className={`px-6 py-6 border-b ${borderColor}`}
+                          >
+                            <div
+                              className={`h-4 w-full rounded ${
+                                isDark ? "bg-slate-800" : "bg-gray-100"
+                              }`}
+                            />
+                          </td>
+                        </tr>
+                      </div>
                     ))
                   ) : currentItems.length > 0 ? (
                     // 3. DATA STATE
@@ -354,13 +388,13 @@ function CustomerList({ isDark, toggleDarkMode }) {
                   key={i}
                   onClick={() => setCurrentPage(i + 1)}
                   className={`w-8 h-8 rounded border text-xs font-bold ${
-                    currentPage === i + 1
-                      ? " text-white"
-                      : ""
+                    currentPage === i + 1 ? " text-white" : ""
                   }
                   
                     ${
-                    isDark ? "bg-slate-800/90 text-slate-200!" : "bg-slate-200/10 text-slate-900!"
+                      isDark
+                        ? "bg-slate-800/90 text-slate-200!"
+                        : "bg-slate-200/10 text-slate-900!"
                     }`}
                 >
                   {i + 1}

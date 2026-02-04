@@ -12,6 +12,7 @@ import {
   Trash2,
   UploadCloud,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import {
   AspectRatio,
   Box,
@@ -39,9 +40,9 @@ import { toast } from "react-toastify";
 
 /* ------------------ MODAL COMPONENT ------------------ */
 const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
-  const { createCategory } = useCategoryStore();
+  const { createCategory, loading } = useCategoryStore();
   const { store } = useAuthStore();
-  const [loadingc, setLoadingc] = useState(false)
+  const [loadingc, setLoadingc] = useState(false);
   // Replace 'YOUR_STORE_ID' with the actual ID from your Auth or Params
   const storeId = store?._id;
   const [shouldRender, setShouldRender] = useState(isOpen);
@@ -75,7 +76,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
 
   const handleSubmit = async () => {
     // 1. Basic Validation
-    setLoadingc(true)
+    setLoadingc(true);
     if (!name.trim()) {
       return toast.error("Please enter a category name");
     }
@@ -97,7 +98,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
       setImageFile(null);
       setImagePreview(null);
       setIsFeatured(false);
-      setLoadingc(false)
+      setLoadingc(false);
       // 5. Close Modal/Drawer
       onClose();
     } catch (err) {
@@ -120,87 +121,97 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
       ? "bg-slate-800 border-slate-700 focus:border-blue-500 text-white"
       : "bg-white border-gray-300 focus:border-blue-400 text-gray-900"
   }`;
-  const labelStyle =
-    ` ${isDark ? "text-slate-400" : "text-gray-700 "} block text-[13px] font-semibold mb-1.5 dark:text-slate-300`;
+  const labelStyle = ` ${isDark ? "text-slate-400" : "text-gray-700 "} block text-[13px] font-semibold mb-1.5 dark:text-slate-300`;
 
   return (
-    <div
-      className={`fixed inset-0 z-[110] flex justify-end bg-black/60 backdrop-blur-[2px] transition-opacity duration-500 ${isAnimate ? "opacity-100" : "opacity-0"}`}
-      onClick={onClose}
-    >
+    <>
+      {loading && (
+        <motion.div
+          initial={{ width: 0, opacity: 0 }}
+          animate={{ width: "100%", opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+          className="fixed top-0 left-0 h-1 bg-red-500 z-9999"
+        />
+      )}
       <div
-        onClick={(e) => e.stopPropagation()}
-        className={`relative h-full w-full max-w-md shadow-2xl flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
-          isDark ? "bg-[#0f172a]" : "bg-white"
-        } ${isAnimate ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed inset-0 z-[110] flex justify-end bg-black/60 backdrop-blur-[2px] transition-opacity duration-500 ${isAnimate ? "opacity-100" : "opacity-0"}`}
+        onClick={onClose}
       >
         <div
-          className={`px-6 py-5 border-b flex justify-between items-center ${isDark ? "border-slate-800" : "border-slate-100"}`}
+          onClick={(e) => e.stopPropagation()}
+          className={`relative h-full w-full max-w-md shadow-2xl flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
+            isDark ? "bg-[#0f172a]" : "bg-white"
+          } ${isAnimate ? "translate-x-0" : "translate-x-full"}`}
         >
-          <div>
-            <h2
-              className={`font-bold text-lg ${isDark ? "text-white" : "text-gray-900"}`}
-            >
-              Create Category
-            </h2>
-            <p className="text-xs text-slate-500">
-              Add a new group for your products
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+          <div
+            className={`px-6 py-5 border-b flex justify-between items-center ${isDark ? "border-slate-800" : "border-slate-100"}`}
           >
-            <X
-              size={20}
-              className={isDark ? "text-slate-400" : "text-gray-500"}
-            />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          <div>
-            <label className={labelStyle}>Category Thumbnail</label>
-            <div
-              className={`aspect-[16/9] rounded-xl border-2 border-dashed flex flex-col items-center justify-center relative overflow-hidden group transition-all ${
-                isDark
-                  ? "border-slate-700 bg-slate-800/40 hover:border-slate-500"
-                  : "border-gray-200 bg-gray-50 hover:border-blue-300"
-              }`}
+            <div>
+              <h2
+                className={`font-bold text-lg ${isDark ? "text-white" : "text-gray-900"}`}
+              >
+                Create Category
+              </h2>
+              <p className="text-xs text-slate-500">
+                Add a new group for your products
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
             >
-              {imagePreview ? (
-                <img
-                  src={imagePreview}
-                  className="w-full h-full object-cover"
-                  alt="Preview"
+              <X
+                size={20}
+                className={isDark ? "text-slate-400" : "text-gray-500"}
+              />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div>
+              <label className={labelStyle}>Category Thumbnail</label>
+              <div
+                className={`aspect-[16/9] rounded-xl border-2 border-dashed flex flex-col items-center justify-center relative overflow-hidden group transition-all ${
+                  isDark
+                    ? "border-slate-700 bg-slate-800/40 hover:border-slate-500"
+                    : "border-gray-200 bg-gray-50 hover:border-blue-300"
+                }`}
+              >
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    className="w-full h-full object-cover"
+                    alt="Preview"
+                  />
+                ) : (
+                  <div className="text-center p-4">
+                    <Search size={20} className="mx-auto mb-2 opacity-40" />
+                    <p className="text-xs font-medium opacity-60">
+                      Click to upload image
+                    </p>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept=".jpg, .jpeg, .png, .webp, .avif"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={handleImageChange}
                 />
-              ) : (
-                <div className="text-center p-4">
-                  <Search size={20} className="mx-auto mb-2 opacity-40" />
-                  <p className="text-xs font-medium opacity-60">
-                    Click to upload image
-                  </p>
-                </div>
-              )}
+              </div>
+            </div>
+
+            <div>
+              <label className={labelStyle}>Category Name</label>
               <input
-                type="file"
-                className="absolute inset-0 opacity-0 cursor-pointer"
-                onChange={handleImageChange}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Winter Collection"
+                className={inputBase}
               />
             </div>
-          </div>
 
-          <div>
-            <label className={labelStyle}>Category Name</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Winter Collection"
-              className={inputBase}
-            />
-          </div>
-
-          {/* <div
+            {/* <div
             className={`p-4 rounded-lg border ${isDark ? "bg-slate-800/30 border-slate-700" : "bg-blue-50/50 border-blue-100"}`}
           >
             <label className="flex items-center gap-3 cursor-pointer">
@@ -217,28 +228,29 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
               </span>
             </label>
           </div> */}
-        </div>
+          </div>
 
-        <div
-          className={`p-6 border-t flex items-center gap-3 ${isDark ? "border-slate-800 bg-slate-900/50" : "border-slate-100 bg-gray-50/50"}`}
-        >
-          <button
-            onClick={onClose}
-            className={`flex-1 px-4 py-2.5 text-sm font-bold border rounded-lg transition-all ${isDark ? "border-slate-700 text-white hover:bg-slate-800" : "border-slate-200 text-gray-700 hover:bg-slate-100"}`}
+          <div
+            className={`p-6 border-t flex items-center gap-3 ${isDark ? "border-slate-800 bg-slate-900/50" : "border-slate-100 bg-gray-50/50"}`}
           >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={loadingc || !name}
-            className={`${isDark ? "bg-slate-100/20 text-slate-100" : "bg-slate-900/90 text-white"} flex-[2] px-4 py-2.5   dark:bg-white dark:text-black rounded-lg font-bold text-sm shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2`}
-          >
-            {loadingc && <Loader2 size={16} className="animate-spin" />}
-            {loadingc ? "Creating..." : "Create Category"}
-          </button>
+            <button
+              onClick={onClose}
+              className={`flex-1 px-4 py-2.5 text-sm font-bold border rounded-lg transition-all ${isDark ? "border-slate-700 text-white hover:bg-slate-800" : "border-slate-200 text-gray-700 hover:bg-slate-100"}`}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loadingc || !name}
+              className={`${isDark ? "bg-slate-100/20 text-slate-100" : "bg-slate-900/90 text-white"} flex-[2] px-4 py-2.5   dark:bg-white dark:text-black rounded-lg font-bold text-sm shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2`}
+            >
+              {loadingc && <Loader2 size={16} className="animate-spin" />}
+              {loadingc ? "Creating..." : "Create Category"}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -496,7 +508,7 @@ export default function CategoriesTable({ isDark, toggleDarkMode }) {
                         </div>
                       </td>
 
-                      <td className={tdStyle}>{cat.products?.length || 0}</td>                      
+                      <td className={tdStyle}>{cat.products?.length || 0}</td>
                       <td className={tdStyle}>
                         <span
                           className={`px-2 py-0.5 rounded text-[11px] font-bold ${cat.isActive !== false ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}

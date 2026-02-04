@@ -51,26 +51,40 @@ export const isDashboardSubdomain = () => {
 
 export default function StoreResolver() {
   const [slug, setSlug] = useState(null);
+  const [resolverType, setResolverType] = useState(null);
 
   useEffect(() => {
-    const hostname = window.location.hostname; // e.g., "mystore.localhost"
-    const parts = hostname.split('.');
+    const sub = getSubdomain();
+    
+    if (sub) {
+      setSlug(sub);
+      setResolverType('subdomain');
+    } else {
+      const pathParts = window.location.pathname.split('/').filter(Boolean);
+      const pathSlug = pathParts[0]?.toLowerCase();
 
-    // Check if we are on a subdomain (more than 1 part for localhost, or more than 2 for .com)
-    // Localhost: ["mystore", "localhost"] -> length 2
-    // Production: ["mystore", "layemart", "com"] -> length 3
-    if (parts.length >= 2 && parts[parts.length - 2] !== 'www') {
-       if (parts[0] !== 'localhost' && parts[0] !== 'layemart') {
-          setSlug(parts[0]);
-       }
+      // IMPORTANT: Add all main site routes here to prevent the resolver 
+      // from trying to treat "layemart.com/pricing" as a store named "pricing"
+      const reservedPaths = [
+        'admin', 'login', 'signup', 'dashboard', 'api', 
+        'auth', 'verify-store-email', 'pricing', 'about', 'contact'
+      ];
+
+      if (pathSlug && !reservedPaths.includes(pathSlug)) {
+        setSlug(pathSlug);
+        setResolverType('path');
+      } else {
+        // Explicitly reset if it's a reserved path or root
+        setSlug(null);
+        setResolverType(null);
+      }
     }
-  }, []);
+  }, [window.location.pathname, window.location.hostname]); // Sync on URL changes
 
-  // If a slug is detected in the hostname, render the Store Page
+  console.log("Resolved Store Slug:", slug, "via", resolverType);
   if (slug) {
-    return <DemoHome storeSlug={slug} />;
+    return <DemoHome storeSlug={slug} resolverType={resolverType} />;
   }
 
-  // Otherwise, return null or a landing page (handled by your main router)
   return null;
 }
