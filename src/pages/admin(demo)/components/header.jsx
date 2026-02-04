@@ -343,7 +343,7 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
               Sign Out
             </Button>
           ) : (
-            <Link to="/login">
+            <Link to={getStorePath("/login")}>
               <Button
                 className="bg-slate-800! hover:bg-slate-800/90! "
                 fullWidth

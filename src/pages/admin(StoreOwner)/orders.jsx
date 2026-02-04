@@ -39,6 +39,7 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
   const itemsPerPage = 10;
   const [activeTab, setActiveTab] = useState("all");
   const [loadingId, setLoadingId] = useState(null); // To track loading state for specific order
+  const [confirmModal, setConfirmModal] = useState(false)
   const { fetchVendorOrders, orders, updateStatus, isLoading } =
     useOrderStore();
 
@@ -70,20 +71,23 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
     setDetailsModalOpen(true);
   };
 
-const filteredOrders = orders.filter((order) => {
-  const searchStr = searchTerm.toLowerCase();
-  const orderId = order._id?.toLowerCase() || "";
-  const customer = order.customerName?.toLowerCase() || "";
-  
-  // 1. Check if the order matches the search string
-  const matchesSearch = orderId.includes(searchStr) || customer.includes(searchStr);
+  const filteredOrders = orders.filter((order) => {
+    const searchStr = searchTerm.toLowerCase();
+    const orderId = order._id?.toLowerCase() || "";
+    const customer = order.customerName?.toLowerCase() || "";
 
-  // 2. Check if the order matches the active tab status
-  // Handle "all" vs specific productStatus
-  const matchesTab = activeTab === "all" || (order.productStatus?.toLowerCase() === activeTab.toLowerCase());
+    // 1. Check if the order matches the search string
+    const matchesSearch =
+      orderId.includes(searchStr) || customer.includes(searchStr);
 
-  return matchesSearch && matchesTab;
-});
+    // 2. Check if the order matches the active tab status
+    // Handle "all" vs specific productStatus
+    const matchesTab =
+      activeTab === "all" ||
+      order.productStatus?.toLowerCase() === activeTab.toLowerCase();
+
+    return matchesSearch && matchesTab;
+  });
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -110,7 +114,7 @@ const filteredOrders = orders.filter((order) => {
     }
   };
 
-  console.log(orders);
+  // console.log(orders);
   const getCount = (status) => {
     if (status === "all") return orders.length;
     // Map "In Transit" tab to "shipped" productStatus from your data
@@ -458,48 +462,24 @@ const filteredOrders = orders.filter((order) => {
                               row.productStatus?.toLowerCase(),
                             ) && (
                               <button
-                                disabled={loadingId !== null} // Disable all buttons if one is loading
-                                onClick={async (e) => {
+                                disabled={loadingId !== null}
+                                onClick={(e) => {
                                   e.stopPropagation();
-
-                                  const nextStatusMap = {
-                                    pending: "processing",
-                                    processing: "shipped",
-                                    shipped: "delivered",
-                                  };
-
-                                  const nextStatus =
-                                    nextStatusMap[
+                                  // Instead of calling the API, we open the modal
+                                  setConfirmModal({
+                                    open: true,
+                                    orderId: row._id,
+                                    currentStatus:
                                       row.productStatus?.toLowerCase() ||
-                                        "pending"
-                                    ];
-                                  if (!nextStatus) return;
-
-                                  setLoadingId(row._id); // Set the specific ID being loaded
-                                  try {
-                                    const res = await updateStatus(
-                                      row._id,
-                                      nextStatus,
-                                    );
-                                    if (res.success) {
-                                      toast.success(
-                                        `Order updated to ${nextStatus}`,
-                                        {
-                                          containerId: "DASHBOARD_TOAST",
-                                        },
-                                      );
-                                      // Call your data refresh function here
-                                    }
-                                  } finally {
-                                    setLoadingId(null); // Reset after done
-                                  }
+                                      "pending",
+                                  });
                                 }}
                                 className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all flex items-center justify-center
-                  ${loadingId !== null ? "opacity-50 cursor-not-allowed" : "active:scale-95"}
-                  ${row.productStatus === "shipped" ? "bg-green-600 hover:bg-green-700" : "bg-slate-900 hover:bg-black"}
-                  text-white`}
+      ${loadingId !== null ? "opacity-50 cursor-not-allowed" : "active:scale-95"}
+      ${row.productStatus === "shipped" ? "bg-green-600 hover:bg-green-700" : "bg-slate-900 hover:bg-black"}
+      text-white`}
                               >
-                                {isThisRowLoading ? (
+                                {loadingId === row._id ? (
                                   <Loader2 className="animate-spin" size={14} />
                                 ) : (
                                   <>
@@ -697,6 +677,66 @@ const filteredOrders = orders.filter((order) => {
             </div>
           </div>
         )}
+
+
+        {/* State needed at the top of your component:
+    const [confirmModal, setConfirmModal] = useState({ open: false, orderId: null, currentStatus: '' });
+*/}
+
+{confirmModal.open && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full mx-4">
+      <h3 className="text-lg font-bold text-slate-900">Change Order Status?</h3>
+      <p className="text-slate-500 text-sm mt-2">
+        Are you sure you want to move this order to 
+        <span className="font-bold text-slate-900">
+          {` ${
+            confirmModal.currentStatus === 'pending' ? 'Processing' : 
+            confirmModal.currentStatus === 'processing' ? 'Shipped' : 'Delivered'
+          }`}
+        </span>? 
+        This action cannot be undone.
+      </p>
+      
+      <div className="flex gap-3 mt-6">
+        <button
+          onClick={() => setConfirmModal({ open: false, orderId: null, currentStatus: '' })}
+          className="flex-1 px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={async () => {
+            const nextStatusMap = {
+              pending: "processing",
+              processing: "shipped",
+              shipped: "delivered",
+            };
+            const nextStatus = nextStatusMap[confirmModal.currentStatus];
+            const orderId = confirmModal.orderId;
+
+            // Close modal immediately so it feels snappy
+            setConfirmModal({ open: false, orderId: null, currentStatus: '' });
+            
+            setLoadingId(orderId);
+            try {
+              const res = await updateStatus(orderId, nextStatus);
+              if (res.success) {
+                toast.success(`Updated to ${nextStatus}`, { containerId: "DASHBOARD_TOAST" });
+                // refreshData(); // Trigger your list refresh here
+              }
+            } finally {
+              setLoadingId(null);
+            }
+          }}
+          className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-slate-600 rounded-lg hover:bg-blue-700"
+        >
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
         {isDetailsModalOpen && viewingOrder && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
