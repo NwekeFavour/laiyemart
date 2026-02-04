@@ -360,6 +360,10 @@ function DemoHome({ storeSlug, resolverType }) {
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
 
+
+        {storeData?.logo?.url && (
+          <link rel="icon" type="image/png" href={storeData.logo.url} />
+        )}
         {/* SEO */}
         <link rel="canonical" href={pageUrl} />
 
