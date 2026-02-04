@@ -209,21 +209,7 @@ const handleAddToCart = async () => {
                     sx={{ color: "#313133", fontWeight: 700 }}
                   >
                     ₦ {product.price?.toLocaleString()}
-                  </Typography>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography
-                      level="body-sm"
-                      sx={{ textDecoration: "line-through", textDecorationColor: 'red',textDecorationStyle: 'solid', color: "#75757A" }}
-                    >
-                      ₦ {(product.price * 1.25).toLocaleString()}
-                    </Typography>
-                    <Typography
-                      level="body-xs"
-                      sx={{ bgcolor: "#FEF3E9", color: "#F68B1E", px: 0.5 }}
-                    >
-                      -25%
-                    </Typography>
-                  </Stack>
+                  </Typography>                  
 
                   <Box sx={{ mt: 3 }}>
                     <Typography level="body-sm" sx={{ mb: 1, fontWeight: 600 }}>
@@ -433,14 +419,7 @@ const handleAddToCart = async () => {
                 <Typography sx={{ fontWeight: 700, mt: 0.5 }}>
                   ₦{item.price?.toLocaleString()}
                 </Typography>
-
-                {/* Optional: Add a discount tag if you want the Jumia vibe */}
-                <Typography
-                  level="body-xs"
-                  sx={{ textDecoration: "line-through", textDecorationColor: 'red',textDecorationStyle: 'solid', color: "#75757A" }}
-                >
-                  ₦{(item.price * 1.2).toLocaleString()}
-                </Typography>
+                
               </Box>
             ))}
           </Carousel>

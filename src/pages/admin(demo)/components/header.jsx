@@ -128,7 +128,7 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
                   to={targetPath}
                   style={{
                     textDecoration: active ? "underline" : "none",
-                    textDecorationColor: 'red',
+                    textDecorationColor: 'neutral.900',
                     textDecorationStyle: 'solid',
                     color: "#111827",
                     fontWeight: 600,

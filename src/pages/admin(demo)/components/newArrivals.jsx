@@ -15,6 +15,7 @@ import { useProductStore } from "../../../../services/productService";
 import { useCartStore } from "../../../../services/cartService";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
 import { motion } from "framer-motion";
+import { Star } from "lucide-react";
 
 const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter }) => {
   const { products, fetchStoreProducts, setLocalProducts, loading } =
@@ -29,8 +30,8 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter }) => {
   useEffect(() => {
     const initData = async () => {
       if (localStorage.getItem("demo")) {
-      setLocalProducts(DUMMY_PRODUCTS);
-      return;
+        setLocalProducts(DUMMY_PRODUCTS);
+        return;
       } else if (storeSlug) {
         setLocalProducts([]);
         await fetchStoreProducts(storeSlug);
@@ -39,22 +40,25 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter }) => {
     initData();
   }, [fetchStoreProducts, setLocalProducts, storeSlug]);
 
-const getStorePath = (path) => {
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  
-  // Check if we are physically on a subdomain right now
-  const hostname = window.location.hostname;
-  const isActuallySubdomain = hostname.split('.').length > 2 || 
-    (hostname.includes('localhost') && hostname.split('.').length > 1 && !hostname.startsWith('localhost'));
+  const getStorePath = (path) => {
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
 
-  // If we are on a subdomain (Professional), NEVER prepend the slug
-  if (isActuallySubdomain) {
-    return cleanPath;
-  }
+    // Check if we are physically on a subdomain right now
+    const hostname = window.location.hostname;
+    const isActuallySubdomain =
+      hostname.split(".").length > 2 ||
+      (hostname.includes("localhost") &&
+        hostname.split(".").length > 1 &&
+        !hostname.startsWith("localhost"));
 
-  // Only prepend if we are on the main domain (Starter)
-  return `/${storeSlug}${cleanPath}`;
-};
+    // If we are on a subdomain (Professional), NEVER prepend the slug
+    if (isActuallySubdomain) {
+      return cleanPath;
+    }
+
+    // Only prepend if we are on the main domain (Starter)
+    return `/${storeSlug}${cleanPath}`;
+  };
   const getItemQty = (productId) => {
     const item = cart?.items?.find(
       (i) => i.product._id === productId || i.product === productId,
@@ -71,11 +75,11 @@ const getStorePath = (path) => {
     }
 
     if (!targetStoreId) {
-    console.error("Missing Store ID for product:", product);
-    // If you don't have the ID on the product, you might need to find it 
-    // from the storeSlug or a global store state.
-    return;
-  }
+      console.error("Missing Store ID for product:", product);
+      // If you don't have the ID on the product, you might need to find it
+      // from the storeSlug or a global store state.
+      return;
+    }
     // 1. Start Preloader
     setProcessingId(productId);
 
@@ -126,38 +130,33 @@ const getStorePath = (path) => {
       </Box>
 
       <Box
+        className="md:grid-cols-2 lg:grid-cols-4 grid-cols-1"
         sx={{
           display: "grid",
-          gridTemplateColumns: isMobile
-            ? "1fr"
-            : isTablet
-              ? "repeat(2,1fr)"
-              : "repeat(4,1fr)",
           gap: 3,
         }}
       >
         {products.slice(0, 12).map((product) => (
           <motion.div
             key={product._id || product.id}
-            whileHover={{ scale: 1.03 }}
+            whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className="w-full max-w-100 mx-auto md:max-w-[280px]" // ⬅️ Limits the card width
           >
             <Box
               sx={{
                 bgcolor: "white",
-                borderRadius: 2,
+                borderRadius: "1.2rem", // Slightly smaller radius for smaller card
                 overflow: "hidden",
-                position: "relative",
-                // ⬇️ Updated Height
-                height: "380px",
+                height: "auto",
                 display: "flex",
                 flexDirection: "column",
+                border: "1px solid #f2f2f2",
+                p: 1.2, // ⬅️ Reduced padding
                 cursor: "pointer",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
                 transition: "0.3s",
                 "&:hover": {
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                  transform: "translateY(-4px)",
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
                 },
               }}
             >
@@ -166,132 +165,126 @@ const getStorePath = (path) => {
                 sx={{
                   position: "relative",
                   width: "100%",
-                  // ⬇️ Adjusted for a slightly taller rectangular image (3:4 ratio)
-                  height: "220px",
+                  height: "180px", // ⬅️ Reduced height from 220px
+                  borderRadius: "1rem",
                   overflow: "hidden",
-                  bgcolor: "#f9f9f9",
-                }}
-              >
-                <img
-                  src={
+                  bgcolor: "#f7f7f7",
+                  backgroundImage: `url(${
                     product.images?.[0]?.url ||
                     product.image ||
                     "https://via.placeholder.com/400"
-                  }
-                  alt={product.name}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    transition: "transform 0.5s",
-                  }}
-                />
-              </Box>
-
-              {/* Product Info - Flex-grow makes this fill remaining space */}
-              <Box
-                sx={{
-                  p: 1.5,
-                  flexGrow: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
+                  })`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                  transition: "transform 0.5s ease",
+                  "&:hover": {
+                    transform: "scale(1.05)",
+                  },
                 }}
-              >
-                <Box>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: "block", mb: 0.5 }}
-                  >
-                    {product.brand || "Brand"}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    fontWeight={700}
-                    noWrap
-                    sx={{ mb: 0.5 }}
-                  >
-                    {product.name}
-                  </Typography>
+              />
 
-                  <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
+              {/* Product Info */}
+              <Box sx={{ mt: 1.5, px: 0.2, pb: 0.5 }}>
+                <Typography
+                  variant="body2" // ⬅️ Smaller text variant
+                  fontWeight={600}
+                  sx={{
+                    color: "#1a1a1a",
+                    lineHeight: 1.3,
+                    mb: 1.5,
+                    height: "2.6em",
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                  }}
+                >
+                  {product.name}
+                </Typography>
+
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  gap={1}
+                >
+                  {/* Rating Badge - More compact */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.3,
+                      bgcolor: "#fbbd08",
+                      px: 1, // ⬅️ Slimmer badge
+                      py: 0.2,
+                      borderRadius: "2rem",
+                    }}
                   >
-                    <Typography variant="body2" fontWeight={800} color="black">
+                    <Star style={{ fontSize: 5, color: "white" }} />
+                  </Box>
+
+                  {/* Compact Add Button */}
+                  <div className="flex flex-col justify-end gap-3">                    
+                    <Link
+                      to={getStorePath(`/shop/product/${product._id}`)}
+                      className="text-slate-800/90 text-[12px] underline text-end"
+                    >
+                      view more
+                    </Link>
+                    <div className="flex items-center justify-between w-full gap-3">
+                      <Typography
+                      variant="subtitle2" // ⬅️ Smaller price font
+                      fontWeight={800}
+                      sx={{ color: "#011B33", flexShrink: 0 }}
+                    >
                       ₦{(product.price || 0).toLocaleString()}
                     </Typography>
-                    <Button
-                      size="small"
-                      variant="text"
-                      onClick={() => navigate(getStorePath(`/shop/product/${product._id}`))}
-                      sx={{
-                        fontSize: 11,
-                        color: "#02489b",
-                        textTransform: "none",
-                        minWidth: 0,
-                        p: 0,
-                      }}
-                    >
-                      View Details
-                    </Button>
-                  </Stack>
-                </Box>
-
-                {/* Add to Cart / Quantity Controls */}
-                <div className="mt-3">
-                  {getItemQty(product._id || product.id) === 0 ? (
-                    <button
-                      disabled={processingId === (product._id || product.id)}
-                      onClick={() => handleCartAction(product, "increment")}
-                      className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
-                    >
-                      {processingId === (product._id || product.id) ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin-slow"></div>
-                          <span>Processing...</span>
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingCartOutlined size={18} /> Add to Cart
-                        </>
-                      )}
-                    </button>
-                  ) : (
-                    <div className="flex items-center justify-between mt-1 gap-2 p-1 rounded-lg">
+                    {getItemQty(product._id || product.id) === 0 ? (
+                      /* Initial "Add" Button */
                       <button
-                        disabled={processingId === (product._id || product.id)}
-                        className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
-                        onClick={() => handleCartAction(product, "decrement")}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCartAction(product, "increment");
+                        }}
+                        className="flex items-center gap-1 border border-gray-100 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
                       >
-                        <Remove fontSize="small" />
+                        <ShoppingCartOutlined
+                          style={{ fontSize: 14 }}
+                          className="text-gray-400"
+                        />
+                        <span className="text-[11px] font-bold text-gray-700">
+                          Add
+                        </span>
                       </button>
+                    ) : (
+                      /* +/- Stepper Controls */
+                      <div
+                        className="flex items-center gap-2 border border-gray-100 px-1 py-0.5 rounded-lg bg-gray-50/50"
+                        onClick={(e) => e.stopPropagation()} // Prevent card navigation
+                      >
+                        <button
+                          onClick={() => handleCartAction(product, "decrement")}
+                          className="p-1 hover:bg-white rounded-md transition-colors text-gray-500 flex items-center justify-center"
+                        >
+                          <Remove style={{ fontSize: 14 }} />
+                        </button>
 
-                      <div className="flex flex-col items-center min-w-[30px]">
-                        {processingId === (product._id || product.id) ? (
-                          <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin-slow"></div>
-                        ) : (
-                          <span className="font-bold text-lg">
-                            {getItemQty(product._id || product.id)}
-                          </span>
-                        )}
+                        <span className="text-[12px] font-black text-gray-800 min-w-[12px] text-center">
+                          {getItemQty(product._id || product.id)}
+                        </span>
+
+                        <button
+                          onClick={() => handleCartAction(product, "increment")}
+                          className="p-1 hover:bg-white rounded-md transition-colors text-gray-500 flex items-center justify-center"
+                        >
+                          <Add style={{ fontSize: 14 }} />
+                        </button>
                       </div>
-
-                      <button
-                        disabled={processingId === (product._id || product.id)}
-                        className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
-                        onClick={() => handleCartAction(product, "increment")}
-                      >
-                        <Add fontSize="small" />
-                      </button>
+                    )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                </Stack>
               </Box>
             </Box>
           </motion.div>

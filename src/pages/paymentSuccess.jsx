@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Loader2, AlertCircle, ArrowRight } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
 
 export default function PaymentSuccess() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState("verifying"); // verifying, success, error
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  const {logout} = useAuthStore()
 
   useEffect(() => {
     const ref = params.get("reference");
@@ -25,7 +27,7 @@ export default function PaymentSuccess() {
         if (res.ok) {
           setStatus("success");
           // Hold the success screen for a moment for UX
-          setTimeout(() => navigate("/auth/sign-in"), 3000);
+          setTimeout(() => logout(), navigate("/auth/sign-in"), 4000);
         } else {
           setStatus("error");
         }

@@ -6,6 +6,7 @@ import {
   Stack,
   Button,
 } from "@mui/material";
+import { motion } from "framer-motion";
 import {
   Add,
   Remove,
@@ -17,6 +18,7 @@ import { getSubdomain } from "../../../../storeResolver";
 import { useCartStore } from "../../../../services/cartService";
 import { Link } from "react-router-dom";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
+import { Star } from "lucide-react";
 
 // 1. Define Content Mapping for Featured Section
 const FEATURED_CONTENT = {
@@ -50,15 +52,13 @@ const FEATURED_CONTENT = {
   },
 };
 
-
-
 const FeaturedPicksGrid = ({ storeType, storeSlug, isStarter }) => {
   const { fetchStoreProducts, setLocalProducts, products, loading } =
     useProductStore();
   const { customer } = useCustomerAuthStore();
   const { cart, addToCart, updateQuantity, removeItem } = useCartStore();
 
-    const getStorePath = (path) => {
+  const getStorePath = (path) => {
     return isStarter ? `/${storeSlug}${path}` : path;
   };
 
@@ -122,7 +122,7 @@ const FeaturedPicksGrid = ({ storeType, storeSlug, isStarter }) => {
   }, [fetchStoreProducts, setLocalProducts]);
 
   const displayProducts = products
-    .filter((p) => p.isFeatured === true)
+    .filter((p) => p.isFeatured === false)
     .slice(0, 8);
 
   if (loading) {
@@ -188,85 +188,84 @@ const FeaturedPicksGrid = ({ storeType, storeSlug, isStarter }) => {
           const qty = getItemQty(product._id || product.id);
 
           return (
-            <Box
+            <motion.div
               key={product._id || product.id}
-              sx={{
-                bgcolor: "white",
-                borderRadius: 2,
-                overflow: "hidden",
-                position: "relative",
-                height: "380px", // Total fixed height
-                display: "flex",
-                flexDirection: "column",
-                cursor: "pointer",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                transition: "0.3s",
-                "&:hover": {
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                },
-              }}
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="w-full max-w-100 mx-auto md:max-w-[280px]"
             >
-              {/* 1. Image Container - Fixed height relative to card */}
               <Box
                 sx={{
-                  position: "relative",
-                  width: "100%",
-                  height: "230px", // Controlled height for image
+                  bgcolor: "white",
+                  borderRadius: "1.2rem",
                   overflow: "hidden",
-                }}
-              >
-                <img
-                  src={
-                    product.images?.[0]?.url ||
-                    product.image ||
-                    "https://via.placeholder.com/400"
-                  }
-                  alt={product.name}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    transition: "transform 0.5s",
-                  }}
-                  className="group-hover:scale-110" // Using your previous scale effect
-                />
-
-                {/* Featured Badge from previous version */}
-                {product.isFeatured && (
-                  <Box sx={{ position: "absolute", top: 12, left: 12 }}>
-                    <Box
-                      sx={{
-                        bgcolor: "black",
-                        color: "white",
-                        px: 1,
-                        py: 0.3,
-                        fontSize: "10px",
-                        fontWeight: "bold",
-                        borderRadius: "4px",
-                        letterSpacing: "1px",
-                      }}
-                    >
-                      FEATURED
-                    </Box>
-                  </Box>
-                )}
-              </Box>
-
-              {/* 2. Product Info Area */}
-              <Box
-                sx={{
-                  p: 2,
-                  flexGrow: 1,
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "space-between",
+                  border: "1px solid #f2f2f2",
+                  p: 1.2,
+                  cursor: "pointer",
+                  transition: "0.3s",
+                  "&:hover": {
+                    boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
+                  },
                 }}
               >
-                <Stack spacing={0.5}>
-                  <Typography variant="caption" color="text.secondary">
-                    {product.brand || "Official Store"}
-                  </Typography>
-                  <Typography variant="body2" fontWeight={700} noWrap>
+                {/* Product Image Container - Synced to radius */}
+                <Box
+                  sx={{
+                    position: "relative",
+                    width: "100%",
+                    height: "180px",
+                    borderRadius: "1rem",
+                    overflow: "hidden",
+                    bgcolor: "#f7f7f7",
+                    backgroundImage: `url(${
+                      product.images?.[0]?.url ||
+                      product.image ||
+                      "https://via.placeholder.com/400"
+                    })`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                    transition: "transform 0.5s ease",
+                  }}
+                >
+                  {product.isFeatured && (
+                    <Box sx={{ position: "absolute", top: 8, left: 8 }}>
+                      <Box
+                        sx={{
+                          bgcolor: "rgba(0,0,0,0.8)",
+                          color: "white",
+                          px: 1,
+                          py: 0.3,
+                          fontSize: "8px",
+                          fontWeight: "bold",
+                          borderRadius: "4px",
+                          letterSpacing: "0.5px",
+                        }}
+                      >
+                        FEATURED
+                      </Box>
+                    </Box>
+                  )}
+                </Box>
+
+                {/* Product Info */}
+                <Box sx={{ mt: 1.5, px: 0.2 }}>
+                  <Typography
+                    variant="body2"
+                    fontWeight={600}
+                    sx={{
+                      color: "#1a1a1a",
+                      lineHeight: 1.3,
+                      mb: 1.5,
+                      height: "2.6em",
+                      overflow: "hidden",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                    }}
+                  >
                     {product.name}
                   </Typography>
 
@@ -274,87 +273,100 @@ const FeaturedPicksGrid = ({ storeType, storeSlug, isStarter }) => {
                     direction="row"
                     justifyContent="space-between"
                     alignItems="center"
-                    mt={0.5}
                   >
-                    <Typography variant="body2" fontWeight={800}>
-                      ₦{(product.price || 0).toLocaleString()}
-                    </Typography>
-                    <Button
-                      size="small"
-                      variant="text"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/shop/product/${product._id}`);
-                      }}
+                    {/* Rating Badge */}
+                    <Box
                       sx={{
-                        fontSize: 12,
-                        color: "#02489b",
-                        textTransform: "none",
-                        p: 0,
-                        minWidth: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.4,
+                        bgcolor: "#fbbd08",
+                        px: 1,
+                        py: 0.2,
+                        borderRadius: "2rem",
                       }}
                     >
-                      View Details
-                    </Button>
-                  </Stack>
-                </Stack>
+                      <Star style={{ fontSize: 10, color: "white" }} />
+                    </Box>
 
-                {/* 3. Add to Cart Controls - Pushed to the bottom */}
-                <Box sx={{ mt: 2 }}>
-                  {getItemQty(product._id || product.id) === 0 ? (
-                    <button
-                      disabled={processingId === (product._id || product.id)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCartAction(product, "increment");
-                      }}
-                      className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed transition-all"
-                    >
-                      {processingId === (product._id || product.id) ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <>
-                          <ShoppingCartOutlined sx={{ fontSize: 18 }} /> Add to
-                          Cart
-                        </>
-                      )}
-                    </button>
-                  ) : (
-                    <div className="flex items-center justify-between gap-2 p-1 bg-gray-50 rounded-lg">
-                      <button
-                        className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCartAction(product, "decrement");
-                        }}
+                    {/* Price & Action Area */}
+                    {/* Price & Action Area */}
+                    <div className="flex flex-col items-end">
+                      {/* Subtler View Details Link */}
+                      <Link
+                        to={getStorePath(`/shop/product/${product._id}`)}
+                        className="text-slate-800/90 text-[12px] underline mb-3"
                       >
-                        <Remove fontSize="small" />
-                      </button>
+                        view more
+                      </Link>
 
-                      <div className="flex flex-col items-center min-w-[30px]">
-                        {processingId === (product._id || product.id) ? (
-                          <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                      <div className="flex items-center gap-2">
+                        <Typography
+                          variant="subtitle2"
+                          fontWeight={800}
+                          sx={{ color: "#011B33", mr: 0.5 }}
+                        >
+                          ₦{(product.price || 0).toLocaleString()}
+                        </Typography>
+
+                        {qty === 0 ? (
+                          <button
+                            disabled={
+                              processingId === (product._id || product.id)
+                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCartAction(product, "increment");
+                            }}
+                            className="flex items-center gap-1 border border-gray-100 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50"
+                          >
+                            {processingId === (product._id || product.id) ? (
+                              <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <>
+                                <ShoppingCartOutlined
+                                  style={{ fontSize: 14 }}
+                                  className="text-gray-400"
+                                />
+                                <span className="text-[11px] font-bold text-gray-700">
+                                  Add
+                                </span>
+                              </>
+                            )}
+                          </button>
                         ) : (
-                          <span className="font-bold text-lg">
-                            {getItemQty(product._id || product.id)}
-                          </span>
+                          /* +/- Stepper Controls */
+                          <div
+                            className="flex items-center gap-2 border border-gray-100 px-1 py-0.5 rounded-lg bg-gray-50/50"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() =>
+                                handleCartAction(product, "decrement")
+                              }
+                              className="p-1 hover:bg-white rounded-md transition-colors text-gray-500"
+                            >
+                              <Remove style={{ fontSize: 12 }} />
+                            </button>
+                            <span className="text-[11px] font-black text-gray-800 min-w-[12px] text-center">
+                              {qty}
+                            </span>
+                            <button
+                              onClick={() =>
+                                handleCartAction(product, "increment")
+                              }
+                              className="p-1 hover:bg-white rounded-md transition-colors text-gray-500"
+                            >
+                              <Add style={{ fontSize: 12 }} />
+                            </button>
+                          </div>
                         )}
                       </div>
-
-                      <button
-                        className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCartAction(product, "increment");
-                        }}
-                      >
-                        <Add fontSize="small" />
-                      </button>
                     </div>
-                  )}
+                  </Stack>
                 </Box>
               </Box>
-            </Box>
+            </motion.div>
           );
         })}
       </div>

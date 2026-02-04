@@ -56,7 +56,7 @@ const getStorePath = (path) => {
                   }}
                   className="hover:text-white transition capitalize"
                 >
-                  {cat === "All" ? "All Products" : cat}
+                  {cat === "All" ? "" : cat}
                 </Link>
               </li>
             ))}

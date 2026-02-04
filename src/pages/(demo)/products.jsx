@@ -9,6 +9,7 @@ import {
   IconButton,
   Skeleton,
 } from "@mui/joy";
+import { motion } from "framer-motion";
 import {
   Search,
   ShoppingCart,
@@ -21,14 +22,16 @@ import {
   Home,
   Laptop,
   ShoppingBag,
+  Star,
 } from "lucide-react";
 import { useProductStore } from "../../../services/productService";
 import { Helmet } from "react-helmet-async";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCartStore } from "../../../services/cartService";
 import { useCustomerAuthStore } from "../../store/useCustomerAuthStore";
 import { Add, Remove, ShoppingCartOutlined } from "@mui/icons-material";
 import Footer from "../admin(demo)/components/footer";
+import { Box, useMediaQuery, useTheme } from "@mui/material";
 
 // --- CONTENT & THEME CONFIGURATION ---
 const STORE_CONTENT_CONFIG = {
@@ -111,6 +114,9 @@ const STORE_CONTENT_CONFIG = {
 
 function Products({ storeSlug, isStarter }) {
   const [storeData, setStoreData] = useState(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const [storeLoading, setStoreLoading] = useState(true);
   const [storeError, setStoreError] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -365,16 +371,6 @@ function Products({ storeSlug, isStarter }) {
         ) : (
           <div className="md:mt-6 mt-3  max-w-6xl mx-auto px-4 lg:px-0">
             <div className="bg-white border border-slate-100 shadow-sm rounded-2xl md:rounded-3xl overflow-hidden">
-              <div className="bg-slate-900 py-2 px-6 flex justify-between items-center">
-                <span className="text-[10px] md:text-xs font-bold text-white tracking-widest uppercase flex items-center gap-2">
-                  {config.icon} Official {storeData?.storeType}
-                </span>
-                <span className="text-[10px] md:text-xs font-medium text-slate-400">
-                  Powered by{" "}
-                  <span className="text-white font-bold">Layemart</span>
-                </span>
-              </div>
-
               <div className="p-6 md:p-10 flex flex-col md:flex-row items-center gap-6">
                 <div className="shrink-0 bg-slate-50 rounded-full border border-slate-100 flex items-center justify-center p-2">
                   <Avatar
@@ -451,7 +447,7 @@ function Products({ storeSlug, isStarter }) {
           </div>
 
           {/* --- PRODUCTS GRID --- */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="mt-6">
             {productsLoading ? (
               Array.from(new Array(8)).map((_, i) => (
                 <div
@@ -470,117 +466,201 @@ function Products({ storeSlug, isStarter }) {
                 </Typography>
               </div>
             ) : (
-              filteredProducts.map((product) => (
-                <div
-                  key={product._id || product.id}
-                  className="group relative cursor-pointer rounded-lg overflow-hidden bg-white shadow-md transition-all duration-300 hover:shadow-xl flex flex-col"
-                  style={{ width: "100%", height: "380px" }} // 1. Fixed total card height
-                  onClick={() => navigate(`/shop/product/${product._id}`)}
-                >
-                  {/* Product Image Section - Fixed Height */}
-                  <div
-                    className="relative overflow-hidden bg-gray-100"
-                    style={{ height: "240px" }}
-                  >
-                    <img
-                      src={
-                        product.images?.[0]?.url ||
-                        product.image ||
-                        "https://via.placeholder.com/400"
-                      }
-                      alt={product.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      loading="lazy"
-                    />
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr", // 1 column on mobile
+                    sm: "repeat(2, 1fr)", // 2 columns on tablets
+                    md: "repeat(4, 1fr)", // 4 columns on desktop
+                  },
+                  gap: 3,
+                }}
+              >
+                {products.slice(0, 12).map((product) => {
+                  const qty = getItemQty(product._id || product.id);
+                  const mainImage =
+                    product.images?.[0]?.url ||
+                    product.image ||
+                    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400";
 
-                    {/* Featured Badge */}
-                    {product.isFeatured && (
-                      <div className="absolute top-3 left-3 bg-black text-white px-2 py-0.5 text-[10px] font-bold rounded-sm tracking-wide z-10">
-                        FEATURED
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Product Info - Flex Grow pushes button to bottom */}
-                  <div className="p-4 flex flex-col flex-grow justify-between">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">
-                        {product.brand || "OFFICIAL"}
-                      </span>
-                      <h3 className="text-sm font-bold line-clamp-2 text-gray-800 h-10">
-                        {product.name}
-                      </h3>
-                      <span className="text-base font-extrabold text-black mt-1">
-                        ₦{(product.price || 0).toLocaleString()}
-                      </span>
-                    </div>
-
-                    {/* Add to Cart / Quantity Controls - Always stays at the bottom */}
-                    <div className="mt-auto pt-3">
-                      {getItemQty(product._id || product.id) === 0 ? (
-                        <button
-                          disabled={
-                            processingId === (product._id || product.id)
-                          }
-                          onClick={(e) => {
-                            e.stopPropagation(); // 2. Stop card click navigation
-                            handleCartAction(product, "increment");
+                  return (
+                    <motion.div
+                      key={product._id || product.id}
+                      whileHover={{ scale: 1.02 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20,
+                      }}
+                      className="w-full max-w-100 mx-auto md:max-w-[280px]"
+                    >
+                      <Box
+                        sx={{
+                          bgcolor: "white",
+                          borderRadius: "1.2rem",
+                          overflow: "hidden",
+                          display: "flex",
+                          flexDirection: "column",
+                          border: "1px solid #f2f2f2",
+                          p: 1.2,
+                          cursor: "pointer",
+                          transition: "0.3s",
+                          position: "relative",
+                          "&:hover": {
+                            boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
+                          },
+                        }}
+                      >
+                        {/* Image Container - Strictly matching Design 1 */}
+                        <Box
+                          sx={{
+                            width: "100%",
+                            height: "180px",
+                            borderRadius: "1rem",
+                            overflow: "hidden",
+                            bgcolor: "#f7f7f7",
+                            position: "relative",
                           }}
-                          className="w-full bg-black text-white text-sm font-bold py-2.5 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed transition-colors"
                         >
-                          {processingId === (product._id || product.id) ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                            <>
-                              <ShoppingCartOutlined sx={{ fontSize: 18 }} /> Add
-                              to Cart
-                            </>
-                          )}
-                        </button>
-                      ) : (
-                        <div
-                          className="flex items-center justify-between gap-2 bg-gray-50 p-1 rounded-lg border"
-                          onClick={(e) => e.stopPropagation()} // 3. Prevent navigation when clicking controls
-                        >
-                          <button
-                            disabled={
-                              processingId === (product._id || product.id)
-                            }
-                            className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
-                            onClick={() =>
-                              handleCartAction(product, "decrement")
-                            }
-                          >
-                            <Remove fontSize="small" />
-                          </button>
+                          <img
+                            src={mainImage}
+                            alt={product.name}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              transition: "transform 0.5s ease",
+                            }}
+                            className="hover:scale-105"
+                          />
+                        </Box>
 
-                          <div className="flex flex-col items-center min-w-[30px]">
-                            {processingId === (product._id || product.id) ? (
-                              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                            ) : (
-                              <span className="font-bold text-lg text-gray-900">
-                                {getItemQty(product._id || product.id)}
-                              </span>
-                            )}
-                          </div>
-
-                          <button
-                            disabled={
-                              processingId === (product._id || product.id)
-                            }
-                            className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 disabled:opacity-30 transition-opacity"
-                            onClick={() =>
-                              handleCartAction(product, "increment")
-                            }
+                        {/* Info Section */}
+                        <Box sx={{ mt: 1.5, px: 0.2 }}>
+                          <Typography
+                            variant="body2"
+                            fontWeight={600}
+                            sx={{
+                              color: "#1a1a1a",
+                              lineHeight: 1.3,
+                              mb: 1,
+                              height: "2.6em",
+                              overflow: "hidden",
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                            }}
                           >
-                            <Add fontSize="small" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
+                            {product.name}
+                          </Typography>
+
+                          <Stack
+                            direction="row"
+                            justifyContent="space-between"
+                            alignItems="flex-end"
+                          >
+                            {/* Left: Rating & Price */}
+                            <Box>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 0.3,
+                                  bgcolor: "#fbbd08",
+                                  px: 0.8,
+                                  py: 0.2,
+                                  borderRadius: "2rem",
+                                  width: "fit-content",
+                                  mb: 0.5,
+                                }}
+                              >
+                                <Star style={{ fontSize: 8, color: "white" }} />
+                              </Box>
+                            </Box>
+
+                            {/* Right: View More & Action */}
+                            <div className="flex flex-col items-end gap-2">
+                              <Link
+                                to={getStorePath(
+                                  `/shop/product/${product._id}`,
+                                )}
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-gray-400 text-[10px] decoration-inherit decoration-solid underline hover:text-black transition-colors"
+                              >
+                                view more
+                              </Link>
+
+                              <div className="flex items-center gap-3">
+                                <Typography
+                                  variant="subtitle2"
+                                  fontWeight={800}
+                                  sx={{ color: "#011B33", fontSize: "13px" }}
+                                >
+                                  ₦{(product.price || 0).toLocaleString()}
+                                </Typography>
+                                {qty === 0 ? (
+                                  <button
+                                    disabled={
+                                      processingId ===
+                                      (product._id || product.id)
+                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleCartAction(product, "increment");
+                                    }}
+                                    className="flex items-center gap-1 border border-gray-100 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                                  >
+                                    {processingId ===
+                                    (product._id || product.id) ? (
+                                      <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                      <>
+                                        <ShoppingCartOutlined
+                                          style={{ fontSize: 14 }}
+                                          className="text-gray-400"
+                                        />
+                                        <span className="text-[11px] font-bold text-gray-700">
+                                          Add
+                                        </span>
+                                      </>
+                                    )}
+                                  </button>
+                                ) : (
+                                  <div
+                                    className="flex items-center gap-2 border border-gray-100 px-1 py-0.5 rounded-lg bg-gray-50/50"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <button
+                                      onClick={() =>
+                                        handleCartAction(product, "decrement")
+                                      }
+                                      className="p-1 hover:bg-white rounded-md transition-colors text-gray-500"
+                                    >
+                                      <Remove style={{ fontSize: 12 }} />
+                                    </button>
+                                    <span className="text-[11px] font-black text-gray-800 min-w-[12px] text-center">
+                                      {qty}
+                                    </span>
+                                    <button
+                                      onClick={() =>
+                                        handleCartAction(product, "increment")
+                                      }
+                                      className="p-1 hover:bg-white rounded-md transition-colors text-gray-500"
+                                    >
+                                      <Add style={{ fontSize: 12 }} />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </Stack>
+                        </Box>
+                      </Box>
+                    </motion.div>
+                  );
+                })}
+              </Box>
             )}
           </div>
         </div>

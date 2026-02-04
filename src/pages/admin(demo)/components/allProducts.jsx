@@ -19,7 +19,7 @@ const AllProductsSection = ({ products, isStarter, storeSlug }) => {
   const { customer } = useCustomerAuthStore();
   const navigate = useNavigate();
   const [processingId, setProcessingId] = useState(null);
-    const getStorePath = (path) => {
+  const getStorePath = (path) => {
     return isStarter ? `/${storeSlug}${path}` : path;
   };
 
@@ -107,6 +107,7 @@ const AllProductsSection = ({ products, isStarter, storeSlug }) => {
           }}
         >
           {products.slice(0, 12).map((product) => {
+            const qty = getItemQty(product._id || product.id);
             const mainImage =
               product.images?.[0]?.url ||
               product.image ||
@@ -115,175 +116,161 @@ const AllProductsSection = ({ products, isStarter, storeSlug }) => {
             return (
               <motion.div
                 key={product._id || product.id}
-                whileHover={{ scale: 1.03 }}
-                transition={{ duration: 0.25 }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
                 <Box
                   sx={{
                     bgcolor: "white",
-                    borderRadius: 2,
+                    borderRadius: "1.2rem", // Clean rounded corners
                     overflow: "hidden",
-                    position: "relative",
-                    cursor: "pointer",
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                    transition: "0.3s",
-                    // ⬇️ New Flex logic to control vertical space
-                    height: "380px",
+                    height: "auto", // Let it wrap naturally like Design 1
                     display: "flex",
                     flexDirection: "column",
+                    border: "1px solid #f2f2f2",
+                    p: 1.2, // Compact padding
+                    cursor: "pointer",
+                    transition: "0.3s",
                     "&:hover": {
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                      "& img": { transform: "scale(1.05)" },
+                      boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
                     },
-                  }}
+                  }}                  
                 >
-                  {/* Image Section - Fixed Height */}
+                  {/* Image Section - Synced to Design 1 */}
                   <Box
                     sx={{
-                      width: "100%",
-                      height: 280, // Fixed height for image
-                      overflow: "hidden",
-                      bgcolor: "#f5f5f5",
                       position: "relative",
+                      width: "100%",
+                      height: "180px", // Shorter, cleaner height
+                      borderRadius: "1rem", // Inner radius
+                      overflow: "hidden",
+                      bgcolor: "#f7f7f7",
+                      backgroundImage: `url(${mainImage})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      transition: "transform 0.5s ease",
+                      "&:hover": { transform: "scale(1.05)" },
                     }}
-                  >
-                    <img
-                      src={mainImage}
-                      alt={product.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        transition: "transform 0.4s",
+                  />
+
+                  {/* Info Section */}
+                  <Box sx={{ mt: 1.5, px: 0.2 }}>
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      sx={{
+                        color: "#1a1a1a",
+                        lineHeight: 1.3,
+                        mb: 1.2,
+                        height: "2.6em",
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
                       }}
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400";
-                      }}
-                    />
-                  </Box>
+                    >
+                      {product.name}
+                    </Typography>
 
-                  {/* Info & Actions - Flex Grow fills the remaining card height */}
-                  <Box
-                    sx={{
-                      p: 2,
-                      flexGrow: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Box>
-                      <Typography
-                        sx={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          textTransform: "uppercase",
-                          letterSpacing: 1,
-                          color: "text.secondary",
-                          mb: 0.5,
-                        }}
-                      >
-                        {product.brand || "Collection"}
-                      </Typography>
-
-                      <Typography
-                        sx={{
-                          fontSize: 14,
-                          fontWeight: 700,
-                          color: "text.primary",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2, // Allow up to 2 lines of text
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          mb: 1,
-                        }}
-                      >
-                        {product.name}
-                      </Typography>
-
-                      <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
-                      >
-                        <Typography variant="body2" fontWeight={800}>
-                          ₦{(product.price || 0).toLocaleString()}
-                        </Typography>
-                        <Button
-                          size="small"
-                          variant="text"
-                          onClick={(e) => {
-                            e.stopPropagation(); // Stop navigation click
-                            navigate(`/shop/product/${product._id}`);
-                          }}
+                    {/* Bottom Row: Rating, Price, and Actions */}
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="flex-end"
+                    >
+                      {/* Left Side: Rating & Brand */}
+                      <Box>
+                        <Typography
+                          variant="caption"
                           sx={{
-                            fontSize: 12,
-                            color: "#02489b",
-                            textTransform: "none",
-                            minWidth: 0,
-                            p: 0,
+                            color: "text.secondary",
+                            fontSize: "10px",
+                            display: "block",
+                            mb: 0.5,
                           }}
                         >
-                          View Details
-                        </Button>
-                      </Stack>
-                    </Box>
+                          {product.brand || "Official Store"}
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.3,
+                            bgcolor: "#fbbd08",
+                            px: 0.8,
+                            py: 0.2,
+                            borderRadius: "2rem",
+                            width: "fit-content",
+                          }}
+                        >
+                          <Star style={{ fontSize: 8, color: "white" }} />                          
+                        </Box>
+                      </Box>
 
-                    {/* Add to Cart / Quantity - Always at the bottom */}
-                    <Box sx={{ mt: 2 }}>
-                      {getItemQty(product._id || product.id) === 0 ? (
-                        <button
-                          disabled={
-                            processingId === (product._id || product.id)
-                          }
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCartAction(product, "increment");
-                          }}
-                          className="w-full bg-black text-white font-bold py-2 rounded hover:bg-gray-800 flex items-center justify-center gap-2 disabled:cursor-not-allowed transition-colors"
+                      {/* Right Side: View More + Price/Add */}
+                      <div className="flex flex-col items-end gap-2">
+                        <Link
+                          to={getStorePath(`/shop/product/${product._id}`)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-gray-400 text-[10px] underline hover:text-black transition-colors"
                         >
-                          {processingId === (product._id || product.id) ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          view more
+                        </Link>
+
+                        <div className="flex items-center gap-2">
+                          <Typography
+                            variant="subtitle2"
+                            fontWeight={800}
+                            sx={{ color: "#011B33", fontSize: "13px" }}
+                          >
+                            ₦{(product.price || 0).toLocaleString()}
+                          </Typography>
+
+                          {qty === 0 ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCartAction(product, "increment");
+                              }}
+                              className="flex items-center gap-1 border border-gray-100 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                            >
+                              <ShoppingCartOutlined
+                                style={{ fontSize: 14 }}
+                                className="text-gray-400"
+                              />
+                              <span className="text-[11px] font-bold text-gray-700">
+                                Add
+                              </span>
+                            </button>
                           ) : (
-                            <>
-                              <ShoppingCartOutlined sx={{ fontSize: 18 }} /> Add
-                              to Cart
-                            </>
+                            <div
+                              className="flex items-center gap-2 border border-gray-100 px-1 py-0.5 rounded-lg bg-gray-50/50"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                onClick={() =>
+                                  handleCartAction(product, "decrement")
+                                }
+                                className="p-1 hover:bg-white rounded-md transition-colors text-gray-500"
+                              >
+                                <Remove style={{ fontSize: 12 }} />
+                              </button>
+                              <span className="text-[11px] font-black text-gray-800 min-w-[12px] text-center">
+                                {qty}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  handleCartAction(product, "increment")
+                                }
+                                className="p-1 hover:bg-white rounded-md transition-colors text-gray-500"
+                              >
+                                <Add style={{ fontSize: 12 }} />
+                              </button>
+                            </div>
                           )}
-                        </button>
-                      ) : (
-                        <div className="flex items-center justify-between gap-2 p-1 bg-gray-50 rounded-lg">
-                          <button
-                            className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 transition-colors"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCartAction(product, "decrement");
-                            }}
-                          >
-                            <Remove fontSize="small" />
-                          </button>
-
-                          <div className="font-bold text-lg">
-                            {processingId === (product._id || product.id) ? (
-                              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                            ) : (
-                              getItemQty(product._id || product.id)
-                            )}
-                          </div>
-
-                          <button
-                            className="bg-gray-200 p-1.5 rounded hover:bg-gray-300 transition-colors"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCartAction(product, "increment");
-                            }}
-                          >
-                            <Add fontSize="small" />
-                          </button>
                         </div>
-                      )}
-                    </Box>
+                      </div>
+                    </Stack>
                   </Box>
                 </Box>
               </motion.div>
@@ -317,7 +304,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useCartStore } from "../../../../services/cartService";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
-import { Loader2 } from "lucide-react";
+import { Loader2, Star } from "lucide-react";
 
 const DUMMY_PRODUCTS = [
   {
@@ -358,17 +345,13 @@ const DUMMY_PRODUCTS = [
   },
 ];
 
-export default function AllProducts({isStarter, storeSlug}) {
+export default function AllProducts({ isStarter, storeSlug }) {
   const { fetchStoreProducts, setLocalProducts, products, loading } =
     useProductStore();
   const [displayProducts, setDisplayProducts] = useState([]);
 
-
-
-
   useEffect(() => {
     const initPage = async () => {
-      
       const subdomain = getSubdomain();
 
       if (localStorage.getItem("demo")) {
@@ -398,5 +381,11 @@ export default function AllProducts({isStarter, storeSlug}) {
       </Box>
     );
   }
-  return <AllProductsSection products={displayProducts} isStarter={isStarter} storeSlug={storeSlug} />;
+  return (
+    <AllProductsSection
+      products={displayProducts}
+      isStarter={isStarter}
+      storeSlug={storeSlug}
+    />
+  );
 }
