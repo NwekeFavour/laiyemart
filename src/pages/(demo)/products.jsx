@@ -32,6 +32,8 @@ import { useCustomerAuthStore } from "../../store/useCustomerAuthStore";
 import { Add, Remove, ShoppingCartOutlined } from "@mui/icons-material";
 import Footer from "../admin(demo)/components/footer";
 import { Box, useMediaQuery, useTheme } from "@mui/material";
+import { getSubdomain } from "../../../storeResolver";
+import { toast } from "react-toastify";
 
 // --- CONTENT & THEME CONFIGURATION ---
 const STORE_CONTENT_CONFIG = {
@@ -130,6 +132,24 @@ function Products({ storeSlug, isStarter }) {
     loading: productsLoading,
     fetchStoreProducts,
   } = useProductStore();
+  const subdomain = getSubdomain();
+  const [isWishlisted, setWishlisted] = useState(false);
+
+  const getHeaders = () => {
+    const { token } = useCustomerAuthStore.getState();
+
+    // Logic for Starter vs Professional
+    const subdomain = getSubdomain();
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const resolvedSlug = subdomain || pathParts[0]; // Fallback to first path part for Starter plan
+
+    return {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "x-store-slug": resolvedSlug,
+    };
+  };
+
   const navigate = useNavigate();
   const getItemQty = (productId) => {
     const item = cart?.items?.find(
@@ -256,7 +276,7 @@ function Products({ storeSlug, isStarter }) {
 
   useEffect(() => {
     if (storeSlug) fetchStoreProducts(storeSlug);
-  }, [storeSlug, fetchStoreProducts]);
+  }, [storeSlug]);
 
   const categories = useMemo(() => {
     const names = products.map((p) => p.category?.name).filter(Boolean);
@@ -317,6 +337,55 @@ function Products({ storeSlug, isStarter }) {
       type: type,
     };
   }, [storeData]); // This ensures the metadata RE-CALCULATES the moment storeData arrives
+
+  const handleToggleWishlist = async (productId) => {
+    const { token, customer } = useCustomerAuthStore.getState();
+
+    // 1. Critical: Always use the _id for backend matching
+    if (!storeData?._id) {
+      toast.error("Store context missing. Please refresh.", {
+        containerId: "STOREFRONT",
+      });
+      return;
+    }
+
+    if (!customer || !token) {
+      toast.info("Please log in to manage your wishlist", {
+        containerId: "STOREFRONT",
+      });
+      // Use your helper getStorePath to ensure correct login routing
+      navigate(getStorePath("/login"));
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/products/wishlist`,
+        {
+          method: "POST",
+          headers: {
+            ...getHeaders(), // Use your centralized helper that includes x-store-slug
+            Authorization: `Bearer ${token}`, // Ensure token is fresh
+          },
+          body: JSON.stringify({
+            productId,
+            storeId: storeData._id, // Send the DB ID, not the slug string
+          }),
+        },
+      );
+
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.message || "Error updating wishlist");
+
+      // Update local state based on added status
+      setWishlisted(data.added);
+      toast.success(data.message, { containerId: "STOREFRONT" });
+    } catch (err) {
+      toast.error(err.message, { containerId: "STOREFRONT" });
+    }
+  };
+
   return (
     <div>
       <Helmet key={storeData?._id || "loading"} defer={false}>
@@ -562,21 +631,28 @@ function Products({ storeSlug, isStarter }) {
                           >
                             {/* Left: Rating & Price */}
                             <Box>
-                              <Box
+                              <IconButton
+                                variant="plain" // Joy UI specific: removes the background box
+                                onClick={() =>
+                                  handleToggleWishlist(product._id)
+                                }
                                 sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 0.3,
-                                  bgcolor: "#fbbd08",
-                                  px: 0.8,
-                                  py: 0.2,
-                                  borderRadius: "2rem",
-                                  width: "fit-content",
-                                  mb: 0.5,
+                                  zIndex: 2,
+                                  color: isWishlisted ? "#e11d48" : "#94a3b8", // Professional rose-red vs slate-gray
+                                  transition: "transform 0.2s ease",
+                                  "&:hover": {
+                                    bgcolor: "transparent",
+                                    transform: "scale(1.1)",
+                                    color: isWishlisted ? "#be123c" : "#64748b",
+                                  },
                                 }}
                               >
-                                <Star style={{ fontSize: 8, color: "white" }} />
-                              </Box>
+                                <Heart
+                                  size={25}
+                                  strokeWidth={2}
+                                  fill={isWishlisted ? "currentColor" : "none"} // Fills the heart when active
+                                />
+                              </IconButton>
                             </Box>
 
                             {/* Right: View More & Action */}

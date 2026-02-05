@@ -17,6 +17,7 @@ import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
 import { motion } from "framer-motion";
 import { Heart, Star } from "lucide-react";
 import { toast } from "react-toastify";
+import { getSubdomain } from "../../../../storeResolver";
 
 const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData }) => {
   const { products, fetchStoreProducts, setLocalProducts, loading } =
@@ -68,9 +69,24 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData }) => {
     return item ? item.quantity : 0;
   };
 
+  const getHeaders = () => {
+    const { token } = useCustomerAuthStore.getState();
+
+    // Logic for Starter vs Professional
+    const subdomain = getSubdomain();
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const resolvedSlug = subdomain || pathParts[0]; // Fallback to first path part for Starter plan
+
+    return {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "x-store-slug": resolvedSlug,
+    };
+  };
+
   const handleCartAction = async (product, action) => {
     const productId = product._id || product.id;
-    const targetStoreId = product.store || product.storeId;
+    const targetStoreId = product.store?._id || product.store || storeData?._id;
     if (!customer) {
       navigate(getStorePath("/login"));
       return;
@@ -82,6 +98,8 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData }) => {
       // from the storeSlug or a global store state.
       return;
     }
+
+    console.log(targetStoreId);
     // 1. Start Preloader
     setProcessingId(productId);
 
@@ -109,48 +127,54 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData }) => {
     }
   };
 
-
   const handleToggleWishlist = async (productId) => {
     const { token, customer } = useCustomerAuthStore.getState();
 
-    // Validate storeData existence
+    // 1. Critical: Always use the _id for backend matching
     if (!storeData?._id) {
-      toast.error("Store context missing. Please refresh.", { containerId: "STOREFRONT" });
+      toast.error("Store context missing. Please refresh.", {
+        containerId: "STOREFRONT",
+      });
       return;
     }
 
     if (!customer || !token) {
-      toast.info("Please log in to manage your wishlist", { containerId: "STOREFRONT" });
-      navigate(`/${storeSlug}/login`); 
+      toast.info("Please log in to manage your wishlist", {
+        containerId: "STOREFRONT",
+      });
+      // Use your helper getStorePath to ensure correct login routing
+      navigate(getStorePath("/login"));
       return;
     }
-    
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products/wishlist`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/products/wishlist`,
+        {
+          method: "POST",
+          headers: {
+            ...getHeaders(), // Use your centralized helper that includes x-store-slug
+            Authorization: `Bearer ${token}`, // Ensure token is fresh
+          },
+          body: JSON.stringify({
+            productId,
+            storeId: storeData._id, // Send the DB ID, not the slug string
+          }),
         },
-        body: JSON.stringify({
-          productId,
-          storeId: storeData._id 
-        })
-      });
+      );
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Error updating wishlist');
+      if (!response.ok)
+        throw new Error(data.message || "Error updating wishlist");
 
-      // Use data.added (matching your backend) instead of data.active
-      setWishlisted(data.added); 
+      // Update local state based on added status
+      setWishlisted(data.added);
       toast.success(data.message, { containerId: "STOREFRONT" });
-
     } catch (err) {
       toast.error(err.message, { containerId: "STOREFRONT" });
     }
   };
-  
+
   if (loading)
     return (
       <Box sx={{ display: "flex", justifyContent: "center", p: 10 }}>
@@ -263,16 +287,16 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData }) => {
                         zIndex: 2,
                         color: isWishlisted ? "#e11d48" : "#94a3b8", // Professional rose-red vs slate-gray
                         transition: "transform 0.2s ease",
-                        "&:hover": { 
+                        "&:hover": {
                           bgcolor: "transparent",
                           transform: "scale(1.1)",
-                          color: isWishlisted ? "#be123c" : "#64748b" 
+                          color: isWishlisted ? "#be123c" : "#64748b",
                         },
                       }}
                     >
                       <Heart
-                        size={25} 
-                        strokeWidth={2} 
+                        size={25}
+                        strokeWidth={2}
                         fill={isWishlisted ? "currentColor" : "none"} // Fills the heart when active
                       />
                     </IconButton>

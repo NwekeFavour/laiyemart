@@ -241,7 +241,7 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
             {["home", "shop", "account"]
               .filter((item) => (item === "account" ? isAuthenticated : true))
               .map((item) => {
-                // 1. Determine the Base Path
+                // 1. Determine the Base Path 
                 // If Starter: /storename
                 // If Pro: /
                 const base = isStarter ? `/${storeSlug}` : "";

@@ -61,122 +61,81 @@ function App() {
     localStorage.setItem("theme", checked ? "dark" : "light");
   };
 
-  useEffect(() => {
-    const validateStore = async () => {
-      const host = window.location.hostname;
-      const currentPath = window.location.pathname.split("/").filter(Boolean);
-      const reserved = [
-        "auth",
-        "auth-sync",
-        "payment",
-        "admin",
-        "unauthorized",
-        "verify-store-email",
-      ];
+useEffect(() => {
+  const validateStore = async () => {
+    const host = window.location.hostname;
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const sub = getSubdomain();
+    
+    // 1. Identify the intended slug/subdomain
+    let detectedIdentifier = sub || pathParts[0];
+    let resolutionType = sub ? "subdomain" : "path";
 
-      // 1. DASHBOARD / RESERVED CHECK
-      // Allow if it's a subdomain even if path is empty
-      const sub = getSubdomain();
-      if (
-        !sub &&
-        (isDashboard ||
-          currentPath.length === 0 ||
-          reserved.includes(currentPath[0]))
-      ) {
-        setLoading(false);
-        return;
-      }
+    // 2. Reserved Routes & Dashboard Guard
+    const reserved = ["auth", "auth-sync", "payment", "admin", "unauthorized", "verify-store-email"];
+    if (!detectedIdentifier || (!sub && reserved.includes(pathParts[0])) || isDashboard) {
+      setLoading(false);
+      return;
+    }
 
-      // 2. IDENTIFY RESOLUTION
-      let detectedIdentifier = sub;
-      let resolutionType = "subdomain";
+    // 3. SMART CACHE: Skip fetch if storeData is already correct
+    if (storeData && (storeData.slug === detectedIdentifier || storeData.subdomain === detectedIdentifier)) {
+      setLoading(false);
+      return;
+    }
 
-      if (!detectedIdentifier && currentPath.length > 0) {
-        detectedIdentifier = currentPath[0];
-        resolutionType = "path";
-      }
+    try {
+      const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+      
+      // Optimization: Backend should use .lean() and .select('slug subdomain plan status _id')
+      const res = await fetch(`${API_URL}/api/stores/public/${detectedIdentifier}`);
+      const result = await res.json();
 
-      if (!detectedIdentifier) {
-        setLoading(false);
-        return;
-      }
+      if (res.ok && result.success) {
+        const store = result.data;
+        const hostParts = host.split(".");
+        
+        // --- BASE DOMAIN CALCULATION ---
+        const isLocal = host.includes("localhost") || host === "127.0.0.1";
+        let baseDomain = isLocal ? (hostParts.includes("localhost") ? "localhost" : host) : hostParts.slice(-2).join(".");
+        if (isLocal && window.location.port) baseDomain += `:${window.location.port}`;
 
-      try {
-        const API_URL =
-          import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-        const res = await fetch(
-          `${API_URL}/api/stores/public/${detectedIdentifier}`,
-        );
-        const result = await res.json();
+        const targetSub = (store.subdomain || store.slug).toLowerCase();
+        const currentFirstPart = hostParts[0].toLowerCase();
 
-        if (res.ok && result.success) {
-          const store = result.data;
-          const hostParts = host.split(".");
+        // 4. REDIRECT LOGIC (Starter vs Pro)
+        if (resolutionType === "subdomain" && store.plan === "starter") {
+          window.location.replace(`${window.location.protocol}//${baseDomain}/${store.slug}${window.location.pathname}`);
+          return;
+        }
 
-          // --- IMPROVED BASE DOMAIN CALCULATION ---
-          let baseDomain;
-          const isLocal = host.includes("localhost") || host === "127.0.0.1";
-
-          if (isLocal) {
-            // If nike.localhost, take "localhost". If localhost, take "localhost"
-            baseDomain = hostParts.includes("localhost") ? "localhost" : host;
-            if (window.location.port) baseDomain += `:${window.location.port}`;
-          } else {
-            // Takes the last two parts: "layemart.com"
-            baseDomain = hostParts.slice(-2).join(".");
-          }
-
-          // --- THE "LOOP KILLER" GUARD ---
-          const targetSub = (store.subdomain || store.slug).toLowerCase();
-          const currentFirstPart = hostParts[0].toLowerCase();
-
-          // 3. STARTER REDIRECT (From Subdomain to Path)
-          if (resolutionType === "subdomain" && store?.plan === "starter") {
-            const newUrl = `${window.location.protocol}//${baseDomain}/${store.slug}${window.location.pathname}`;
-            window.location.replace(newUrl);
+        if (resolutionType === "path" && (store.plan === "professional" || store.plan === "enterprise")) {
+          if (currentFirstPart !== targetSub) {
+            const cleanPath = window.location.pathname.replace(`/${detectedIdentifier}`, "") || "/";
+            window.location.replace(`${window.location.protocol}//${targetSub}.${baseDomain}${cleanPath}`);
             return;
           }
-
-          // 4. PRO/ENTERPRISE REDIRECT (From Path to Subdomain)
-          if (
-            resolutionType === "path" &&
-            (store?.plan === "professional" || store?.plan === "enterprise")
-          ) {
-            // Only redirect if we AREN'T already on the subdomain
-            if (currentFirstPart !== targetSub) {
-              const cleanPath =
-                window.location.pathname.replace(
-                  `/${detectedIdentifier}`,
-                  "",
-                ) || "/";
-              const newUrl = `${window.location.protocol}//${targetSub}.${baseDomain}${cleanPath}`;
-              window.location.replace(newUrl);
-              return;
-            }
-          }
-
-          // 5. SUCCESS: Set the state
-          setStoreData(store);
-          setResType(resolutionType);
-          if (resolutionType === "path") setPathSlug(detectedIdentifier);
-        } else {
-          setStoreData(null);
         }
-      } catch (err) {
-        console.error("Store Validation Error:", err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    validateStore();
-  }, [
-    subdomain,
-    isDashboard,
-    window.location.pathname,
-    window.location.hostname,
-  ]);
+        // 5. FINAL STATE UPDATE
+        setStoreData(store);
+        setResType(resolutionType);
+        if (resolutionType === "path") setPathSlug(detectedIdentifier);
+      } else {
+        setStoreData(null);
+      }
+    } catch (err) {
+      console.error("Store Validation Error:", err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  validateStore();
+  
+  // 6. NARROW DEPENDENCIES: Only re-run if the identifier changes, not every path change
+}, [subdomain, isDashboard, window.location.hostname, window.location.pathname.split("/")[1]]);
   // Unified context check
   const activeSlug = subdomain || pathSlug;
   const isStorefront = activeSlug && !isDashboard;

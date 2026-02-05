@@ -933,7 +933,7 @@ function PricingCard({
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Payment failed");
-      console.log(data)
+    //   console.log(data)
       // 🚀 Redirect to Paystack
       window.location.href = data.url;
     } catch (err) {

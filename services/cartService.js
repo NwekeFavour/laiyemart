@@ -62,21 +62,37 @@ export const useCartStore = create((set, get) => ({
 
   // 2. Add Item to Cart
   addToCart: async (storeId, productId, quantity = 1) => {
-    set({ loading: true, error: null });
-    try {
-      const response = await fetch(`${API_URL}/api/cart/`, {
-        method: "POST",
-        headers: get().getHeaders(),
-        body: JSON.stringify({ storeId, productId, quantity }),
-      });
-      const data = await handleResponse(response);
-      if (data.success) set({ cart: data.data });
-    } catch (err) {
-      set({ error: err.message });
-    } finally {
-      set({ loading: false });
+  // 1. Clear previous errors and start loading
+  set({ loading: true, error: null });
+
+  try {
+    const response = await fetch(`${API_URL}/api/cart/`, {
+      method: "POST",
+      headers: get().getHeaders(),
+      // storeId can now safely be the Slug or the _id 
+      // because our backend resolver handles both.
+      body: JSON.stringify({ storeId, productId, quantity }),
+    });
+
+    const data = await response.json(); // Using standard json() or your handleResponse
+
+    if (!response.ok) {
+      // Catch "Store not found" or "Product out of stock"
+      throw new Error(data.message || "Could not add item to cart");
     }
-  },
+
+    if (data.success) {
+      set({ cart: data.data });
+      // Logic check: Ensure the cart we just got back matches the store we are in
+      // This is vital for subaccount isolation!
+    }
+  } catch (err) {
+    console.error("Sorry For the Inconvenience in seems, they might have been an error:", err.message);
+    set({ error: err.message });
+  } finally {
+    set({ loading: false });
+  }
+},
 
   // 3. Update Quantity (Optimistic)
   updateQuantity: async (storeId, productId, newQuantity) => {

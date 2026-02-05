@@ -48,7 +48,7 @@ const filteredCustomers = useMemo(() => {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }, [stores, searchTerm]);
 
-  console.log(stores);
+  // console.log(stores);
 
   const thStyle = `px-4 py-3 font-semibold text-[13px] ${isDark ? "text-slate-200" : "text-gray-900"}`;
   const tdStyle = `px-4 py-4 text-[13px] ${isDark ? "text-slate-300" : "text-gray-700"}`;

@@ -69,7 +69,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
+console.log(store?.trialEndsAt)
   const handlePay = async (planType) => {
     try {
       const { user, token, store } = useAuthStore.getState();
@@ -1193,7 +1193,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     sx={{ mt: 1, color: "neutral.100" }}
                   >
                     Trial ends on{" "}
-                    {new Date(store.trialEndsAt).toLocaleDateString()}
+                    {new Date(store?.trialEndsAt).toLocaleDateString()}
                   </Typography>
                   <Typography
                     className={` ${isDark ? "text-slate-950!" : "text-slate-200!"}`}

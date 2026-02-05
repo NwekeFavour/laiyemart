@@ -164,6 +164,8 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
     }
   };
 
+  // console.log(storeData)
+
   // console.log(cart)
   const getStorePath = (path) => {
     return isStarter ? `/${storeSlug}${path}` : path;
@@ -389,6 +391,7 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
                     )}
 
                     <Button
+                      className="hover:bg-slate-800/90!"
                       fullWidth
                       size="lg"
                       loading={payLoading}

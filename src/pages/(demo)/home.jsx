@@ -70,30 +70,39 @@ function DemoHome({ storeSlug, resolverType }) {
 
 useEffect(() => {
   const fetchStoreDetails = async () => {
-    // 1. Resolve the identifier: Priority to prop/params, then subdomain
+    // 1. Logic check: Prioritize subdomain, then path slug
     const sub = getSubdomain();
-    const identifier = storeSlug || sub;
+    const identifier = sub || storeSlug;
 
-    if (!identifier || identifier === 'www' || identifier === 'dashboard' || identifier === 'localhost') {
+    // 2. Guard against non-store identifiers
+    const reserved = ["www", "dashboard", "localhost", "admin", "auth"];
+    if (!identifier || reserved.includes(identifier.toLowerCase())) {
       setLoading(false);
-      // You might want to redirect to the main Layemart landing page here
       return;
     }
-    
+
+    // 3. CACHE GUARD: Don't re-fetch if we already have this store's data
+    if (storeData && (storeData.slug === identifier || storeData.subdomain === identifier)) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      setError(false);  
+      setError(false);
       const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-      
-      // Use the resolved identifier here
-      const res = await fetch(`${API_URL}/api/stores/public/${identifier}`);
+
+      // 4. Fetch with specific fields to keep the response "Light"
+      const res = await fetch(`${API_URL}/api/stores/public/${identifier.toLowerCase()}`);
       const result = await res.json();
 
       if (res.ok && result.success) {
         setStoreData(result.data);
+        // console.log(result)        
       } else {
         setError(true);
       }
+
     } catch (err) {
       console.error("Fetch Error:", err);
       setError(true);
@@ -103,7 +112,9 @@ useEffect(() => {
   };
 
   fetchStoreDetails();
-}, [storeSlug]); // It will also re-run if the component remounts on the new subdomain
+  // 5. Watch BOTH storeSlug and the actual window host for subdomain changes
+}, [storeSlug, window.location.hostname]);
+ // It will also re-run if the component remounts on the new subdomain
   // 2. Determine content config based on storeType
   const config =
     STORE_CONTENT_CONFIG[storeData?.storeType] ||
@@ -185,19 +196,21 @@ useEffect(() => {
       </div>
     );
   }
+
+  // console.log(storeData)
   const metaConfig =
     STORE_META_CONFIG[storeData?.storeType] ||
     STORE_META_CONFIG["General Store"];
+const pageTitle = storeData?.name 
+  ? `${storeData.name} – ${storeData.storeType || 'Store'} | Layemart` 
+  : "Loading Store... | Layemart";
 
-  const pageTitle = storeData
-    ? `${storeData.name.toUpperCase()} – ${storeData.storeType} | Layemart`
-    : "Layemart Store";
+const pageDescription = storeData?.description 
+  ? storeData.description 
+  : "Welcome to our store on Layemart. Discover amazing products at great prices.";
 
-  const pageDescription = storeData
-    ? metaConfig.description
-    : "Discover stores powered by Layemart";
-  const pageImage = storeData?.logo?.url;
-  const pageUrl = window.location.href;
+const pageUrl = window.location.href;
+const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
 
   if (error) return <StoreNotFound />;
 
@@ -227,8 +240,12 @@ useEffect(() => {
             style={{ height: "60px", marginBottom: "16px" }}
           />
         ) : (
-          <Typography level="h2" sx={{ mb: 1, fontWeight: 800, color: "#111" }}>
-            {storeName?.toUpperCase()}
+          <Typography
+            className="uppercase!"
+            level="h2"
+            sx={{ mb: 1, fontWeight: 800, color: "#111" }}
+          >
+            {storeName}
           </Typography>
         )}
 
@@ -337,30 +354,41 @@ useEffect(() => {
   }
   return (
     <div>
-      <Helmet key={storeSlug} defer={false}>
+      <Helmet key={storeData?._id || storeSlug} defer={false}>
         {/* Primary Meta */}
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
 
-
-        {storeData?.logo?.url && (
+        {/* Favicon - Dynamically updated to the Store's Logo */}
+        {storeData?.logo?.url ? (
           <link rel="icon" type="image/png" href={storeData.logo.url} />
+        ) : (
+          <link rel="icon" type="image/png" href="/default-favicon.png" />
         )}
-        {/* SEO */}
+
+        {/* SEO & Multi-tenant Canonical URL */}
         <link rel="canonical" href={pageUrl} />
 
-        {/* Open Graph */}
+        {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
+        <meta property="og:site_name" content={storeData?.name || "Layemart"} />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:url" content={pageUrl} />
         {pageImage && <meta property="og:image" content={pageImage} />}
+        <meta
+          property="og:image:alt"
+          content={`${storeData?.name || "Store"} banner`}
+        />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
         {pageImage && <meta name="twitter:image" content={pageImage} />}
+
+        {/* Theme Color - Makes the mobile browser address bar match the store brand */}
+        <meta name="theme-color" content={storeData?.themeColor || "#ffffff"} />
       </Helmet>
 
       <div>
@@ -420,9 +448,18 @@ useEffect(() => {
           </motion.div>
         </Box> */}
 
-        <FeaturedPicksGrid storeType={storeData?.storeType} isStarter={storeData?.plan === "starter"} storeSlug={storeSlug} />
+        <FeaturedPicksGrid
+          storeType={storeData?.storeType}
+          isStarter={storeData?.plan === "starter"}
+          storeSlug={storeSlug}
+          storeData={storeData}
+        />
 
-        <AllProducts isStarter={storeData?.plan === "starter"} storeSlug={storeSlug}/>
+        <AllProducts
+          isStarter={storeData?.plan === "starter"}
+          storeSlug={storeSlug}
+          storeData={storeData}
+        />
 
         {/* <NewsletterSignup storeType={storeData?.storeType} /> */}
 
@@ -433,7 +470,6 @@ useEffect(() => {
           storeId={storeData?._id}
           isStarter={storeData?.plan === "starter"}
           storeSlug={storeSlug}
-
         />
       </div>
     </div>

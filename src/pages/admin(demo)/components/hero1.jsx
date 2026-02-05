@@ -48,7 +48,18 @@ const HERO_CONTENT = {
 };
 
 export default function Hero({ onCreateStore, storeName, storeLogo, storeType, storeHero, storeHeroTitle, storeHeroSubtitle }) {
-  const content = HERO_CONTENT[storeType] || HERO_CONTENT["General Store"];
+  const currentType = storeType 
+    ? storeType.charAt(0).toUpperCase() + storeType.slice(1) 
+    : "General Store";
+
+  // 2. Get the default content
+  const content = HERO_CONTENT[currentType] || HERO_CONTENT["General Store"];
+
+  // 3. Logic for display
+  // Use the database title/subtitle if they exist, otherwise fallback to the mapping
+  const displayTitle = storeHeroSubtitle || content.headline;
+  const displaySubtitle = storeHeroTitle || content.subtext;
+  const displayCTA = content.cta;
 
   const heroStyle = {
     position: 'relative',
@@ -102,7 +113,7 @@ export default function Hero({ onCreateStore, storeName, storeLogo, storeType, s
             leading-[0.9] tracking-tighter
             ${storeHero ? "text-white drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]" : "text-black"}
           `}>
-            {!storeHeroSubtitle ? content.headline : storeHeroSubtitle}
+            {displayTitle}
 
           </h1>
 
@@ -114,7 +125,7 @@ export default function Hero({ onCreateStore, storeName, storeLogo, storeType, s
             md:text-[20px] text-[16px]
             ${storeHero ? "text-white/90" : "text-neutral-600"}
           `}>
-            {!storeHeroTitle ? content.subtext : storeHeroTitle}
+            {displaySubtitle}
 
 
           </p>
@@ -142,7 +153,7 @@ export default function Hero({ onCreateStore, storeName, storeLogo, storeType, s
                 }
               }}
             >
-              {content.cta}
+              {displayCTA}
             </Button>
           </div>
         </div>

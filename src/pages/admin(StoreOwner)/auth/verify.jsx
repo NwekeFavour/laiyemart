@@ -47,7 +47,7 @@ export default function VerifyOTP({storeSlug}) {
       });
 
       toast.success("Account verified successfully!", {containerId: "STOREFRONT"});
-      navigate(`/${storeSlug}/account`);
+      navigate(`/${storeSlug}/`);
     } catch (err) {
       toast.error(err.message, {containerId: "STOREFRONT"});
     } finally {

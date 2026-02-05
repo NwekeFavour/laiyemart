@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { motion } from "framer-motion";
-const AllProductsSection = ({ products, isStarter, storeSlug }) => {
+const AllProductsSection = ({ products, isStarter, storeSlug, storeData }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
@@ -21,6 +21,23 @@ const AllProductsSection = ({ products, isStarter, storeSlug }) => {
   const [processingId, setProcessingId] = useState(null);
   const getStorePath = (path) => {
     return isStarter ? `/${storeSlug}${path}` : path;
+  };
+
+  const [isWishlisted, setWishlisted] = useState(false);
+
+  const getHeaders = () => {
+    const { token } = useCustomerAuthStore.getState();
+
+    // Logic for Starter vs Professional
+    const subdomain = getSubdomain();
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const resolvedSlug = subdomain || pathParts[0]; // Fallback to first path part for Starter plan
+
+    return {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "x-store-slug": resolvedSlug,
+    };
   };
 
   const getItemQty = (productId) => {
@@ -63,6 +80,55 @@ const AllProductsSection = ({ products, isStarter, storeSlug }) => {
       setProcessingId(null);
     }
   };
+
+  const handleToggleWishlist = async (productId) => {
+    const { token, customer } = useCustomerAuthStore.getState();
+
+    // 1. Critical: Always use the _id for backend matching
+    if (!storeData?._id) {
+      toast.error("Store context missing. Please refresh.", {
+        containerId: "STOREFRONT",
+      });
+      return;
+    }
+
+    if (!customer || !token) {
+      toast.info("Please log in to manage your wishlist", {
+        containerId: "STOREFRONT",
+      });
+      // Use your helper getStorePath to ensure correct login routing
+      navigate(getStorePath("/login"));
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/products/wishlist`,
+        {
+          method: "POST",
+          headers: {
+            ...getHeaders(), // Use your centralized helper that includes x-store-slug
+            Authorization: `Bearer ${token}`, // Ensure token is fresh
+          },
+          body: JSON.stringify({
+            productId,
+            storeId: storeData._id, // Send the DB ID, not the slug string
+          }),
+        },
+      );
+
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.message || "Error updating wishlist");
+
+      // Update local state based on added status
+      setWishlisted(data.added);
+      toast.success(data.message, { containerId: "STOREFRONT" });
+    } catch (err) {
+      toast.error(err.message, { containerId: "STOREFRONT" });
+    }
+  };
+
   if (!products || products.length === 0) {
     return (
       <section className="py-20 bg-white">
@@ -134,7 +200,7 @@ const AllProductsSection = ({ products, isStarter, storeSlug }) => {
                     "&:hover": {
                       boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
                     },
-                  }}                  
+                  }}
                 >
                   {/* Image Section - Synced to Design 1 */}
                   <Box
@@ -180,31 +246,26 @@ const AllProductsSection = ({ products, isStarter, storeSlug }) => {
                     >
                       {/* Left Side: Rating & Brand */}
                       <Box>
-                        <Typography
-                          variant="caption"
+                        <IconButton
+                          variant="plain" // Joy UI specific: removes the background box
+                          onClick={() => handleToggleWishlist(product._id)}
                           sx={{
-                            color: "text.secondary",
-                            fontSize: "10px",
-                            display: "block",
-                            mb: 0.5,
+                            zIndex: 2,
+                            color: isWishlisted ? "#e11d48" : "#94a3b8", // Professional rose-red vs slate-gray
+                            transition: "transform 0.2s ease",
+                            "&:hover": {
+                              bgcolor: "transparent",
+                              transform: "scale(1.1)",
+                              color: isWishlisted ? "#be123c" : "#64748b",
+                            },
                           }}
                         >
-                          {product.brand || "Official Store"}
-                        </Typography>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.3,
-                            bgcolor: "#fbbd08",
-                            px: 0.8,
-                            py: 0.2,
-                            borderRadius: "2rem",
-                            width: "fit-content",
-                          }}
-                        >
-                          <Star style={{ fontSize: 8, color: "white" }} />                          
-                        </Box>
+                          <Heart
+                            size={25}
+                            strokeWidth={2}
+                            fill={isWishlisted ? "currentColor" : "none"} // Fills the heart when active
+                          />
+                        </IconButton>
                       </Box>
 
                       {/* Right Side: View More + Price/Add */}
@@ -304,7 +365,8 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useCartStore } from "../../../../services/cartService";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
-import { Loader2, Star } from "lucide-react";
+import { Heart, Loader2, Star } from "lucide-react";
+import { toast } from "react-toastify";
 
 const DUMMY_PRODUCTS = [
   {
@@ -345,7 +407,7 @@ const DUMMY_PRODUCTS = [
   },
 ];
 
-export default function AllProducts({ isStarter, storeSlug }) {
+export default function AllProducts({ isStarter, storeSlug, storeData }) {
   const { fetchStoreProducts, setLocalProducts, products, loading } =
     useProductStore();
   const [displayProducts, setDisplayProducts] = useState([]);
@@ -386,6 +448,7 @@ export default function AllProducts({ isStarter, storeSlug }) {
       products={displayProducts}
       isStarter={isStarter}
       storeSlug={storeSlug}
+      storeData={storeData}
     />
   );
 }
