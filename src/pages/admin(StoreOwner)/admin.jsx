@@ -427,7 +427,9 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                 >
                   <a
                     href={(() => {
-                      if (!store?.subdomain) return "#";
+                      // 1. Check for slug (since your DB uses 'slug')
+                      const storeIdentifier = store?.slug || store?.subdomain;
+                      if (!storeIdentifier) return "#";
 
                       // Base domain cleanup (removes dashboard. and www.)
                       const baseDomain = window.location.hostname
@@ -439,11 +441,11 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
 
                       // If Starter plan: layemart.com/slug
                       if (store.plan === "starter") {
-                        return `${window.location.protocol}//${baseDomain}${port}/${store.subdomain}`;
+                        return `${window.location.protocol}//${baseDomain}${port}/${storeIdentifier}`;
                       }
 
                       // If Professional plan: slug.layemart.com
-                      return `${window.location.protocol}//${store.subdomain}.${baseDomain}${port}`;
+                      return `${window.location.protocol}//${storeIdentifier}.${baseDomain}${port}`;
                     })()}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -455,8 +457,8 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                   >
                     {/* Dynamic Text Display */}
                     {store.plan === "starter"
-                      ? `layemart.com/${store.subdomain}`
-                      : `${store.subdomain}.layemart.com`}
+                      ? `layemart.com/${store?.slug || store?.subdomain || "myshop"}`
+                      : `${store?.slug || store?.subdomain || "shop"}.layemart.com`}
                     <ExternalLink size={14} className="mb-0.5" />
                   </a>
                 </Typography>
@@ -932,8 +934,9 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                           : isDark
                             ? "neutral.200"
                             : "neutral.700",
-                        textDecoration: item.done ? "line-through neutral.900" : "none",
-                        
+                        textDecoration: item.done
+                          ? "line-through neutral.900"
+                          : "none",
                       }}
                     >
                       {item.task}

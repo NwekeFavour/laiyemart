@@ -15,9 +15,10 @@ import { useProductStore } from "../../../../services/productService";
 import { useCartStore } from "../../../../services/cartService";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
+import { Heart, Star } from "lucide-react";
+import { toast } from "react-toastify";
 
-const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter }) => {
+const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData }) => {
   const { products, fetchStoreProducts, setLocalProducts, loading } =
     useProductStore();
   const { cart, addToCart, updateQuantity, removeItem } = useCartStore();
@@ -27,6 +28,7 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const [processingId, setProcessingId] = useState(null);
+  const [isWishlisted, setWishlisted] = useState(false);
   useEffect(() => {
     const initData = async () => {
       if (localStorage.getItem("demo")) {
@@ -107,6 +109,48 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter }) => {
     }
   };
 
+
+  const handleToggleWishlist = async (productId) => {
+    const { token, customer } = useCustomerAuthStore.getState();
+
+    // Validate storeData existence
+    if (!storeData?._id) {
+      toast.error("Store context missing. Please refresh.", { containerId: "STOREFRONT" });
+      return;
+    }
+
+    if (!customer || !token) {
+      toast.info("Please log in to manage your wishlist", { containerId: "STOREFRONT" });
+      navigate(`/${storeSlug}/login`); 
+      return;
+    }
+    
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products/wishlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productId,
+          storeId: storeData._id 
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Error updating wishlist');
+
+      // Use data.added (matching your backend) instead of data.active
+      setWishlisted(data.added); 
+      toast.success(data.message, { containerId: "STOREFRONT" });
+
+    } catch (err) {
+      toast.error(err.message, { containerId: "STOREFRONT" });
+    }
+  };
+  
   if (loading)
     return (
       <Box sx={{ display: "flex", justifyContent: "center", p: 10 }}>
@@ -209,23 +253,33 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter }) => {
                   alignItems="center"
                   gap={1}
                 >
-                  {/* Rating Badge - More compact */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 0.3,
-                      bgcolor: "#fbbd08",
-                      px: 1, // ⬅️ Slimmer badge
-                      py: 0.2,
-                      borderRadius: "2rem",
-                    }}
-                  >
-                    <Star style={{ fontSize: 5, color: "white" }} />
+                  <Box sx={{ position: "relative" }}>
+                    <IconButton
+                      variant="plain" // Joy UI specific: removes the background box
+                      onClick={() => handleToggleWishlist(product._id)}
+                      sx={{
+                        position: "absolute",
+                        top: -8, // Adjust based on your card padding
+                        zIndex: 2,
+                        color: isWishlisted ? "#e11d48" : "#94a3b8", // Professional rose-red vs slate-gray
+                        transition: "transform 0.2s ease",
+                        "&:hover": { 
+                          bgcolor: "transparent",
+                          transform: "scale(1.1)",
+                          color: isWishlisted ? "#be123c" : "#64748b" 
+                        },
+                      }}
+                    >
+                      <Heart
+                        size={25} 
+                        strokeWidth={2} 
+                        fill={isWishlisted ? "currentColor" : "none"} // Fills the heart when active
+                      />
+                    </IconButton>
                   </Box>
 
                   {/* Compact Add Button */}
-                  <div className="flex flex-col justify-end gap-3">                    
+                  <div className="flex flex-col justify-end gap-3">
                     <Link
                       to={getStorePath(`/shop/product/${product._id}`)}
                       className="text-slate-800/90 text-[12px] underline text-end"
@@ -234,54 +288,58 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter }) => {
                     </Link>
                     <div className="flex items-center justify-between w-full gap-3">
                       <Typography
-                      variant="subtitle2" // ⬅️ Smaller price font
-                      fontWeight={800}
-                      sx={{ color: "#011B33", flexShrink: 0 }}
-                    >
-                      ₦{(product.price || 0).toLocaleString()}
-                    </Typography>
-                    {getItemQty(product._id || product.id) === 0 ? (
-                      /* Initial "Add" Button */
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCartAction(product, "increment");
-                        }}
-                        className="flex items-center gap-1 border border-gray-100 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                        variant="subtitle2" // ⬅️ Smaller price font
+                        fontWeight={800}
+                        sx={{ color: "#011B33", flexShrink: 0 }}
                       >
-                        <ShoppingCartOutlined
-                          style={{ fontSize: 14 }}
-                          className="text-gray-400"
-                        />
-                        <span className="text-[11px] font-bold text-gray-700">
-                          Add
-                        </span>
-                      </button>
-                    ) : (
-                      /* +/- Stepper Controls */
-                      <div
-                        className="flex items-center gap-2 border border-gray-100 px-1 py-0.5 rounded-lg bg-gray-50/50"
-                        onClick={(e) => e.stopPropagation()} // Prevent card navigation
-                      >
+                        ₦{(product.price || 0).toLocaleString()}
+                      </Typography>
+                      {getItemQty(product._id || product.id) === 0 ? (
+                        /* Initial "Add" Button */
                         <button
-                          onClick={() => handleCartAction(product, "decrement")}
-                          className="p-1 hover:bg-white rounded-md transition-colors text-gray-500 flex items-center justify-center"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCartAction(product, "increment");
+                          }}
+                          className="flex items-center gap-1 border border-gray-100 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
                         >
-                          <Remove style={{ fontSize: 14 }} />
+                          <ShoppingCartOutlined
+                            style={{ fontSize: 14 }}
+                            className="text-gray-400"
+                          />
+                          <span className="text-[11px] font-bold text-gray-700">
+                            Add
+                          </span>
                         </button>
-
-                        <span className="text-[12px] font-black text-gray-800 min-w-[12px] text-center">
-                          {getItemQty(product._id || product.id)}
-                        </span>
-
-                        <button
-                          onClick={() => handleCartAction(product, "increment")}
-                          className="p-1 hover:bg-white rounded-md transition-colors text-gray-500 flex items-center justify-center"
+                      ) : (
+                        /* +/- Stepper Controls */
+                        <div
+                          className="flex items-center gap-2 border border-gray-100 px-1 py-0.5 rounded-lg bg-gray-50/50"
+                          onClick={(e) => e.stopPropagation()} // Prevent card navigation
                         >
-                          <Add style={{ fontSize: 14 }} />
-                        </button>
-                      </div>
-                    )}
+                          <button
+                            onClick={() =>
+                              handleCartAction(product, "decrement")
+                            }
+                            className="p-1 hover:bg-white rounded-md transition-colors text-gray-500 flex items-center justify-center"
+                          >
+                            <Remove style={{ fontSize: 14 }} />
+                          </button>
+
+                          <span className="text-[12px] font-black text-gray-800 min-w-[12px] text-center">
+                            {getItemQty(product._id || product.id)}
+                          </span>
+
+                          <button
+                            onClick={() =>
+                              handleCartAction(product, "increment")
+                            }
+                            className="p-1 hover:bg-white rounded-md transition-colors text-gray-500 flex items-center justify-center"
+                          >
+                            <Add style={{ fontSize: 14 }} />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Stack>

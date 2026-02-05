@@ -386,6 +386,7 @@ useEffect(() => {
           storeId={storeData?._id}
           storeSlug={storeSlug}
           isStarter={storeData?.plan === "starter"}
+          storeData={storeData}
         />
 
         {/* Dynamic Marquee Section */}
