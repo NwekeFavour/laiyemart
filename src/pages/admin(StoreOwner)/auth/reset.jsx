@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
-export default function ResetPasswordPage({ isDark }) {
+export default function ResetPasswordPage({ isDark, isStarter, storeData }) {
   const { token } = useParams();
   const navigate = useNavigate();
 
@@ -59,7 +59,7 @@ export default function ResetPasswordPage({ isDark }) {
 
       setIsSuccess(true);
       toast.success("Password updated successfully!");
-      setTimeout(() => navigate("/login"), 4000);
+      setTimeout(() => navigate(isStarter ? `/${storeData.subdomain}/login` : "/login"), 4000);
     } catch (err) {
       setError(err.message);
       toast.error(err.message);
@@ -81,7 +81,7 @@ export default function ResetPasswordPage({ isDark }) {
           </Typography>
           <Button 
             variant="solid" 
-            onClick={() => navigate("/login")}
+            onClick={() => navigate(isStarter ? `/${storeData.subdomain}/login` : "/login")}
             sx={{ bgcolor: colors.primary, color: isDark ? "#0f172a" : "#fff", borderRadius: "12px", fontWeight: 700 }}
           >
             Go to Login
@@ -186,7 +186,7 @@ export default function ResetPasswordPage({ isDark }) {
         <Box sx={{ mt: 4, textAlign: "center" }}>
           <Button
             component={Link}
-            to="/login"
+            to={`${isStarter ? `/${storeData.subdomain}/login` : "/login"}`}
             variant="plain"
             startDecorator={<ArrowLeft size={16} />}
             sx={{ color: colors.textMuted, fontSize: "14px", "&:hover": { bgcolor: "transparent", textDecoration: "underline neutral.900"} }}
