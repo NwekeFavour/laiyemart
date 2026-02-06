@@ -231,7 +231,7 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData, toggleWish
                   {/* Compact Add Button */}
                   <div className="flex flex-col justify-end gap-3">
                     <Link
-                      to={getStorePath(`/shop/product/${product._id}`)}
+                      to={`${isStarter ? `/${storeData.subdomain}/shop/product/${product._id}` : `/shop/product/${product._id}`}`}
                       className="text-slate-800/90 text-[12px] underline text-end"
                     >
                       view more

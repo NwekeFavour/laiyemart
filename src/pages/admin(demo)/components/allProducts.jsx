@@ -197,7 +197,7 @@ const AllProductsSection = ({
                       {/* Right Side: View More + Price/Add */}
                       <div className="flex flex-col items-end gap-2">
                         <Link
-                          to={`${isStarter ? `/${storeData.subdomain}/shop/${product._id}` : `/shop/${product._id}`}`}
+                          to={getStorePath(`/shop/product/${product._id}`)}
                           onClick={(e) => e.stopPropagation()}
                           className="text-gray-400 text-[10px] underline hover:text-black transition-colors"
                         >
