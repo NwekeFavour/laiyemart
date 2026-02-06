@@ -74,7 +74,7 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData, toggleWish
     const productId = product._id || product.id;
     const targetStoreId = product.store?._id || product.store || storeData?._id;
     if (!customer) {
-      navigate(getStorePath("/login"));
+      navigate( isStarter ? `/${storeData.subdomain}/login` : "/login");
       return;
     }
 
