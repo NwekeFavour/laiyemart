@@ -207,9 +207,15 @@ function App() {
     const { token } = useCustomerAuthStore.getState();
 
     if (!activeSlug) {
-      toast.error("Error: Could not identify the store.");
+      toast.error("Error: Could not identify the store.", {containerId: "STOREFRONT"});
       setIsSubmitting(false);
       return;
+    }
+
+    if(!token ){
+      toast.error("Please login to submit feedback.",{containerId: "STOREFRONT"})
+      setIsSubmitting(false);
+      return
     }
     const identifier = storeData?.subdomain || storeData?.slug || activeSlug;
     try {
