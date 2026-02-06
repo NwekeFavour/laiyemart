@@ -128,6 +128,7 @@ const handleRegister = async (e) => {
               {/* NAME & PLAN SECTION */}
               <div className="flex flex-col justify-start">
                 <Typography
+                  className="text-start!"
                   sx={{
                     fontWeight: 800,
                     fontSize: { xs: "15px", lg: "18px" },

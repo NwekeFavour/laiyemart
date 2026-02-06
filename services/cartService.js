@@ -26,19 +26,19 @@ export const useCartStore = create((set, get) => ({
   },
   // Helper to get Auth Headers
   getHeaders: () => {
-  const { token } = useCustomerAuthStore.getState();
-  
-  // Logic for Starter vs Professional
-  const subdomain = getSubdomain(); 
-  const pathParts = window.location.pathname.split("/").filter(Boolean);
-  const resolvedSlug = subdomain || pathParts[0]; // Fallback to first path part for Starter plan
+    const { token } = useCustomerAuthStore.getState();
+    
+    // Logic for Starter vs Professional
+    const subdomain = getSubdomain(); 
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const resolvedSlug = subdomain || pathParts[0]; // Fallback to first path part for Starter plan
 
-  return {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-    "x-store-slug": resolvedSlug, 
-  };
-},
+    return {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "x-store-slug": resolvedSlug, 
+    };
+  },
 
   // 1. Fetch Cart
   fetchCart: async (storeId) => {

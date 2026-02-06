@@ -19,7 +19,7 @@ import { toast } from "react-toastify";
 import { useCartStore } from "../../../../services/cartService";
 import { useProductStore } from "../../../../services/productService";
 
-export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
+export default function Header({ storeSlug, storeName, storeLogo, isStarter, storeData }) {
   const [open, setOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const { pathname } = useLocation();
@@ -119,13 +119,12 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
             {navItems.map((item) => {
               // Convert "Home" to "/", others to "/shop", "/about", etc.
               const rawPath = item === "Home" ? "/" : `/${item.toLowerCase()}`;
-              const targetPath = getStorePath(rawPath);
-              const active = pathname === targetPath;
+              const active = pathname === rawPath || pathname === getStorePath(rawPath);
 
               return (
                 <Link
                   key={item}
-                  to={targetPath}
+                  to={rawPath === "/" ? getStorePath("/") : getStorePath(rawPath)}
                   style={{
                     textDecoration: active ? "underline neutral.900" : "none",
                     color: "#111827",
@@ -141,7 +140,7 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
           {/* Right */}
           <Stack direction="row" spacing={2} alignItems="center">
             <Link
-              to={localStorage.getItem("demo") ? "#" : getStorePath("/cart")}
+              to={localStorage.getItem("demo") ? "#" : isStarter ? `/${storeData.subdomain}/cart` : "/cart"}
               style={{  color: "inherit" }}
             >
               <Badge
@@ -197,7 +196,7 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
                 ) : (
                   <div className="flex items-center gap-3">
                     {/* Login Button - Outlined Slate */}
-                    <Link to={getStorePath(`/login`)}>
+                    <Link to={isStarter ? `/${storeData.subdomain}/login` : "/login"}>
                       <Button
                         className="px-5! border-slate-900! text-slate-800/90! hover:bg-slate-300/10!"
                         size="sm"
@@ -339,7 +338,7 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter }) {
               Sign Out
             </Button>
           ) : (
-            <Link to={getStorePath("/login")}>
+            <Link to={isStarter ? `/${storeData.subdomain}/login` : "/login"}>
               <Button
                 className="bg-slate-800! hover:bg-slate-800/90! "
                 fullWidth

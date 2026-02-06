@@ -117,6 +117,7 @@ const STORE_CONTENT_CONFIG = {
 function Products({ storeSlug, isStarter }) {
   const [storeData, setStoreData] = useState(null);
   const theme = useTheme();
+  const token = useCustomerAuthStore.getState();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const [storeLoading, setStoreLoading] = useState(true);
@@ -128,27 +129,12 @@ function Products({ storeSlug, isStarter }) {
   const location = useLocation();
   const [processingId, setProcessingId] = useState(null);
   const {
+    toggleStar,
     products,
     loading: productsLoading,
     fetchStoreProducts,
   } = useProductStore();
   const subdomain = getSubdomain();
-  const [isWishlisted, setWishlisted] = useState(false);
-
-  const getHeaders = () => {
-    const { token } = useCustomerAuthStore.getState();
-
-    // Logic for Starter vs Professional
-    const subdomain = getSubdomain();
-    const pathParts = window.location.pathname.split("/").filter(Boolean);
-    const resolvedSlug = subdomain || pathParts[0]; // Fallback to first path part for Starter plan
-
-    return {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      "x-store-slug": resolvedSlug,
-    };
-  };
 
   const navigate = useNavigate();
   const getItemQty = (productId) => {
@@ -338,54 +324,6 @@ function Products({ storeSlug, isStarter }) {
     };
   }, [storeData]); // This ensures the metadata RE-CALCULATES the moment storeData arrives
 
-  const handleToggleWishlist = async (productId) => {
-    const { token, customer } = useCustomerAuthStore.getState();
-
-    // 1. Critical: Always use the _id for backend matching
-    if (!storeData?._id) {
-      toast.error("Store context missing. Please refresh.", {
-        containerId: "STOREFRONT",
-      });
-      return;
-    }
-
-    if (!customer || !token) {
-      toast.info("Please log in to manage your wishlist", {
-        containerId: "STOREFRONT",
-      });
-      // Use your helper getStorePath to ensure correct login routing
-      navigate(getStorePath("/login"));
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/products/wishlist`,
-        {
-          method: "POST",
-          headers: {
-            ...getHeaders(), // Use your centralized helper that includes x-store-slug
-            Authorization: `Bearer ${token}`, // Ensure token is fresh
-          },
-          body: JSON.stringify({
-            productId,
-            storeId: storeData._id, // Send the DB ID, not the slug string
-          }),
-        },
-      );
-
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.message || "Error updating wishlist");
-
-      // Update local state based on added status
-      setWishlisted(data.added);
-      toast.success(data.message, { containerId: "STOREFRONT" });
-    } catch (err) {
-      toast.error(err.message, { containerId: "STOREFRONT" });
-    }
-  };
-
   return (
     <div>
       <Helmet key={storeData?._id || "loading"} defer={false}>
@@ -428,6 +366,7 @@ function Products({ storeSlug, isStarter }) {
         className="min-h-screen pb-20 transition-colors duration-500"
       >
         <Header
+          storeData={storeData}
           storeName={storeData?.name}
           storeLogo={storeData?.logo?.url}
           storeSlug={storeSlug} // Pass the slug
@@ -632,25 +571,13 @@ function Products({ storeSlug, isStarter }) {
                             {/* Left: Rating & Price */}
                             <Box>
                               <IconButton
-                                variant="plain" // Joy UI specific: removes the background box
+                                sx={{ color: product.star ? "#e11d48" : "#94a3b8" }}
                                 onClick={() =>
-                                  handleToggleWishlist(product._id)
+                                  toggleStar(product._id, storeData._id)
                                 }
-                                sx={{
-                                  zIndex: 2,
-                                  color: isWishlisted ? "#e11d48" : "#94a3b8", // Professional rose-red vs slate-gray
-                                  transition: "transform 0.2s ease",
-                                  "&:hover": {
-                                    bgcolor: "transparent",
-                                    transform: "scale(1.1)",
-                                    color: isWishlisted ? "#be123c" : "#64748b",
-                                  },
-                                }}
                               >
                                 <Heart
-                                  size={25}
-                                  strokeWidth={2}
-                                  fill={isWishlisted ? "currentColor" : "none"} // Fills the heart when active
+                                  fill={product.star ? "currentColor" : "none"}
                                 />
                               </IconButton>
                             </Box>

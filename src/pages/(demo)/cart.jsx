@@ -189,6 +189,7 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
       <Header
         storeName={storeData?.name}
         storeLogo={storeData?.logo?.url}
+        storeData={storeData}
         storeSlug={storeSlug} // Pass the slug
         isStarter={isStarter} // Pass the plan check
       />

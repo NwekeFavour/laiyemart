@@ -11,6 +11,7 @@ import StoreNotFound from "../../components/storenotfound";
 import { Helmet } from "react-helmet-async";
 import Header from "../admin(demo)/components/header";
 import { getSubdomain } from "../../../storeResolver";
+import { useProductStore } from "../../../services/productService";
 
 // 1. Define Content Strategies for each Store Type
 const STORE_CONTENT_CONFIG = {
@@ -67,7 +68,7 @@ function DemoHome({ storeSlug, resolverType }) {
   const [storeData, setStoreData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-
+  const {toggleStar} = useProductStore()
 useEffect(() => {
   const fetchStoreDetails = async () => {
     // 1. Logic check: Prioritize subdomain, then path slug
@@ -395,6 +396,7 @@ const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
         <Header
           storeName={storeData?.name}
           storeLogo={storeData?.logo?.url}
+          storeData={storeData}
           storeSlug={storeSlug} // Pass the slug
           isStarter={storeData?.plan === "starter"} // Pass the plan check
         />
@@ -413,6 +415,7 @@ const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
           subtitle={config.arrivalSub}
           storeId={storeData?._id}
           storeSlug={storeSlug}
+          toggleWishlist={toggleStar}
           isStarter={storeData?.plan === "starter"}
           storeData={storeData}
         />
@@ -452,6 +455,7 @@ const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
           storeType={storeData?.storeType}
           isStarter={storeData?.plan === "starter"}
           storeSlug={storeSlug}
+          toggleWishlist={toggleStar}
           storeData={storeData}
         />
 
@@ -459,6 +463,7 @@ const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
           isStarter={storeData?.plan === "starter"}
           storeSlug={storeSlug}
           storeData={storeData}
+          toggleWishlist={toggleStar}
         />
 
         {/* <NewsletterSignup storeType={storeData?.storeType} /> */}

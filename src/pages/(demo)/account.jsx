@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 // Added Modal, ModalDialog, ModalClose, Button, Stack
 import {
   Box,
@@ -34,26 +34,43 @@ import {
   Truck,
   WalletCards,
   ScrollText,
+  Trash2,
+  Plus,
 } from "lucide-react";
 import CustomerAccountLayout from "./layout";
 import { logoutCustomer } from "../../../services/customerService";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import { toast } from "react-toastify";
 import { useCustomerAuthStore } from "../../store/useCustomerAuthStore";
 import {
+  Checkbox,
   Chip,
   CircularProgress,
   FormControl,
   FormLabel,
+  IconButton,
   Input,
   Skeleton,
 } from "@mui/material";
 import { getSubdomain } from "../../../storeResolver";
+import { useProductStore } from "../../../services/productService";
 
-export default function CustomerAccountPage({storeSlug, storeData, customer, isDark , isStarter}) {
+export default function CustomerAccountPage({
+  storeSlug,
+  storeData,
+  customer,
+  isDark,
+  isStarter,
+}) {
   const location = useLocation();
-const [searchParams] = useSearchParams();
-const initialTab = searchParams.get("tab") || location.state?.activeTab || "overview";
+  const [searchParams] = useSearchParams();
+  const initialTab =
+    searchParams.get("tab") || location.state?.activeTab || "overview";
   const [activeTab, setActiveTab] = useState(initialTab);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false); // Modal state
   const [orders, setOrders] = useState([]);
@@ -63,16 +80,24 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
   const { token } = useCustomerAuthStore.getState();
+  const { products, toggleStar } = useProductStore();
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [addressForm, setAddressForm] = useState({
     street: "",
     city: "",
     state: "",
     phone: "",
+    label: "",
+    isDefault: false,
     country: "Nigeria",
   });
-
-  const hasAddress = customer?.address?.street;
+  // console.log(customer);
+  const starredProducts = products?.filter((p) => p.star === true) || [];
+  const defaultAddress =
+    customer?.shippingAddress?.find((addr) => addr.isDefault) ||
+    customer?.shippingAddress?.[0];
+  const hasAddress = !!defaultAddress;
   const subdomain = getSubdomain();
   const colors = {
     bg: isDark ? "#020617" : "#f8fafc",
@@ -81,45 +106,7 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
     primary: "#ef4444",
     textMuted: isDark ? "#94a3b8" : "#64748b",
   };
-
-
-  const getStorePath = (path) => {
-    return isStarter ? `/${storeSlug}${path}` : path;
-  };
-  const handleConfirmLogout = () => {
-    logoutCustomer();
-    setIsLogoutModalOpen(false);
-    setTimeout(() => navigate(getStorePath("/login")), 2000);
-    toast.success("Logged out successfully", {
-      containerId: "STOREFRONT",
-    });
-  };
-
-  useEffect(() => {
-      const fetchOrders = async () => {
-        try {
-          setLoading(true);
-          const response = await fetch(`${API_URL}/api/orders/my-orders`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-              "x-store-slug": storeSlug,
-            },
-          });
-          const data = await response.json(); // Fix: Must await .json()
-          if (response.ok) {
-            setOrders(data.orders);
-          } else {
-            console.error("Server Error:", data.message);
-          }
-        } catch (err) {
-          console.error("Network Error fetching orders:", err);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchOrders();
-  }, [activeTab, token]);
+  const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
 
   const menuItems = [
     { id: "overview", label: "Account Overview", icon: <User size={20} /> },
@@ -133,8 +120,55 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
     { id: "address", label: "Address Book", icon: <MapPin size={20} /> },
   ];
 
+  const getStorePath = (path) => {
+    return isStarter ? `/${storeSlug}${path}` : path;
+  };
+  const handleConfirmLogout = () => {
+    logoutCustomer();
+    setIsLogoutModalOpen(false);
+    setTimeout(() => navigate(getStorePath("/login")), 2000);
+    toast.success("Logged out successfully", {
+      containerId: "STOREFRONT",
+    });
+  };
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [addressToDelete, setAddressToDelete] = useState(null);
+
+  // Triggered when user clicks the Trash icon
+  const confirmDelete = (addressId) => {
+    setAddressToDelete(addressId);
+    setIsDeleteModalOpen(true);
+  };
+
   useEffect(() => {
-    if (isAddressModalOpen && customer?.address) {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/api/orders/my-orders`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "x-store-slug": storeSlug,
+          },
+        });
+        const data = await response.json(); // Fix: Must await .json()
+        if (response.ok) {
+          setOrders(data.orders);
+        } else {
+          console.error("Server Error:", data.message);
+        }
+      } catch (err) {
+        console.error("Network Error fetching orders:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, [activeTab, token]);
+
+  useEffect(() => {
+    if (!modalMode === "edit" && isAddressModalOpen && customer?.address) {
       setAddressForm({
         street: customer.address.street || "",
         city: customer.address.city || "",
@@ -145,6 +179,20 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
     }
   }, [isAddressModalOpen, customer]);
 
+  // Use this for the "Add New" button
+  const openAdd = () => {
+    setModalMode("add");
+    setAddressForm({ street: "", city: "", state: "", phone: "" });
+    setIsAddressModalOpen(true);
+  };
+
+  // console.log(customer);
+  // Use this for the "Edit" button
+  const openEdit = (data) => {
+    setModalMode("edit");
+    setAddressForm(data);
+    setIsAddressModalOpen(true);
+  };
   const handleAddressSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
@@ -154,12 +202,14 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
         import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
       const token = useCustomerAuthStore.getState().token;
 
-      const res = await fetch(`${API_URL}/api/address/save`, {
+      // Ensure we are sending the current addressForm state
+      // If addressForm._id exists, the backend updates. If null, it pushes.
+      const res = await fetch(`${API_URL}/api/address/update`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
-          "x-store-slug": subdomain,
+          "x-store-slug": subdomain || storeSlug,
         },
         body: JSON.stringify(addressForm),
       });
@@ -168,24 +218,64 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
 
       if (!res.ok)
         throw new Error(result.message || "Failed to update address");
-      // console.log(result);
-      // Assuming your store has a setCustomer or update function
-      useCustomerAuthStore
-        .getState()
-        .updateCustomer({ address: result.address });
-      toast.success("Address updated successfully!", {
+
+      // 1. Sync the global store with the new array returned by the server
+      // This ensures your .map() list updates instantly
+      useCustomerAuthStore.getState().updateCustomer({
+        shippingAddress: result.addresses,
+      });
+      toast.success(result.message || "Address saved successfully!", {
         containerId: "STOREFRONT",
       });
+
+      // 2. Reset form to a clean state for the next "Add New" click
+      setAddressForm({
+        _id: null,
+        street: "",
+        city: "",
+        state: "",
+        phone: "",
+        label: "Home",
+        country: "Nigeria",
+      });
+
       setIsAddressModalOpen(false);
     } catch (err) {
-      toast.error(err.message, {
-        containerId: "STOREFRONT",
-      });
+      toast.error(err.message, { containerId: "STOREFRONT" });
     } finally {
       setIsSaving(false);
     }
   };
+  const handleDeleteAddress = async (addressId) => {
+    setIsDeleting(true);
+    try {
+      const API_URL =
+        import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+      const token = useCustomerAuthStore.getState().token;
 
+      const res = await fetch(`${API_URL}/api/address/delete/${addressId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-store-slug": subdomain || storeSlug,
+        },
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) throw new Error(result.message);
+
+      // Update global state with the new shorter array
+      useCustomerAuthStore
+        .getState()
+        .updateCustomer({ addresses: result.addresses });
+      toast.success("Address removed", { containerId: "STOREFRONT" });
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
   const OrderStepper = ({ status }) => {
     // These steps represent the lifecycle of the package after the order is made
     const steps = [
@@ -253,7 +343,10 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
           p: 0,
           mb: 3,
           fontWeight: 700,
-          "&:hover": { bgcolor: "transparent", textDecoration: "underline neutral.900" },
+          "&:hover": {
+            bgcolor: "transparent",
+            textDecoration: "underline neutral.900",
+          },
         }}
       >
         BACK TO ORDERS
@@ -279,7 +372,10 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
       >
         {/* Left Column: Items & Delivery Info */}
         <Stack spacing={3}>
-          <Card className="sm:p-2! p-0!" sx={{ borderRadius: "4px", border: "none", bgcolor: "transparent" }}>
+          <Card
+            className="sm:p-2! p-0!"
+            sx={{ borderRadius: "4px", border: "none", bgcolor: "transparent" }}
+          >
             <Stack spacing={2}>
               {order.items?.map((item, idx) => (
                 <Box
@@ -288,7 +384,7 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
                   sx={{
                     display: "flex",
                     gap: 2,
-                    maxHeight:120,
+                    maxHeight: 120,
                     p: 2, // Added internal padding
                     bgcolor: "#fff",
                     border: "1px solid #f0f0f0", // Subtle border for each item
@@ -495,7 +591,12 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
   );
 
   return (
-    <CustomerAccountLayout storeData={storeData} title="My Account" isStarter={isStarter} storeSlug={storeSlug}>
+    <CustomerAccountLayout
+      storeData={storeData}
+      title="My Account"
+      isStarter={isStarter}
+      storeSlug={storeSlug}
+    >
       <Box sx={{ bgcolor: colors.bg, py: { xs: 4, md: 8 }, minHeight: "70vh" }}>
         <Box sx={{ maxWidth: 1200, mx: "auto", px: 2 }}>
           <Grid container spacing={3}>
@@ -503,8 +604,8 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
             <Grid xs={12} md={3.5}>
               <Card
                 sx={{
-                  position: { md: 'sticky' }, // Only sticky on desktop
-                  top: { md: '60px', lg: "100px", xl: "50px"},
+                  position: { md: "sticky" }, // Only sticky on desktop
+                  top: { md: "60px", lg: "100px", xl: "50px" },
                   p: 0,
                   bgcolor: colors.card,
                   border: "1px solid",
@@ -616,168 +717,77 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
                     {/* Address Summary */}
 
                     <Grid xs={12} sm={6}>
-                      <Grid xs={12} sm={6}>
-                        <Card
-                          variant="outlined"
-                          sx={{
-                            height: "100%",
-                            borderRadius: "sm",
-                            display: "flex",
-                            flexDirection: "column",
-                          }}
-                        >
-                          <Typography
-                            level="title-sm"
-                            sx={{
-                              borderBottom: "1px solid",
-                              borderColor: "divider",
-                              pb: 1,
-                              mb: 2,
-                              textTransform: "uppercase",
-                              letterSpacing: "1px",
-                            }}
-                          >
-                            Address Book
-                          </Typography>
-
-                          {hasAddress ? (
-                            <Box>
-                              <Typography level="body-md" fontWeight={600}>
-                                {customer.address.street}
-                              </Typography>
-                              <Typography level="body-sm">
-                                {customer.address.city},{" "}
-                                {customer.address.state}
-                              </Typography>
-                              <Typography level="body-sm" sx={{ mb: 1 }}>
-                                {customer.address.phone}
-                              </Typography>
-                            </Box>
-                          ) : (
-                            <Typography
-                              level="body-md"
-                              sx={{
-                                mt: 1,
-                                fontWeight: 500,
-                                color: "neutral.500",
-                              }}
-                            >
-                              No address found.
-                            </Typography>
-                          )}
-
-                          <Typography
-                            className="text-slate-900/80 underline!"
-                            onClick={() => setIsAddressModalOpen(true)}
-                            level="body-xs"
-                            sx={{
-                              mt: "auto",
-                              pt: 2,
-                              cursor: "pointer",
-                              fontWeight: 700,
-                              "&:hover": { textDecoration: "underline neutral.900"  },
-                            }}
-                          >
-                            {hasAddress ? "EDIT ADDRESS" : "ADD ADDRESS"}
-                          </Typography>
-                        </Card>
-                      </Grid>
-
-                      {/* 3. THE ADDRESS MODAL */}
-                      <Modal
-                        open={isAddressModalOpen}
-                        onClose={() =>
-                          !isSaving && setIsAddressModalOpen(false)
-                        }
+                      <Card
+                        variant="outlined"
+                        sx={{
+                          height: "100%",
+                          borderRadius: "sm",
+                          display: "flex",
+                          flexDirection: "column",
+                        }}
                       >
-                        <ModalDialog
+                        <Typography
+                          level="title-sm"
                           sx={{
-                            width: { xs: "90vw", sm: 450 },
-                            borderRadius: "md",
+                            borderBottom: "1px solid",
+                            borderColor: "divider",
+                            pb: 1,
+                            mb: 2,
+                            textTransform: "uppercase",
+                            letterSpacing: "1px",
                           }}
                         >
-                          <Typography level="h4" fontWeight="bold">
-                            Shipping Address
+                          Address Book
+                        </Typography>
+
+                        {hasAddress ? (
+                          <Box>
+                            <Typography level="body-md" fontWeight={600}>
+                              {defaultAddress.street}
+                            </Typography>
+                            <Typography level="body-sm">
+                              {defaultAddress.city}, {defaultAddress.state}
+                            </Typography>
+                            <Typography level="body-sm" sx={{ mb: 1 }}>
+                              {defaultAddress.phone}
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Typography
+                            level="body-md"
+                            sx={{
+                              mt: 1,
+                              fontWeight: 500,
+                              color: "neutral.500",
+                            }}
+                          >
+                            No address found.
                           </Typography>
-                          <Typography level="body-sm" sx={{ mb: 2 }}>
-                            Provide your delivery details for future orders.
-                          </Typography>
+                        )}
 
-                          <form onSubmit={handleAddressSubmit}>
-                            <Stack spacing={2}>
-                              <FormControl required>
-                                <FormLabel>Street Address</FormLabel>
-                                <Input
-                                  placeholder="e.g. 123 Main St"
-                                  value={addressForm.street}
-                                  onChange={(e) =>
-                                    setAddressForm({
-                                      ...addressForm,
-                                      street: e.target.value,
-                                    })
-                                  }
-                                  disabled={isSaving}
-                                />
-                              </FormControl>
-
-                              <Stack direction="row" spacing={2}>
-                                <FormControl required sx={{ flex: 1 }}>
-                                  <FormLabel>City</FormLabel>
-                                  <Input
-                                    placeholder="Lagos"
-                                    value={addressForm.city}
-                                    onChange={(e) =>
-                                      setAddressForm({
-                                        ...addressForm,
-                                        city: e.target.value,
-                                      })
-                                    }
-                                    disabled={isSaving}
-                                  />
-                                </FormControl>
-                                <FormControl required sx={{ flex: 1 }}>
-                                  <FormLabel>State</FormLabel>
-                                  <Input
-                                    placeholder="Lagos State"
-                                    value={addressForm.state}
-                                    onChange={(e) =>
-                                      setAddressForm({
-                                        ...addressForm,
-                                        state: e.target.value,
-                                      })
-                                    }
-                                    disabled={isSaving}
-                                  />
-                                </FormControl>
-                              </Stack>
-
-                              <FormControl required>
-                                <FormLabel>Phone Number</FormLabel>
-                                <Input
-                                  placeholder="08012345678"
-                                  value={addressForm.phone}
-                                  onChange={(e) =>
-                                    setAddressForm({
-                                      ...addressForm,
-                                      phone: e.target.value,
-                                    })
-                                  }
-                                  disabled={isSaving}
-                                />
-                              </FormControl>
-
-                              <Button
-                                type="submit"
-                                fullWidth
-                                loading={isSaving}
-                                sx={{ mt: 1 }}
-                              >
-                                {hasAddress ? "Update Address" : "Save Address"}
-                              </Button>
-                            </Stack>
-                          </form>
-                        </ModalDialog>
-                      </Modal>
+                        <Typography
+                          className="text-slate-900/80 underline!"
+                          onClick={() => {
+                            if (hasAddress) {
+                              openEdit(defaultAddress); // Open modal with default address data
+                            } else {
+                              openAdd(); // Open empty modal
+                            }
+                          }}
+                          level="body-xs"
+                          sx={{
+                            mt: "auto",
+                            pt: 2,
+                            cursor: "pointer",
+                            fontWeight: 700,
+                            "&:hover": {
+                              textDecoration: "underline neutral.900",
+                            },
+                          }}
+                        >
+                          {hasAddress ? "EDIT ADDRESS" : "ADD ADDRESS"}
+                        </Typography>
+                      </Card>
                     </Grid>
                   </Grid>
                 </Box>
@@ -1065,8 +1075,7 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
                                     fontSize: "13px",
                                     "&:hover": {
                                       bgcolor: "transparent",
-                                      textDecoration: "underline neutral.900"
-                                      
+                                      textDecoration: "underline neutral.900",
                                     },
                                   }}
                                 >
@@ -1129,6 +1138,594 @@ const initialTab = searchParams.get("tab") || location.state?.activeTab || "over
                   )}
                 </Box>
               )}
+
+              {activeTab === "saved" && (
+                <Box
+                  sx={{
+                    maxWidth: 800,
+                    mx: "auto",
+                    px: { xs: 2, md: 0 },
+                    py: 2,
+                  }}
+                >
+                  {/* 1. Filter products locally to find starred items */}
+                  {(() => {
+                    const starredProducts = products.filter(
+                      (p) => p.star === true,
+                    );
+
+                    return (
+                      <>
+                        <Typography
+                          level="h4"
+                          sx={{
+                            mb: 3,
+                            fontWeight: 700,
+                            color: "#333",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                          }}
+                        >
+                          <Heart size={24} fill="#e11d48" color="#e11d48" />
+                          Saved Items ({starredProducts.length})
+                        </Typography>
+
+                        {loading ? (
+                          /* --- SKELETON LOADERS --- */
+                          <Stack spacing={2}>
+                            {[1, 2].map((i) => (
+                              <Card
+                                key={i}
+                                sx={{
+                                  p: 2,
+                                  display: "flex",
+                                  gap: 2,
+                                  bgcolor: "#fff",
+                                }}
+                              >
+                                <Skeleton
+                                  variant="rectangular"
+                                  width={100}
+                                  height={100}
+                                />
+                                <Box sx={{ flex: 1 }}>
+                                  <Skeleton
+                                    variant="text"
+                                    width="60%"
+                                    height={25}
+                                  />
+                                  <Skeleton
+                                    variant="text"
+                                    width="30%"
+                                    height={20}
+                                  />
+                                </Box>
+                              </Card>
+                            ))}
+                          </Stack>
+                        ) : starredProducts.length > 0 ? (
+                          /* --- STARRED ITEMS LIST --- */
+                          <Stack spacing={2}>
+                            {starredProducts.map((product) => (
+                              <Card
+                                key={product._id}
+                                sx={{
+                                  p: 2,
+                                  display: "flex",
+                                  flexDirection: { xs: "column", sm: "row" },
+                                  gap: 2,
+                                  border: "1px solid #e5e5e5",
+                                  borderRadius: "4px",
+                                  transition: "0.2s",
+                                  "&:hover": {
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                                  },
+                                }}
+                              >
+                                {/* Product Image */}
+                                <Box
+                                  sx={{
+                                    width: { xs: "100%", sm: 100 },
+                                    height: 100,
+                                    borderRadius: "4px",
+                                    overflow: "hidden",
+                                    border: "1px solid #eee",
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  <img
+                                    src={
+                                      product.images?.[0]?.url ||
+                                      "/api/placeholder/100/100"
+                                    }
+                                    alt={product.name}
+                                    style={{
+                                      width: "100%",
+                                      height: "100%",
+                                      objectFit: "cover",
+                                    }}
+                                  />
+                                </Box>
+
+                                {/* Product Info */}
+                                <Box
+                                  sx={{
+                                    flex: 1,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    justifyContent: "space-between",
+                                  }}
+                                >
+                                  <Box>
+                                    <Typography
+                                      sx={{
+                                        fontWeight: 600,
+                                        fontSize: "16px",
+                                        color: "#333",
+                                        mb: 0.5,
+                                      }}
+                                    >
+                                      {product.name}
+                                    </Typography>
+                                    <Typography
+                                      sx={{
+                                        fontSize: "18px",
+                                        fontWeight: 800,
+                                        color: "#333",
+                                      }}
+                                    >
+                                      ₦{product.price?.toLocaleString()}
+                                    </Typography>
+                                  </Box>
+
+                                  {/* Actions */}
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                      mt: 1,
+                                    }}
+                                  >
+                                    <Button
+                                      variant="plain"
+                                      color="danger"
+                                      size="sm"
+                                      // USE TOGGLESTAR HERE
+                                      onClick={() =>
+                                        toggleStar(product._id, storeData._id)
+                                      }
+                                      sx={{ fontWeight: 700, p: 0 }}
+                                    >
+                                      REMOVE
+                                    </Button>
+
+                                    <Link
+                                      to={getStorePath(`/shop/${product._id}`)}
+                                      className="bg-neutral-800 px-4 py-2 text-white rounded-sm text-xs font-bold uppercase no-underline hover:opacity-90"
+                                    >
+                                      Buy Now
+                                    </Link>
+                                  </Box>
+                                </Box>
+                              </Card>
+                            ))}
+                          </Stack>
+                        ) : (
+                          /* --- EMPTY STATE --- */
+                          <Card
+                            sx={{
+                              textAlign: "center",
+                              py: 10,
+                              bgcolor: "#fff",
+                              border: "1px solid #e5e5e5",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                mb: 3,
+                                display: "flex",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  bgcolor: "#f1f1f1",
+                                  p: 3,
+                                  borderRadius: "50%",
+                                }}
+                              >
+                                <Heart size={60} color="#ccc" />
+                              </Box>
+                            </Box>
+                            <Typography
+                              level="title-lg"
+                              sx={{ mb: 1, fontWeight: 700 }}
+                            >
+                              Your wishlist is empty!
+                            </Typography>
+                            <Typography
+                              level="body-sm"
+                              sx={{ mb: 4, maxWidth: "300px", mx: "auto" }}
+                            >
+                              Found something you like? Tap the heart icon to
+                              save it here for later.
+                            </Typography>
+                            <Link
+                              className="bg-neutral-800 px-8 py-3 text-white transition-colors rounded-sm font-bold uppercase text-sm no-underline"
+                              to={getStorePath("/shop")}
+                            >
+                              Continue Shopping
+                            </Link>
+                          </Card>
+                        )}
+                      </>
+                    );
+                  })()}
+                </Box>
+              )}
+
+              {activeTab === "address" && (
+                <Box
+                  sx={{
+                    maxWidth: 800,
+                    mx: "auto",
+                    px: { xs: 2, md: 0 },
+                    py: 2,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 3,
+                    }}
+                  >
+                    <Typography level="h4" sx={{ fontWeight: 700 }}>
+                      Address Book
+                    </Typography>
+
+                    {/* Show "Add New" button if addresses already exist */}
+                    {customer?.shippingAddress?.length > 0 && (
+                      <Button
+                        variant="solid"
+                        color="neutral"
+                        size="sm"
+                        startDecorator={<Plus size={18} />}
+                        onClick={openAdd}
+                      >
+                        Add New
+                      </Button>
+                    )}
+                  </Box>
+
+                  <Stack spacing={2}>
+                    {customer?.shippingAddress?.length > 0 ? (
+                      customer.shippingAddress.map((addr, i) => (
+                        <Card
+                          key={i}
+                          variant="outlined"
+                          sx={{
+                            p: 2,
+                            display: "flex",
+                            flexDirection: { xs: "column", sm: "row" },
+                            justifyContent: "space-between",
+                            alignItems: { xs: "flex-start", sm: "center" },
+                            borderRadius: "md",
+                            gap: 2,
+                            transition: "0.2s",
+                            position: "relative",
+                            "&:hover": {
+                              borderColor: "primary.300",
+                              bgcolor: "background.surface",
+                            },
+                          }}
+                        >
+                          <Box>
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              alignItems="center"
+                              sx={{ mb: 1 }}
+                            >
+                              <Typography level="title-md" fontWeight={700}>
+                                {addr.label || "Home"}
+                              </Typography>
+
+                              {/* 1. isDefault Badge */}
+                              {addr.isDefault && (
+                                <Chip
+                                  size="sm"
+                                  variant="soft"
+                                  color="primary"
+                                  sx={{ fontWeight: 700 }}
+                                >
+                                  DEFAULT
+                                </Chip>
+                              )}
+                            </Stack>
+
+                            <Typography
+                              level="body-md"
+                              sx={{ fontWeight: 500 }}
+                            >
+                              {addr.street}
+                            </Typography>
+
+                            <Typography level="body-sm" color="neutral">
+                              {addr.city}, {addr.state}, {addr.country}
+                            </Typography>
+
+                            <Typography
+                              level="body-xs"
+                              sx={{ mt: 1, color: "neutral.500" }}
+                            >
+                              Phone: {addr.phone}
+                            </Typography>
+                          </Box>
+
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{ alignSelf: { xs: "flex-end", sm: "center" } }}
+                          >
+                            <Button
+                              variant="plain"
+                              size="sm"
+                              onClick={() => openEdit(addr)} // Pass the whole object including _id
+                              sx={{ fontWeight: 700 }}
+                            >
+                              EDIT
+                            </Button>
+
+                            <IconButton
+                              variant="plain"
+                              color="danger"
+                              size="sm"
+                              onClick={() => confirmDelete(addr._id)}
+                            >
+                              <Trash2 size={18} />
+                            </IconButton>
+                          </Stack>
+                        </Card>
+                      ))
+                    ) : (
+                      /* 2. Empty State */
+                      <Card
+                        sx={{
+                          textAlign: "center",
+                          py: 8,
+                          bgcolor: "background.level1",
+                          border: "2px dashed",
+                          borderColor: "neutral.300",
+                        }}
+                      >
+                        <Typography
+                          level="body-md"
+                          sx={{ color: "neutral.600", mb: 2 }}
+                        >
+                          You haven't saved any addresses yet.
+                        </Typography>
+                        <Button
+                          variant="solid"
+                          color="neutral"
+                          onClick={openAdd}
+                          startDecorator={<Plus />}
+                        >
+                          Add Shipping Address
+                        </Button>
+                      </Card>
+                    )}
+                  </Stack>
+                </Box>
+              )}
+              <Modal
+                open={isAddressModalOpen}
+                onClose={() => !isSaving && setIsAddressModalOpen(false)}
+              >
+                <ModalDialog
+                  sx={{
+                    width: { xs: "90vw", sm: 450 },
+                    borderRadius: "md",
+                  }}
+                >
+                  <Typography level="h4">
+                    {modalMode === "add" ? "Add New Address" : "Edit Address"}
+                  </Typography>
+
+                  <Typography level="body-sm" sx={{ mb: 2 }}>
+                    {modalMode === "add"
+                      ? "Fill in the details below to save a new delivery location."
+                      : "Update your existing shipping information."}
+                  </Typography>
+
+                  <form onSubmit={handleAddressSubmit}>
+                    <Stack spacing={2}>
+                      {/* Added Label Field */}
+                      <FormControl required>
+                        <FormLabel>Address Label</FormLabel>
+                        <Input
+                          placeholder="e.g. Home, Office, Warehouse"
+                          value={addressForm.label}
+                          onChange={(e) =>
+                            setAddressForm({
+                              ...addressForm,
+                              label: e.target.value,
+                            })
+                          }
+                          disabled={isSaving}
+                          autoFocus
+                        />
+                      </FormControl>
+
+                      <FormControl required>
+                        <FormLabel>Street Address</FormLabel>
+                        <Input
+                          placeholder="e.g. 123 Main St"
+                          value={addressForm.street}
+                          onChange={(e) =>
+                            setAddressForm({
+                              ...addressForm,
+                              street: e.target.value,
+                            })
+                          }
+                          disabled={isSaving}
+                        />
+                      </FormControl>
+
+                      <Stack direction="row" spacing={2}>
+                        <FormControl required sx={{ flex: 1 }}>
+                          <FormLabel>City</FormLabel>
+                          <Input
+                            placeholder="Lagos"
+                            value={addressForm.city}
+                            onChange={(e) =>
+                              setAddressForm({
+                                ...addressForm,
+                                city: e.target.value,
+                              })
+                            }
+                            disabled={isSaving}
+                          />
+                        </FormControl>
+                        <FormControl required sx={{ flex: 1 }}>
+                          <FormLabel>State</FormLabel>
+                          <Input
+                            placeholder="Lagos State"
+                            value={addressForm.state}
+                            onChange={(e) =>
+                              setAddressForm({
+                                ...addressForm,
+                                state: e.target.value,
+                              })
+                            }
+                            disabled={isSaving}
+                          />
+                        </FormControl>
+                      </Stack>
+
+                      <FormControl required>
+                        <FormLabel>Phone Number</FormLabel>
+                        <Input
+                          placeholder="08012345678"
+                          value={addressForm.phone}
+                          onChange={(e) =>
+                            setAddressForm({
+                              ...addressForm,
+                              phone: e.target.value,
+                            })
+                          }
+                          disabled={isSaving}
+                        />
+                      </FormControl>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginTop: "16px",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        <div>
+                          <label
+                            style={{
+                              display: "block",
+                              fontSize: "0.875rem",
+                              fontWeight: "600",
+                              color: "#333",
+                            }}
+                          >
+                            Set as default address
+                          </label>
+                          <p
+                            style={{
+                              margin: 0,
+                              fontSize: "0.75rem",
+                              color: "#666",
+                            }}
+                          >
+                            Use this as your primary shipping location
+                          </p>
+                        </div>
+
+                        <input
+                          type="checkbox"
+                          style={{
+                            width: "18px",
+                            height: "18px",
+                            cursor: "pointer",
+                          }}
+                          checked={addressForm.isDefault}
+                          onChange={(e) =>
+                            setAddressForm({
+                              ...addressForm,
+                              isDefault: e.target.checked,
+                            })
+                          }
+                          disabled={isSaving}
+                        />
+                      </div>
+
+                      <Button
+                        type="submit"
+                        fullWidth
+                        loading={isSaving}
+                        sx={{ mt: 1 }}
+                      >
+                        {modalMode === "add"
+                          ? "Save Address"
+                          : "Update Address"}
+                      </Button>
+                    </Stack>
+                  </form>
+                </ModalDialog>
+              </Modal>
+              <Modal
+                open={isDeleteModalOpen}
+                onClose={() => !isSaving && setIsDeleteModalOpen(false)}
+              >
+                <ModalDialog variant="outlined" role="alertdialog">
+                  <Typography
+                    level="h4"
+                    startDecorator={<Trash2 color="red" />}
+                  >
+                    Confirm Deletion
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography level="body-md">
+                    Are you sure you want to delete this address? This action
+                    cannot be undone.
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                      justifyContent: "flex-end",
+                      mt: 3,
+                    }}
+                  >
+                    <Button
+                      variant="plain"
+                      color="neutral"
+                      onClick={() => setIsDeleteModalOpen(false)}
+                      disabled={isSaving}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="solid"
+                      color="danger"
+                      loading={isDeleting} // This shows the spinner
+                      onClick={() => handleDeleteAddress(addressToDelete)}
+                    >
+                      Delete Address
+                    </Button>
+                  </Box>
+                </ModalDialog>
+              </Modal>
             </Grid>
           </Grid>
         </Box>

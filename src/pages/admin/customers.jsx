@@ -113,7 +113,7 @@ const filteredCustomers = useMemo(() => {
               Platform Customers
             </Typography>
             <Typography level="body-sm" sx={{ color: "text.tertiary" }}>
-              Viewing all registered buyers across the LAIYEMART ecosystem.
+              Viewing all registered buyers across the LAYEMART ecosystem.
             </Typography>
           </Box>
           <Button className="md:mt-0! mt-3!"

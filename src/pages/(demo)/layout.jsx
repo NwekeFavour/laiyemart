@@ -13,6 +13,7 @@ const CustomerAccountLayout = ({ storeData, children, title, storeSlug, isStarte
         </Helmet>
 
         <Header
+            storeData={storeData}
                   storeName={storeData?.name}
                   storeLogo={storeData?.logo?.url}
                   storeSlug={storeSlug} // Pass the slug

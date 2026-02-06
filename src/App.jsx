@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // Page Imports
@@ -32,9 +32,24 @@ import { useCustomerAuthStore } from "./store/useCustomerAuthStore";
 import CustomerAccountPage from "./pages/(demo)/account";
 import ResetPasswordPage from "./pages/admin(StoreOwner)/auth/reset";
 import { Helmet } from "react-helmet-async";
-import { Box, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  IconButton,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { motion } from "framer-motion";
-import { CircularProgress } from "@mui/joy";
+import {
+  CircularProgress,
+  Modal,
+  ModalDialog,
+  Option,
+  Select,
+  Textarea,
+} from "@mui/joy";
 import OrderSuccess from "./pages/admin(demo)/components/orderS";
 import ProductPage from "./pages/(demo)/indoproducts";
 import AuthSync from "./pages/authsync";
@@ -42,6 +57,7 @@ import StoreManagement from "./pages/admin/stores";
 import CustomerManagement from "./pages/admin/customers";
 import NotFound from "./components/notfound";
 import VerifyOTP from "./pages/admin(StoreOwner)/auth/verify";
+import { MessageSquarePlus } from "lucide-react";
 
 function App() {
   const isDashboard = isDashboardSubdomain();
@@ -52,6 +68,10 @@ function App() {
   const [error, setError] = useState(false);
   const [pathSlug, setPathSlug] = useState(null);
   const [resType, setResType] = useState(null);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [feedbackCategory, setFeedbackCategory] = useState("general");
+  const [feedback, setFeedback] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDark, setIsDark] = useState(
     () => localStorage.getItem("theme") === "dark",
   );
@@ -61,84 +81,171 @@ function App() {
     localStorage.setItem("theme", checked ? "dark" : "light");
   };
 
-useEffect(() => {
-  const validateStore = async () => {
-    const host = window.location.hostname;
-    const pathParts = window.location.pathname.split("/").filter(Boolean);
-    const sub = getSubdomain();
-    
-    // 1. Identify the intended slug/subdomain
-    let detectedIdentifier = sub || pathParts[0];
-    let resolutionType = sub ? "subdomain" : "path";
+  useEffect(() => {
+    const validateStore = async () => {
+      const host = window.location.hostname;
+      const pathParts = window.location.pathname.split("/").filter(Boolean);
+      const sub = getSubdomain();
 
-    // 2. Reserved Routes & Dashboard Guard
-    const reserved = ["auth", "auth-sync", "payment", "admin", "unauthorized", "verify-store-email"];
-    if (!detectedIdentifier || (!sub && reserved.includes(pathParts[0])) || isDashboard) {
-      setLoading(false);
-      return;
-    }
+      // 1. Identify the intended slug/subdomain
+      let detectedIdentifier = sub || pathParts[0];
+      let resolutionType = sub ? "subdomain" : "path";
 
-    // 3. SMART CACHE: Skip fetch if storeData is already correct
-    if (storeData && (storeData.slug === detectedIdentifier || storeData.subdomain === detectedIdentifier)) {
-      setLoading(false);
-      return;
-    }
+      // 2. Reserved Routes & Dashboard Guard
+      const reserved = [
+        "auth",
+        "auth-sync",
+        "payment",
+        "admin",
+        "unauthorized",
+        "verify-store-email",
+      ];
+      if (
+        !detectedIdentifier ||
+        (!sub && reserved.includes(pathParts[0])) ||
+        isDashboard
+      ) {
+        setLoading(false);
+        return;
+      }
 
-    try {
-      const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-      
-      // Optimization: Backend should use .lean() and .select('slug subdomain plan status _id')
-      const res = await fetch(`${API_URL}/api/stores/public/${detectedIdentifier}`);
-      const result = await res.json();
+      // 3. SMART CACHE: Skip fetch if storeData is already correct
+      if (
+        storeData &&
+        (storeData.slug === detectedIdentifier ||
+          storeData.subdomain === detectedIdentifier)
+      ) {
+        setLoading(false);
+        return;
+      }
 
-      if (res.ok && result.success) {
-        const store = result.data;
-        const hostParts = host.split(".");
-        
-        // --- BASE DOMAIN CALCULATION ---
-        const isLocal = host.includes("localhost") || host === "127.0.0.1";
-        let baseDomain = isLocal ? (hostParts.includes("localhost") ? "localhost" : host) : hostParts.slice(-2).join(".");
-        if (isLocal && window.location.port) baseDomain += `:${window.location.port}`;
+      try {
+        const API_URL =
+          import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
-        const targetSub = (store.subdomain || store.slug).toLowerCase();
-        const currentFirstPart = hostParts[0].toLowerCase();
+        // Optimization: Backend should use .lean() and .select('slug subdomain plan status _id')
+        const res = await fetch(
+          `${API_URL}/api/stores/public/${detectedIdentifier}`,
+        );
+        const result = await res.json();
 
-        // 4. REDIRECT LOGIC (Starter vs Pro)
-        if (resolutionType === "subdomain" && store.plan === "starter") {
-          window.location.replace(`${window.location.protocol}//${baseDomain}/${store.slug}${window.location.pathname}`);
-          return;
-        }
+        if (res.ok && result.success) {
+          const store = result.data;
+          const hostParts = host.split(".");
 
-        if (resolutionType === "path" && (store.plan === "professional" || store.plan === "enterprise")) {
-          if (currentFirstPart !== targetSub) {
-            const cleanPath = window.location.pathname.replace(`/${detectedIdentifier}`, "") || "/";
-            window.location.replace(`${window.location.protocol}//${targetSub}.${baseDomain}${cleanPath}`);
+          // --- BASE DOMAIN CALCULATION ---
+          const isLocal = host.includes("localhost") || host === "127.0.0.1";
+          let baseDomain = isLocal
+            ? hostParts.includes("localhost")
+              ? "localhost"
+              : host
+            : hostParts.slice(-2).join(".");
+          if (isLocal && window.location.port)
+            baseDomain += `:${window.location.port}`;
+
+          const targetSub = (store.subdomain || store.slug).toLowerCase();
+          const currentFirstPart = hostParts[0].toLowerCase();
+
+          // 4. REDIRECT LOGIC (Starter vs Pro)
+          if (resolutionType === "subdomain" && store.plan === "starter") {
+            window.location.replace(
+              `${window.location.protocol}//${baseDomain}/${store.slug}${window.location.pathname}`,
+            );
             return;
           }
+
+          if (
+            resolutionType === "path" &&
+            (store.plan === "professional" || store.plan === "enterprise")
+          ) {
+            if (currentFirstPart !== targetSub) {
+              const cleanPath =
+                window.location.pathname.replace(
+                  `/${detectedIdentifier}`,
+                  "",
+                ) || "/";
+              window.location.replace(
+                `${window.location.protocol}//${targetSub}.${baseDomain}${cleanPath}`,
+              );
+              return;
+            }
+          }
+
+          // 5. FINAL STATE UPDATE
+          setStoreData(store);
+          setResType(resolutionType);
+          if (resolutionType === "path") setPathSlug(detectedIdentifier);
+        } else {
+          setStoreData(null);
         }
-
-        // 5. FINAL STATE UPDATE
-        setStoreData(store);
-        setResType(resolutionType);
-        if (resolutionType === "path") setPathSlug(detectedIdentifier);
-      } else {
-        setStoreData(null);
+      } catch (err) {
+        console.error("Store Validation Error:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Store Validation Error:", err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  validateStore();
-  
-  // 6. NARROW DEPENDENCIES: Only re-run if the identifier changes, not every path change
-}, [subdomain, isDashboard, window.location.hostname, window.location.pathname.split("/")[1]]);
+    validateStore();
+
+    // 6. NARROW DEPENDENCIES: Only re-run if the identifier changes, not every path change
+  }, [
+    subdomain,
+    isDashboard,
+    window.location.hostname,
+    window.location.pathname.split("/")[1],
+  ]);
   // Unified context check
   const activeSlug = subdomain || pathSlug;
   const isStorefront = activeSlug && !isDashboard;
+
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+    const { token } = useCustomerAuthStore.getState();
+
+    if (!activeSlug) {
+      toast.error("Error: Could not identify the store.");
+      setIsSubmitting(false);
+      return;
+    }
+    const identifier = storeData?.subdomain || storeData?.slug || activeSlug;
+    try {
+      const res = await fetch(`${API_URL}/api/feedback/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "x-store-slug": identifier,
+        },
+        body: JSON.stringify({
+          category: feedbackCategory,
+          message: feedback,
+          storeSlug: identifier,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (res.status === 429) {
+        toast.error(result.message, { containerId: "STOREFRONT" }); // "Too many feedback reports..."
+        return;
+      }
+
+      if (!res.ok) throw new Error(result.message);
+
+      setFeedback("")
+      setFeedbackCategory("")
+      toast.success("Feedback submitted!", { containerId: "STOREFRONT" });
+      setIsFeedbackOpen(false);
+    } catch (err) {
+      toast.error(err.message, { containerId: "STOREFRONT" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   // Handle Under Construction state for Subdomain Stores
   if (isStorefront && storeData?.isOnboarded === false) {
     return (
@@ -267,7 +374,10 @@ useEffect(() => {
                 <DemoHome storeSlug={activeSlug} resolverType={resType} />
               }
             />
-            <Route path="verify-otp" element={<VerifyOTP storeSlug={activeSlug}/>}/>
+            <Route
+              path="verify-otp"
+              element={<VerifyOTP storeSlug={activeSlug} />}
+            />
             <Route
               path="login"
               element={
@@ -300,14 +410,30 @@ useEffect(() => {
             />
             <Route
               path="shop/product/:id"
-              element={<ProductPage storeSlug={activeSlug} storeData={storeData} />}
-              isStarter={storeData?.plan === "starter"}
+              element={
+                <ProductPage isStarter={storeData?.plan === "starter"} storeSlug={activeSlug} storeData={storeData} />
+              }
+              
             />
             <Route
               path="cart"
-              element={<CartDashboard isStarter={storeData?.plan === "starter"} storeSlug={activeSlug}  storeData={storeData}/>}
+              element={
+                <CartDashboard
+                  isStarter={storeData?.plan === "starter"}
+                  storeSlug={activeSlug}
+                  storeData={storeData}
+                />
+              }
             />
-            <Route path="order-success" element={<OrderSuccess isStarter={storeData?.plan === "starter"} storeSlug={activeSlug} />} />
+            <Route
+              path="order-success"
+              element={
+                <OrderSuccess
+                  isStarter={storeData?.plan === "starter"}
+                  storeSlug={activeSlug}
+                />
+              }
+            />
             <Route
               path="account"
               element={
@@ -349,6 +475,85 @@ useEffect(() => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
+      {isStorefront && storeData && (
+        <>
+          {/* FLOATING FEEDBACK BUTTON */}
+          <IconButton
+            variant="solid"
+            color="primary"
+            size="lg"
+            onClick={() => setIsFeedbackOpen(true)}
+            sx={{
+              position: "fixed",
+              bottom: 24,
+              right: 24,
+              borderRadius: "50%",
+              boxShadow: "lg",
+              zIndex: 1000,
+              "&:hover": { transform: "scale(1.1)" },
+              transition: "0.2s",
+            }}
+          >
+            <MessageSquarePlus size={24} />
+          </IconButton>
+
+          {/* FEEDBACK MODAL */}
+          <Modal
+            open={isFeedbackOpen}
+            onClose={() => !isSubmitting && setIsFeedbackOpen(false)}
+          >
+            <ModalDialog sx={{ width: { xs: "90vw", sm: 400 } }}>
+              <Typography level="h4">Share your thoughts</Typography>
+              <Typography level="body-sm" sx={{ mb: 2 }}>
+                Help us improve your experience at this store.
+              </Typography>
+
+              <form onSubmit={handleFeedbackSubmit}>
+                <Stack spacing={2}>
+                  {/* CATEGORY SELECTION */}
+                  <FormControl required>
+                    <FormLabel>Topic</FormLabel>
+                    <Select
+                      value={feedbackCategory}
+                      onChange={(_, newValue) => setFeedbackCategory(newValue)}
+                    >
+                      <Option value="general">General Feedback</Option>
+                      <Option value="complaint">Report a Complaint</Option>
+                      <Option value="bug">Technical Bug/Error</Option>
+                      <Option value="delivery">Shipping & Delivery</Option>
+                      <Option value="product">Product Inquiry</Option>
+                    </Select>
+                  </FormControl>
+                  <FormControl required>
+                    <FormLabel>Your Message</FormLabel>
+                    <Textarea
+                      minRows={4}
+                      placeholder={
+                        feedbackCategory === "bug"
+                          ? "What went wrong?"
+                          : "Tell us more..."
+                      }
+                      value={feedback}
+                      onChange={(e) => setFeedback(e.target.value)}
+                    />
+                  </FormControl>
+                  <Button
+                    className="bg-slate-900! text-slate-100!"
+                    type="submit"
+                    loading={isSubmitting}
+                    fullWidth
+                    disabled={!feedback.trim()} // Prevent empty submissions
+                  >
+                    {isSubmitting
+                      ? "Sending..."
+                      : `Submit ${feedbackCategory === "complaint" ? "Report" : "Feedback"}`}
+                  </Button>
+                </Stack>
+              </form>
+            </ModalDialog>
+          </Modal>
+        </>
+      )}
       {/* --- TOAST CONTAINERS --- */}
       {/* Container specifically for the Storefront side */}
       {isStorefront && (

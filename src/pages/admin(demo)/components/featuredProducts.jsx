@@ -54,12 +54,11 @@ const FEATURED_CONTENT = {
   },
 };
 
-const FeaturedPicksGrid = ({ storeType, storeSlug, isStarter, storeData }) => {
+const FeaturedPicksGrid = ({ storeType, storeSlug, isStarter, storeData, toggleWishlist }) => {
   const { fetchStoreProducts, setLocalProducts, products, loading } =
     useProductStore();
   const { customer } = useCustomerAuthStore();
   const { cart, addToCart, updateQuantity, removeItem } = useCartStore();
-  const [isWishlisted, setWishlisted] = useState(false);
 
   const getStorePath = (path) => {
     return isStarter ? `/${storeSlug}${path}` : path;
@@ -73,68 +72,6 @@ const FeaturedPicksGrid = ({ storeType, storeSlug, isStarter, storeData }) => {
   };
   const [processingId, setProcessingId] = useState(null);
 
-    const getHeaders = () => {
-      const { token } = useCustomerAuthStore.getState();
-  
-      // Logic for Starter vs Professional
-      const subdomain = getSubdomain();
-      const pathParts = window.location.pathname.split("/").filter(Boolean);
-      const resolvedSlug = subdomain || pathParts[0]; // Fallback to first path part for Starter plan
-  
-      return {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        "x-store-slug": resolvedSlug,
-      };
-    };
-
-    const handleToggleWishlist = async (productId) => {
-      const { token, customer } = useCustomerAuthStore.getState();
-  
-      // 1. Critical: Always use the _id for backend matching
-      if (!storeData?._id) {
-        toast.error("Store context missing. Please refresh.", {
-          containerId: "STOREFRONT",
-        });
-        return;
-      }
-  
-      if (!customer || !token) {
-        toast.info("Please log in to manage your wishlist", {
-          containerId: "STOREFRONT",
-        });
-        // Use your helper getStorePath to ensure correct login routing
-        navigate(getStorePath("/login"));
-        return;
-      }
-  
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/products/wishlist`,
-          {
-            method: "POST",
-            headers: {
-              ...getHeaders(), // Use your centralized helper that includes x-store-slug
-              Authorization: `Bearer ${token}`, // Ensure token is fresh
-            },
-            body: JSON.stringify({
-              productId,
-              storeId: storeData._id, // Send the DB ID, not the slug string
-            }),
-          },
-        );
-  
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.message || "Error updating wishlist");
-  
-        // Update local state based on added status
-        setWishlisted(data.added);
-        toast.success(data.message, { containerId: "STOREFRONT" });
-      } catch (err) {
-        toast.error(err.message, { containerId: "STOREFRONT" });
-      }
-    };
 
   const handleCartAction = async (product, action) => {
     const productId = product._id || product.id;
@@ -252,7 +189,6 @@ const FeaturedPicksGrid = ({ storeType, storeSlug, isStarter, storeData }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {displayProducts.map((product) => {
           const qty = getItemQty(product._id || product.id);
-
           return (
             <motion.div
               key={product._id || product.id}
@@ -343,26 +279,10 @@ const FeaturedPicksGrid = ({ storeType, storeSlug, isStarter, storeData }) => {
                     {/* Rating Badge */}
                     <Box sx={{ position: "relative" }}>
                       <IconButton
-                        variant="plain" // Joy UI specific: removes the background box
-                        onClick={() => handleToggleWishlist(product._id)}
-                        sx={{
-                          position: "absolute",
-                          top: -8, // Adjust based on your card padding
-                          zIndex: 2,
-                          color: isWishlisted ? "#e11d48" : "#94a3b8", // Professional rose-red vs slate-gray
-                          transition: "transform 0.2s ease",
-                          "&:hover": {
-                            bgcolor: "transparent",
-                            transform: "scale(1.1)",
-                            color: isWishlisted ? "#be123c" : "#64748b",
-                          },
-                        }}
+                        onClick={() => toggleWishlist(product._id, storeData._id)}
+                        sx={{ color: product.star ? "#e11d48" : "#94a3b8" }}
                       >
-                        <Heart
-                          size={25}
-                          strokeWidth={2}
-                          fill={isWishlisted ? "currentColor" : "none"} // Fills the heart when active
-                        />
+                        <Heart fill={product.star ? "currentColor" : "none"} />
                       </IconButton>
                     </Box>
 

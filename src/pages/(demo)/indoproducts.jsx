@@ -132,6 +132,7 @@ const handleAddToCart = async () => {
     <Box sx={{ bgcolor: "#F1F1F2", minHeight: "100vh" }}>
       <Header
         storeName={storeData?.name}
+        storeData={storeData}
         storeLogo={storeData?.logo?.url}
         storeSlug={storeSlug} // Pass the slug
         isStarter={storeData?.plan === "starter"} // Pass the plan check
@@ -329,10 +330,10 @@ const handleAddToCart = async () => {
                 <Typography level="title-md">{storeData?.name}</Typography>
               </Stack>
               <Button
-                className="text-slate-900/80! underline!"
+                className="text-slate-900/80! hover:bg-transparent! underline!"
                 variant="plain"
                 size="sm"
-                onClick={() => navigate(getStorePath("/shop"))}
+                onClick={() => navigate(isStarter ? `/${storeData.subdomain}/shop` : "/shop")}
                 fullWidth
                 sx={{ mt: 2, color: "#F68B1E" }}
               >
