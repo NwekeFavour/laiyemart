@@ -146,11 +146,15 @@ export const useProductStore = create((set, get) => ({
   // store/useProductStore.js
   toggleStar: async (productId, storeId) => {
     const { products } = get();
-
+    const {customer } = useCustomerAuthStore.getState();
     // 1. Capture the current state of this specific product
     const targetProduct = products.find((p) => p._id === productId);
     if (!targetProduct) return;
 
+
+    if(!customer) {
+      toast.error("You need to be logged in to add to your wishlist", {containerId: "STOREFRONT"})
+    }
     // 2. OPTIMISTIC UPDATE: Use the current state to determine the next state
     const nextStarState = !targetProduct.star;
 
@@ -182,7 +186,7 @@ export const useProductStore = create((set, get) => ({
         ),
       });
 
-      toast.success(data.message);
+      toast.success(data.message, {containerId: "STOREFRONT"});
     } catch (err) {
       // 4. ROLLBACK: If server fails, set it back to what it was before the click
       set({
@@ -190,7 +194,7 @@ export const useProductStore = create((set, get) => ({
           p._id === productId ? { ...p, star: targetProduct.star } : p,
         ),
       });
-      toast.error(err.message);
+      toast.error(err.message, {containerId: "STOREFRONT"});
     }
   },
 
