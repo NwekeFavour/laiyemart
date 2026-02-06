@@ -454,7 +454,7 @@ function App() {
             />
             <Route
               path="reset-password/:token"
-              element={<ResetPasswordPage isStarter={isStarter} storeData={storeData} storeSlug={activeSlug} />}
+              element={<ResetPasswordPage isStarter={storeData?.plan === "starter"} storeData={storeData} storeSlug={activeSlug} />}
             />
           </Route>
         )}
