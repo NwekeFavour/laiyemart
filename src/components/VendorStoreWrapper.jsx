@@ -36,7 +36,7 @@ const handleVerify = async (token) => {
 
 // Update your Turnstile component:
 <Turnstile
-  sitekey={import.meta.env.VITE_CLOUDFLARE_KEY}
+  sitekey={import.meta.env.VITE_CLOUDFLAR_SITE_KEY}
   onVerify={handleVerify} // Calls our new function
 />
 
