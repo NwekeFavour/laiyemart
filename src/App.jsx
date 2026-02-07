@@ -380,7 +380,7 @@ function App() {
             {/* 'index' matches the base path exactly */}
             <Route
               index
-              element={
+              element={   
                 <DemoHome storeSlug={activeSlug} resolverType={resType} />
               }
             />
