@@ -1001,7 +1001,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   </FormLabel>
                   <Select
                     className="capitalize! placeholder:capitalize!"
-                    value={formStoreType?.toLowerCase()}
+                    value={formStoreType}
                     onChange={(e, newValue) => setFormStoreType(newValue)}
                     variant={isDark ? "soft" : "outlined"}
                     sx={{

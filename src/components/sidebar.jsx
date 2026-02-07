@@ -10,6 +10,7 @@ import {
   X,
   ArrowLeftRight,
   MonitorPlay,
+  TicketPercent,
 } from "lucide-react";
 import { Box, Typography, Button, IconButton } from "@mui/joy";
 import { useAuthStore } from "../store/useAuthStore";
@@ -27,15 +28,40 @@ export default function Sidebar({
   const navigate = useNavigate();
   const location = useLocation();
 
-const navItems = [
-  { id: 'ov', label: "Overview", path: "/admin/dashboard", icon: <LayoutGrid size={20} /> },
-  { id: 'st', label: "Store Management", path: "/admin/stores", icon: <Store size={20} /> },
-  { id: 'tr', label: "Transactions", path: "", icon: <ArrowLeftRight size={20} /> },
-  // REPLACED: Simple list of all registered customers (the buyers)
-  { id: 'us', label: "Customers", path: "/admin/customers", icon: <Users size={20} /> },
-  // REPLACED: Control banners, categories, and featured sections on the main site
-  { id: 'pc', label: "Site Content", path: "", icon: <MonitorPlay size={20} /> },
-];
+  const navItems = [
+    {
+      id: "ov",
+      label: "Overview",
+      path: "/admin/dashboard",
+      icon: <LayoutGrid size={20} />,
+    },
+    {
+      id: "st",
+      label: "Store Management",
+      path: "/admin/stores",
+      icon: <Store size={20} />,
+    },
+    {
+      id: "tr",
+      label: "Transactions",
+      path: "",
+      icon: <ArrowLeftRight size={20} />,
+    },
+    // REPLACED: Simple list of all registered customers (the buyers)
+    {
+      id: "us",
+      label: "Customers",
+      path: "/admin/customers",
+      icon: <Users size={20} />,
+    },
+    // REPLACED: Control banners, categories, and featured sections on the main site
+    {
+      id: "coupons",
+      label: "Manage Coupons",
+      path: "/admin/coupons",
+      icon: <TicketPercent size={20} />, // Using TicketPercent for clarity
+    },
+  ];
 
   const handleLogout = () => {
     // 1. Clear state and storage

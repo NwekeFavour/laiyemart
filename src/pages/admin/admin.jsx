@@ -35,6 +35,9 @@ export default function SuperAdminDashboard() {
     categoryStats,
     orders,
     owners,
+    fetchEarningsBreakdown,
+    fetchPlatformEarnings,
+    subscriptionStats,
     platformStats,
     stores,
     loadingOwners,
@@ -44,20 +47,25 @@ export default function SuperAdminDashboard() {
   useEffect(() => {
     fetchStoreOwners();
     fetchAllStores();
+    fetchEarningsBreakdown();
+    fetchPlatformEarnings();
     fetchPlatformOrders();
     fetchCategoryStats();
   }, [
     fetchStoreOwners,
     fetchAllStores,
+    fetchPlatformEarnings,
+    fetchEarningsBreakdown,
     fetchPlatformOrders,
     fetchCategoryStats,
   ]);
 
+  // console.log(categoryStats)
   /* ------------------ Operational Metrics ------------------ */
   const stats = useMemo(() => {
     const totalStores = stores?.count || 0;
     const totalOwners = owners?.count || 0;
-
+    
     return [
       {
         label: "Total Merchants",
@@ -334,13 +342,13 @@ export default function SuperAdminDashboard() {
                   <CreditCard color="#94a3b8" />
                 </Box>
                 <Typography level="h1" sx={{ color: "white", fontWeight: 800 }}>
-                  ₦840,000
+                  ₦{subscriptionStats?.totalEarnings}
                 </Typography>
                 <Typography
                   level="body-xs"
                   sx={{ color: "neutral.400", mb: 3 }}
                 >
-                  Total commission & fees collected
+                  Total Earnings & fees collected
                 </Typography>
 
                 <Stack spacing={2}>
@@ -358,24 +366,8 @@ export default function SuperAdminDashboard() {
                       level="body-xs"
                       sx={{ color: "white", fontWeight: 700 }}
                     >
-                      42 Stores
+                      {stores.count} Stores
                     </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      height: 4,
-                      bgcolor: "rgba(255,255,255,0.1)",
-                      borderRadius: 2,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: "65%",
-                        height: "100%",
-                        bgcolor: "#10b981",
-                        borderRadius: 2,
-                      }}
-                    />
                   </Box>
                 </Stack>
               </Sheet>

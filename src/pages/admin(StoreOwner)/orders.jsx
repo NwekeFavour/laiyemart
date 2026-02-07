@@ -729,7 +729,7 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
               setLoadingId(null);
             }
           }}
-          className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-slate-600 rounded-lg hover:bg-blue-700"
+          className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-slate-600 rounded-lg hover:bg-slate-700"
         >
           Confirm
         </button>

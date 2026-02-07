@@ -4,7 +4,7 @@ import { Button, Input, Typography, Box, Stack } from "@mui/joy";
 import { toast } from "react-toastify";
 import { loginCustomer, resendCustomerOTP, verifyCustomerOTP } from "../../../../services/customerService";
 
-export default function VerifyOTP({storeSlug}) {
+export default function VerifyOTP({storeSlug, isStarter}) {
   const location = useLocation();
   const navigate = useNavigate();
   const [resendTimer, setResendTimer] = useState(0);
@@ -47,7 +47,7 @@ export default function VerifyOTP({storeSlug}) {
       });
 
       toast.success("Account verified successfully!", {containerId: "STOREFRONT"});
-      navigate(`/${storeSlug}/`);
+      navigate(isStarter ?`/${storeSlug}/` : `/`);
     } catch (err) {
       toast.error(err.message, {containerId: "STOREFRONT"});
     } finally {

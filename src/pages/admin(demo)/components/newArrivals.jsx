@@ -19,7 +19,13 @@ import { Heart, Star } from "lucide-react";
 import { toast } from "react-toastify";
 import { getSubdomain } from "../../../../storeResolver";
 
-const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData, toggleWishlist }) => {
+const NewArrivalsGrid = ({
+  subtitle,
+  storeSlug,
+  isStarter,
+  storeData,
+  toggleWishlist,
+}) => {
   const { products, fetchStoreProducts, setLocalProducts, loading } =
     useProductStore();
   const { cart, addToCart, updateQuantity, removeItem } = useCartStore();
@@ -29,7 +35,7 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData, toggleWish
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const [processingId, setProcessingId] = useState(null);
-  
+
   useEffect(() => {
     const initData = async () => {
       if (localStorage.getItem("demo")) {
@@ -69,12 +75,11 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData, toggleWish
     return item ? item.quantity : 0;
   };
 
-
   const handleCartAction = async (product, action) => {
     const productId = product._id || product.id;
     const targetStoreId = product.store?._id || product.store || storeData?._id;
     if (!customer) {
-      navigate( isStarter ? `/${storeData.subdomain}/login` : "/login");
+      navigate(isStarter ? `/${storeData.subdomain}/login` : "/login");
       return;
     }
 
@@ -85,7 +90,7 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData, toggleWish
       return;
     }
 
-    console.log(targetStoreId);
+    // console.log(targetStoreId);
     // 1. Start Preloader
     setProcessingId(productId);
 
@@ -112,8 +117,6 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData, toggleWish
       setProcessingId(null);
     }
   };
-
-
 
   if (loading)
     return (
@@ -144,159 +147,167 @@ const NewArrivalsGrid = ({ subtitle, storeSlug, isStarter, storeData, toggleWish
           gap: 3,
         }}
       >
-        {products.slice(0, 12).map((product) => 
-        {          
+        {products.slice(0, 12).map((product) => {
           return (
-          <motion.div
-            key={product._id || product.id}
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className="w-full max-w-100 mx-auto md:max-w-[390px] lg:max-w-[280px]" // ⬅️ Limits the card width
-          >
-            <Box
-              sx={{
-                bgcolor: "white",
-                borderRadius: "1.2rem", // Slightly smaller radius for smaller card
-                overflow: "hidden",
-                height: "auto",
-                display: "flex",
-                flexDirection: "column",
-                border: "1px solid #f2f2f2",
-                p: 1.2, // ⬅️ Reduced padding
-                cursor: "pointer",
-                transition: "0.3s",
-                "&:hover": {
-                  boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
-                },
-              }}
+            <motion.div
+              key={product._id || product.id}
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="w-full max-w-100 mx-auto md:max-w-[390px] lg:max-w-[280px]" // ⬅️ Limits the card width
             >
-              {/* Product Image Container */}
               <Box
                 sx={{
-                  position: "relative",
-                  width: "100%",
-                  height: "180px", // ⬅️ Reduced height from 220px
-                  borderRadius: "1rem",
+                  bgcolor: "white",
+                  borderRadius: "1.2rem", // Slightly smaller radius for smaller card
                   overflow: "hidden",
-                  bgcolor: "#f7f7f7",
-                  backgroundImage: `url(${
-                    product.images?.[0]?.url ||
-                    product.image ||
-                    "https://via.placeholder.com/400"
-                  })`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  backgroundRepeat: "no-repeat",
-                  transition: "transform 0.5s ease",
+                  height: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  border: "1px solid #f2f2f2",
+                  p: 1.2, // ⬅️ Reduced padding
+                  cursor: "pointer",
+                  transition: "0.3s",
                   "&:hover": {
-                    transform: "scale(1.05)",
+                    boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
                   },
                 }}
-              />
-
-              {/* Product Info */}
-              <Box sx={{ mt: 1.5, px: 0.2, pb: 0.5 }}>
-                <Typography
-                  variant="body2" // ⬅️ Smaller text variant
-                  fontWeight={600}
+              >
+                {/* Product Image Container */}
+                <Box
                   sx={{
-                    color: "#1a1a1a",
-                    lineHeight: 1.3,
-                    mb: 1.5,
-                    height: "2.6em",
+                    position: "relative",
+                    width: "100%",
+                    height: "180px", // ⬅️ Reduced height from 220px
+                    borderRadius: "1rem",
                     overflow: "hidden",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
+                    bgcolor: "#f7f7f7",
+                    backgroundImage: `url(${
+                      product.images?.[0]?.url ||
+                      product.image ||
+                      "https://via.placeholder.com/400"
+                    })`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                    transition: "transform 0.5s ease",
+                    "&:hover": {
+                      transform: "scale(1.05)",
+                    },
                   }}
-                >
-                  {product.name}
-                </Typography>
+                />
 
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  gap={1}
-                >
-                  <Box sx={{ position: "relative" }}>
-                    <IconButton
-                      onClick={() => toggleWishlist(product._id, storeData._id)}
-                      sx={{ color: product.star ? "#e11d48" : "#94a3b8" }}
-                    >
-                      <Heart fill={product.star ? "currentColor" : "none"} />
-                    </IconButton>
-                  </Box>
+                {/* Product Info */}
+                <Box sx={{ mt: 1.5, px: 0.2, pb: 0.5 }}>
+                  <Typography
+                    variant="body2" // ⬅️ Smaller text variant
+                    fontWeight={600}
+                    sx={{
+                      color: "#1a1a1a",
+                      lineHeight: 1.3,
+                      mb: 1.5,
+                      height: "2.6em",
+                      overflow: "hidden",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                    }}
+                  >
+                    {product.name}
+                  </Typography>
 
-                  {/* Compact Add Button */}
-                  <div className="flex flex-col justify-end gap-3">
-                    <Link
-                      to={`${isStarter ? `/${storeData.subdomain}/shop/product/${product._id}` : `/shop/product/${product._id}`}`}
-                      className="text-slate-800/90 text-[12px] underline text-end"
-                    >
-                      view more
-                    </Link>
-                    <div className="flex items-center justify-between w-full gap-3">
-                      <Typography
-                        variant="subtitle2" // ⬅️ Smaller price font
-                        fontWeight={800}
-                        sx={{ color: "#011B33", flexShrink: 0 }}
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    gap={1}
+                  >
+                    <Box sx={{ position: "relative" }}>
+                      <IconButton
+                        onClick={() =>
+                          toggleWishlist(product._id, storeData._id)
+                        }
+                        sx={{ color: product.star ? "#e11d48" : "#94a3b8" }}
                       >
-                        ₦{(product.price || 0).toLocaleString()}
-                      </Typography>
-                      {getItemQty(product._id || product.id) === 0 ? (
-                        /* Initial "Add" Button */
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCartAction(product, "increment");
-                          }}
-                          className="flex items-center gap-1 border border-gray-100 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
-                        >
-                          <ShoppingCartOutlined
-                            style={{ fontSize: 14 }}
-                            className="text-gray-400"
-                          />
-                          <span className="text-[11px] font-bold text-gray-700">
-                            Add
-                          </span>
-                        </button>
-                      ) : (
-                        /* +/- Stepper Controls */
-                        <div
-                          className="flex items-center gap-2 border border-gray-100 px-1 py-0.5 rounded-lg bg-gray-50/50"
-                          onClick={(e) => e.stopPropagation()} // Prevent card navigation
-                        >
-                          <button
-                            onClick={() =>
-                              handleCartAction(product, "decrement")
-                            }
-                            className="p-1 hover:bg-white rounded-md transition-colors text-gray-500 flex items-center justify-center"
-                          >
-                            <Remove style={{ fontSize: 14 }} />
-                          </button>
+                        <Heart fill={product.star ? "currentColor" : "none"} />
+                      </IconButton>
+                    </Box>
 
-                          <span className="text-[12px] font-black text-gray-800 min-w-[12px] text-center">
-                            {getItemQty(product._id || product.id)}
-                          </span>
-
+                    {/* Compact Add Button */}
+                    <div className="flex flex-col justify-end gap-3">
+                      <Link
+                        to={`${isStarter ? `/${storeData.subdomain}/shop/product/${product._id}` : `/shop/product/${product._id}`}`}
+                        className="text-slate-800/90 text-[12px] underline text-end"
+                      >
+                        view more
+                      </Link>
+                      <div className="flex items-center justify-between w-full gap-3">
+                        <Typography
+                          variant="subtitle2" // ⬅️ Smaller price font
+                          fontWeight={800}
+                          sx={{ color: "#011B33", flexShrink: 0 }}
+                        >
+                          ₦{(product.price || 0).toLocaleString()}
+                        </Typography>
+                        {getItemQty(product._id || product.id) === 0 ? (
+                          /* Initial "Add" Button */
                           <button
-                            onClick={() =>
-                              handleCartAction(product, "increment")
-                            }
-                            className="p-1 hover:bg-white rounded-md transition-colors text-gray-500 flex items-center justify-center"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCartAction(product, "increment");
+                            }}
+                            className="flex items-center gap-1 border border-gray-100 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
                           >
-                            <Add style={{ fontSize: 14 }} />
+                            {processingId === (product._id || product.id) ? (
+                              <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <>
+                                <ShoppingCartOutlined
+                                  style={{ fontSize: 14 }}
+                                  className="text-gray-400"
+                                />
+                                <span className="text-[11px] font-bold text-gray-700">
+                                  Add
+                                </span>
+                              </>
+                            )}
                           </button>
-                        </div>
-                      )}
+                        ) : (
+                          /* +/- Stepper Controls */
+                          <div
+                            className="flex items-center gap-2 border border-gray-100 px-1 py-0.5 rounded-lg bg-gray-50/50"
+                            onClick={(e) => e.stopPropagation()} // Prevent card navigation
+                          >
+                            <button
+                              onClick={() =>
+                                handleCartAction(product, "decrement")
+                              }
+                              className="p-1 hover:bg-white rounded-md transition-colors text-gray-500 flex items-center justify-center"
+                            >
+                              <Remove style={{ fontSize: 14 }} />
+                            </button>
+
+                            <span className="text-[12px] font-black text-gray-800 min-w-[12px] text-center">
+                              {getItemQty(product._id || product.id)}
+                            </span>
+
+                            <button
+                              onClick={() =>
+                                handleCartAction(product, "increment")
+                              }
+                              className="p-1 hover:bg-white rounded-md transition-colors text-gray-500 flex items-center justify-center"
+                            >
+                              <Add style={{ fontSize: 14 }} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Stack>
+                  </Stack>
+                </Box>
               </Box>
-            </Box>
-          </motion.div>
-        )})}
+            </motion.div>
+          );
+        })}
       </Box>
     </Box>
   );

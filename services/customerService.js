@@ -1,4 +1,5 @@
 import { useCustomerAuthStore } from "../src/store/useCustomerAuthStore";
+import { getSubdomain } from "../storeResolver";
 
 const API_URL =
   import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
@@ -47,7 +48,7 @@ export const resendCustomerOTP = async ({ email, storeSlug }) => {
   return data;
 };
 // 📝 Register
-export const registerCustomer = async ({ email, password, name, storeSlug }) => {
+export const registerCustomer = async ({ email, password, name, storeSlug, }) => {
   const res = await fetch(`${API_URL}/api/customers/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -61,22 +62,36 @@ export const registerCustomer = async ({ email, password, name, storeSlug }) => 
 };
 
 // 👤 Get logged-in customer
+// 👤 Get logged-in customer
 export const fetchCustomerMe = async () => {
-  const { token } = useCustomerAuthStore.getState();
-  if (!token) throw new Error("No token");
+  const state = useCustomerAuthStore.getState();
+  const token = state.token;
+
+  if (!token) return;
+
+  // Define local header logic to avoid dependency issues
+  const sub = getSubdomain();
+  const pathParts = window.location.pathname.split("/").filter(Boolean);
+  
+  // LOGIC: If path is /store/giw-enterprise, pathParts[1] is the slug
+  const isStarterPath = window.location.pathname.includes("/store/");
+  const resolvedSlug = sub || (isStarterPath ? pathParts[1] : pathParts[0]);
 
   const res = await fetch(`${API_URL}/api/customers/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "x-store-slug": resolvedSlug, // This ensures the subaccount context is sent
     },
   });
 
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Unauthorized");
 
-  useCustomerAuthStore.getState().login({
+  // Sync state
+  state.login({
     token,
-    customer: data.customer,
+    customer: data,
     store: data.store,
   });
 

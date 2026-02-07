@@ -22,6 +22,8 @@ import {
   Zap,
   SunDim,
   BellOff,
+  ShieldAlert,
+  CheckCircle2,
 } from "lucide-react";
 import {
   Box,
@@ -57,19 +59,59 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   const [error, setError] = useState("");
   const [hoveredItem, setHoveredItem] = useState(null);
   const navigate = useNavigate();
+  const hasPaidBefore = !!store?.paystack?.lastReference;
+  const isStarter = store?.plan;
+  const isExpired =
+    store?.trialEndsAt &&
+    new Date(store.trialEndsAt).getTime() < new Date().getTime();
+
+  // Determine Banner Configuration
+  const config = isExpired
+    ? {
+        bg: "bg-red-500!",
+        color: "text-white!",
+        icon: <ShieldAlert size={20} className="text-red-500" />,
+        iconBg: "bg-white",
+        title: "We're sorry, your plan has expired",
+        subtext:
+          "Your premium features are locked. Renew to keep your subaccount running.",
+        btnText: "Renew Subscription",
+        showButton: true,
+      }
+    : !hasPaidBefore
+      ? {
+          bg: isDark ? "bg-white!" : "bg-slate-900/90!",
+          color: isDark ? "text-slate-900!" : "text-white!",
+          icon: <Zap size={20} className="text-slate-900" />,
+          iconBg: "bg-amber-400",
+          title: `${store?.plan?.toUpperCase()} PLAN`,
+          subtext:
+            "You are exploring pro features for free. Upgrade to remove limits.",
+          btnText: "Upgrade to Pro",
+          showButton: true,
+        }
+      : {
+          // Active Paid Plan
+          bg: isDark ? "bg-slate-800!" : "bg-emerald-600!",
+          color: "text-white!",
+          icon: <CheckCircle2 size={20} className="text-emerald-600" />,
+          iconBg: "bg-white",
+          title: `${store?.plan?.toUpperCase()} PLAN ACTIVE`,
+          subtext: "Your premium subscription is verified and active.",
+          btnText: "",
+          showButton: false,
+        };
   const location = useLocation();
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
   const [showBankReminder, setShowBankReminder] = useState(false);
-  const [openNinModal, setOpenNinModal] = useState(false);
-  const [nin, setNin] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-console.log(store?.trialEndsAt)
+  // console.log(store);
   const handlePay = async (planType) => {
     try {
       const { user, token, store } = useAuthStore.getState();
@@ -97,6 +139,7 @@ console.log(store?.trialEndsAt)
           email: user.email,
           plan: planType, // Now dynamic: "PROFESSIONAL" or "ENTERPRISE"
           storeId: store._id,
+          billingCycle: store.billingCycle,
         }),
       });
 
@@ -318,7 +361,7 @@ console.log(store?.trialEndsAt)
               {store?.logo ? (
                 <Box
                   component="img"
-                  src={store.logo}
+                  src={store.logo.url}
                   alt="Store Logo"
                   sx={{
                     width: 32,
@@ -494,37 +537,6 @@ console.log(store?.trialEndsAt)
       </Box>
     </Box>
   );
-
-  const handleVerifyNin = async () => {
-    if (nin.length !== 11) return toast.error("NIN must be 11 digits");
-
-    try {
-      setIsVerifying(true);
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/paystack/verify-nin`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ nin }),
-        },
-      );
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
-      toast.success("Identity Verified! Profile updated.");
-      setOpenNinModal(false);
-      // Refresh store data to update banner to "Step 2"
-      setStoreData();
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setIsVerifying(false);
-    }
-  };
 
   return (
     <Box
@@ -925,32 +937,36 @@ console.log(store?.trialEndsAt)
                   borderColor: isDark ? "slate.800" : "neutral.outlineBorder",
                 }}
               >
-                <Typography
-                  className={`${isDark && "text-neutral-100! "}`}
-                  level="title-md"
-                  fontWeight="bold"
-                >
-                  Notifications
-                </Typography>
-                {unreadCount > 0 && (
-                  <Button
+                <div>
+                  <Typography
+                    className={`${isDark && "text-neutral-100! "}`}
+                    level="title-md"
+                    fontWeight="bold"
+                  >
+                    Notifications
+                  </Typography>
+                </div>
+                <div className="flex items-center">
+                  {unreadCount > 0 && (
+                    <Button
+                      size="sm"
+                      variant="plain"
+                      className={`${isDark && "text-neutral-100!"}`}
+                      onClick={handleMarkAllRead}
+                      sx={{ fontSize: "10px", minHeight: 0, py: 0.5 }}
+                    >
+                      Mark all read
+                    </Button>
+                  )}
+                  <IconButton
                     size="sm"
                     variant="plain"
-                    className={`${isDark && "text-neutral-100!"}`}
-                    onClick={handleMarkAllRead}
-                    sx={{ fontSize: "10px", minHeight: 0, py: 0.5 }}
+                    onClick={() => setAnchorEl(null)}
+                    sx={{ display: { sm: "none" } }} // Show close "X" only on mobile
                   >
-                    Mark all read
-                  </Button>
-                )}
-                <IconButton
-                  size="sm"
-                  variant="plain"
-                  onClick={() => setAnchorEl(null)}
-                  sx={{ display: { sm: "none" } }} // Show close "X" only on mobile
-                >
-                  <X size={18} />
-                </IconButton>
+                    <X size={18} />
+                  </IconButton>
+                </div>
               </Box>
 
               <Box sx={{ overflowY: "auto" }}>
@@ -970,7 +986,7 @@ console.log(store?.trialEndsAt)
                     <Typography level="body-xs">All caught up!</Typography>
                   </Box>
                 ) : (
-                  notifications.slice(0, 4).map((notif) => (
+                  notifications.map((notif) => (
                     <MenuItem
                       key={notif._id}
                       className={`${isDark && "text-neutral-100!  hover:bg-transparent!"}`}
@@ -1173,50 +1189,137 @@ console.log(store?.trialEndsAt)
           }}
           onClick={() => setProfileAnchor(null)}
         >
-          {store?.plan === "starter" && (
+          {(isStarter || isExpired || hasPaidBefore) && (
             <Sheet
-              className={`${isDark ? "bg-white! text-slate-900!" : "bg-slate-900/90! shadow-slate-200/20!  shadow-lg"} lg:items-center! items-end! flex! justify-between! flex-wrap!`}
+              className={`${config.bg} ${config.color} lg:items-center! items-end! flex! justify-between! flex-wrap! shadow-lg`}
               variant="solid"
-              sx={{
-                p: 2,
-                borderRadius: "20px",
-              }}
+              sx={{ p: 2, borderRadius: "20px", mb: 3 }}
             >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <div className="bg-amber-400 p-2 rounded-lg">
-                  <Zap size={20} className="text-slate-900" />
+              <Box  sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <div
+                  className={`${config.iconBg} p-2 rounded-lg flex items-center justify-center`}
+                >
+                  {config.icon}
                 </div>
+
                 <Box>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography
+                      className={`${config.color} text-[15px]! font-bold!`}
+                      level="body-xs"
+                    >
+                      {config.title}
+                    </Typography>
+                    {!isExpired && (
+                      <span
+                        className={`px-2 py-0.5 ${!hasPaidBefore ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"} text-[10px] font-bold rounded-full uppercase tracking-wider`}
+                      >
+                        {!hasPaidBefore ? "Trial" : "Active"}
+                      </span>
+                    )}
+                  </Box>
+
                   <Typography
-                    className={`${isDark ? "text-slate-900!" : ""} text-[15px]!`}
-                    level="body-xs"
-                    sx={{ mt: 1, color: "neutral.100" }}
+                    className={config.color}
+                    sx={{ fontSize: "12px", opacity: 0.9 }}
                   >
-                    Trial ends on{" "}
-                    {new Date(store?.trialEndsAt).toLocaleDateString()}
-                  </Typography>
-                  <Typography
-                    className={` ${isDark ? "text-slate-950!" : "text-slate-200!"}`}
-                    sx={{ fontSize: "12px" }}
-                  >
-                    Upgrade now to unlock unlimited products and custom domains.
+                    {config.subtext}
+                    <span
+                      className={`${isStarter && " hidden"} font-bold ml-1`}
+                    >
+                      {isExpired ? "Expired on: " : "Next date: "}
+                      {new Date(store?.trialEndsAt).toLocaleDateString(
+                        "en-GB",
+                        {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        },
+                      )}
+                    </span>
                   </Typography>
                 </Box>
               </Box>
-              <Button
-                loading={isUpdating}
-                onClick={() => handlePay("professional")}
-                className="md:mt-0 mt-4!"
-                size="sm"
-                sx={{
-                  bgcolor: isDark ? "black" : "white",
-                  color: isDark ? "#fff" : "#0f172a",
-                  "&:hover": { bgcolor: isDark ? "#0f172b" : "#f1f5f9" },
-                  borderRadius: "lg",
-                }}
-              >
-                Upgrade to Pro
-              </Button>
+
+              {config.showButton && (
+                <Button
+                  loading={isUpdating}
+                  onClick={() =>
+                    handlePay(isExpired ? store?.plan : "professional")
+                  }
+                  className="md:mt-0 mt-4!"
+                  size="sm"
+                  sx={{
+                    bgcolor: isExpired ? "white" : isDark ? "black" : "white",
+                    color: isExpired ? "#ef4444" : isDark ? "#fff" : "#0f172a",
+                    "&:hover": { bgcolor: "#f1f5f9" },
+                    borderRadius: "lg",
+                  }}
+                >
+                  {config.btnText}
+                </Button>
+              )}
+            </Sheet>
+          )}
+
+          {!isExpired && (
+            <Sheet
+              className={`${!isExpired && "hidden!"} ${
+                isExpired
+                  ? "bg-red-500! text-white!"
+                  : isDark
+                    ? "bg-white! text-slate-900!"
+                    : "bg-slate-900/90! shadow-lg"
+              } lg:items-center! items-end! flex! justify-between! flex-wrap!`}
+              variant="solid"
+              sx={{ p: 2, borderRadius: "20px" }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <div
+                  className={`${isExpired ? "bg-white" : "bg-amber-400"} p-2 rounded-lg`}
+                >
+                  {isExpired ? (
+                    <ShieldAlert size={20} className="text-red-500" />
+                  ) : (
+                    <Zap size={20} className="text-slate-900" />
+                  )}
+                </div>
+                <Box>
+                  <Typography
+                    className={`${isDark || isExpired ? "text-slate-900!" : ""} text-[15px]! font-bold!`}
+                    level="body-xs"
+                  >
+                    {isExpired ? "Subscription Expired" : "Starter Plan"}
+                  </Typography>
+                  <Typography
+                    className={`${isDark || isExpired ? "text-slate-800!" : "text-slate-200!"}`}
+                    sx={{ fontSize: "12px" }}
+                  >
+                    {isExpired
+                      ? "Your access has ended. Renew now to keep using pro features."
+                      : "Upgrade to unlock unlimited products and custom domains."}
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* 3. CONDITIONAL BUTTON: Only shows if Starter or Expired */}
+              {isExpired && (
+                <Button
+                  loading={isUpdating}
+                  onClick={() =>
+                    handlePay(isExpired ? store?.plan : "professional")
+                  }
+                  size="sm"
+                  sx={{
+                    bgcolor: isExpired ? "white" : isDark ? "black" : "white",
+                    color: isExpired ? "#ef4444" : isDark ? "#fff" : "#0f172a",
+                    "&:hover": { bgcolor: "#f1f5f9" },
+                    borderRadius: "lg",
+                  }}
+                >
+                  {isExpired ? "Renew Subscription" : "Upgrade Now"}
+                </Button>
+              )}
             </Sheet>
           )}
 
@@ -1363,35 +1466,6 @@ console.log(store?.trialEndsAt)
           )}
           <Box>{children}</Box>
         </Box>
-        <Modal open={openNinModal} onClose={() => setOpenNinModal(false)}>
-          <ModalDialog sx={{ maxWidth: 400, borderRadius: "20px", p: 3 }}>
-            <ModalClose />
-            <Typography level="h4" startDecorator="🆔">
-              Identity Verification
-            </Typography>
-            <Typography level="body-sm" sx={{ mb: 2 }}>
-              Input your 11-digit NIN to verify your identity.
-            </Typography>
-
-            <Stack spacing={2}>
-              <Input
-                placeholder="Enter 11-digit NIN"
-                value={nin}
-                onChange={(e) =>
-                  setNin(e.target.value.replace(/\D/g, "").slice(0, 11))
-                }
-                slotProps={{ input: { inputMode: "numeric" } }}
-              />
-              <Button
-                loading={isVerifying}
-                onClick={handleVerifyNin}
-                sx={{ bgcolor: "#f59e0b", "&:hover": { bgcolor: "#d97706" } }}
-              >
-                Verify and Continue
-              </Button>
-            </Stack>
-          </ModalDialog>
-        </Modal>
       </Box>
 
       {/* 3. Mobile Sidebar Overlay & Drawer */}

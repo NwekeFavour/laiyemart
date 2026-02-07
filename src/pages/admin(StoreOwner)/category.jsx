@@ -111,6 +111,8 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
         err.message ||
         "Failed to create category";
       toast.error(errorMessage);
+    } finally {
+      setLoadingc(false)
     }
   };
 

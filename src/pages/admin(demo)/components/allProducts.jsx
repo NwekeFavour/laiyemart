@@ -187,10 +187,14 @@ const AllProductsSection = ({
                       {/* Left Side: Rating & Brand */}
                       <Box>
                         <IconButton
-                          onClick={() => toggleWishlist(product._id, storeData._id)}
+                          onClick={() =>
+                            toggleWishlist(product._id, storeData._id)
+                          }
                           sx={{ color: product.star ? "#e11d48" : "#94a3b8" }}
                         >
-                          <Heart fill={product.star ? "currentColor" : "none"} />
+                          <Heart
+                            fill={product.star ? "currentColor" : "none"}
+                          />
                         </IconButton>
                       </Box>
 
@@ -221,13 +225,19 @@ const AllProductsSection = ({
                               }}
                               className="flex items-center gap-1 border border-gray-100 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
                             >
-                              <ShoppingCartOutlined
-                                style={{ fontSize: 14 }}
-                                className="text-gray-400"
-                              />
-                              <span className="text-[11px] font-bold text-gray-700">
-                                Add
-                              </span>
+                              {processingId === (product._id || product.id) ? (
+                                <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <>
+                                  <ShoppingCartOutlined
+                                    style={{ fontSize: 14 }}
+                                    className="text-gray-400"
+                                  />
+                                  <span className="text-[11px] font-bold text-gray-700">
+                                    Add
+                                  </span>
+                                </>
+                              )}
                             </button>
                           ) : (
                             <div

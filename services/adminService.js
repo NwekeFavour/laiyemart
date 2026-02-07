@@ -5,23 +5,87 @@ import { useAuthStore } from "../src/store/useAuthStore";
 const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 export const useAdminStore = create(
-  devtools((set) => ({
+  devtools((set, get) => ({
     // ===== STATE =====
     stores: [],
     owners: [],
     categoryStats: [],
     loading: false,
     platformOrders: [],
+    adminNotifications: [],
+  adminUnreadCount: 0,
     platformStats: {
       totalGMV: 0,
       orderCount: 0,
       pendingReviews: 0,
     },
+    subscriptionStats: {
+      totalEarnings: 0,
+      totalSubscriptions: 0,
+      currency: "NGN",
+    },
+    subscriptionBreakdown: [], // For the breakdown by plan
+    loadingTransactions: false,
     loadingOrders: false,
     error: null,
 
+    
     // ===== ACTIONS =====
 
+
+
+    
+    /* -------- FETCH SUBSCRIPTION EARNINGS -------- */
+    fetchPlatformEarnings: async () => {
+      set({ loadingTransactions: true, error: null });
+      const { token } = useAuthStore.getState();
+
+      try {
+        const res = await fetch(`${VITE_BACKEND_URL}/api/transactions/stats/total`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch earnings");
+
+        const data = await res.json();
+        if (data.success) {
+          set({
+            subscriptionStats: data.data,
+            loadingTransactions: false,
+          });
+        }
+      } catch (err) {
+        set({ error: err.message, loadingTransactions: false });
+      }
+    },
+
+    /* -------- FETCH REVENUE BREAKDOWN -------- */
+    fetchEarningsBreakdown: async () => {
+      const { token } = useAuthStore.getState();
+      try {
+        const res = await fetch(`${VITE_BACKEND_URL}/api/transactions/stats/breakdown`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          set({ subscriptionBreakdown: data.breakdown });
+        }
+      } catch (err) {
+        console.error("Error fetching breakdown:", err);
+      }
+    },
+
+    // Add to useAdminStore actions
+fetchAdminNotifications: async () => {
+  const { token } = useAuthStore.getState();
+  const res = await fetch(`${VITE_BACKEND_URL}/api/notifications/admin`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await res.json();
+  if (data.success) set({ notifications: data.notifications });
+  console.log(data)
+},
     /* -------- FETCH ALL STORES -------- */
     fetchAllStores: async () => {
       set({ loading: true, error: null });
@@ -115,6 +179,51 @@ export const useAdminStore = create(
         set({ loadingOrders: false });
       }
     },
+
+fetchAdminNotifications: async () => {
+    const { token } = useAuthStore.getState();
+    try {
+      const response = await fetch(`${VITE_BACKEND_URL}/api/notifications/admin`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+
+      const data = await response.json();
+      const unreadCount = data.notifications.filter(n => n.isRead === false).length;
+      if (data.success) {
+        set({ 
+          adminNotifications: data.notifications,
+          adminUnreadCount: unreadCount 
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching admin alerts:", err);
+    }
+  },
+
+  handleMarkAdminAllRead: async () => {
+    const { token } = useAuthStore.getState();
+    try {
+      const response = await fetch(`${VITE_BACKEND_URL}/api/notifications/admin/read-all`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        set({ adminUnreadCount: 0 });
+        get().fetchAdminNotifications(); // Refresh the list
+      }
+    } catch (err) {
+      console.error("Error marking alerts as read:", err);
+    }
+  },
 
     fetchCategoryStats: async () => {
       try {

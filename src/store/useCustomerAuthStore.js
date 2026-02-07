@@ -22,7 +22,6 @@ export const useCustomerAuthStore = create(
         }),
 
       // 🚪 Logout customer
-      // 🚪 Logout customer
       logout: () => {
         // 1. Clear Auth State in Zustand (this also updates localStorage because of 'persist')
         set({

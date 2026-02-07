@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -58,11 +58,14 @@ import CustomerManagement from "./pages/admin/customers";
 import NotFound from "./components/notfound";
 import VerifyOTP from "./pages/admin(StoreOwner)/auth/verify";
 import { MessageSquarePlus } from "lucide-react";
+import OrderDetails from "./pages/(demo)/orderDetails";
+import CouponPage from "./pages/admin/coupon";
+import VendorStoreWrapper from "./components/storeguard";
 
 function App() {
   const isDashboard = isDashboardSubdomain();
   const subdomain = getSubdomain();
-  const { customer } = useCustomerAuthStore();
+  const customer = useCustomerAuthStore((state) => state.customer);
   const [storeData, setStoreData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -149,7 +152,7 @@ function App() {
           // 4. REDIRECT LOGIC (Starter vs Pro)
           if (resolutionType === "subdomain" && store.plan === "starter") {
             window.location.replace(
-              `${window.location.protocol}//${baseDomain}/${store.slug}${window.location.pathname}`,
+              `${window.location.protocol}//${baseDomain}/${targetSub}${window.location.pathname}`,
             );
             return;
           }
@@ -203,7 +206,6 @@ function App() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
     const { token } = useCustomerAuthStore.getState();
 
     if (!activeSlug) {
@@ -219,7 +221,7 @@ function App() {
     }
     const identifier = storeData?.subdomain || storeData?.slug || activeSlug;
     try {
-      const res = await fetch(`${API_URL}/api/feedback/submit`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/feedback/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -248,6 +250,7 @@ function App() {
       setIsFeedbackOpen(false);
     } catch (err) {
       toast.error(err.message, { containerId: "STOREFRONT" });
+      console.log(err)
     } finally {
       setIsSubmitting(false);
     }
@@ -358,13 +361,22 @@ function App() {
                   element={<CustomerManagement />}
                 />
               </Route>
+              <Route
+                element={<ProtectedRoute allowedRoles={["SUPER_ADMIN"]} />}
+              >
+                <Route
+                  path="/admin/coupons"
+                  element={<CouponPage />}
+                />
+              </Route>
             </Route>
           </>
         )}
+        
 
         {/* --- CASE 2: STOREFRONT (Subdomain OR Path) --- */}
         {isStorefront && storeData && (
-          <Route path={pathSlug ? `/${pathSlug}` : "/"}>
+          <Route path={pathSlug ? `/${pathSlug}` : "/"} element={<VendorStoreWrapper><Outlet/></VendorStoreWrapper>}>
             {/* 'index' matches the base path exactly */}
             <Route
               index
@@ -382,7 +394,7 @@ function App() {
             />
             <Route
               path="verify-otp"
-              element={<VerifyOTP storeSlug={activeSlug} />}
+              element={<VerifyOTP storeSlug={activeSlug} isStarter={storeData?.plan ==="starter"} />}
             />
             <Route
               path="login"
@@ -405,6 +417,7 @@ function App() {
                 />
               }
             />
+            <Route path="account/orders/:orderId" element={<OrderDetails storeSlug={activeSlug} storeData={storeData} isStarter={storeData?.plan === "starter"} storeLogo={storeData.logo?.url} storeName={storeData?.name} />} />
             <Route
               path="shop"
               element={
@@ -417,7 +430,7 @@ function App() {
             <Route
               path="shop/product/:id"
               element={
-                <ProductPage isStarter={storeData?.plan === "starter"} storeSlug={activeSlug} storeData={storeData} />
+                <ProductPage  />
               }
               
             />
@@ -468,7 +481,7 @@ function App() {
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/auth/redirect" element={<RoleRedirect />} />
-            <Route path="/payment/success" element={<PaymentSuccess />} />
+            <Route path="/payment/success" element={<PaymentSuccess isStarter={storeData?.plan === "starter"} storeData={storeData} />} />
             <Route
               path="/verify-store-email/:token"
               element={<VerifyStore />}

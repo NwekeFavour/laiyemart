@@ -1269,7 +1269,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
               </FormControl>
 
               <FormControl>
-                <FormLabel className={`${isDark && "text-slate-400!"}`}>
+                <FormLabel className={`${isDark && "text-slate-400!"}`} > 
                   Description
                 </FormLabel>
                 <Textarea
@@ -1919,7 +1919,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                 />
               </FormControl>
 
-              <FormControl>
+              <FormControl required>
                 <FormLabel className={`${isDark ? "text-slate-400!" : ""}`}>
                   Description
                 </FormLabel>

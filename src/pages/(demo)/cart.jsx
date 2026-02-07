@@ -15,6 +15,7 @@ import {
   FormControl,
   Input,
   FormLabel,
+  Checkbox,
 } from "@mui/joy";
 import {
   Trash2,
@@ -31,8 +32,9 @@ import Header from "../admin(demo)/components/header";
 import { toast } from "react-toastify";
 import Footer from "../admin(demo)/components/footer";
 import { getSubdomain } from "../../../storeResolver";
+import { fetchCustomerMe } from "../../../services/customerService";
 
-const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
+const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
   const navigate = useNavigate();
 
   // Store & Auth State
@@ -54,16 +56,43 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
     phone: "",
   });
 
-  // 1. Auth Guard
   useEffect(() => {
-    if (!customer) {
-      toast.error("Please login to view your bag!", {
+    fetchCustomerMe()
+  }, [])
+
+  // console.log(customer)
+  // 1. Auth Guard
+  // useEffect(() => {
+  //   if (!customer) {
+  //     toast.error("Please login to view your bag!", {
+  //       containerId: "STOREFRONT",
+  //     });
+  //     const timer = setTimeout(() => navigate(getStorePath("/login")), 2000);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [customer, navigate]);
+
+  // 1. Auth Guard - Only redirect if we AREN'T loading and there's no token
+useEffect(() => {
+  const token = useCustomerAuthStore.getState().token;
+  
+  // If there's no token at all, they definitely need to login
+  if (!token) {
+     toast.error("Please login to view your bag!", {
         containerId: "STOREFRONT",
       });
-      const timer = setTimeout(() => navigate(getStorePath("/login")), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [customer, navigate]);
+    navigate(getStorePath("/login")); // Adjust path as needed
+    return;
+  }
+
+  // If there is a token but no customer data, try to fetch it instead of logging out
+  if (token && !customer) {
+    fetchCustomerMe().catch(() => {
+       // Only redirect if the API actually says the token is invalid
+       navigate(getStorePath("/login"));
+    });
+  }
+}, [customer, navigate]);
 
   // 2. Pre-fill Address Form when modal opens or customer loads
   useEffect(() => {
@@ -77,21 +106,17 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
     }
   }, [customer]);
 
-
   // 4. Fetch Cart once Store is validated
   useEffect(() => {
     if (storeData?._id && customer) {
       fetchCart(storeData._id);
     }
   }, [storeData?._id, customer, fetchCart]);
+const hasAddress = customer?.shippingAddress?.some(
+  (address) => address.isDefault === true
+);// Dependency on the specific object is more reliable
 
-  const hasAddress = useMemo(() => {
-    return !!(
-      customer?.address?.street &&
-      customer?.address?.city &&
-      customer?.address?.phone
-    );
-  }, [customer]);
+  // console.log(hasAddress)
 
   const handleAddressSubmit = async (e) => {
     e.preventDefault();
@@ -99,7 +124,7 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
     try {
       const API_URL =
         import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-      const res = await fetch(`${API_URL}/api/address/save`, {
+      const res = await fetch(`${API_URL}/api/address/update`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -113,10 +138,13 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
       if (!res.ok)
         throw new Error(result.message || "Failed to update address");
 
-      updateCustomer({ address: result.address });
-      toast.success("Address updated successfully!", {
-        containerId: "STOREFRONT",
+      // We update 'shippingAddress' so the useMemo(hasAddress) sees the change
+      updateCustomer({
+        ...customer,
+        shippingAddress: result.address,
       });
+
+      toast.success("Address saved!", { containerId: "STOREFRONT" });
       setIsAddressModalOpen(false);
     } catch (err) {
       toast.error(err.message, { containerId: "STOREFRONT" });
@@ -124,7 +152,6 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
       setIsSaving(false);
     }
   };
-
   const handleCustomerCheckout = async () => {
     if (!storeData?._id || !storeData?.paystack?.subaccountCode) {
       toast.error("Checkout unavailable. Vendor setup incomplete.");
@@ -140,7 +167,7 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
-            "x-store-slug": storeSlug|| getSubdomain(),
+            "x-store-slug": storeSlug || getSubdomain(),
           },
           body: JSON.stringify({
             email: customer.email,
@@ -174,7 +201,7 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
     return (
       <Box sx={{ p: 4, textAlign: "center" }}>
         <Typography color="danger" level="h4">
-          Store "{storeSlug || 'Requested Store'}" not found.
+          Store "{storeSlug || "Requested Store"}" not found.
         </Typography>
         <Button variant="plain" onClick={() => navigate(getStorePath("/"))}>
           Go Home
@@ -203,7 +230,7 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
           p: { xs: 2, md: 4 },
         }}
       >
-        {(!storeData || (loading && !cart)) ? (
+        {!storeData || (loading && !cart) ? (
           <Skeleton variant="rectangular" height={400} />
         ) : (
           <>
@@ -422,6 +449,19 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
           <Typography level="h4">Shipping Details</Typography>
           <form onSubmit={handleAddressSubmit}>
             <Stack spacing={2} sx={{ mt: 2 }}>
+              {/* Label Field - matches {addr.label} in your display card */}
+              <FormControl>
+                <FormLabel>Address Label (e.g. Home, Work)</FormLabel>
+                <Input
+                  className="border!"
+                  placeholder="Home"
+                  value={addressForm.label || ""}
+                  onChange={(e) =>
+                    setAddressForm({ ...addressForm, label: e.target.value })
+                  }
+                />
+              </FormControl>
+
               <FormControl required>
                 <FormLabel>Street Address</FormLabel>
                 <Input
@@ -432,26 +472,24 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
                   }
                 />
               </FormControl>
+
               <Box
-                className="md:grid-cols-2! "
-                sx={{ display: "grid", gap: 2 }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
               >
                 <FormControl required>
                   <FormLabel>City</FormLabel>
                   <Input
-                  className="border!"
-
+                    className="border!"
                     value={addressForm.city}
                     onChange={(e) =>
                       setAddressForm({ ...addressForm, city: e.target.value })
                     }
                   />
                 </FormControl>
-                <FormControl required>
+                <FormControl className="md:w-40!" required>
                   <FormLabel>State</FormLabel>
                   <Input
-                  className="border!"
-
+                    className="border!"
                     value={addressForm.state}
                     onChange={(e) =>
                       setAddressForm({ ...addressForm, state: e.target.value })
@@ -459,18 +497,32 @@ const CartDashboard = ({ storeSlug, isStarter , storeData}) => {
                   />
                 </FormControl>
               </Box>
+
               <FormControl required>
                 <FormLabel>Phone Number</FormLabel>
                 <Input
                   className="border!"
-
                   value={addressForm.phone}
                   onChange={(e) =>
                     setAddressForm({ ...addressForm, phone: e.target.value })
                   }
                 />
               </FormControl>
-              <Button type="submit" loading={isSaving} fullWidth>
+
+              {/* Default Checkbox - triggers the "DEFAULT" Chip in your card */}
+              <Checkbox
+                label="Set as default shipping address"
+                checked={addressForm.isDefault || false}
+                onChange={(e) =>
+                  setAddressForm({
+                    ...addressForm,
+                    isDefault: e.target.checked,
+                  })
+                }
+                sx={{ mt: 1 }}
+              />
+
+              <Button type="submit" loading={isSaving} fullWidth sx={{ mt: 2 }}>
                 Save & Continue
               </Button>
             </Stack>

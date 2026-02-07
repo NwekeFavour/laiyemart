@@ -44,11 +44,14 @@ export const verifyOTP = async ({ email, otp }) => {
 export const registerStoreOwner = async ({
   email,
   password,
+  billingCycle,
+  plan,
+  couponCode
 }) => {
   const res = await fetch(`${VITE_BACKEND_URL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, billingCycle, plan , couponCode}),
   });
 
   const data = await res.json();

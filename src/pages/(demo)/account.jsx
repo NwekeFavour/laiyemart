@@ -37,9 +37,13 @@ import {
   Trash2,
   Plus,
   Info,
+  CheckCircle2,
 } from "lucide-react";
 import CustomerAccountLayout from "./layout";
-import { forgotPasswordCustomer, logoutCustomer } from "../../../services/customerService";
+import {
+  forgotPasswordCustomer,
+  logoutCustomer,
+} from "../../../services/customerService";
 import {
   Link,
   useLocation,
@@ -269,11 +273,11 @@ export default function CustomerAccountPage({
       const result = await res.json();
 
       if (!res.ok) throw new Error(result.message);
-
+      setIsDeleteModalOpen(false);
       // Update global state with the new shorter array
       useCustomerAuthStore
         .getState()
-        .updateCustomer({ addresses: result.addresses });
+        .updateCustomer({ shippingAddress: result.addresses });
       toast.success("Address removed", { containerId: "STOREFRONT" });
     } catch (err) {
       toast.error(err.message);
@@ -518,7 +522,7 @@ export default function CustomerAccountPage({
                 <MapPin size={16} /> DELIVERY ADDRESS
               </Typography>
               <Typography level="body-xs" sx={{ lineHeight: 1.6 }}>
-                <strong>{order.shippingAddress?.fullName}</strong>
+                <strong>{order.shippingdress?.fullName}</strong>
                 <br />
                 {order.shippingAddress?.street}
                 <br />
@@ -720,10 +724,9 @@ export default function CustomerAccountPage({
                       </Card>
                     </Grid>
 
-
-                    <ChangePasswordModal 
-                      open={isPassModalOpen} 
-                      onClose={() => setIsPassModalOpen(false)} 
+                    <ChangePasswordModal
+                      open={isPassModalOpen}
+                      onClose={() => setIsPassModalOpen(false)}
                       email={customer?.email}
                       storeData={storeData}
                     />
@@ -1449,14 +1452,27 @@ export default function CustomerAccountPage({
 
                               {/* 1. isDefault Badge */}
                               {addr.isDefault && (
-                                <Chip
-                                  size="sm"
-                                  variant="soft"
-                                  color="primary"
-                                  sx={{ fontWeight: 700 }}
+                                <Typography
+                                  level="body-xs"
+                                  sx={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    bgcolor: "rgba(16, 185, 129, 0.12)", // Emerald tint
+                                    color: "#059669",
+                                    px: 1,
+                                    py: 0.3,
+                                    borderRadius: "20px",
+                                    fontSize: "10px",
+                                    fontWeight: 700,
+                                    border: "1px solid rgba(16, 185, 129, 0.2)",
+                                  }}
                                 >
-                                  DEFAULT
-                                </Chip>
+                                  <CheckCircle2
+                                    size={10}
+                                    style={{ marginRight: "4px" }}
+                                  />
+                                  PRIMARY
+                                </Typography>
                               )}
                             </Stack>
 
@@ -1557,7 +1573,7 @@ export default function CustomerAccountPage({
                   <form onSubmit={handleAddressSubmit}>
                     <Stack spacing={2}>
                       {/* Added Label Field */}
-                      <FormControl required>
+                      <FormControl  required>
                         <FormLabel>Address Label</FormLabel>
                         <Input
                           placeholder="e.g. Home, Office, Warehouse"
@@ -1568,6 +1584,9 @@ export default function CustomerAccountPage({
                               label: e.target.value,
                             })
                           }
+                          sx={{
+                            border: "1px solid neutral.900"
+                          }}
                           disabled={isSaving}
                           autoFocus
                         />
@@ -1786,40 +1805,42 @@ export default function CustomerAccountPage({
   );
 }
 
-
 const ChangePasswordModal = ({ open, onClose, email, storeData }) => {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-const handleTriggerReset = async () => {
-  setLoading(true);
+  const handleTriggerReset = async () => {
+    setLoading(true);
 
-  const storeSlug = storeData?.subdomain || storeData?.slug || activeSlug;
+    const storeSlug = storeData?.subdomain || storeData?.slug || activeSlug;
 
-  try {
-    // 2. Use your centralized helper
-    const response = await forgotPasswordCustomer({
-      email: email.trim(), // 'email' comes from the modal props
-      storeSlug: storeSlug
-    });
+    try {
+      // 2. Use your centralized helper
+      const response = await forgotPasswordCustomer({
+        email: email.trim(), // 'email' comes from the modal props
+        storeSlug: storeSlug,
+      });
 
-    // 3. Handle success based on your helper's return structure
-    // Assuming your helper returns the data on success
-    if (response) {
-      setSent(true);
-      toast.success("Reset link sent!",{containerId: "STOREFRONT"});
+      // 3. Handle success based on your helper's return structure
+      // Assuming your helper returns the data on success
+      if (response) {
+        setSent(true);
+        toast.success("Reset link sent!", { containerId: "STOREFRONT" });
+      }
+    } catch (err) {
+      // 4. If the backend returns 404, the helper likely throws an error
+      console.error("Reset Error:", err);
+      toast.error(
+        err.response?.data?.message || "User not found in this store.",
+        { containerId: "STOREFRONT" },
+      );
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    // 4. If the backend returns 404, the helper likely throws an error
-    console.error("Reset Error:", err);
-    toast.error(err.response?.data?.message || "User not found in this store.",{containerId: "STOREFRONT"});
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   return (
     <Modal open={open} onClose={onClose}>
-      <ModalDialog sx={{ maxWidth: 400, borderRadius: 'md' }}>
+      <ModalDialog sx={{ maxWidth: 400, borderRadius: "md" }}>
         <ModalClose />
         <DialogTitle>Security Update</DialogTitle>
         <DialogContent>
@@ -1829,22 +1850,26 @@ const handleTriggerReset = async () => {
                 Reset link sent to your email!
               </Alert>
               <Typography level="body-sm">
-                Please check <b>{email}</b> for instructions to update your password.
+                Please check <b>{email}</b> for instructions to update your
+                password.
               </Typography>
-              <Button onClick={onClose} fullWidth>Close</Button>
+              <Button onClick={onClose} fullWidth>
+                Close
+              </Button>
             </Stack>
           ) : (
             <Stack spacing={2} sx={{ mt: 1 }}>
               <Typography level="body-sm">
-                To update your password, we will send a secure reset link to your registered email address.
+                To update your password, we will send a secure reset link to
+                your registered email address.
               </Typography>
               <Input
                 value={email}
                 disabled
                 startDecorator={<Info size={18} />}
               />
-              <Button 
-                onClick={handleTriggerReset} 
+              <Button
+                onClick={handleTriggerReset}
                 loading={loading}
                 className="bg-slate-900! text-slate-100!"
                 fullWidth

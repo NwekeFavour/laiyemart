@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Mail,
   Lock,
@@ -29,10 +29,14 @@ export default function SignUpPage() {
   const [storeName, setStoreName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [latestDiscount, setLatestDiscount] = useState(null);
+  const [showCouponInput, setShowCouponInput] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [billingCycle, setBillingCycle] = useState("monthly");
   const navigate = useNavigate();
   const [resendTimer, setResendTimer] = useState(0);
 
@@ -50,6 +54,26 @@ export default function SignUpPage() {
     return () => clearInterval(interval); // cleanup
   }, [resendTimer]);
 
+  const plans = [
+    {
+      id: "starter",
+      name: "Starter Plan",
+      price: { monthly: "Free", yearly: "Free" },
+      features: ["5 Products", "Basic Analytics", "Custom Domain"],
+    },
+    {
+      id: "professional",
+      name: "Professional Plan",
+      price: { monthly: "₦25,000", yearly: "₦300,000" },
+      features: ["Unlimited Products", "Advanced SEO", "Priority Support"],
+    },
+    {
+      id: "enterprise",
+      name: "Enterprise Plan",
+      price: { monthly: "₦50,000", yearly: "₦500,000" },
+      features: ["Dedicated Manager", "Custom Integration", "API Access"],
+    },
+  ];
   const handleResendOtp = async () => {
     if (resendTimer > 0) return;
 
@@ -94,6 +118,52 @@ export default function SignUpPage() {
       setTimeout(() => setError(null), 3000);
     } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchLatestCoupon = async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/coupon`,
+        );
+        const data = await res.json();
+        if (data.success && data.coupons.length > 0) {
+          // Assuming the first one is the most recent due to your .sort({createdAt: -1})
+          setLatestDiscount(data.coupons[0].discountPercent);
+        }
+      } catch (err) {
+        console.error("Failed to fetch latest coupon offer", err);
+      }
+    };
+    fetchLatestCoupon();
+  }, []);
+
+  const handleValidateCoupon = async () => {
+    if (!couponCode) return;
+    setIsValidatingCoupon(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/coupon/validate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: couponCode }),
+        },
+      );
+      const data = await res.json();
+
+      if (data.success) {
+        setAppliedDiscount(data.discountPercent);
+        toast.success(`Coupon applied! ${data.discountPercent}% off.`);
+      } else {
+        setAppliedDiscount(0);
+        toast.error(data.message || "Invalid coupon");
+      }
+    } catch (err) {
+      toast.error("Error validating coupon");
+    } finally {
+      setIsValidatingCoupon(false);
     }
   };
 
@@ -180,6 +250,8 @@ export default function SignUpPage() {
                         ? storeName.toLowerCase().trim().replace(/\s+/g, "-")
                         : "",
                       plan: selectedPlan,
+                      couponCode: appliedDiscount > 0 ? couponCode.trim().toUpperCase() : null,
+                      billingCycle,
                     };
 
                     // 2. Call the service
@@ -346,6 +418,55 @@ export default function SignUpPage() {
                     </div>
                   )}
                 </div>
+                {/* --- COUPON SECTION --- */}
+                <div className="mt-4">
+                  {!showCouponInput ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowCouponInput(true)}
+                      className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                    >
+                      Have a coupon code?
+                    </button>
+                  ) : (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                      <label className="text-[13px] font-semibold text-slate-600 ml-0.5">
+                        Promo Code
+                      </label>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <ShieldCheck
+                            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                            size={18}
+                          />
+                          <input
+                            type="text"
+                            placeholder="ENTER CODE"
+                            value={couponCode}
+                            onChange={(e) =>
+                              setCouponCode(e.target.value.toUpperCase())
+                            }
+                            className="w-full py-2.5 pl-11 pr-4 border border-slate-200 rounded-xl outline-none focus:border-blue-500 uppercase font-bold tracking-wider text-sm"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleValidateCoupon}
+                          disabled={isValidatingCoupon || !couponCode}
+                          className="px-4 bg-blue-50 text-blue-600 font-bold rounded-xl border border-blue-100 hover:bg-blue-100 disabled:opacity-50 text-sm"
+                        >
+                          {isValidatingCoupon ? "..." : "Apply"}
+                        </button>
+                      </div>
+                      {appliedDiscount > 0 && (
+                        <p className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
+                          <CheckCircle2 size={12} /> {appliedDiscount}% discount
+                          will be applied to your plan!
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 <button
                   disabled={loading}
@@ -449,106 +570,171 @@ export default function SignUpPage() {
                 </p>
               </div>
 
-              <div className="space-y-3">
-                {[
-                  {
-                    id: "starter",
-                    name: "Starter",
-                    price: "₦0",
-                    features: [
-                      "5 Products",
-                      "Basic Analytics",
-                      "Layemart Subdomain",
-                    ],
-                    color: "bg-slate-50 border-slate-200",
-                  },
-                  {
-                    id: "professional",
-                    name: "Professional",
-                    price: "₦19",
-                    features: [
-                      "20 Products",
-                      "Advanced SEO",
-                      "Layemart Subdomain",
-                      "Priority Support",
-                    ],
-                    color: "bg-blue-50 border-blue-200",
-                  },
-                  {
-                    id: "enterprise",
-                    name: "Enterprise",
-                    price: "₦49",
-                    features: [
-                      "Unlimited Products",
-                      "Custom Domain",
-                      "White-labeling",
-                      "API Access",
-                    ],
-                    color: "bg-indigo-50 border-indigo-200",
-                  },
-                ].map((plan) => (
-                  <div
-                    key={plan.id}
-                    onClick={() => setSelectedPlan(plan.id)}
-                    className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                      selectedPlan === plan.id
-                        ? "border-blue-600 ring-2 ring-blue-600/10"
-                        : "border-slate-100 hover:border-slate-200"
-                    } ${plan.id === "professional" ? "overflow-hidden" : ""}`}
-                  >
-                    {plan.id === "professional" && (
-                      <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] px-3 py-1 rounded-bl-lg font-bold uppercase">
-                        Popular
-                      </div>
-                    )}
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-bold text-slate-900">
-                          {plan.name}
-                        </h3>
-                        <p className="text-lg font-extrabold text-slate-900">
-                          {plan.price}
-                          <span className="text-xs text-slate-400 font-normal">
-                            /mo
-                          </span>
-                        </p>
-                      </div>
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          selectedPlan === plan.id
-                            ? "border-blue-600 bg-blue-600"
-                            : "border-slate-300"
-                        }`}
-                      >
-                        {selectedPlan === plan.id && (
-                          <div className="w-2 h-2 bg-white rounded-full" />
-                        )}
-                      </div>
-                    </div>
-                    <ul className="grid grid-cols-2 gap-x-2 gap-y-1">
-                      {plan.features.map((feat, i) => (
-                        <li
-                          key={i}
-                          className="flex items-center gap-1.5 text-[11px] text-slate-600"
-                        >
-                          <CheckCircle2
-                            size={12}
-                            className="text-emerald-500"
-                          />{" "}
-                          {feat}
-                        </li>
-                      ))}
-                    </ul>
+              {latestDiscount && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3 animate-pulse">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shrink-0">
+                    <ShieldCheck size={24} />
                   </div>
-                ))}
+                  <div>
+                    <p className="text-[13px] font-bold text-blue-900">
+                      Limited Time Offer!
+                    </p>
+                    <p className="text-[11px] text-blue-700 font-medium">
+                      Use a coupon code to get{" "}
+                      <span className="font-bold text-blue-900">
+                        {latestDiscount}% OFF
+                      </span>{" "}
+                      your first subscription.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Toggle Switch */}
+              <div className="flex items-center justify-center mb-5">
+                <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+                  <button
+                    onClick={() => setBillingCycle("monthly")}
+                    className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition ${
+                      billingCycle === "monthly"
+                        ? "bg-white shadow text-slate-900"
+                        : "text-slate-500"
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    onClick={() => setBillingCycle("yearly")}
+                    className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition ${
+                      billingCycle === "yearly"
+                        ? "bg-white shadow text-slate-900"
+                        : "text-slate-500"
+                    }`}
+                  >
+                    Yearly{" "}
+                    <span className="ml-1 text-[10px] text-emerald-600">
+                      (Save 20%)
+                    </span>
+                  </button>
+                </div>
               </div>
 
+              {/* Plans List */}
+              <div className="space-y-3">
+                {plans.map((plan) => {
+                  const isSelected = selectedPlan === plan.id;
+                  return (
+                    <div
+                      key={plan.id}
+                      onClick={() => setSelectedPlan(plan.id)}
+                      className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                        isSelected
+                          ? "border-blue-600 ring-2 ring-blue-600/10 bg-blue-50/30"
+                          : "border-slate-100 bg-white hover:border-slate-200"
+                      }`}
+                    >
+                      {plan.id === "professional" && (
+                        <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] px-3 py-1 rounded-bl-lg font-bold uppercase">
+                          Popular
+                        </div>
+                      )}
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          {/* 1. Plan Name */}
+                          <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                            {plan.name}
+                            {appliedDiscount > 0 && plan.id !== "starter" && (
+                              <span className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                {appliedDiscount}% Off
+                              </span>
+                            )}
+                          </h3>
+
+                          {/* 2. Price Logic */}
+                          <div className="text-lg font-extrabold text-slate-900 mt-0.5">
+                            {appliedDiscount > 0 && plan.id !== "starter" ? (
+                              <div className="flex flex-col leading-tight">
+                                {/* Original Price (Strikethrough) */}
+                                <span className="text-[11px] text-red-500 line-through opacity-70 font-medium">
+                                  {plan.price[billingCycle]}
+                                </span>
+                                {/* New Calculated Price */}
+                                <span className="flex items-baseline">
+                                  ₦
+                                  {Math.round(
+                                    Number(
+                                      plan.price[billingCycle].replace(
+                                        /[^0-9.-]+/g,
+                                        "",
+                                      ),
+                                    ) *
+                                      (1 - appliedDiscount / 100),
+                                  ).toLocaleString()}
+                                  <span className="text-xs text-slate-400 font-normal ml-1">
+                                    /{billingCycle === "monthly" ? "mo" : "yr"}
+                                  </span>
+                                </span>
+                              </div>
+                            ) : (
+                              /* Default Price (No Discount) */
+                              <span className="flex items-baseline">
+                                {plan.price[billingCycle]}
+                                <span className="text-xs text-slate-400 font-normal ml-1">
+                                  /{billingCycle === "monthly" ? "mo" : "yr"}
+                                </span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 3. Selection Radio Indicator */}
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                            isSelected
+                              ? "border-blue-600 bg-blue-600"
+                              : "border-slate-300"
+                          }`}
+                        >
+                          {isSelected && (
+                            <div className="w-2 h-2 bg-white rounded-full" />
+                          )}
+                        </div>
+                      </div>
+                      <ul className="grid grid-cols-2 gap-x-2 gap-y-1">
+                        {plan.features.map((feat, i) => (
+                          <li
+                            key={i}
+                            className="flex items-center gap-1.5 text-[11px] text-slate-600"
+                          >
+                            <CheckCircle2
+                              size={12}
+                              className="text-emerald-500"
+                            />{" "}
+                            {feat}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Updated Complete Setup Button */}
               <button
                 onClick={async () => {
                   setLoading(true);
                   try {
-                    // Logic to save the plan selection to the backend
-                    await updateStorePlan({ email, plan: selectedPlan });
+                    // Send both plan and billingCycle to determine trialEndsAt on backend
+                    const payload = {
+                      email,
+                      plan: selectedPlan,
+                      billingCycle, // Check if this is "yearly" in your console
+                    };
+
+                    // console.log("Sending to backend:", payload);
+
+                    await updateStorePlan(payload);
+
                     const authString = localStorage.getItem("layemart-auth");
                     const encodedAuth = encodeURIComponent(authString);
                     const { protocol } = window.location;
@@ -562,15 +748,17 @@ export default function SignUpPage() {
                   } finally {
                     setLoading(false);
                   }
-                }} // Final destination
+                }}
                 disabled={loading}
                 className="w-full mt-6 bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all shadow-xl flex items-center justify-center gap-2 group"
               >
-                Complete Setup
-                <ArrowRight
-                  size={18}
-                  className="group-hover:translate-x-1 transition-transform"
-                />
+                {loading ? "Finalizing..." : "Complete Setup"}
+                {!loading && (
+                  <ArrowRight
+                    size={18}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
+                )}
               </button>
             </div>
           )}

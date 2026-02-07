@@ -57,6 +57,7 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter, sto
 
   const handleLogout = () => {
     logout();
+    setIsLogoutModalOpen(false)
     toast.success("Signed out successfully");
     // navigate(isStarter ? `/${storeData.subdomain}/login}` : `/login`);
   };
