@@ -60,7 +60,7 @@ import VerifyOTP from "./pages/admin(StoreOwner)/auth/verify";
 import { MessageSquarePlus } from "lucide-react";
 import OrderDetails from "./pages/(demo)/orderDetails";
 import CouponPage from "./pages/admin/coupon";
-import VendorStoreWrapper from "./components/storeguard";
+import VendorStoreWrapper from "./components/VendorStoreWrapper";
 
 function App() {
   const isDashboard = isDashboardSubdomain();
@@ -380,7 +380,7 @@ function App() {
             {/* 'index' matches the base path exactly */}
             <Route
               index
-              element={   
+              element={
                 <DemoHome storeSlug={activeSlug} resolverType={resType} />
               }
             />
