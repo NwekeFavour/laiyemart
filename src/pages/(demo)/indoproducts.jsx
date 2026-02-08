@@ -153,7 +153,7 @@ const handleAddToCart = async () => {
             Home
           </Link>
           <Typography sx={{ fontSize: "13px", color: "#75757A" }}>
-            {product.name}
+            {product?.name}
           </Typography>
         </Breadcrumbs>
       </Box>
@@ -177,7 +177,7 @@ const handleAddToCart = async () => {
                 >
                   <img
                     src={product.images?.[0]?.url || product.image}
-                    alt={product.name}
+                    alt={product?.name}
                   />
                 </AspectRatio>
                 <Stack
@@ -196,7 +196,7 @@ const handleAddToCart = async () => {
                     level="h4"
                     sx={{ fontSize: "20px", fontWeight: 500, color: "#313133" }}
                   >
-                    {product.name}
+                    {product?.name}
                   </Typography>
                   <Typography level="body-xs">
                     Brand:{" "}
@@ -209,7 +209,7 @@ const handleAddToCart = async () => {
                     level="h2"
                     sx={{ color: "#313133", fontWeight: 700 }}
                   >
-                    ₦ {product.price?.toLocaleString()}
+                    ₦ {product?.price?.toLocaleString()}
                   </Typography>                  
 
                   <Box sx={{ mt: 3 }}>
@@ -284,7 +284,7 @@ const handleAddToCart = async () => {
             <Typography
               sx={{ color: "#313133", lineHeight: 1.7, whiteSpace: "pre-line" }}
             >
-              {product.description ||
+              {product?.description ||
                 "No specific details available for this product."}
             </Typography>
           </Sheet>
@@ -304,17 +304,17 @@ const handleAddToCart = async () => {
                 <DeliveryItem
                   icon={<Truck size={22} />}
                   title="Door Delivery"
-                  desc="Delivery ₦ 1,500. Arrives in 2-4 business days."
+                  desc={`${product?.delivery || "Delivery details on request"}`}
                 />
                 <DeliveryItem
                   icon={<RotateCcw size={22} />}
                   title="Return Policy"
-                  desc="Free return within 7 days of delivery."
+                  desc={`${product?.returnPolicy || "Standard 7-day return policy applies"}`}
                 />
                 <DeliveryItem
                   icon={<ShieldCheck size={22} />}
                   title="Warranty"
-                  desc="12 Months Warranty service provided."
+                  desc={`${product?.warranty || "Manufacturer's warranty applies"}`}
                 />
               </Stack>
             </Sheet>

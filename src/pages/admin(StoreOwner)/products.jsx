@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {motion} from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Box,
   Typography,
@@ -85,6 +85,9 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
   const [inventory, setInventory] = useState("");
   const [price, setPrice] = useState("");
   const [name, setName] = useState("");
+  const [returnPolicy, setReturnPolicy] = useState("")
+  const [warranty, setWarranty] = useState("")
+  const [delivery, setDoorDelivery] = useState("")
   const handleSort = (key, direction) => {
     setSortConfig({ key, direction });
     // You can trigger your API fetch here or sort 'products' locally
@@ -140,6 +143,9 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
     setPrice(product.price);
     setInventory(product.inventory);
     setCategory(product.category);
+    setWarranty(product.warranty);
+    setDoorDelivery(product.delivery);
+    setReturnPolicy(product.returnPolicy);
     setIsFeatured(!!product.isFeatured);
     setIsUnlimited(!!product.isUnlimited);
     // Convert existing image URLs to your state format if needed
@@ -226,6 +232,9 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
       formData.append("inventory", isUnlimited ? 0 : Number(inventory)); // ✅ ensure number
       formData.append("isUnlimited", isUnlimited ? "true" : "false");
       formData.append("isFeatured", isFeatured ? "true" : "false");
+      formData.append("returnPolicy", returnPolicy);
+  formData.append("warranty", warranty);
+  formData.append("delivery", delivery)
       images.forEach((img) => {
         formData.append("images", img.file);
       });
@@ -243,6 +252,9 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
       setCategory("");
       setImages([]);
       setInventory("");
+      setReturnPolicy("")
+      setWarranty("")
+      setDoorDelivery("")
       setIsFeatured(false);
       setIsUnlimited(false);
       fetchMyProducts(); // Refresh list
@@ -296,7 +308,9 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
       formData.append("category", category);
       formData.append("isFeatured", isFeatured);
       formData.append("isUnlimited", isUnlimited);
-
+      formData.append("warranty", warranty);
+      formData.append("delivery", delivery);
+      formData.append("returnPolicy", returnPolicy);
       const keptImageIds = images
         .filter((img) => img.isExisting)
         .map((img) => img.id);
@@ -414,15 +428,15 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
   };
   return (
     <StoreOwnerLayout isDark={isDark} toggleDarkMode={toggleDarkMode}>
-       {loading && (
-      <motion.div
-        initial={{ width: 0, opacity: 0 }}
-        animate={{ width: "100%", opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.5, ease: "easeInOut" }}
-        className="fixed top-0 left-0 h-1 bg-red-500 z-9999"
-      />
-    )}
+      {loading && (
+        <motion.div
+          initial={{ width: 0, opacity: 0 }}
+          animate={{ width: "100%", opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+          className="fixed top-0 left-0 h-1 bg-red-500 z-9999"
+        />
+      )}
       <Box
         sx={{ display: "flex", flexDirection: "column", gap: 3, p: { xs: 2 } }}
       >
@@ -550,9 +564,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
             >
               <thead>
                 <tr>
-                  <th style={{ width: 48, textAlign: "center" }}>
-                    S/N
-                  </th>
+                  <th style={{ width: 48, textAlign: "center" }}>S/N</th>
                   {[
                     { label: "Product ID", width: 140 },
                     { label: "Product", width: 220 },
@@ -826,9 +838,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
 
                     return (
                       <tr key={i} className={hoverRow}>
-                        <td style={{ textAlign: "center" }}>
-                          {i + 1}
-                        </td>
+                        <td style={{ textAlign: "center" }}>{i + 1}</td>
 
                         <td>
                           <Typography
@@ -1269,7 +1279,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
               </FormControl>
 
               <FormControl>
-                <FormLabel className={`${isDark && "text-slate-400!"}`} > 
+                <FormLabel className={`${isDark && "text-slate-400!"}`}>
                   Description
                 </FormLabel>
                 <Textarea
@@ -1547,6 +1557,75 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                   </FormControl>
                 </Stack>
               </Stack>
+                           {/* --- RETURN POLICY --- */}
+          <FormControl>
+            <FormLabel
+              className={`${isDark ? "text-slate-400!" : ""}`}
+              sx={{ fontWeight: 600 }}
+            >
+              Return Policy
+            </FormLabel>
+            <Textarea
+              minRows={2}
+              value={returnPolicy}
+              onChange={(e) => setReturnPolicy(e.target.value)}
+              placeholder="e.g. Free return within 7 days of delivery."
+              variant="soft"
+              sx={{
+                bgcolor: isDark ? "transparent" : "",
+                border: isDark ? "1px solid #314158" : "none",
+                borderRadius: "lg",
+                "&::before": { display: "none" },
+                "&:focus-within": { border: "1px solid #314158" },
+              }}
+            />
+          </FormControl>
+
+          {/* --- WARRANTY --- */}
+          <FormControl className="my-4">
+            <FormLabel
+              className={`${isDark ? "text-slate-400!" : ""}`}
+              sx={{ fontWeight: 600 }}
+            >
+              Warranty Info
+            </FormLabel>
+            <Input
+              value={warranty}
+              onChange={(e) => setWarranty(e.target.value)}
+              placeholder="e.g. 12 Months Warranty service provided."
+              variant="soft"
+              sx={{
+                bgcolor: isDark ? "transparent" : "",
+                border: isDark ? "1px solid #314158" : "none",
+                borderRadius: "lg",
+                "&::before": { display: "none" },
+                "&:focus-within": { border: "1px solid #314158" },
+              }}
+            />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel
+              className={`${isDark ? "text-slate-400!" : ""}`}
+              sx={{ fontWeight: 600 }}
+            >
+              Door Delivery
+            </FormLabel>
+            <Textarea
+              minRows={2}
+              value={delivery}
+              onChange={(e) => setDoorDelivery(e.target.value)}
+              placeholder="e.g. Delivery ₦ 1,500. Arrives in 2-4 business days"
+              variant="soft"
+              sx={{
+                bgcolor: isDark ? "transparent" : "",
+                border: isDark ? "1px solid #314158" : "none",
+                borderRadius: "lg",
+                "&::before": { display: "none" },
+                "&:focus-within": { border: "1px solid #314158" },
+              }}
+            />
+          </FormControl>
             </Stack>
           </DialogContent>
 
@@ -2190,6 +2269,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
               sx={{
                 display: "flex",
                 gap: 3,
+                mb:3,
                 p: 2,
                 mt: 3,
                 borderRadius: "lg",
@@ -2222,7 +2302,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
 
               <FormControl
                 orientation="horizontal"
-                sx={{ alignItems: "center", gap: 1 }}
+                sx={{ alignItems: "center", gap: 1,}}
               >
                 <Checkbox
                   variant="soft"
@@ -2246,7 +2326,77 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                 </FormLabel>
               </FormControl>
             </Box>
+                      {/* --- RETURN POLICY --- */}
+          <FormControl>
+            <FormLabel
+              className={`${isDark ? "text-slate-400!" : ""}`}
+              sx={{ fontWeight: 600 }}
+            >
+              Return Policy
+            </FormLabel>
+            <Textarea
+              minRows={2}
+              value={returnPolicy}
+              onChange={(e) => setReturnPolicy(e.target.value)}
+              placeholder="e.g. Free return within 7 days of delivery."
+              variant="soft"
+              sx={{
+                bgcolor: isDark ? "transparent" : "",
+                border: isDark ? "1px solid #314158" : "none",
+                borderRadius: "lg",
+                "&::before": { display: "none" },
+                "&:focus-within": { border: "1px solid #314158" },
+              }}
+            />
+          </FormControl>
+
+          {/* --- WARRANTY --- */}
+          <FormControl className="my-4">
+            <FormLabel
+              className={`${isDark ? "text-slate-400!" : ""}`}
+              sx={{ fontWeight: 600 }}
+            >
+              Warranty Info
+            </FormLabel>
+            <Input
+              value={warranty}
+              onChange={(e) => setWarranty(e.target.value)}
+              placeholder="e.g. 12 Months Warranty service provided."
+              variant="soft"
+              sx={{
+                bgcolor: isDark ? "transparent" : "",
+                border: isDark ? "1px solid #314158" : "none",
+                borderRadius: "lg",
+                "&::before": { display: "none" },
+                "&:focus-within": { border: "1px solid #314158" },
+              }}
+            />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel
+              className={`${isDark ? "text-slate-400!" : ""}`}
+              sx={{ fontWeight: 600 }}
+            >
+              Door Delivery
+            </FormLabel>
+            <Textarea
+              minRows={2}
+              value={delivery}
+              onChange={(e) => setDoorDelivery(e.target.value)}
+              placeholder="e.g. Delivery ₦ 1,500. Arrives in 2-4 business days"
+              variant="soft"
+              sx={{
+                bgcolor: isDark ? "transparent" : "",
+                border: isDark ? "1px solid #314158" : "none",
+                borderRadius: "lg",
+                "&::before": { display: "none" },
+                "&:focus-within": { border: "1px solid #314158" },
+              }}
+            />
+          </FormControl>
           </DialogContent>
+
 
           <Box
             sx={{
