@@ -71,6 +71,8 @@ export default function LoginPage() {
         {/* Logo Section */}
         <Box sx={{ textAlign: "center", mb: 2 }}>
           <Box
+            onClick={() => navigate("/")}
+            className="cursor-pointer!"
             sx={{
               display: "inline-flex",
               alignItems: "center",

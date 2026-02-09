@@ -837,6 +837,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
           }}
         >
           <IconButton
+            className={isDark && "text-[#E5E7EB]!"}
             variant="plain"
             sx={{ display: { lg: "none" } }}
             onClick={() => setIsMobileOpen(true)}
@@ -1106,7 +1107,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                       </div>
                     </div>
 
-                    <Divider className="border-t border-gray-200 dark:border-slate-700" />
+                    <Divider className="border-t border-gray-200 dark:border-[#E5E7EB]" />
 
                     {/* Menu items */}
                     <div className="flex flex-col">
@@ -1122,7 +1123,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                       </MenuItem>
                     </div>
 
-                    <Divider className="border-t border-gray-200 dark:border-slate-700" />
+                    <Divider className="border-t border-gray-200 dark:border-[#E5E7EB]" />
 
                     {/* Dark mode toggle */}
                     <div
@@ -1149,7 +1150,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                       />
                     </div>
 
-                    <Divider className="border-t border-gray-200 dark:border-slate-700" />
+                    <Divider className="border-t border-gray-200 dark:border-[#E5E7EB]" />
 
                     {/* Help */}
                     <MenuItem
@@ -1158,7 +1159,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                       <HelpCircle size={20} /> Help
                     </MenuItem>
 
-                    <Divider className="border-t border-gray-200 dark:border-slate-700" />
+                    <Divider className="border-t border-gray-200 dark:border-[#E5E7EB]" />
 
                     {/* Logout */}
                     <MenuItem

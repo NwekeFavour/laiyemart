@@ -64,7 +64,7 @@ export default function SignUpPage() {
     {
       id: "professional",
       name: "Professional Plan",
-      price: { monthly: "₦25,000", yearly: "₦300,000" },
+      price: { monthly: "₦15,000", yearly: "₦150,000" },
       features: ["Unlimited Products", "Advanced SEO", "Priority Support"],
     },
     {
@@ -184,7 +184,7 @@ export default function SignUpPage() {
       <div className="max-w-5xl w-full grid md:grid-cols-2 bg-white rounded-[32px] shadow-2xl overflow-hidden z-10">
         {/* Left Side: Marketing/Value Prop - Logic added to headline */}
         <div className="hidden md:flex flex-col justify-center p-12 bg-slate-900 text-white relative">
-          <div className="absolute top-8 left-8 flex items-center gap-2">
+          <div onClick={() => navigate("/")}  className="absolute cursor-pointer top-8 left-8 flex items-center gap-2">
             <div className="w-8 h-8 rounded-md bg-red-500" />
             <span className="font-bold tracking-tight text-lg text">
               LAYEMART

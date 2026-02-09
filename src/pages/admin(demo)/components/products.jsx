@@ -121,13 +121,13 @@ const intervalsRef = useRef({});
   // --- Dynamic Theme Classes ---
   const panelBg = isDark ? "bg-[#0f172a] text-slate-100" : "bg-white text-gray-900";
   const sectionBg = isDark ? "bg-[#1e293b]/30" : "bg-gray-50";
-  const cardBg = isDark ? "bg-[#1e293b] border-slate-700 shadow-none" : "bg-white border-slate-100 shadow-sm";
+  const cardBg = isDark ? "bg-[#1e293b] border-[#E5E7EB] shadow-none" : "bg-white border-slate-100 shadow-sm";
   const headerBg = isDark ? "bg-slate-800/50" : "bg-slate-200/30";
-  const borderColor = isDark ? "border-slate-700" : "border-slate-100";
+  const borderColor = isDark ? "border-[#E5E7EB]" : "border-slate-100";
   
   const inputBase = `w-full px-3 py-2 text-sm rounded-md border outline-none transition-all ${
     isDark 
-      ? "bg-slate-900 border-slate-700 focus:border-blue-500 text-slate-200 placeholder:text-slate-500" 
+      ? "bg-slate-900 border-[#E5E7EB] focus:border-blue-500 text-slate-200 placeholder:text-slate-500" 
       : "bg-white border-gray-200 focus:border-blue-400 text-gray-900 placeholder:text-gray-400"
   }`;
 
@@ -178,7 +178,7 @@ const intervalsRef = useRef({});
           </div>
           <div className="flex flex-wrap items-center gap-4 text-sm mt-4 md:mt-0">
              <span className="text-gray-500">Read about <a href="#" className="text-blue-500 hover:underline">How to Create Product</a></span>
-             <button onClick={onClose} className={`px-4 py-1.5 border rounded-md font-medium transition-colors ${isDark ? 'border-slate-700 hover:bg-slate-800' : 'hover:bg-gray-50'}`}>Cancel</button>
+             <button onClick={onClose} className={`px-4 py-1.5 border rounded-md font-medium transition-colors ${isDark ? 'border-[#E5E7EB] hover:bg-slate-800' : 'hover:bg-gray-50'}`}>Cancel</button>
              <button className={`px-4 py-1.5 rounded-md font-medium transition-colors ${isDark ? 'bg-white text-black hover:bg-slate-200' : 'bg-black text-white hover:bg-zinc-800'}`}>Create</button>
           </div>
         </div>
@@ -251,7 +251,7 @@ const intervalsRef = useRef({});
             </div>
 
             {/* Variant Form Section */}
-            <div className={`rounded-lg border-2 border-dashed p-8 text-center ${isDark ? 'border-slate-700 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+            <div className={`rounded-lg border-2 border-dashed p-8 text-center ${isDark ? 'border-[#E5E7EB] bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
               {!showVariantForm ? (
                 <div className="animate-in fade-in zoom-in-95">
                   <p className="font-bold text-sm mb-1">No variants to display</p>
@@ -287,7 +287,7 @@ const intervalsRef = useRef({});
             {/* Upload Area */}
             <div 
               className={`p-6 rounded-lg border-2 border-dashed transition-all text-center ${
-                isDark ? "bg-slate-800 border-slate-700 hover:border-blue-500" : "bg-white border-gray-300 hover:border-blue-400"
+                isDark ? "bg-slate-800 border-[#E5E7EB] hover:border-blue-500" : "bg-white border-gray-300 hover:border-blue-400"
               }`}
             >
               <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" multiple className="hidden" />
@@ -298,7 +298,7 @@ const intervalsRef = useRef({});
               </div>
               <p className="text-[13px] font-bold">Upload product images</p>
               <p className="text-[11px] text-gray-400 mb-4">PNG, JPG up to 5 images</p>
-              <button onClick={handleBrowseClick} className={`px-4 py-1.5 border rounded-md text-[12px] font-bold ${isDark ? 'border-slate-700 hover:bg-slate-700' : 'hover:bg-gray-50'}`}>Browse Files</button>
+              <button onClick={handleBrowseClick} className={`px-4 py-1.5 border rounded-md text-[12px] font-bold ${isDark ? 'border-[#E5E7EB] hover:bg-slate-700' : 'hover:bg-gray-50'}`}>Browse Files</button>
             </div>
 
             {/* Image Progress List */}
@@ -339,7 +339,7 @@ const intervalsRef = useRef({});
               <select className={inputBase}><option>Draft</option><option>Active</option></select>
            </div>
            <div className="flex gap-3 w-full sm:w-auto">
-              <button onClick={onClose} className={`flex-1 sm:flex-none px-8 py-2 border rounded-md font-bold text-sm ${isDark ? 'border-slate-700 hover:bg-slate-800' : 'hover:bg-gray-50'}`}>Cancel</button>
+              <button onClick={onClose} className={`flex-1 sm:flex-none px-8 py-2 border rounded-md font-bold text-sm ${isDark ? 'border-[#E5E7EB] hover:bg-slate-800' : 'hover:bg-gray-50'}`}>Cancel</button>
               <button className={`flex-1 sm:flex-none px-8 py-2 rounded-md font-bold text-sm ${isDark ? 'bg-white text-black hover:bg-slate-200' : 'bg-black text-white hover:bg-zinc-800'}`}>Create Product</button>
            </div>
         </div>
@@ -376,7 +376,7 @@ const HeaderDropdown = ({ onSortAsc, onSortDesc, isDark }) => {
 
       {open && (
         <div className={`absolute left-0 mt-2 w-48 rounded-lg border shadow-xl py-1 z-50 
-          ${isDark ? "bg-slate-900 border-slate-700 text-slate-300" : "bg-white border-gray-200 text-gray-700"}`}>
+          ${isDark ? "bg-slate-900 border-[#E5E7EB] text-slate-300" : "bg-white border-gray-200 text-gray-700"}`}>
           
           {/* Sorting Group */}
           <button onClick={() => { onSortAsc(); setOpen(false); }} className={`${btnClass} ${activeHover}`}>
@@ -453,8 +453,8 @@ export default function ProductsTable({ isDark }) {
   const currentProducts = sortedProducts.slice(startIndex, startIndex + itemsPerPage);
 
   // Helper for UI
-  const borderColor = isDark ? "border-slate-700" : "border-slate-100";
-  const border = isDark ? "border-slate-700" : "border-gray-200";
+  const borderColor = isDark ? "border-[#E5E7EB]" : "border-slate-100";
+  const border = isDark ? "border-[#E5E7EB]" : "border-gray-200";
 
   const toggleItem = (id) =>
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -519,7 +519,7 @@ export default function ProductsTable({ isDark }) {
                 onChange={(e) => setSearch(e.target.value)} // UPDATED: Bind value and onChange
                 placeholder="Search products..."
                 className={`pl-9 pr-4 py-1.5 text-sm rounded-md border outline-none focus:ring-2 focus:ring-blue-500/20 transition-all
-                ${isDark ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-gray-200 text-gray-900"}`}
+                ${isDark ? "bg-slate-800 border-[#E5E7EB] text-white" : "bg-white border-gray-200 text-gray-900"}`}
               />
             </div>
             <FilterDropdown />

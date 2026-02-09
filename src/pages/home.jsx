@@ -247,7 +247,7 @@ function Home(props) {
                             <div className="py-1 text-indigo-600 font-semibold border-b-2 border-indigo-600 w-fit mx-auto mb-1.5">
                                 How it works
                             </div>
-                            <Typography className="text-neutral-600 text-[20px]! md:text-3xl! font-bold mx- text-foreground!">
+                            <Typography className="text-[#0F172A]! text-[20px]! md:text-3xl! font-bold mx- text-foreground!">
                                 A simple, structured process designed <br/>for speed and clarity.
                             </Typography>
                             </motion.div>
@@ -288,7 +288,7 @@ function Home(props) {
                                     </span>
 
                                     {/* Title */}
-                                    <Typography level="h4" className="mb-3 font-medium text-neutral-900">
+                                    <Typography level="h4" className="mb-3 font-medium text-[#0F172A]!">
                                         {item.title}
                                     </Typography>
 
@@ -437,7 +437,7 @@ function Home(props) {
                     </div>
                     </section>
                     <section id="pricing" className="py-24 bg-background! ">
-                        <div className="container mx-auto px-6">
+                        <div className="container md:mx-auto lg:px-6">
 
                             {/* Header */}
                             <div className="flex items-center justify-center flex-col text-center gap-5 mb-10">
@@ -486,14 +486,14 @@ function Home(props) {
                             </div>
 
                             {/* Pricing Cards */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
                             {/* Starter */}
                             <PricingCard
                                 title="Starter"
                                 plan={"Starter"}
                                 description="For new store owners just getting started"
-                                monthly="₦29"
-                                yearly="₦25"
+                                monthly="₦0"
+                                yearly="₦0"
                                 features={[
                                 "Up to 5 products",
                                 "Basic store templates",
@@ -508,8 +508,8 @@ function Home(props) {
                                 title="Professional"
                                 plan={"Professional"}
                                 description="For growing online stores"
-                                monthly="₦99"
-                                yearly="₦79"
+                                monthly="₦15,000"
+                                yearly="₦150,000"
                                 features={[
                                 "Up to 50 products",
                                 "Advanced templates & layouts",
@@ -524,8 +524,8 @@ function Home(props) {
                             <PricingCard
                                 title="Enterprise"
                                 description="For large businesses with multiple stores"
-                                monthly="₦299"
-                                yearly="₦249"
+                                monthly="₦50000"
+                                yearly="₦500000"
                                 features={[
                                 "Unlimited products",
                                 "Custom templates & workflows",
@@ -693,10 +693,10 @@ function Home(props) {
                                     <div>
                                     <h4 className="font-semibold text-foreground mb-1">Email</h4>
                                     <a
-                                        href="mailto:hello@kt.com"
+                                        href="mailto:support@layemart.com"
                                         className="text-muted-foreground text-slate-600 hover:text-purple-500 whitespace-pre-line"
                                     >
-                                        hello@kt.com
+                                        support@layemart.com
                                     </a>
                                     </div>
                                 </div>
@@ -943,7 +943,7 @@ function PricingCard({
 
   return (
     <div
-      className={`bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm h-full relative transition-all duration-300 group hover:border-[#4f46e5] ${
+      className={`bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm h-full md:w-full w-80 sm:w-100 mx-auto relative transition-all duration-300 group hover:border-[#4f46e5] ${
         mostPopular ? "shadow-2xl scale-105 border-[#4f46e5]" : "border-slate-100"
       }`}
     >
@@ -956,11 +956,11 @@ function PricingCard({
       )}
 
       <div className="text-center px-6 py-6">
-        <div className="text-2xl font-bold">{title}</div>
+        <div className="sm:text-2xl text-[30px] font-bold">{title}</div>
         <div className="text-sm text-muted-foreground mb-5">{description}</div>
 
         <div className="flex items-end justify-center">
-          <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <span className="lg:text-[40px] md:text-[38px] text-[30px] font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             {billing === "monthly" ? monthly : yearly}
           </span>
           <span className="text-muted-foreground ms-1 mb-1">/month</span>

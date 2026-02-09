@@ -105,10 +105,10 @@ export default function SaaSHeader() {
                 sx={{
                   fontSize: 14,
                   fontWeight: 600,
-                  color: "#334155",
+                  color: "#0F172A",
                   cursor: "pointer",
                   position: "relative",
-                  "&:hover": { color: "#0f172a" },
+                  "&:hover": { color: "#4F46E5" },
                   "&::after": {
                     content: '""',
                     position: "absolute",

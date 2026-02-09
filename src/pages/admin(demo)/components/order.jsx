@@ -3,11 +3,11 @@ import React from "react";
 export function OrdersCard({ isDark }) {
   return (
     <div className={`rounded-xl border flex flex-col
-      ${isDark ? "bg-slate-900 border-slate-700 text-slate-200" : "bg-white border-slate-100 text-gray-900"}`}>
+      ${isDark ? "bg-slate-900 border-[#E5E7EB] text-slate-200" : "bg-white border-slate-100 text-gray-900"}`}>
       
       {/* Header */}
       <div className={`flex items-center justify-between mb-4 border-b px-3 py-4
-        ${isDark ? "border-slate-700" : "border-slate-100"}`}>
+        ${isDark ? "border-[#E5E7EB]" : "border-slate-100"}`}>
         <h3 className="font-semibold">Orders</h3>
         <button className={`text-sm ${isDark ? "text-blue-400" : "text-blue-600"}`}>
           See All
@@ -21,7 +21,7 @@ export function OrdersCard({ isDark }) {
             <button
               key={item}
               className={`px-3 py-1 border rounded-md hover:bg-gray-100
-                ${isDark ? "border-slate-700 hover:bg-slate-800" : "border-gray-200 hover:bg-gray-100"}`}
+                ${isDark ? "border-[#E5E7EB] hover:bg-slate-800" : "border-gray-200 hover:bg-gray-100"}`}
             >
               {item}
             </button>

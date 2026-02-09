@@ -3,11 +3,11 @@ import React from "react";
 export function InventoryCard({ isDark }) {
   return (
     <div className={`rounded-xl border flex flex-col
-      ${isDark ? "bg-slate-950 border-slate-700 text-slate-200" : "bg-white border-slate-100 text-gray-900"}`}>
+      ${isDark ? "bg-slate-950 border-[#E5E7EB] text-slate-200" : "bg-white border-slate-100 text-gray-900"}`}>
       
       {/* Header */}
       <div className={`flex items-center justify-between mb-4 border-b px-3 py-4
-        ${isDark ? "border-slate-700" : "border-slate-100"}`}>
+        ${isDark ? "border-[#E5E7EB]" : "border-slate-100"}`}>
         <h3 className="font-semibold">Products</h3>
         <button className={`${isDark ? "text-blue-400" : "text-blue-600"} text-sm`}>See All</button>
       </div>

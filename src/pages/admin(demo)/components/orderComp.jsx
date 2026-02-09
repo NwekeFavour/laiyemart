@@ -27,12 +27,12 @@ const itemsPerPage = 5;
   { id: "ORD-6678", date: "Jan 03, 2026", customer: "Kevin Hart", total: 120.00, payment: "Paid", items: 2, delivery: "In Transit", carrier: "UPS" },
 ];
   // --- Theme Variables (Matching CategoriesTable) ---
-  const borderColor = isDark ? 'border-slate-700' : 'border-slate-100';
+  const borderColor = isDark ? 'border-[#E5E7EB]' : 'border-slate-100';
   const themeHeader = isDark ? 'text-slate-400 bg-slate-800' : 'text-gray-400 bg-white';
   const themeBody = isDark ? 'bg-slate-900 text-slate-300' : 'bg-white text-gray-700';
   const hoverRow = isDark ? 'hover:bg-slate-800/50' : 'hover:bg-gray-50';
   const inputBase = `text-sm rounded-md border outline-none transition-all ${
-    isDark ? "bg-slate-800 border-slate-700 focus:border-blue-500 text-slate-200" : "bg-white border-gray-200 focus:border-blue-400"
+    isDark ? "bg-slate-800 border-[#E5E7EB] focus:border-blue-500 text-slate-200" : "bg-white border-gray-200 focus:border-blue-400"
   }`;
 
   // Status Badge Styles
@@ -178,7 +178,7 @@ const itemsPerPage = 5;
                       </span>
                     </td>
                     <td className={`px-4 py-4 border-r ${borderColor}`}>
-                      <div className={`flex items-center gap-2 text-[11px] font-semibold px-2 py-1 border rounded-lg w-fit ${isDark ? 'border-slate-700 bg-slate-800/40' : 'border-slate-100 bg-gray-50'}`}>
+                      <div className={`flex items-center gap-2 text-[11px] font-semibold px-2 py-1 border rounded-lg w-fit ${isDark ? 'border-[#E5E7EB] bg-slate-800/40' : 'border-slate-100 bg-gray-50'}`}>
                         <div className="w-3 h-3 bg-amber-400 rounded-full" /> {order.carrier}
                       </div>
                     </td>
@@ -213,7 +213,7 @@ const itemsPerPage = 5;
                 className={`w-8 h-8 rounded border text-xs font-bold transition-all ${
                   currentPage === i + 1 
                     ? "bg-blue-600 text-white border-blue-600" 
-                    : isDark ? "border-slate-700 hover:bg-slate-800" : "border-gray-200 hover:bg-gray-100"
+                    : isDark ? "border-[#E5E7EB] hover:bg-slate-800" : "border-gray-200 hover:bg-gray-100"
                 }`}
               >
                 {i + 1}

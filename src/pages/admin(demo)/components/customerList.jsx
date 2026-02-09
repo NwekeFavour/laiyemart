@@ -48,17 +48,17 @@ const columnMapping = {
   };
 
   // --- Theme Variables ---
-  const borderColor = isDark ? 'border-slate-700' : 'border-slate-100';
+  const borderColor = isDark ? 'border-[#E5E7EB]' : 'border-slate-100';
   const themeHeader = isDark ? 'text-slate-400 bg-slate-800' : 'text-gray-400 bg-white';
   const themeBody = isDark ? 'bg-slate-900 text-slate-300' : 'bg-white text-gray-700';
   const hoverRow = isDark ? 'hover:bg-slate-800/50' : 'hover:bg-gray-50';
   const inputBase = `text-sm rounded-md border outline-none transition-all ${
-    isDark ? "bg-slate-800 border-slate-700 focus:border-blue-500 text-slate-200" : "bg-white border-gray-200 focus:border-blue-400"
+    isDark ? "bg-slate-800 border-[#E5E7EB] focus:border-blue-500 text-slate-200" : "bg-white border-gray-200 focus:border-blue-400"
   }`;
 
   const secondaryBtn = `flex items-center gap-2 px-3 py-1.5 border rounded-md text-[13px] font-medium transition-colors ${
     isDark 
-      ? "bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800" 
+      ? "bg-slate-900 border-[#E5E7EB] text-slate-300 hover:bg-slate-800" 
       : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
   }`;
 
@@ -128,7 +128,7 @@ const columnMapping = {
 
             {showMore && (
               <div className={`absolute right-0 mt-2 w-48 rounded-lg border shadow-lg z-50 overflow-hidden ${
-                isDark ? "bg-slate-900 border-slate-700" : "bg-white border-gray-100"
+                isDark ? "bg-slate-900 border-[#E5E7EB]" : "bg-white border-gray-100"
               }`}>
                 <div className="py-1">
                   <button className={`w-full flex items-center gap-3 px-2 py-2 text-sm ${isDark ? "hover:bg-slate-800 text-slate-300" : "hover:bg-gray-50 text-gray-700"}`}>
@@ -152,7 +152,7 @@ const columnMapping = {
 
       {/* Table Container */}
       <div className={`rounded-xl border ${borderColor} ${isDark ? 'bg-slate-900' : 'bg-white'} overflow-hidden`}>
-        <div className={`${isDark ? "border-slate-700" : ""} sm:flex border-b border-slate-100 justify-between items-center px-3 py-3  `}>
+        <div className={`${isDark ? "border-[#E5E7EB]" : ""} sm:flex border-b border-slate-100 justify-between items-center px-3 py-3  `}>
             <h1 className="lg:text-[20px] text-[17px] font-bold">Customers</h1>
             <div className="flex gap-3">
                 <div className="relative">
@@ -160,7 +160,7 @@ const columnMapping = {
                     <input
                         placeholder="Search by ID or Name" 
                         className={`pl-9 pr-4 py-1.5 text-sm rounded-md border outline-none
-                        ${isDark ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"}`}
+                        ${isDark ? "bg-slate-800 border-[#E5E7EB]" : "bg-white border-gray-200"}`}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -168,7 +168,7 @@ const columnMapping = {
             </div>
         </div>
         {/* Scrollable Table Body */}
-        <div className="w-full overflow-hidden   dark:border-slate-700">
+        <div className="w-full overflow-hidden   dark:border-[#E5E7EB]">
         
             {/* 2. Scroll Container: 'hide-scrollbar' keeps it clean, 'w-full' ensures it fits parent */}
             <div className="overflow-x-auto hide-scrollbar">
@@ -283,7 +283,7 @@ const HeaderDropdown = ({ isDark, onSortAsc, onSortDesc }) => {
         </button>
 
         {open && (
-            <div className={`absolute right-0 mt-2 w-40 rounded border shadow-lg py-1 z-50 ${isDark ? 'bg-slate-900 border-slate-700 text-slate-300' : 'bg-white border-gray-200 text-gray-700'}`}>
+            <div className={`absolute right-0 mt-2 w-40 rounded border shadow-lg py-1 z-50 ${isDark ? 'bg-slate-900 border-[#E5E7EB] text-slate-300' : 'bg-white border-gray-200 text-gray-700'}`}>
             <button onClick={() => { onSortAsc(); setOpen(false); }} className={`flex w-full items-center px-3 py-2 text-xs hover:bg-slate-600 hover:text-white`}>
                 <ArrowUp size={12} className="mr-2" /> Ascending
             </button>

@@ -17,7 +17,7 @@ export default function Hero({ onCreateStore }) {
           <div className="max-w-7xl w-full text-center">
             
             {/* Heading with styled accent word */}
-            <h1 className="m-0 font-extrabold text textt tracking-[-0.03em] lg:text-[32px] md:text-[26px] text-[18px] text-slate-900 leading-[1.05] font-['BBH_Bartle']">
+            <h1 className="m-0 font-extrabold text textt tracking-[-0.03em] lg:text-[32px] md:text-[26px] text-[18px] text-[#0F172A] leading-[1.05] font-['BBH_Bartle']">
               Build ecommerce stores 
               <br className="hidden md:block"/> 
               <span className="block md:inline mt-1 textt text">
@@ -52,7 +52,7 @@ export default function Hero({ onCreateStore }) {
                 </Button>
                 
                 <button className="flex items-center gap-2 font-semibold text-slate-700 hover:text-indigo-600 transition-colors px-4 py-2">
-                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-slate-100">
+                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-[#E5E7EB]">
                     <Play size={14} fill="currentColor" />
                   </div>
                   See how it works

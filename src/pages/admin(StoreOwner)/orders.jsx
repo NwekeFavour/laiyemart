@@ -829,7 +829,7 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
                     ₦{viewingOrder.totalAmount?.toLocaleString()}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm border-b border-slate-200 dark:border-slate-700 pb-2">
+                <div className="flex justify-between text-sm border-b border-slate-200 dark:border-[#E5E7EB] pb-2">
                   <span className="text-slate-500">Payment Method</span>
                   <span className="font-medium capitalize">
                     {viewingOrder.paymentMethod || "Card"}

@@ -25,11 +25,11 @@ export function InventoryCard({ isDark, products = [] }) {
 
   return (
     <div className={`rounded-xl min-h-80 border flex flex-col transition-all
-      ${isDark ? "bg-slate-950 border-slate-700 text-slate-200" : "bg-white border-slate-100 text-gray-900"}`}>
+      ${isDark ? "bg-slate-950 border-[#E5E7EB] text-slate-200" : "bg-white border-slate-100 text-gray-900"}`}>
       
       {/* Header */}
       <div className={`flex items-center justify-between mb-4 border-b px-3 py-4
-        ${isDark ? "border-slate-700" : "border-slate-100"}`}>
+        ${isDark ? "border-[#E5E7EB]" : "border-slate-100"}`}>
         <h3 className="font-semibold">Inventory Summary</h3>
         
         <div className="flex flex-wrap gap-2">

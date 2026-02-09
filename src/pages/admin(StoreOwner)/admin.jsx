@@ -580,12 +580,12 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full lg:my-5 my-4">
           <div
             className={`rounded-xl min-h-80 border flex flex-col
-      ${isDark ? "bg-slate-950 border-slate-700 text-slate-200" : "bg-white border-slate-100 text-gray-900"}`}
+      ${isDark ? "bg-slate-950 border-[#E5E7EB] text-slate-200" : "bg-white border-slate-100 text-gray-900"}`}
           >
             {/* Header */}
             <div
               className={`flex items-center justify-between mb-4 border-b px-3 py-4
-        ${isDark ? "border-slate-700" : "border-slate-100"}`}
+        ${isDark ? "border-[#E5E7EB]" : "border-slate-100"}`}
             >
               <h3 className="font-semibold">Pending Orders</h3>
               <button
@@ -913,7 +913,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                         item.done
                           ? "bg-emerald-500 border-emerald-500"
                           : isDark
-                            ? "border-slate-700"
+                            ? "border-[#E5E7EB]"
                             : "border-slate-300"
                       }`}
                     >

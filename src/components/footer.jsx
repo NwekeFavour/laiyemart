@@ -6,7 +6,7 @@ import { useAuthStore } from "../store/useAuthStore";
 export default function Footer() {
   const { isAuthenticated, user } = useAuthStore();
   return (
-    <Box component="footer" className="bg-neutral-100 py-12 text-neutral-900">
+    <Box component="footer" className="bg-neutral-100 py-12 text-[#0F172A]!">
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-10">
         {/* BRAND */}
         <div className="flex flex-col gap-3">

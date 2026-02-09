@@ -17,10 +17,10 @@ export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOp
   const handleClose = () => setAnchorEl(null); 
   return (
     <header className={`sticky top-0 z-20 flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16 transition
-      ${isDark ? "bg-slate-950 border-slate-700" : "bg-white border-gray-200"} border-b`}>
+      ${isDark ? "bg-slate-950 border-[#E5E7EB]" : "bg-white border-gray-200"} border-b`}>
       
       {/* Hamburger for mobile */}
-      <button className="lg:hidden mr-2 p-1 rounded hover:bg-gray-200" onClick={() => setSidebarOpen(true)}>
+      <button className={`lg:hidden mr-2 p-1 rounded hover:bg-gray-200 `} onClick={() => setSidebarOpen(true)}>
         <svg className="w-6 h-6" fill="none" stroke={isDark ? "white" : "black"} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
@@ -34,7 +34,7 @@ export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOp
         <input
           placeholder="Search shop"
           className={`hidden sm:block border rounded-lg px-3 py-2 text-sm focus:outline-none
-            ${isDark ? "border-slate-700 bg-slate-800 text-white" : "border-gray-200 bg-white text-gray-900"}
+            ${isDark ? "border-[#E5E7EB] bg-slate-800 text-white" : "border-gray-200 bg-white text-gray-900"}
             w-40 md:w-64`}
         />
 
@@ -56,7 +56,7 @@ export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOp
           PaperProps={{
             className: `mt-2 w-[360px] rounded-xl shadow-2xl border overflow-hidden transition-colors duration-200
               ${isDark 
-                ? "bg-slate-900 border-slate-700 shadow-black/50" 
+                ? "bg-slate-900 border-[#E5E7EB] shadow-black/50" 
                 : "bg-white border-gray-100 shadow-2xl"
               }`,
           }}
@@ -154,7 +154,7 @@ export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOp
             slotProps={{
                 paper: {
                 className: `mt-2 w-64 rounded-xl shadow-xl border 
-                    ${isDark ? "border-slate-700! bg-slate-900! text-slate-200!" : "border-gray-100 bg-white text-gray-900"}`
+                    ${isDark ? "border-[#E5E7EB]! bg-slate-900! text-slate-200!" : "border-gray-100 bg-white text-gray-900"}`
                 }
             }}
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
@@ -176,12 +176,12 @@ export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOp
             {/* Set Status Button */}
             <div className="px-3 pb-2">
                 <button className={`w-full text-left px-3 py-1.5 text-xs border rounded-lg flex items-center gap-2
-                ${isDark ? "border-slate-700 text-slate-400 hover:bg-slate-800" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}>
+                ${isDark ? "border-[#E5E7EB] text-slate-400 hover:bg-slate-800" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}>
                 <span className="opacity-50 text-base">🕒</span> Set status
                 </button>
             </div>
 
-            <Divider className={isDark ? "border-slate-700" : ""} />
+            <Divider className={isDark ? "border-[#E5E7EB]" : ""} />
 
             {/* Menu Items */}
             <MenuItem className={`gap-3 py-2.5 text-sm ${isDark ? "text-slate-200" : ""}`} onClick={() => setProfileAnchor(null)}>
@@ -194,7 +194,7 @@ export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOp
                 <BellRing size={18} className={isDark ? "text-slate-400" : "text-gray-400"} /> Notification settings
             </MenuItem>
 
-            <Divider className={isDark ? "border-slate-700" : ""} />
+            <Divider className={isDark ? "border-[#E5E7EB]" : ""} />
 
             {/* Dark Mode Toggle */}
             <div className="px-4 py-2 flex items-center justify-between">
@@ -223,7 +223,7 @@ export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOp
                 <span className="bg-purple-100 text-purple-600 text-[10px] font-bold px-1.5 py-0.5 rounded">New</span>
             </MenuItem>
 
-            <Divider className={isDark ? "border-slate-700" : ""} />
+            <Divider className={isDark ? "border-[#E5E7EB]" : ""} />
 
             <MenuItem className={`gap-3 py-2.5 text-sm ${isDark ? "text-slate-200" : ""}`} onClick={() => setProfileAnchor(null)}>
                 <Download size={18} className={isDark ? "text-slate-400" : "text-gray-400"} /> Download apps
@@ -232,7 +232,7 @@ export default function Topbar({ scrollRef, isDark, toggleDarkMode, setSidebarOp
                 <HelpCircle size={18} className={isDark ? "text-slate-400" : "text-gray-400"} /> Help
             </MenuItem>
 
-            <Divider className={isDark ? "border-slate-700" : ""} />
+            <Divider className={isDark ? "border-[#E5E7EB]" : ""} />
 
             <MenuItem className={`gap-3 py-2.5 text-sm font-medium text-red-500`} onClick={() => setProfileAnchor(null)}>
                 <LogOut size={18} className={isDark ? "text-red-400" : "text-red-500"} /> Log out

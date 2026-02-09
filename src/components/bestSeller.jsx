@@ -10,10 +10,10 @@ export default function BestSellersCard({ isDark}) {
   }, []);
 
   const containerClasses = `rounded-xl border flex flex-col transition-colors h-full
-    ${isDark ? 'bg-slate-950 border-slate-700 text-slate-200' : 'bg-white border-slate-100 text-gray-900'}`;
+    ${isDark ? 'bg-slate-950 border-[#E5E7EB] text-slate-200' : 'bg-white border-slate-100 text-gray-900'}`;
 
   const headerClasses = `flex items-center justify-between mb-4 border-b px-3 py-4
-    ${isDark ? 'border-slate-700' : 'border-slate-100'}`;
+    ${isDark ? 'border-[#E5E7EB]' : 'border-slate-100'}`;
 
     const bestSellers = Object.values(
   orders.reduce((acc, order) => {
@@ -40,11 +40,11 @@ export default function BestSellersCard({ isDark}) {
 
   return (
 <div className={`rounded-xl border flex flex-col transition-colors h-full
-      ${isDark ? 'bg-slate-950 border-slate-700 text-slate-200' : 'bg-white border-slate-100 text-gray-900'}`}>
+      ${isDark ? 'bg-slate-950 border-[#E5E7EB] text-slate-200' : 'bg-white border-slate-100 text-gray-900'}`}>
       
       {/* Header */}
       <div className={`flex items-center justify-between mb-4 border-b px-3 py-4
-        ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
+        ${isDark ? 'border-[#E5E7EB]' : 'border-slate-100'}`}>
         <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Best Sellers</h3>
         {!isEmpty && (
           <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-tighter

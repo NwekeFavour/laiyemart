@@ -29,10 +29,10 @@ const bestSellers = [
 
 export default function BestSellersCard({ isDark }) {
   const containerClasses = `rounded-xl border flex flex-col transition-colors
-    ${isDark ? 'bg-slate-900 border-slate-700 text-slate-200' : 'bg-white border-slate-100 text-gray-900'}`;
+    ${isDark ? 'bg-slate-900 border-[#E5E7EB] text-slate-200' : 'bg-white border-slate-100 text-gray-900'}`;
 
   const headerClasses = `flex items-center justify-between mb-4 border-b px-3 py-4
-    ${isDark ? 'border-slate-700' : 'border-slate-100'}`;
+    ${isDark ? 'border-[#E5E7EB]' : 'border-slate-100'}`;
 
   return (
     <div className={containerClasses}>
@@ -51,7 +51,7 @@ export default function BestSellersCard({ isDark }) {
           <li key={index} className="flex items-center gap-4 group cursor-pointer">
             {/* Image Container */}
             <div className={`relative w-14 h-14 shrink-0 overflow-hidden rounded-xl 
-              ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-100'} border`}>
+              ${isDark ? 'bg-slate-800 border-[#E5E7EB]' : 'bg-slate-50 border-slate-100'} border`}>
               <img
                 src={product.image}
                 alt={product.name}

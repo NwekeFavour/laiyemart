@@ -120,7 +120,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
 
   const inputBase = `w-full px-3 py-2 text-sm rounded-md border outline-none transition-all ${
     isDark
-      ? "bg-slate-800 border-slate-700 focus:border-blue-500 text-white"
+      ? "bg-slate-800 border-[#E5E7EB] focus:border-blue-500 text-white"
       : "bg-white border-gray-300 focus:border-blue-400 text-gray-900"
   }`;
   const labelStyle = ` ${isDark ? "text-slate-400" : "text-gray-700 "} block text-[13px] font-semibold mb-1.5 dark:text-slate-300`;
@@ -176,7 +176,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
               <div
                 className={`aspect-[16/9] rounded-xl border-2 border-dashed flex flex-col items-center justify-center relative overflow-hidden group transition-all ${
                   isDark
-                    ? "border-slate-700 bg-slate-800/40 hover:border-slate-500"
+                    ? "border-[#E5E7EB] bg-slate-800/40 hover:border-slate-500"
                     : "border-gray-200 bg-gray-50 hover:border-blue-300"
                 }`}
               >
@@ -214,7 +214,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
             </div>
 
             {/* <div
-            className={`p-4 rounded-lg border ${isDark ? "bg-slate-800/30 border-slate-700" : "bg-blue-50/50 border-blue-100"}`}
+            className={`p-4 rounded-lg border ${isDark ? "bg-slate-800/30 border-[#E5E7EB]" : "bg-blue-50/50 border-blue-100"}`}
           >
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -237,7 +237,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
           >
             <button
               onClick={onClose}
-              className={`flex-1 px-4 py-2.5 text-sm font-bold border rounded-lg transition-all ${isDark ? "border-slate-700 text-white hover:bg-slate-800" : "border-slate-200 text-gray-700 hover:bg-slate-100"}`}
+              className={`flex-1 px-4 py-2.5 text-sm font-bold border rounded-lg transition-all ${isDark ? "border-[#E5E7EB] text-white hover:bg-slate-800" : "border-slate-200 text-gray-700 hover:bg-slate-100"}`}
             >
               Cancel
             </button>
@@ -909,7 +909,7 @@ const HeaderDropdown = ({ isDark, onSortAsc, onSortDesc }) => {
 
       {open && (
         <div
-          className={`absolute right-0 mt-2 w-40 rounded border shadow-lg py-1 z-50 ${isDark ? "bg-slate-900 border-slate-700 text-slate-300" : "bg-white border-gray-200 text-gray-700"}`}
+          className={`absolute right-0 mt-2 w-40 rounded border shadow-lg py-1 z-50 ${isDark ? "bg-slate-900 border-[#E5E7EB] text-slate-300" : "bg-white border-gray-200 text-gray-700"}`}
         >
           <button
             onClick={() => {

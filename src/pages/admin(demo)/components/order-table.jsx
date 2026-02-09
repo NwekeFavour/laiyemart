@@ -25,9 +25,9 @@ const StatusBadge = ({ status, isDark }) => {
 };
 
 export default function RecentOrdersTable({ isDark }) {
-  const bg = isDark ? 'bg-slate-900 border-slate-700 text-slate-200' : 'bg-white border-slate-100 text-gray-900';
+  const bg = isDark ? 'bg-slate-900 border-[#E5E7EB] text-slate-200' : 'bg-white border-slate-100 text-gray-900';
   const textSecondary = isDark ? 'text-slate-400' : 'text-gray-400';
-  const borderColor = isDark ? 'border-slate-700' : 'border-slate-100';
+  const borderColor = isDark ? 'border-[#E5E7EB]' : 'border-slate-100';
   const hoverRow = isDark ? 'hover:bg-slate-800/50' : 'hover:bg-gray-50/50';
 
   return (
@@ -42,11 +42,11 @@ export default function RecentOrdersTable({ isDark }) {
               type="text" 
               placeholder="Search by ID" 
               className={`pl-9 pr-4 py-1.5 text-sm rounded-md w-48 border focus:outline-none focus:ring-1 focus:ring-blue-500 
-                ${isDark ? 'border-slate-700 bg-slate-800 text-slate-200' : 'border-slate-100 bg-white text-gray-900'}`}
+                ${isDark ? 'border-[#E5E7EB] bg-slate-800 text-slate-200' : 'border-slate-100 bg-white text-gray-900'}`}
             />
           </div>
           <button className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md border hover:bg-gray-50 
-            ${isDark ? 'text-slate-200 border-slate-700 hover:bg-slate-800/50' : 'text-gray-700 border-slate-100'}`}>
+            ${isDark ? 'text-slate-200 border-[#E5E7EB] hover:bg-slate-800/50' : 'text-gray-700 border-slate-100'}`}>
             Export CSV
           </button>
         </div>
@@ -92,7 +92,7 @@ export default function RecentOrdersTable({ isDark }) {
     <div className="flex items-center gap-2 w-full sm:w-auto">
         <span>Rows per page:</span>
         <select className={`border rounded px-2 py-1 text-sm outline-none transition-colors
-        ${isDark ? 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500' : 'border-gray-300 bg-white text-gray-900 hover:border-gray-400'}`}>
+        ${isDark ? 'border-[#E5E7EB] bg-slate-800 text-slate-200 hover:border-slate-500' : 'border-gray-300 bg-white text-gray-900 hover:border-gray-400'}`}>
         <option>10</option>
         <option>20</option>
         <option>50</option>

@@ -40,7 +40,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
 
   const panelBg = isDark ? "bg-[#1e293b] text-slate-200" : "bg-white text-gray-900";
   const inputBase = `w-full px-3 py-2 text-sm rounded-md border outline-none transition-all ${
-    isDark ? "bg-slate-800 border-slate-700 focus:border-blue-500" : "bg-white border-gray-300 focus:border-blue-400"
+    isDark ? "bg-slate-800 border-[#E5E7EB] focus:border-blue-500" : "bg-white border-gray-300 focus:border-blue-400"
   }`;
   const labelStyle = "block text-[13px] font-semibold mb-1.5 text-gray-700 dark:text-slate-300";
 
@@ -56,7 +56,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
         }`}
       >
         {/* Header */}
-        <div className={`${isDark ? "border-slate-700": ""} px-6 py-4 border-b border-slate-100 flex justify-between items-center dark:border-slate-700`}>
+        <div className={`${isDark ? "border-[#E5E7EB]": ""} px-6 py-4 border-b border-slate-100 flex justify-between items-center dark:border-[#E5E7EB]`}>
           <h2 className="font-bold text-[16px]">Add Category</h2>
         </div>
 
@@ -64,7 +64,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
         {/* Image Upload Area */}
         <div 
             className={`aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center relative overflow-hidden transition-colors ${
-            isDark ? "border-slate-700 bg-slate-800/50" : "border-gray-200 bg-gray-50"
+            isDark ? "border-[#E5E7EB] bg-slate-800/50" : "border-gray-200 bg-gray-50"
             }`}
         >
             {categoryImage ? (
@@ -143,7 +143,7 @@ const AddCategoryModal = ({ isOpen, onClose, isDark }) => {
         </div>
 
         {/* Footer */}
-        <div className="p-6  border-slate-100 flex justify-end gap-3 dark:border-slate-700">
+        <div className="p-6  border-slate-100 flex justify-end gap-3 dark:border-[#E5E7EB]">
           <button onClick={onClose} className={` ${isDark ? "hover:bg-slate-700" : ""} px-6 py-2 text-sm font-bold hover:bg-slate-200 rounded-md transition-colors`}>Close</button>
           <button className="px-6 py-2 bg-black text-white dark:bg-white dark:text-black rounded-md font-bold text-sm shadow-lg hover:opacity-90 transition-opacity">Create</button>
         </div>
@@ -202,7 +202,7 @@ export default function CategoriesTable({ isDark = false }) {
   };
 
   // Border and Theme Variables to match your reference
-  const borderColor = isDark ? 'border-slate-700' : 'border-slate-100';
+  const borderColor = isDark ? 'border-[#E5E7EB]' : 'border-slate-100';
   const themeHeader = isDark ? 'text-slate-400 bg-slate-800' : 'text-gray-600 bg-white';
   const hoverRow = isDark ? 'hover:bg-slate-800/50' : 'hover:bg-gray-50';
 
@@ -247,7 +247,7 @@ export default function CategoriesTable({ isDark = false }) {
                         <input
                             placeholder="Search..."
                             className={`pl-9 pr-4 py-1.5 text-sm rounded-md border outline-none
-                            ${isDark ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"}`}
+                            ${isDark ? "bg-slate-800 border-[#E5E7EB]" : "bg-white border-gray-200"}`}
                             onChange={(e) => setSearch(e.target.value)}
 
                         />
@@ -302,7 +302,7 @@ export default function CategoriesTable({ isDark = false }) {
                         {/* Category Info Cell */}
                         <td className={`px-4 py-3 border-r ${borderColor}`}>
                         <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 flex items-center justify-center rounded border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-gray-50 border-gray-100'}`}>
+                            <div className={`w-8 h-8 flex items-center justify-center rounded border ${isDark ? 'bg-slate-800 border-[#E5E7EB]' : 'bg-gray-50 border-gray-100'}`}>
                             {cat.icon}
                             </div>
                             <div>
@@ -372,7 +372,7 @@ export default function CategoriesTable({ isDark = false }) {
                                 currentPage === i + 1
                                 ? "bg-blue-600 text-white border-blue-600"
                                 : isDark
-                                ? "border-slate-700 hover:bg-slate-800"
+                                ? "border-[#E5E7EB] hover:bg-slate-800"
                                 : "border-gray-200 hover:bg-gray-100"
                             }`}
                         >
@@ -414,7 +414,7 @@ const HeaderDropdown = ({ isDark, onSortAsc, onSortDesc }) => {
         </button>
 
         {open && (
-            <div className={`absolute right-0 mt-2 w-40 rounded border shadow-lg py-1 z-50 ${isDark ? 'bg-slate-900 border-slate-700 text-slate-300' : 'bg-white border-gray-200 text-gray-700'}`}>
+            <div className={`absolute right-0 mt-2 w-40 rounded border shadow-lg py-1 z-50 ${isDark ? 'bg-slate-900 border-[#E5E7EB] text-slate-300' : 'bg-white border-gray-200 text-gray-700'}`}>
             <button onClick={() => { onSortAsc(); setOpen(false); }} className={`flex w-full items-center px-3 py-2 text-xs hover:bg-blue-600 hover:text-white`}>
                 <ArrowUp size={12} className="mr-2" /> Ascending
             </button>

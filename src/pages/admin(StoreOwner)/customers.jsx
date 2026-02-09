@@ -47,7 +47,7 @@ function CustomerList({ isDark, toggleDarkMode }) {
   const hoverRow = isDark ? "hover:bg-slate-800/40" : "hover:bg-gray-50";
   const secondaryBtn = `flex items-center gap-2 px-3 py-1.5 border rounded-md text-[13px] font-medium transition-colors ${
     isDark
-      ? "bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800"
+      ? "bg-slate-900 border-[#E5E7EB] text-slate-300 hover:bg-slate-800"
       : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
   }`;
   // Fetch data from your backend
@@ -140,7 +140,7 @@ function CustomerList({ isDark, toggleDarkMode }) {
         >
           <div
             className={`${
-              isDark ? "border-slate-700" : ""
+              isDark ? "border-[#E5E7EB]" : ""
             } sm:flex border-b justify-end border-slate-100 gap-2 items-center px-3 py-3`}
           >
             <div className="relative">
@@ -409,7 +409,7 @@ const HeaderDropdown = ({ isDark, onSortAsc, onSortDesc }) => {
         <div
           className={`absolute right-0 mt-2 w-40 rounded border shadow-lg py-1 z-50 ${
             isDark
-              ? "bg-slate-900 border-slate-700 text-slate-300"
+              ? "bg-slate-900 border-[#E5E7EB] text-slate-300"
               : "bg-white border-gray-200 text-gray-700"
           }`}
         >
