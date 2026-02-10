@@ -74,35 +74,12 @@ export default function Footer() {
           <Link to="/contact" className="text-sm text-gray-600 hover:underline">
             Contact
           </Link>
-          {!isAuthenticated ? (
-            <Link
+            {!isAuthenticated && (<Link
               to="/auth/sign-in"
               className="text-sm text-gray-600 hover:underline"
             >
               Login
-            </Link>
-          ) : (
-            <a
-              href={(() => {
-                const isLocal = window.location.hostname.includes("localhost");
-                const dashBase = isLocal
-                  ? "dashboard.localhost:5173"
-                  : "dashboard.layemart.com";
-                const protocol = window.location.protocol;
-
-                if (user?.role === "SUPER_ADMIN") {
-                  return `${protocol}//${dashBase}/dashboard`;
-                }
-                if (user?.role === "OWNER") {
-                  return `${protocol}//${dashBase}/`;
-                }
-                return "/"; // Fallback for customers
-              })()}
-              className="text-sm text-gray-600 hover:underline"
-            >
-              Dashboard
-            </a>
-          )}
+            </Link>) }    
         </div>
       </div>
 

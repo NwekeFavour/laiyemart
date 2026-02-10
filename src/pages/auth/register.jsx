@@ -18,6 +18,7 @@ import {
   verifyOTP,
 } from "../../../services/authService"; // Ensure verifyOTP is exported from your service
 import { toast } from "react-toastify";
+import { useAuthStore } from "../../store/useAuthStore";
 
 export default function SignUpPage() {
   // 1. New State Management
@@ -59,19 +60,13 @@ export default function SignUpPage() {
       id: "starter",
       name: "Starter Plan",
       price: { monthly: "Free", yearly: "Free" },
-      features: ["5 Products", "Basic Analytics", "Custom Domain"],
+      features: ["100 Products", "Basic Analytics", "Custom Domain"],
     },
     {
       id: "professional",
       name: "Professional Plan",
-      price: { monthly: "₦15,000", yearly: "₦150,000" },
-      features: ["Unlimited Products", "Advanced SEO", "Priority Support"],
-    },
-    {
-      id: "enterprise",
-      name: "Enterprise Plan",
-      price: { monthly: "₦50,000", yearly: "₦500,000" },
-      features: ["Dedicated Manager", "Custom Integration", "API Access"],
+      price: { monthly: "₦15,000", yearly: "₦153,000" },
+      features: ["200 Products", "Advanced SEO", "Priority Support"],
     },
   ];
   const handleResendOtp = async () => {
@@ -95,6 +90,49 @@ export default function SignUpPage() {
     } catch (err) {
       toast.error(err.message);
     } finally {
+    }
+  };
+
+  const handlePay = async (planType, storeId, cycle) => {
+    try {
+      const { user, token } = useAuthStore.getState();
+      
+      // 🔐 Auth check
+      if (!token || !user) {
+        window.location.href = "/auth/sign-in";
+        return;
+      }
+
+      // 🏪 Store check
+      if (!storeId) {
+        toast.error("No active store selected");
+        return;
+      }
+
+      // Use a toast or loading state here if you have one
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/paystack/init`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: user.email,
+          plan: planType, // Now dynamic: "PROFESSIONAL" or "ENTERPRISE"
+          storeId: storeId,
+          billingCycle: cycle,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Payment failed");
+
+      // 🚀 Redirect to Paystack Checkout
+      window.location.href = data.url;
+    } catch (err) {
+      console.error("Payment Error:", err.message);
+      toast.error(err.message);
     }
   };
 
@@ -184,7 +222,10 @@ export default function SignUpPage() {
       <div className="max-w-5xl w-full grid md:grid-cols-2 bg-white rounded-[32px] shadow-2xl overflow-hidden z-10">
         {/* Left Side: Marketing/Value Prop - Logic added to headline */}
         <div className="hidden md:flex flex-col justify-center p-12 bg-slate-900 text-white relative">
-          <div onClick={() => navigate("/")}  className="absolute cursor-pointer top-8 left-8 flex items-center gap-2">
+          <div
+            onClick={() => navigate("/")}
+            className="absolute cursor-pointer top-8 left-8 flex items-center gap-2"
+          >
             <div className="w-8 h-8 rounded-md bg-red-500" />
             <span className="font-bold tracking-tight text-lg text">
               LAYEMART
@@ -203,7 +244,6 @@ export default function SignUpPage() {
 
           <div className="space-y-6">
             {[
-              "14-day free trial, no credit card required",
               "Set up your store in less than 5 minutes",
               "Integrated local payment gateways",
             ].map((text, i) => (
@@ -250,7 +290,10 @@ export default function SignUpPage() {
                         ? storeName.toLowerCase().trim().replace(/\s+/g, "-")
                         : "",
                       plan: selectedPlan,
-                      couponCode: appliedDiscount > 0 ? couponCode.trim().toUpperCase() : null,
+                      couponCode:
+                        appliedDiscount > 0
+                          ? couponCode.trim().toUpperCase()
+                          : null,
                       billingCycle,
                     };
 
@@ -472,7 +515,7 @@ export default function SignUpPage() {
                   disabled={loading}
                   className="w-full mt-4 bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 group disabled:opacity-60"
                 >
-                  {loading ? "Processing..." : "Start My 14-Day Free Trial"}
+                  {loading ? "Processing..." : "Create Your Account"}
                   <ArrowRight
                     size={18}
                     className="group-hover:translate-x-1 transition-transform"
@@ -613,7 +656,7 @@ export default function SignUpPage() {
                   >
                     Yearly{" "}
                     <span className="ml-1 text-[10px] text-emerald-600">
-                      (Save 20%)
+                      (Save 15%)
                     </span>
                   </button>
                 </div>
@@ -724,25 +767,34 @@ export default function SignUpPage() {
                 onClick={async () => {
                   setLoading(true);
                   try {
-                    // Send both plan and billingCycle to determine trialEndsAt on backend
                     const payload = {
                       email,
-                      plan: selectedPlan,
-                      billingCycle, // Check if this is "yearly" in your console
+                      plan: selectedPlan, // This is the value from your state
+                      billingCycle,
                     };
 
-                    // console.log("Sending to backend:", payload);
+                    // 1. Update the backend
+                    const response = await updateStorePlan(payload);
+                    const storeId = response.store._id;
+                    // 2. Logic Check: Use 'selectedPlan' directly!
+                    // We use .toLowerCase() to be safe against "Professional" vs "professional"
+                    if (response.store.plan === "professional") {
+                      // Since this is a subaccount transaction, we MUST ensure handlePay
+                      // is called with the most recent billing cycle.
+                      await handlePay(response.store.plan, storeId, billingCycle);
+                    } else if(response.store.plan === "starter") {
+                      // Logic for Free/Starter plans
+                      const authString = localStorage.getItem("layemart-auth");
+                      const encodedAuth = encodeURIComponent(authString);
+                      const { protocol } = window.location;
+                      const base = window.location.hostname.includes(
+                        "localhost",
+                      )
+                        ? "dashboard.localhost:5173"
+                        : "dashboard.layemart.com";
 
-                    await updateStorePlan(payload);
-
-                    const authString = localStorage.getItem("layemart-auth");
-                    const encodedAuth = encodeURIComponent(authString);
-                    const { protocol } = window.location;
-                    const base = window.location.hostname.includes("localhost")
-                      ? "dashboard.localhost:5173"
-                      : "dashboard.layemart.com";
-
-                    window.location.href = `${protocol}//${base}/auth-sync?data=${encodedAuth}`;
+                      window.location.href = `${protocol}//${base}/auth-sync?data=${encodedAuth}`;
+                    }
                   } catch (err) {
                     setError("Could not save plan. Please try again.");
                   } finally {

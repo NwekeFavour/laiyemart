@@ -1215,7 +1215,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                       <span
                         className={`px-2 py-0.5 ${!hasPaidBefore ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"} text-[10px] font-bold rounded-full uppercase tracking-wider`}
                       >
-                        {!hasPaidBefore ? "Trial" : "Active"}
+                        {!hasPaidBefore && !store?.plan === "starter" ? "Trial" : "Active"}
                       </span>
                     )}
                   </Box>
@@ -1228,7 +1228,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     <span
                       className={`${isStarter && " hidden"} font-bold ml-1`}
                     >
-                      {isExpired ? "Expired on: " : "Next date: "}
+                      {isExpired && !store.plan === "starter" ? "Expired on: " : "Next date: "}
                       {new Date(store?.trialEndsAt).toLocaleDateString(
                         "en-GB",
                         {
@@ -1263,7 +1263,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
             </Sheet>
           )}
 
-          {!isExpired && (
+          {!isExpired && !store.plan === "starter" && (
             <Sheet
               className={`${!isExpired && "hidden!"} ${
                 isExpired

@@ -17,12 +17,12 @@ export default function Hero({ onCreateStore }) {
           <div className="max-w-7xl w-full text-center">
             
             {/* Heading with styled accent word */}
-            <h1 className="m-0 font-extrabold text textt tracking-[-0.03em] lg:text-[32px] md:text-[26px] text-[18px] text-[#0F172A] leading-[1.05] font-['BBH_Bartle']">
+            <h1 className="m-0 font-black  tracking-[-0.03em] lg:text-[60px] md:text-[26px] text-[18px] text-[#0F172A] leading-[1.05] font-['BBH_Bartle']">
               Build ecommerce stores 
               <br className="hidden md:block"/> 
-              <span className="block md:inline mt-1 textt text">
+              <span className="block md:inline mt-1">
                 that <span className="relative inline-block">
-                  <span className="relative text z-10 italic text-transparent bg-clip-text textt bg-gradient-to-r from-slate-600 to-slate-400">sell</span>
+                  <span className="relative  z-10 italic text-transparent bg-clip-text textt bg-gradient-to-r from-slate-600 to-slate-400">sell</span>
                   <span className="absolute bottom-1 left-0 w-full h-[6px] bg-slate-100 -z-0 rounded-full md:hidden"></span>
                 </span>, without the hassle.
               </span>
@@ -35,6 +35,7 @@ export default function Hero({ onCreateStore }) {
             <div className='flex flex-col sm:flex-row justify-center items-center gap-4 my-5 sm:my-10 '>
               <div className='flex flex-col sm:flex-row justify-center items-center gap-4 mt-10 mb-6'>
                 <Button
+                className='hover:bg-[#4F46E5]!'
                 onClick={onCreateStore}
                 size="lg"
                 endDecorator={<ArrowRight size={18} />}
@@ -48,59 +49,9 @@ export default function Hero({ onCreateStore }) {
                   '&:hover': { backgroundColor: '#1e293b' }
                 }}
               >
-                Start Free Trial
-                </Button>
-                
-                <button className="flex items-center gap-2 font-semibold text-slate-700 hover:text-indigo-600 transition-colors px-4 py-2">
-                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-[#E5E7EB]">
-                    <Play size={14} fill="currentColor" />
-                  </div>
-                  See how it works
-                </button>
+                Try Demo
+                </Button>                             
               </div>
-            </div>
-
-            <div className='lg:block hidden'>
-              <div className="mt-12 my-5 flex items-center justify-center rounded-4xl imgsec relative">
-                <button
-                  className="
-                    group
-                    relative
-                    flex items-center justify-center
-                    h-16 w-16
-                    rounded-full
-                    bg-white
-                    shadow-[0_12px_40px_rgba(0,0,0,0.35)]
-                    transition
-                    hover:scale-105
-                    hover:shadow-[0_18px_60px_rgba(0,0,0,0.45)]
-                    focus:outline-none
-                  "
-                  aria-label="Play video"
-                >
-                  {/* Glow ring */}
-                  <span
-                    className="
-                      absolute inset-[-10px]
-                      rounded-full
-                      bg-white/20
-                      blur-xl
-                      opacity-0
-                      transition
-                      group-hover:opacity-100
-                    "
-                  />
-
-                  {/* Play icon */}
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="relative ml-0.5 h-6 w-6 fill-black"
-                  >
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </button>
-              </div>
-
             </div>
           </div>
         </div>
