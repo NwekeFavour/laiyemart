@@ -144,6 +144,7 @@ export default function SuperAdminLayout({ children, isDark }) {
           }}
         >
           <IconButton
+          className="text-[#0F1720]!"
             variant="plain"
             sx={{ display: { lg: "none" } }}
             onClick={() => setIsMobileOpen(true)}
