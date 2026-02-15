@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { TicketPercent, Users, PlusCircle, Info } from "lucide-react";
+import {
+  TicketPercent,
+  Users,
+  PlusCircle,
+  Info,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 import {
   Box,
   Typography,
@@ -25,7 +32,7 @@ const CouponPage = () => {
     discountPercent: "",
     usageLimit: "",
   });
-
+  const [deletingId, setDeletingId] = useState(null);
   const generateRandomCode = () => {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let result = "";
@@ -80,6 +87,28 @@ const CouponPage = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    setDeletingId(id);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/coupon/${id}`,
+        { method: "DELETE" },
+      );
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success("Coupon deleted successfully");
+        // Update local state to remove the deleted coupon
+        setCoupons(coupons.filter((c) => c._id !== id));
+      } else {
+        toast.error(data.message || "Failed to delete coupon");
+      }
+    } catch (err) {
+      toast.error("Error connecting to server");
+    } finally {
+      setDeletingId(null); // Stop loading
+    }
+  };
   return (
     <SuperAdminLayout>
       <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: "1200px", mx: "auto" }}>
@@ -272,6 +301,29 @@ const CouponPage = () => {
                       >
                         <IconButton size="sm" variant="plain" color="neutral">
                           <Info size={18} />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip
+                        title="Delete Coupon"
+                        variant="soft"
+                        color="danger"
+                      >
+                        <IconButton
+                          size="sm"
+                          variant="soft"
+                          color="danger"
+                          disabled={deletingId === c._id}
+                          onClick={() => handleDelete(c._id)}
+                        >
+                          {deletingId === c._id ? (
+                            <Loader2
+                              size={18}
+                              style={{ animation: "spin 1s linear infinite" }}
+                            />
+                          ) : (
+                            <Trash2 size={18} />
+                          )}
                         </IconButton>
                       </Tooltip>
                     </td>

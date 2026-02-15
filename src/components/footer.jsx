@@ -2,9 +2,16 @@ import { Box, Typography } from "@mui/joy";
 import { Link } from "react-router-dom";
 import { Twitter, Github, Linkedin } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
+import { Facebook, Instagram, X } from "@mui/icons-material";
 
 export default function Footer() {
   const { isAuthenticated, user } = useAuthStore();
+
+  const handleScroll = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth" });
+  };
   return (
     <Box component="footer" className="bg-neutral-100 py-12 text-[#0F172A]!">
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -17,14 +24,14 @@ export default function Footer() {
             Empowering your business with intuitive tools to grow faster.
           </Typography>
           <div className="flex items-center gap-3 mt-2">
-            <Link to="#" className="hover:text-blue-500">
-              <Twitter size={20} />
+            <Link to="https://x.com/layemart" className="hover:text-blue-500">
+              <X size={20} />
             </Link>
-            <Link to="#" className="hover:text-gray-800">
-              <Github size={20} />
+            <Link to="https://www.instagram.com/layemart/" className="hover:text-blue-700">
+              <Instagram size={20} />
             </Link>
-            <Link to="#" className="hover:text-blue-700">
-              <Linkedin size={20} />
+            <Link to="https://www.facebook.com/layemartcommerce" className="hover:text-blue-700">
+              <Facebook size={20} />
             </Link>
           </div>
         </div>
@@ -35,22 +42,19 @@ export default function Footer() {
             Product
           </Typography>
           <Link
-            to="/features"
+            onClick={() => handleScroll("product")}
             className="text-sm text-gray-600 hover:underline"
           >
-            Features
+            Products
           </Link>
-          <Link to="/pricing" className="text-sm text-gray-600 hover:underline">
+          <Link onClick={() => handleScroll("pricing")} className="text-sm text-gray-600 hover:underline">
             Pricing
           </Link>
           <Link
-            to="/templates"
+            onClick={() => handleScroll("about-us")}
             className="text-sm text-gray-600 hover:underline"
           >
-            Templates
-          </Link>
-          <Link to="/docs" className="text-sm text-gray-600 hover:underline">
-            Documentation
+            About Us
           </Link>
         </div>
 

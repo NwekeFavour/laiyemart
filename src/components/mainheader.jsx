@@ -5,8 +5,8 @@ import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 
 const navItems = [
-  { label: "Product", href: "product" },
-  { label: "Templates", href: "templates" },
+  { label: "About", href: "about-us" },
+  { label: "Products", href: "product" },
   { label: "Pricing", href: "pricing" },
 ];
 
@@ -36,7 +36,7 @@ export default function SaaSHeader() {
           right: 0,
           zIndex: 50,
           mx: "auto",
-          maxWidth: 1200,
+          maxWidth: 1240,
           borderRadius: "999px",
           backdropFilter: "blur(14px)",
           bgcolor: "rgba(255,255,255,0.55)",
@@ -122,9 +122,9 @@ export default function SaaSHeader() {
 
           {/* Actions */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <IconButton variant="plain">
+            {/* <IconButton variant="plain">
               <Moon size={18} />
-            </IconButton>
+            </IconButton> */}
 
             {isAuthenticated ? (
               /* Show this when Logged In */
@@ -145,7 +145,7 @@ export default function SaaSHeader() {
                   }
                   return "/"; // Fallback for customers
                 })()}
-                className="text-sm text-gray-600 hover:underline"
+                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white  font-semibold shadow-lg hover:bg-[#4F46E5]  transition"
               >
                 Dashboard
               </a>
@@ -153,7 +153,7 @@ export default function SaaSHeader() {
               /* Show this when Logged Out */
               <Link
                 to="/auth/sign-up"
-                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold shadow-lg hover:bg-slate-800 transition"
+                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold shadow-lg hover:bg-[#4F46E5] transition"
               >
                 Sign Up
               </Link>

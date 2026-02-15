@@ -240,8 +240,8 @@ function Home(props) {
           {/* </div> */}
           {/* </Box> */}
 
-          <Box component="section" className="bg-white py-24">
-            <div className="mx-auto max-w-7xl px-6">
+          <Box id="about-us" component="section" className="bg-white py-24">
+            <div  className="mx-auto max-w-7xl px-6">
               {/* Heading */}
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
@@ -324,7 +324,7 @@ function Home(props) {
               </Link>
             </div>
           </Box>
-          <section id="features" className="py-24 bg-background">
+          <section id="product" className="py-24 bg-background">
             <div className="container mx-auto px-6">
               {/* Header */}
               <div className="flex items-center justify-center flex-col text-center gap-5 mb-16">
@@ -693,15 +693,15 @@ function Home(props) {
                 Ready to get started?
               </p>
 
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-white mb-8">
-                Start your free trial today.
+              <h1 className=" text-[23px] md:text-[24px] sm:text-4xl md:text-5xl font-semibold text-white mb-8">
+                Start your Journey today with Layemart Commerce
               </h1>
 
               <Link
-                className="pointer-events-auto rounded-lg outline-none! bg-white px-6 py-3 text-sm font-medium text-black hover:bg-gray-200 transition"
+                className="pointer-events-auto rounded-lg outline-none! bg-white px-6 py-2 text-sm font-medium text-black hover:bg-gray-200 transition"
                 to={"/auth/sign-in"}
               >
-                Get started for free
+                Get started
               </Link>
             </div>
           </section>
@@ -728,12 +728,7 @@ function Home(props) {
                 <div>
                   <h3 className="text-gray-800 font-semibold! md:mb-0 mb-2  text-xl md:text-3xl">
                     Let's Start a Conversation
-                  </h3>
-                  <p className="text-muted-foreground mb-8">
-                    Whether you're looking to streamline your workflow, boost
-                    productivity, or transform your business operations, we're
-                    here to help you succeed.
-                  </p>
+                  </h3>                  
                 </div>
 
                 <div className="space-y-6">
