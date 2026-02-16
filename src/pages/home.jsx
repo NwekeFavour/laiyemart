@@ -52,30 +52,30 @@ function Home(props) {
   const steps = [
     {
       step: "01",
-      title: "Choose your build",
+      title: "Create Your Store",
       description:
-        "Select a package or request a custom build based on your store’s needs and scale.",
+        "Register with your email address, choose your password and verify your email with otp sent to the email.",
       icon: MousePointerClick,
     },
     {
       step: "02",
-      title: "We design & develop",
+      title: "Choose Your Plan",
       description:
-        "We design and build your store using a modern, performance-focused stack, fast and structured.",
+        "Select between Starter and Professional Plan, and make payment (monthly or Yearly) via Paystack (Card, Transfer, USSD, Opay, Palmpay) if professional plan is chosen.",
       icon: PencilRuler,
     },
     {
       step: "03",
-      title: "Review & refine",
+      title: "Access & Verify",
       description:
-        "You review the build, request adjustments, and we refine until everything is ready.",
+        "Access your dashboard, verify your identity and add your bank account details.",
       icon: CheckCircle2,
     },
     {
       step: "04",
       title: "Launch & handoff",
       description:
-        "Your store goes live with clean code, documentation, and optional ongoing support.",
+        "Your Store link is ready on the dashboard to share with customers and start earning.",
       icon: Rocket,
     },
   ];
@@ -240,7 +240,7 @@ function Home(props) {
           {/* </div> */}
           {/* </Box> */}
 
-          <Box id="about-us" component="section" className="bg-white py-24">
+          <Box id="about-us" component="section" className="bg-white md:py-10 py-10">
             <div  className="mx-auto max-w-7xl px-6">
               {/* Heading */}
               <motion.div
@@ -324,7 +324,7 @@ function Home(props) {
               </Link>
             </div>
           </Box>
-          <section id="product" className="py-24 bg-background">
+          <section id="product" className="md:py-0 py-10 bg-background">
             <div className="container mx-auto px-6">
               {/* Header */}
               <div className="flex items-center justify-center flex-col text-center gap-5 mb-16">
@@ -333,11 +333,7 @@ function Home(props) {
                 </div>
                 <h2 className="text-[22px] md:text-3xl font-bold text-foreground">
                   Everything You Need to Launch Your Store
-                </h2>
-                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                  Build, launch, and grow your eCommerce store faster with tools
-                  designed to simplify operations and increase sales.
-                </p>
+                </h2>                
               </div>
 
               {/* Grid */}
@@ -717,7 +713,7 @@ function Home(props) {
                 Contact Us
               </h2>
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                Have questions or ready to get started with Layemart ? Send us a
+                Have questions or ready to get started with Layemart Commerce? Send us a
                 message and we'll respond as soon as possible.
               </p>
             </div>
@@ -756,7 +752,7 @@ function Home(props) {
                       </h4>
                       <a
                         href="mailto:info@layemart.com"
-                        className="text-muted-foreground text-slate-600 hover:text-[#4F46E5] whitespace-pre-line"
+                        className="text-muted-foreground text-slate-600 hover:text-[#4F46E5]  whitespace-pre-line"
                       >
                         info@layemart.com
                       </a>

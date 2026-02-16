@@ -240,32 +240,57 @@ const CouponPage = () => {
           variant="outlined"
           sx={{
             borderRadius: "xl",
-            overflow: "auto",
             bgcolor: "white",
             boxShadow: "sm",
+            // 1. Added horizontal scroll for mobile
+            overflowX: "auto",
+            width: "100%",
+            // Custom scrollbar styling to stay minimalist
+            "&::-webkit-scrollbar": { height: 6 },
+            "&::-webkit-scrollbar-thumb": {
+              borderRadius: 10,
+              bgcolor: "rgba(45, 42, 112, 0.1)", // Subtle Indigo scrollbar
+            },
           }}
         >
-          <Table stripe="odd" hoverRow sx={{ "& tr > *": { p: 2 } }}>
+          <Table
+            className="bg-white!"
+            sx={{
+              "& tr > *": { p: 2 },
+              // 2. Ensures the table doesn't collapse too much on small screens
+              minWidth: { xs: 650, md: "100%" },
+              "--TableCell-height": "40px",
+              "--TableHeader-height": "50px",
+            }}
+          >
             <thead>
-              <tr>
-                <th style={{ width: "30%" }}>Coupon Code</th>
-                <th>Value</th>
-                <th>Usage (Claimed/Total)</th>
-                <th>Status</th>
-                <th style={{ width: "80px" }}>Details</th>
+              <tr className="bg-slate-50/50">
+                <th style={{ width: "25%" }}>Coupon Code</th>
+                <th style={{ width: "15%" }}>Value</th>
+                <th style={{ width: "25%" }}>Usage</th>
+                <th style={{ width: "15%" }}>Status</th>
+                <th style={{ width: "20%", textAlign: "right" }}>Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-white!">
               {coupons.length > 0 ? (
                 coupons.map((c) => (
                   <tr key={c._id}>
                     <td>
-                      <Typography level="title-sm" color="primary">
+                      <Typography
+                        level="title-sm"
+                        sx={{ color: "#2D2A70", fontWeight: 700 }} // Your Royal Indigo
+                      >
                         {c.code}
                       </Typography>
                     </td>
                     <td>
-                      <Chip variant="soft" color="success" size="sm">
+                      <Chip
+                        variant="soft"
+                        color="success"
+                        size="sm"
+                        sx={{ fontWeight: 600 }}
+                      >
                         {c.discountPercent}% OFF
                       </Chip>
                     </td>
@@ -283,49 +308,71 @@ const CouponPage = () => {
                           / {c.usageLimit}
                         </Typography>
                       </Box>
+                      {/* Added a small progress bar for better UX */}
+                      <Box
+                        sx={{
+                          height: 4,
+                          width: "60px",
+                          bgcolor: "neutral.softBg",
+                          borderRadius: "xs",
+                          mt: 0.5,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            height: "100%",
+                            width: `${Math.min((c.usedCount / c.usageLimit) * 100, 100)}%`,
+                            bgcolor: "#2D2A70",
+                          }}
+                        />
+                      </Box>
                     </td>
                     <td>
                       <Chip
                         variant="solid"
                         color={c.isActive ? "success" : "danger"}
                         size="sm"
-                        sx={{ borderRadius: "xs" }}
+                        sx={{
+                          borderRadius: "xs",
+                          fontSize: "10px",
+                          fontWeight: 800,
+                          px: 1,
+                        }}
                       >
                         {c.isActive ? "ACTIVE" : "EXPIRED"}
                       </Chip>
                     </td>
                     <td>
-                      <Tooltip
-                        title="View users who used this code"
-                        variant="soft"
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                          gap: 1,
+                        }}
                       >
-                        <IconButton size="sm" variant="plain" color="neutral">
-                          <Info size={18} />
-                        </IconButton>
-                      </Tooltip>
+                        <Tooltip title="Usage Analytics" variant="soft">
+                          <IconButton size="sm" variant="plain" color="neutral">
+                            <Info size={18} />
+                          </IconButton>
+                        </Tooltip>
 
-                      <Tooltip
-                        title="Delete Coupon"
-                        variant="soft"
-                        color="danger"
-                      >
-                        <IconButton
-                          size="sm"
-                          variant="soft"
-                          color="danger"
-                          disabled={deletingId === c._id}
-                          onClick={() => handleDelete(c._id)}
-                        >
-                          {deletingId === c._id ? (
-                            <Loader2
-                              size={18}
-                              style={{ animation: "spin 1s linear infinite" }}
-                            />
-                          ) : (
-                            <Trash2 size={18} />
-                          )}
-                        </IconButton>
-                      </Tooltip>
+                        <Tooltip title="Delete" variant="soft" color="danger">
+                          <IconButton
+                            size="sm"
+                            variant="soft"
+                            color="danger"
+                            disabled={deletingId === c._id}
+                            onClick={() => handleDelete(c._id)}
+                          >
+                            {deletingId === c._id ? (
+                              <Loader2 size={18} className="animate-spin" />
+                            ) : (
+                              <Trash2 size={18} />
+                            )}
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </td>
                   </tr>
                 ))
@@ -333,10 +380,10 @@ const CouponPage = () => {
                 <tr>
                   <td
                     colSpan={5}
-                    style={{ textAlign: "center", padding: "40px" }}
+                    style={{ textAlign: "center", padding: "60px" }}
                   >
                     <Typography level="body-sm" sx={{ color: "text.tertiary" }}>
-                      No coupons created yet.
+                      No active coupons found.
                     </Typography>
                   </td>
                 </tr>

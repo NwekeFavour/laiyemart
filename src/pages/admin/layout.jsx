@@ -8,6 +8,7 @@ import {
   SunDim,
   Moon,
   LogOut,
+  MenuIcon,
 } from "lucide-react";
 import {
   Box,
@@ -149,7 +150,7 @@ export default function SuperAdminLayout({ children, isDark }) {
             sx={{ display: { lg: "none" } }}
             onClick={() => setIsMobileOpen(true)}
           >
-            <Menu />
+            <MenuIcon  className="text-[#1f1720]!"/>
           </IconButton>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

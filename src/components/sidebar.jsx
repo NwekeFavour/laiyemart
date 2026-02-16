@@ -12,6 +12,7 @@ import {
   MonitorPlay,
   TicketPercent,
 } from "lucide-react";
+import Layemart from "../assets/img/layemart-icon.jpg"
 import { Box, Typography, Button, IconButton } from "@mui/joy";
 import { useAuthStore } from "../store/useAuthStore";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -87,26 +88,14 @@ export default function Sidebar({
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       {/* Brand Section */}
       <Box sx={{ p: 3, display: "flex", alignItems: "center", gap: 2 }}>
-        <Box
-          sx={{
-            width: 32,
-            height: 32,
-            borderRadius: "6px",
-            bgcolor: "#ef4444",
-            flexShrink: 0,
-          }}
-        />
-        {(!isCollapsed || isMobile) && (
-          <Typography
-            className="text lg:text-[17px] text-[13px]!"
-            sx={{ color: "#0f172a", whiteSpace: "nowrap" }}
-          >
-            LAIYE
-            <span className="text" style={{ color: "#ef4444" }}>
-              MART
-            </span>
-          </Typography>
-        )}
+          <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
+                <img 
+                  src={Layemart} 
+                  alt="Layemart Logo" 
+                  className="h-18 w-auto object-contain" // Height adjusted for the pill shape
+                  style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.05))" }}
+                />
+              </Box>  
       </Box>
 
       {/* Nav Items */}
