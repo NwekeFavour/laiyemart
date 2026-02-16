@@ -60,7 +60,7 @@ export default function SaaSHeader() {
       <img 
         src={Layemart} 
         alt="Layemart Logo" 
-        className="h-18 w-auto object-contain" // Height adjusted for the pill shape
+        className="h-15 w-auto object-contain" // Height adjusted for the pill shape
         style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.05))" }}
       />
     </Box>
@@ -177,13 +177,13 @@ export default function SaaSHeader() {
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
-      <img 
-        src={Layemart} 
-        alt="Layemart Logo" 
-        className="h-18 w-auto object-contain" // Height adjusted for the pill shape
-        style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.05))" }}
-      />
-    </Box>            
+                <img 
+                  src={Layemart} 
+                  alt="Layemart Logo" 
+                  className="h-18 w-auto object-contain" // Height adjusted for the pill shape
+                  style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.05))" }}
+                />
+              </Box>            
             </Box>
 
             <IconButton onClick={() => setOpen(false)}>

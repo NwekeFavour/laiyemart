@@ -18,14 +18,14 @@ export default function Footer() {
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-10">
         {/* BRAND */}
         <div className="flex flex-col gap-3">
-<Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
-      <img 
-        src={Layemart} 
-        alt="Layemart Logo" 
-        className="h-30 w-auto object-contain" // Height adjusted for the pill shape
-        style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.05))" }}
-      />
-    </Box>
+        <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
+          <img 
+            src={Layemart} 
+            alt="Layemart Logo" 
+            className="sm:h-30 h-[100px] w-[130px] sm:w-[170px] object-contain" // Height adjusted for the pill shape
+            style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.05))" }}
+          />
+        </Box>
           <Typography className="text-sm text-gray-600">
             Scale without the stress. We handle the tech; you handle the trade.
           </Typography>
