@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Twitter, Github, Linkedin } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { Facebook, Instagram, X } from "@mui/icons-material";
+import Layemart from '../assets/img/layemart-icon.jpg'
 
 export default function Footer() {
   const { isAuthenticated, user } = useAuthStore();
@@ -17,11 +18,16 @@ export default function Footer() {
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-10">
         {/* BRAND */}
         <div className="flex flex-col gap-3">
-          <Typography level="h6" fontWeight="bold" className="text-black">
-            LAYEMART
-          </Typography>
+<Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
+      <img 
+        src={Layemart} 
+        alt="Layemart Logo" 
+        className="h-30 w-auto object-contain" // Height adjusted for the pill shape
+        style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.05))" }}
+      />
+    </Box>
           <Typography className="text-sm text-gray-600">
-            Empowering your business with intuitive tools to grow faster.
+            Scale without the stress. We handle the tech; you handle the trade.
           </Typography>
           <div className="flex items-center gap-3 mt-2">
             <Link to="https://x.com/layemart" className="hover:text-blue-500">

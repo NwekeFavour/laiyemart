@@ -3,6 +3,7 @@ import { Menu, X, Moon, Rocket, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
+import Layemart from '../assets/img/layemart-icon.jpg'
 
 const navItems = [
   { label: "About", href: "about-us" },
@@ -27,147 +28,117 @@ export default function SaaSHeader() {
       <div className="absolute bottom-[5%] right-[-5%] w-[35%] h-[45%] rounded-full bg-indigo-200 blur-[130px] opacity-70" />
 
       {/* Header */}
-      <Sheet
-        variant="plain"
-        sx={{
-          position: "fixed",
-          top: 12,
-          left: 0,
-          right: 0,
-          zIndex: 50,
-          mx: "auto",
-          maxWidth: 1240,
-          borderRadius: "999px",
-          backdropFilter: "blur(14px)",
-          bgcolor: "rgba(255,255,255,0.55)",
-          border: "1px solid rgba(255,255,255,0.35)",
-          boxShadow: "0 8px 30px rgba(15,23,42,0.08)",
-        }}
-      >
-        <Box
+<Sheet
+  variant="plain"
+  sx={{
+    position: "fixed",
+    top: 12,
+    left: 0,
+    right: 0,
+    zIndex: 100, // Higher z-index to stay above page content
+    mx: "auto",
+    maxWidth: 1240,
+    width: "95%", // Ensures it doesn't touch screen edges on smaller monitors
+    borderRadius: "999px",
+    backdropFilter: "blur(20px)",
+    bgcolor: "rgba(255,255,255,0.85)", // Increased opacity for Indigo contrast
+    border: "1px solid rgba(255,255,255,0.4)",
+    boxShadow: "0 10px 40px rgba(15,23,42,0.1)",
+  }}
+>
+  <Box
+    sx={{
+      px: { xs: 2, md: 4 },
+      py: 1, 
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between", // Keeps left, center, and right sections separate
+    }}
+  >
+    {/* 1. Brand Section - Relative positioning instead of absolute */}
+    <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
+      <img 
+        src={Layemart} 
+        alt="Layemart Logo" 
+        className="h-18 w-auto object-contain" // Height adjusted for the pill shape
+        style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.05))" }}
+      />
+    </Box>
+
+    {/* 2. Desktop Nav - Centered perfectly */}
+    <Box
+      sx={{
+        display: { xs: "none", md: "flex" },
+        gap: 4,
+        alignItems: "center",
+        justifyContent: "center",
+        flex: 2, // Takes more space to stay centered
+      }}
+    >
+      {navItems.map((item) => (
+        <Typography
+          key={item.label}
+          onClick={() => handleScroll(item.href)}
           sx={{
-            px: { xs: 2, md: 3 },
-            py: 1.5,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+            fontSize: 14,
+            fontWeight: 700,
+            color: "#2D2A70", // Your Royal Indigo
+            cursor: "pointer",
+            position: "relative",
+            "&:hover": { color: "#4F46E5" },
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              left: 0,
+              bottom: -4,
+              width: 0,
+              height: 2,
+              bgcolor: "#2D2A70",
+              transition: "width .25s ease",
+            },
+            "&:hover::after": { width: "100%" },
           }}
         >
-          {/* Brand */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <Box
-              sx={{
-                width: 34,
-                height: 34,
-                borderRadius: "10px",
-                background: "linear-gradient(135deg, #4f46e5, #6366f1)",
-                display: "grid",
-                placeItems: "center",
-                boxShadow: "0 6px 16px rgba(79,70,229,0.35)",
-              }}
-            >
-              <Rocket size={16} color="#fff" />
-            </Box>
+          {item.label}
+        </Typography>
+      ))}
+    </Box>
 
-            <Typography
-              level="h4"
-              sx={{
-                fontWeight: 900,
-                fontSize: "18px",
-                background: "linear-gradient(90deg, #0f172a, #4f46e5)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              LAYEMART
-            </Typography>
-          </Box>
+    {/* 3. Actions Section */}
+    <Box 
+      sx={{ 
+        display: "flex", 
+        alignItems: "center", 
+        gap: 1.5,
+        flex: 1, 
+        justifyContent: "flex-end" 
+      }}
+    >
+      {isAuthenticated ? (
+        <a
+          href={"/auth-sync"}
+          className="hidden md:flex items-center px-5 py-2.5 rounded-full bg-[#2D2A70] text-white font-semibold shadow-lg hover:bg-[#1a184a] transition-all"
+        >
+          Dashboard
+        </a>
+      ) : (
+        <Link
+          to="/auth/sign-up"
+          className="hidden md:flex items-center px-5 py-2.5 rounded-full bg-[#2D2A70] text-white font-semibold shadow-lg hover:bg-[#1a184a] transition-all"
+        >
+          Sign Up
+        </Link>
+      )}
 
-          {/* Desktop Nav */}
-          <Box
-            sx={{
-              display: { xs: "none", md: "flex" },
-              gap: 3,
-              alignItems: "center",
-            }}
-          >
-            {navItems.map((item) => (
-              <Typography
-                key={item.label}
-                onClick={() => handleScroll(item.href)}
-                sx={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#0F172A",
-                  cursor: "pointer",
-                  position: "relative",
-                  "&:hover": { color: "#4F46E5" },
-                  "&::after": {
-                    content: '""',
-                    position: "absolute",
-                    left: 0,
-                    bottom: -6,
-                    width: 0,
-                    height: 2,
-                    bgcolor: "#4f46e5",
-                    transition: "width .25s ease",
-                  },
-                  "&:hover::after": { width: "100%" },
-                }}
-              >
-                {item.label}
-              </Typography>
-            ))}
-          </Box>
-
-          {/* Actions */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {/* <IconButton variant="plain">
-              <Moon size={18} />
-            </IconButton> */}
-
-            {isAuthenticated ? (
-              /* Show this when Logged In */
-              <a
-                href={(() => {
-                  const isLocal =
-                    window.location.hostname.includes("localhost");
-                  const dashBase = isLocal
-                    ? "dashboard.localhost:5173"
-                    : "dashboard.layemart.com";
-                  const protocol = window.location.protocol;
-
-                  if (user?.role === "SUPER_ADMIN") {
-                    return `${protocol}//${dashBase}/dashboard`;
-                  }
-                  if (user?.role === "OWNER") {
-                    return `${protocol}//${dashBase}/`;
-                  }
-                  return "/"; // Fallback for customers
-                })()}
-                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white  font-semibold shadow-lg hover:bg-[#4F46E5]  transition"
-              >
-                Dashboard
-              </a>
-            ) : (
-              /* Show this when Logged Out */
-              <Link
-                to="/auth/sign-up"
-                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold shadow-lg hover:bg-[#4F46E5] transition"
-              >
-                Sign Up
-              </Link>
-            )}
-
-            <IconButton
-              onClick={() => setOpen(true)}
-              sx={{ display: { xs: "inline-flex", md: "none" } }}
-            >
-              <Menu size={20} />
-            </IconButton>
-          </Box>
-        </Box>
-      </Sheet>
+      <IconButton
+        onClick={() => setOpen(true)}
+        sx={{ display: { xs: "inline-flex", md: "none" }, color: "#2D2A70" }}
+      >
+        <Menu size={24} />
+      </IconButton>
+    </Box>
+  </Box>
+</Sheet>
 
       {/* Mobile Drawer */}
       <Drawer
@@ -205,29 +176,14 @@ export default function SaaSHeader() {
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Box
-                sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "10px",
-                  background: "linear-gradient(135deg, #4f46e5, #6366f1)",
-                  display: "grid",
-                  placeItems: "center",
-                  boxShadow: "0 6px 16px rgba(79,70,229,0.35)",
-                }}
-              >
-                <Rocket size={16} color="#fff" />
-              </Box>
-              <Typography
-                sx={{
-                  fontWeight: 900,
-                  fontSize: 14,
-                  letterSpacing: "0.04em",
-                  color: "#0f172a",
-                }}
-              >
-                LAYEMART
-              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
+      <img 
+        src={Layemart} 
+        alt="Layemart Logo" 
+        className="h-18 w-auto object-contain" // Height adjusted for the pill shape
+        style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.05))" }}
+      />
+    </Box>            
             </Box>
 
             <IconButton onClick={() => setOpen(false)}>
