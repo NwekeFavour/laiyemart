@@ -25,6 +25,7 @@ import {
   ShieldAlert,
   CheckCircle2,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import {
   Box,
   IconButton,
@@ -1196,7 +1197,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
               variant="solid"
               sx={{ p: 2, borderRadius: "20px", mb: 3 }}
             >
-              <Box  sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <div
                   className={`${config.iconBg} p-2 rounded-lg flex items-center justify-center`}
                 >
@@ -1215,7 +1216,9 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                       <span
                         className={`px-2 py-0.5 ${!hasPaidBefore ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"} text-[10px] font-bold rounded-full uppercase tracking-wider`}
                       >
-                        {!hasPaidBefore && !store?.plan === "starter" ? "Trial" : "Active"}
+                        {!hasPaidBefore && !store?.plan === "starter"
+                          ? "Trial"
+                          : "Active"}
                       </span>
                     )}
                   </Box>
@@ -1228,7 +1231,9 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                     <span
                       className={`${isStarter && " hidden"} font-bold ml-1`}
                     >
-                      {isExpired && !store.plan === "starter" ? "Expired on: " : "Next date: "}
+                      {isExpired && !store.plan === "starter"
+                        ? "Expired on: "
+                        : "Next date: "}
                       {new Date(store?.trialEndsAt).toLocaleDateString(
                         "en-GB",
                         {
@@ -1326,11 +1331,11 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
 
           {store?.plan === "starter" && (
             <Box
-              className={`fixed z-20 w-30 mx-auto bottom-2 end-5 md:start-10 transition-all duration-300`}
+              className={`fixed z-20 w-50 mx-auto bottom-2 end-5 md:start-10 transition-all duration-300`}
               sx={{
                 display: "flex",
-                flexDirection: "column",
                 alignItems: "center",
+                justifyContent: "center",
                 px: 2,
                 py: 1,
                 borderRadius: "12px",
@@ -1362,7 +1367,6 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                   // Text color shifts for readability
                   color: isDark ? "#94a3b8" : "#64748b",
                   textTransform: "uppercase",
-                  letterSpacing: "1.5px",
                   mb: 0.3,
                 }}
               >
@@ -1370,42 +1374,11 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
               </Typography>
 
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
-                {/* Animated Logo Mark */}
-                <Box
-                  sx={{
-                    width: 14,
-                    height: 14,
-                    borderRadius: "4px",
-                    background:
-                      "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 2px 6px rgba(37, 99, 235, 0.4)",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: "1px",
-                      bgcolor: "white",
-                    }}
-                  />
-                </Box>
-
-                <Typography
-                  sx={{
-                    fontSize: "11px",
-                    fontWeight: 900,
-                    // LAYEMART text turns white in dark mode
-                    color: isDark ? "#f8fafc" : "#0f172a",
-                    letterSpacing: "0.5px",
-                    fontFamily: "'Inter', sans-serif",
-                  }}
-                >
-                  LAYEMART
-                </Typography>
+                <img
+                  src="https://res.cloudinary.com/dzrfqk1zk/image/upload/v1771239090/layemart-icon-removebg-preview_lh5vom.png"
+                  alt="Layemart Logo"
+                  className="h-16 w-auto object-contain"
+                />
               </Box>
             </Box>
           )}

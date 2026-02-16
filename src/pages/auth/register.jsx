@@ -19,6 +19,8 @@ import {
 } from "../../../services/authService"; // Ensure verifyOTP is exported from your service
 import { toast } from "react-toastify";
 import { useAuthStore } from "../../store/useAuthStore";
+import Layemart from '../../assets/img/layemart-icon.jpg'
+import { Box } from "@mui/joy";
 
 export default function SignUpPage() {
   // 1. New State Management
@@ -222,15 +224,14 @@ export default function SignUpPage() {
       <div className="max-w-5xl w-full grid md:grid-cols-2 bg-white rounded-[32px] shadow-2xl overflow-hidden z-10">
         {/* Left Side: Marketing/Value Prop - Logic added to headline */}
         <div className="hidden md:flex flex-col justify-center p-12 bg-slate-900 text-white relative">
-          <div
-            onClick={() => navigate("/")}
-            className="absolute cursor-pointer top-8 left-8 flex items-center gap-2"
-          >
-            <div className="w-8 h-8 rounded-md bg-red-500" />
-            <span className="font-bold tracking-tight text-lg text">
-              LAYEMART
-            </span>
-          </div>
+          <Box className=" " >
+            <img 
+              src={Layemart} 
+              alt="Layemart Logo" 
+              className="bg-white w-[200px] rounded-xl flex justify-start items-start h-[100px]" // Height adjusted for the pill shape
+              style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.05))" }}
+            />
+          </Box>
 
           <h2 className="lg:text-4xl md:tetx-[26px] text-[24px] font-bold leading-tight mb-6">
             {step === 1

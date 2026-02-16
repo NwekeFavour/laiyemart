@@ -2,6 +2,8 @@ import { CircularProgress } from "@mui/material";
 import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import Layemart from '../assets/img/layemart-icon.jpg'
+
 // This component bridges the gap between domains
 export default function AuthSync() {
   const [searchParams] = useSearchParams();
@@ -36,48 +38,86 @@ export default function AuthSync() {
   }, [searchParams]);
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-white text-slate-900">
-      {/* Top Loading Bar (Stripe-style) */}
-      <motion.div
-        initial={{ width: 0 }}
-        animate={{ width: "100%" }}
-        transition={{ duration: 2, ease: "easeInOut" }}
-        className="fixed top-0 left-0 h-1 bg-red-500 z-50"
-      />
+  <div className="flex flex-col items-center justify-center h-screen bg-[#fafafa] text-slate-900 overflow-hidden">
+    {/* Top Progress Bar - Royal Indigo */}
+    <motion.div
+      initial={{ width: 0 }}
+      animate={{ width: "100%" }}
+      transition={{ duration: 2.5, ease: "easeInOut" }}
+      className="fixed top-0 left-0 h-1 bg-[#2D2A70] z-50 shadow-[0_0_10px_rgba(45,42,112,0.3)]"
+    />
 
-      <div className="flex flex-col items-center gap-6">
-        {/* Minimalist Logo Container */}
-        <div className="relative flex items-center justify-center w-20 h-20">
-          {/* Subtle Outer Glow */}
-          <motion.div
-            animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="absolute inset-0 bg-red-500 rounded-2xl blur-xl"
+    <div className="flex flex-col items-center gap-8">
+      {/* Logo Container */}
+      <div className="relative flex items-center justify-center">
+        
+        {/* Soft Branding Glow */}
+        <motion.div
+          animate={{ 
+            scale: [1, 1.2, 1], 
+            opacity: [0.05, 0.15, 0.05] 
+          }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute h-32 w-32 bg-[#2D2A70] rounded-full blur-3xl"
+        />
+
+        {/* Logo Reveal Animation */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative bg-white p-6 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-50 flex items-center justify-center"
+        >
+          <img 
+            src="https://res.cloudinary.com/dzrfqk1zk/image/upload/v1771239090/layemart-icon-removebg-preview_lh5vom.png" 
+            alt="Layemart Logo" 
+            className="h-16 w-auto object-contain"
           />
-
-          {/* Main Logo Icon */}
-          <div className="relative w-16 h-16 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-center">
-            <span className="text-3xl font-black text-red-500 tracking-tighter">
-              L
-            </span>
-
-            {/* Spinning Ring - Thin and elegant */}
-            <div className="absolute inset-[-4px] border-2 border-transparent border-t-red-500/30 rounded-2xl animate-spin" />
-          </div>
-        </div>
-
-        {/* Text Section */}
-        <div className="text-center space-y-1">
-          <h2 className="text-sm font-bold tracking-[0.2em] text-slate-400 uppercase">
-            Laye<span className="text-slate-900">mart</span>
-          </h2>
-        </div>
+          
+          {/* Animated Orbit Ring */}
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-2 border-[1.5px] border-transparent border-t-[#2D2A70] rounded-[2rem] opacity-40"
+          />
+        </motion.div>
       </div>
 
-      {/* Footer Branding (Optional) */}
-      <div className="absolute bottom-10 text-[10px] text-slate-300 font-medium tracking-widest uppercase">
-        Secure Gateway
-      </div>
+      {/* Modern Text Branding */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="text-center"
+      >
+        <h2 className="text-lg font-black tracking-[0.3em] text-[#2D2A70] uppercase">
+          LAYE<span className="text-slate-400 font-light">MART</span>
+        </h2>
+        <div className="flex justify-center gap-1 mt-3">
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              animate={{ opacity: [0.3, 1, 0.3] }}
+              transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+              className="h-1 w-1 rounded-full bg-[#2D2A70]"
+            />
+          ))}
+        </div>
+      </motion.div>
     </div>
+
+    {/* Footer Detail */}
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 1 }}
+      className="absolute bottom-12 flex flex-col items-center gap-2"
+    >
+      <span className="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase">
+        Commerce Engine
+      </span>
+      <div className="h-[1px] w-8 bg-slate-200" />
+    </motion.div>
+  </div>
   );
 }

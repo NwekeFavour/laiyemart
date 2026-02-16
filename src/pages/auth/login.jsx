@@ -24,6 +24,8 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { loginStoreOwner } from "../../../services/authService";
 import { toast } from "react-toastify";
 import { CircularProgress } from "@mui/material";
+import Layemart from "../../assets/img/layemart-icon.jpg";
+
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -71,27 +73,19 @@ export default function LoginPage() {
         {/* Logo Section */}
         <Box sx={{ textAlign: "center", mb: 2 }}>
           <Box
-            onClick={() => navigate("/")}
-            className="cursor-pointer!"
             sx={{
-              display: "inline-flex",
+              display: "flex",
               alignItems: "center",
-              gap: 1.5,
-              mb: 1,
+              justifyContent: "center",
+              flex: 1,
             }}
           >
-            <div className="w-8 h-8 rounded-md bg-red-500" />
-            <Typography
-              className="text"
-              sx={{
-                fontWeight: 800,
-                fontSize: "18px",
-                letterSpacing: "-0.02em",
-                color: "#0f172a",
-              }}
-            >
-              LAYEMART
-            </Typography>
+            <img
+              src={Layemart}
+              alt="Layemart Logo"
+              className="md:h-24 h-28 w-auto object-contain" // Height adjusted for the pill shape
+              style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.05))" }}
+            />
           </Box>
           <Typography level="h4" component="h1" sx={{ fontWeight: 700 }}>
             Welcome back
@@ -338,7 +332,7 @@ export default function LoginPage() {
                 sx={{
                   color: "#3b82f6",
                   cursor: "pointer",
-                  "&:hover": {textDecoration: "underline neutral.900" },
+                  "&:hover": { textDecoration: "underline neutral.900" },
                 }}
               >
                 <Link
