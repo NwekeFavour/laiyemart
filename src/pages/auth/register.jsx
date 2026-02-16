@@ -224,7 +224,7 @@ export default function SignUpPage() {
       <div className="max-w-5xl w-full grid md:grid-cols-2 bg-white rounded-[32px] shadow-2xl overflow-hidden z-10">
         {/* Left Side: Marketing/Value Prop - Logic added to headline */}
         <div className="hidden md:flex flex-col justify-center p-12 bg-slate-900 text-white relative">
-          <Box className=" " >
+          <Box onClick={() => navigate("/")}  className=" cursor-pointer!" >
             <img 
               src={Layemart} 
               alt="Layemart Logo" 

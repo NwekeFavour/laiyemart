@@ -680,7 +680,7 @@ const LoadingScreen = () => (
       className="absolute bottom-12 flex flex-col items-center gap-2"
     >
       <span className="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase">
-        Commerce Engine
+        Layemart Engine
       </span>
       <div className="h-[1px] w-8 bg-slate-200" />
     </motion.div>
