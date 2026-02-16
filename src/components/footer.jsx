@@ -30,14 +30,14 @@ export default function Footer() {
             Scale without the stress. We handle the tech; you handle the trade.
           </Typography>
           <div className="flex items-center gap-3 mt-2">
-            <Link to="https://x.com/layemart" className="hover:text-blue-500">
-              <X size={20} />
+            <Link to="https://x.com/layemart" className="text-slate-800">
+              <X size={12} className="text-[20px] sm:text-[17px]!" />
             </Link>
-            <Link to="https://www.instagram.com/layemart/" className="hover:text-blue-700">
-              <Instagram size={20} />
+              <Link to="https://www.instagram.com/layemart/" className="text-slate-800">
+              <Instagram className=" text-[20px] sm:text-[17px]!" />
             </Link>
-            <Link to="https://www.facebook.com/layemartcommerce" className="hover:text-blue-700">
-              <Facebook size={20} />
+            <Link to="https://www.facebook.com/layemartcommerce" className="text-slate-800">
+              <Facebook className=" text-[20px] sm:text-[17px]!" />
             </Link>
           </div>
         </div>
