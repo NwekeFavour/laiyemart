@@ -470,6 +470,7 @@ const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
 
         <Footer
           storeName={storeData?.name}
+          storeEmail={storeData?.email}
           storeDescription={storeData?.description}
           storeLogo={storeData?.logo?.url}
           storeId={storeData?._id}

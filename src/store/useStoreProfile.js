@@ -16,18 +16,37 @@ export const useStoreProfileStore = create((set, get) => ({
   // ============================
 
   setStore: (storeData) => set({ store: storeData }),
-  updateStoreProfile: async ({ email, logo, storeType, description, heroFile, heroTitle, heroSubtitle, token }) => {
+  updateStoreProfile: async ({
+    email,
+    logo,
+    storeType,
+    description,
+    heroFile,
+    heroTitle,
+    heroSubtitle,
+    phoneNumber,
+    address,
+    socialLinks,
+    token,
+  }) => {
     set({ loading: true, error: null, success: null });
 
     try {
       const formData = new FormData();
       if (email) formData.append("email", email);
       if (logo) formData.append("logo", logo);
-      if(description) formData.append("description", description);
-      if(heroTitle) formData.append("heroTitle", heroTitle);
-      if(heroSubtitle) formData.append("heroSubtitle", heroSubtitle);
-      if(storeType) formData.append("storeType", storeType);    
+      if (description) formData.append("description", description);
+      if (heroTitle) formData.append("heroTitle", heroTitle);
+      if (heroSubtitle) formData.append("heroSubtitle", heroSubtitle);
+      if (storeType) formData.append("storeType", storeType);
       if (heroFile) formData.append("heroImage", heroFile); // Must match backend field name
+      if (phoneNumber) formData.append("phoneNumber", phoneNumber);
+      if (address) formData.append("address", address);
+
+      // Stringify the object so it can be transmitted via FormData
+      if (socialLinks) {
+        formData.append("socialLinks", JSON.stringify(socialLinks));
+      }
       const res = await fetch(`${API_URL}/api/stores/profile`, {
         method: "PUT",
         headers: {
@@ -68,9 +87,7 @@ export const useStoreProfileStore = create((set, get) => ({
     set({ loading: true, error: null, success: null });
 
     try {
-      const res = await fetch(
-        `${API_URL}/api/stores/verify-email/${token}`
-      );
+      const res = await fetch(`${API_URL}/api/stores/verify-email/${token}`);
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
@@ -86,13 +103,13 @@ export const useStoreProfileStore = create((set, get) => ({
   },
 
   resendStoreVerification: async (email) => {
-    const {token} = useAuthStore.getState()
+    const { token } = useAuthStore.getState();
     const response = await fetch(`${API_URL}/api/stores/resend-verification`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        "Authorization" : `Bearer ${token}`
-       },
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ email }),
     });
     return response.json();

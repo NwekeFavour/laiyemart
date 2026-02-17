@@ -457,13 +457,14 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                   >
                     {/* Dynamic Text Display */}
                     {store.plan === "starter"
-                      ? `layemart.com/${store?.slug || store?.subdomain || "myshop"}`
+                      ? `layemart.com/${store?.subdomain ? store?.subdomain : store?.slug}`
                       : `${store?.slug || store?.subdomain || "shop"}.layemart.com`}
                     <ExternalLink size={14} className="mb-0.5" />
                   </a>
                 </Typography>
               ) : (
                 <Typography
+                 className={`${isDark ? "text-[#df9541]!" : ""}`}
                   level="body-sm"
                   sx={{
                     fontWeight: 500,
@@ -482,6 +483,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
               {/* Conditional Helper Text */}
               {!store?.isOnboarded && (
                 <Typography
+                 className={`${isDark ? "text-[#df9541]!" : ""}`}
                   level="body-xs"
                   sx={{
                     width: "100%",

@@ -5,6 +5,7 @@ import {
   FaInstagram,
   FaTwitter,
   FaPinterest,
+  FaEnvelope,
 } from "react-icons/fa";
 import { Link } from "react-router-dom"; // Use Link for internal routing
 import { useCategoryStore } from "../../../../services/categoryService";
@@ -15,6 +16,7 @@ const Footer = ({
   storeName,
   storeLogo,
   storeDescription,
+  storeEmail,
   storeId,
   storeSlug,
   isStarter,
@@ -56,6 +58,14 @@ const Footer = ({
           </p>
         </div>
 
+        {storeEmail && (
+            <div className="flex items-center gap-2 text-gray-400 hover:text-white transition text-sm">
+              <FaEnvelope size={12} className="shrink-0" />
+              <a href={`mailto:${storeEmail}`} className="truncate">
+                {storeEmail}
+              </a>
+            </div>
+          )}
         {/* Dynamic Shop Links using State */}
         <div>
           <h4 className="font-semibold mb-3 text-white">Shop</h4>

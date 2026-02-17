@@ -520,7 +520,7 @@ function Home(props) {
                       className={`px-6 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1 ${
                         billing === "monthly"
                           ? "bg-[#4f46e5] text-white shadow-md"
-                          : "bg-transparent text-gray-500 hover:bg-indigo-100 hover:text-[#4f46e5]/20"
+                          : "bg-transparent text-gray-500 hover:bg-indigo-100 hover:text-[#4f46e5]/90"
                       }`}
                     >
                       Monthly
@@ -531,7 +531,7 @@ function Home(props) {
                       className={`px-6 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1 ${
                         billing === "yearly"
                           ? "bg-[#4f46e5] text-white shadow-md"
-                          : "bg-transparent text-gray-500 hover:bg-indigo-100 hover:text-[#4f46e5]/20"
+                          : "bg-transparent text-gray-500 hover:bg-indigo-100 hover:text-[#4f46e5]/90"
                       }`}
                     >
                       Yearly
@@ -958,15 +958,33 @@ function PricingCard({
   mostPopular = false,
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [coupons, setCoupons] = useState([]);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-  const [formData, setFormData] = useState({ 
-    fullName: "", 
-    userEmail: "", // The email they want to be contacted on
-    details: "", 
-    budget: "₦500k - ₦1M", 
-    timeline: "2-4 Weeks" 
-});
+  const [formData, setFormData] = useState({
+    fullName: "",
+    userEmail: "",
+    details: "",
+    budget: "₦500k - ₦1M",
+    timeline: "2-4 Weeks",
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ✅ Fetch coupons on mount
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/coupon/`);
+        const data = await res.json();
+        if (data.success) setCoupons(data.coupons);
+      } catch (err) {
+        // silently fail — coupons are optional
+      }
+    };
+    fetchCoupons();
+  }, []);
+
+  console.log(coupons)
+
   const handleAction = (selectedPlan) => {
     if (selectedPlan === "Enterprise" || title === "Enterprise") {
       setIsModalOpen(true);
@@ -978,36 +996,17 @@ function PricingCard({
   const handlePay = async (selectedPlan) => {
     try {
       const { user, token, store } = useAuthStore.getState();
-
-      if (!token || !user) {
-        window.location.href = "/auth/sign-up";
-        return;
-      }
-
-      if (!store?._id) {
-        toast.error("No active store selected");
-        return;
-      }
+      if (!token || !user) { window.location.href = "/auth/sign-up"; return; }
+      if (!store?._id) { toast.error("No active store selected"); return; }
 
       const amount =
-        selectedPlan === "Starter"
-          ? 29000
-          : selectedPlan === "Professional"
-            ? 99000
-            : 299000;
+        selectedPlan === "Starter" ? 29000 :
+        selectedPlan === "Professional" ? 99000 : 299000;
 
       const res = await fetch(`${BACKEND_URL}/api/paystack/init`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          email: user.email,
-          plan: "PAID",
-          amount,
-          storeId: store._id,
-        }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ email: user.email, plan: "PAID", amount, storeId: store._id }),
       });
 
       const data = await res.json();
@@ -1018,65 +1017,39 @@ function PricingCard({
     }
   };
 
-const handleContactSubmit = async (e) => {
-  e.preventDefault();
-  
-  // Basic validation since we aren't relying on a logged-in user's data
-  if (!formData.userEmail || !formData.fullName) {
-    toast.error("Please provide your name and email");
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/api/auth/contact-sales`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // 🔓 No Authorization header needed anymore
-        },
-        body: JSON.stringify({
-          fullName: formData.fullName,
-          userEmail: formData.userEmail,
-          details: formData.details,
-          budget: formData.budget,
-          timeline: formData.timeline,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (response.ok) {
-      toast.success("Message sent! We will contact you at " + formData.userEmail);
-      setIsModalOpen(false);
-      setFormData({
-        fullName: "",
-        userEmail: "",
-        details: "",
-        budget: "₦500k - ₦1M",
-        timeline: "2-4 Weeks",
-      });
-    } else {
-      throw new Error(data.message || "Failed to send inquiry");
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.userEmail || !formData.fullName) {
+      toast.error("Please provide your name and email");
+      return;
     }
-  } catch (err) {
-    toast.error(err.message || "Connection failed. Please try again.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/auth/contact-sales`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        toast.success("Message sent! We will contact you at " + formData.userEmail);
+        setIsModalOpen(false);
+        setFormData({ fullName: "", userEmail: "", details: "", budget: "₦500k - ₦1M", timeline: "2-4 Weeks" });
+      } else {
+        throw new Error(data.message || "Failed to send inquiry");
+      }
+    } catch (err) {
+      toast.error(err.message || "Connection failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <>
       <div
         className={`bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm h-full md:w-full w-80 sm:w-100 mx-auto relative transition-all duration-300 group hover:border-[#4f46e5] ${
-          mostPopular
-            ? "shadow-2xl scale-105 border-[#4f46e5]"
-            : "border-slate-100"
+          mostPopular ? "shadow-2xl scale-105 border-[#4f46e5]" : "border-slate-100"
         }`}
       >
         {mostPopular && (
@@ -1089,10 +1062,7 @@ const handleContactSubmit = async (e) => {
 
         <div className="text-center px-6 py-6">
           <div className="sm:text-2xl text-[30px] font-bold">{title}</div>
-          <div className="text-sm text-muted-foreground mb-5">
-            {description}
-          </div>
-
+          <div className="text-sm text-muted-foreground mb-5">{description}</div>
           <div className="flex items-end justify-center">
             <span className="lg:text-[40px] md:text-[38px] text-[30px] font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               {billing === "monthly" ? monthly : yearly}
@@ -1106,6 +1076,21 @@ const handleContactSubmit = async (e) => {
         </div>
 
         <div className="px-6 space-y-4 flex-1">
+
+          {/* ✅ COUPONS — above features list */}
+            {coupons
+    .slice(0, 1) // show only the best/first coupon
+    .map((coupon) => (
+     <span
+  key={coupon._id}
+  className="absolute -top-5 right-0 inline-flex items-center gap-1 font-bold bg-indigo-600 text-green-100 text-[10px] font-bold px-2 py-0.5 rounded-full border border-indigo-600"
+>
+  🏷️ {coupon.discountType === "percentage"
+    ? `${coupon.discountPercent}% OFF`
+    : `${coupon.discountPercent?.toLocaleString()}% OFF`}
+</span>
+    ))}
+
           <ul className="space-y-3">
             {features.map((feature, idx) => (
               <li key={idx} className="flex items-center text-sm">
@@ -1130,119 +1115,57 @@ const handleContactSubmit = async (e) => {
         </div>
       </div>
 
-      {/* --- CUSTOM MODAL --- */}
-      {/* --- CUSTOM MODAL --- */}
+      {/* MODAL — unchanged */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-slate-900">
-                  Custom Website Request
-                </h3>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
+                <h3 className="text-xl font-bold text-slate-900">Custom Website Request</h3>
+                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
                   <X size={24} />
                 </button>
               </div>
-
               <p className="text-sm text-gray-500 mb-6">
-                Tell us about your project and we’ll build a unique e-commerce
-                experience for your brand.
+                Tell us about your project and we'll build a unique e-commerce experience for your brand.
               </p>
-
-              {/* Updated to use your actual handleContactSubmit function */}
               <form className="space-y-4" onSubmit={handleContactSubmit}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-  <div>
-    <label className="block text-xs font-semibold uppercase text-gray-400 mb-1">Full Name</label>
-    <input 
-      type="text"
-      className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#4f46e5] outline-none"
-      value={formData.fullName}
-      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-      placeholder="John Doe"
-      required
-    />
-  </div>
-  <div>
-    <label className="block text-xs font-semibold uppercase text-gray-400 mb-1">Contact Email</label>
-    <input 
-      type="email"
-      className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#4f46e5] outline-none"
-      value={formData.userEmail}
-      onChange={(e) => setFormData({ ...formData, userEmail: e.target.value })}
-      placeholder="john@example.com"
-      required
-    />
-  </div>
-</div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-gray-400 mb-1">
-                    Project Details
-                  </label>
-                  <textarea
-                    className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#4f46e5] outline-none transition-all"
-                    rows="4"
-                    value={formData.details}
-                    onChange={(e) =>
-                      setFormData({ ...formData, details: e.target.value })
-                    }
-                    placeholder="E.g. I need a custom theme, wholesale features, and SAP integration..."
-                    required
-                  ></textarea>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase text-gray-400 mb-1">Full Name</label>
+                    <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#4f46e5] outline-none" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} placeholder="John Doe" required />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase text-gray-400 mb-1">Contact Email</label>
+                    <input type="email" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#4f46e5] outline-none" value={formData.userEmail} onChange={(e) => setFormData({ ...formData, userEmail: e.target.value })} placeholder="john@example.com" required />
+                  </div>
                 </div>
-
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-gray-400 mb-1">Project Details</label>
+                  <textarea className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#4f46e5] outline-none transition-all" rows="4" value={formData.details} onChange={(e) => setFormData({ ...formData, details: e.target.value })} placeholder="E.g. I need a custom theme, wholesale features, and SAP integration..." required></textarea>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold uppercase text-gray-400 mb-1">
-                      Estimated Budget
-                    </label>
-                    <select
-                      className="w-full border border-slate-200 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#4f46e5]"
-                      value={formData.budget}
-                      onChange={(e) =>
-                        setFormData({ ...formData, budget: e.target.value })
-                      }
-                    >
+                    <label className="block text-xs font-semibold uppercase text-gray-400 mb-1">Estimated Budget</label>
+                    <select className="w-full border border-slate-200 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#4f46e5]" value={formData.budget} onChange={(e) => setFormData({ ...formData, budget: e.target.value })}>
                       <option>₦500k - ₦1M</option>
                       <option>₦1M - ₦5M</option>
                       <option>₦5M+</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold uppercase text-gray-400 mb-1">
-                      Timeline
-                    </label>
-                    <select
-                      className="w-full border border-slate-200 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#4f46e5]"
-                      value={formData.timeline}
-                      onChange={(e) =>
-                        setFormData({ ...formData, timeline: e.target.value })
-                      }
-                    >
+                    <label className="block text-xs font-semibold uppercase text-gray-400 mb-1">Timeline</label>
+                    <select className="w-full border border-slate-200 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-[#4f46e5]" value={formData.timeline} onChange={(e) => setFormData({ ...formData, timeline: e.target.value })}>
                       <option>2-4 Weeks</option>
                       <option>1-3 Months</option>
                       <option>3+ Months</option>
                     </select>
                   </div>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-[#4f46e5] text-white py-3 rounded-lg font-bold hover:bg-[#4f46e5]/90 transition-all disabled:bg-slate-300 disabled:cursor-not-allowed flex justify-center items-center gap-2"
-                >
+                <button type="submit" disabled={isSubmitting} className="w-full bg-[#4f46e5] text-white py-3 rounded-lg font-bold hover:bg-[#4f46e5]/90 transition-all disabled:bg-slate-300 disabled:cursor-not-allowed flex justify-center items-center gap-2">
                   {isSubmitting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    "Send Inquiry"
-                  )}
+                    <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Sending...</>
+                  ) : "Send Inquiry"}
                 </button>
               </form>
             </div>

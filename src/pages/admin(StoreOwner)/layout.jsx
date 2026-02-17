@@ -329,6 +329,170 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
       path: "/settings", // Changed from /dashboard/settings
     },
   ];
+  const [showOnboarding, setShowOnboarding] = useState(true);
+// Move this ENTIRE function above your "export default function StoreOwnerLayout"
+const OnboardingChecklist = ({ isDark, user, store }) => {
+  const navigate = useNavigate();
+  const [isDismissed, setIsDismissed] = useState(
+    localStorage.getItem("dismissOnboarding") === "true"
+  );
+
+  const shouldShow = !isDismissed && (!store?.paystack?.verified || !user?.is2FAEnabled);
+
+  if (!shouldShow) return null;
+
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    localStorage.setItem("dismissOnboarding", "true");
+  };
+
+  const tasks = [
+    {
+      task: "Secure your account with 2FA",
+      done: !!user?.is2FAEnabled,
+      link: "/settings?section=security",
+    },
+    {
+      task: "Verify your business (Paystack)",
+      done: !!store?.paystack?.verified,
+      link: "/settings?section=bank-details",
+    },
+  ];
+
+  return (
+<Box 
+  sx={{ 
+    position: "fixed", 
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0, 
+    width: "100vw", 
+    height: "100vh", 
+    zIndex: 10000, // Highest priority
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    // Premium Backdrop
+    bgcolor: isDark ? "rgba(2, 6, 23, 0.8)" : "rgba(241, 245, 249, 0.8)", 
+    backdropFilter: "blur(12px)", 
+  }}
+>
+  <Box 
+    sx={{ 
+      width: "90%", 
+      maxWidth: 500, 
+      p: 4, 
+      borderRadius: "32px", 
+      bgcolor: isDark ? "#1e293b" : "white", 
+      border: "1px solid", 
+      borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "slate.200", 
+      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+      position: "relative",
+      textAlign: "center"
+    }}
+  >
+    {/* Close Button at top right of the card */}
+    <IconButton 
+      size="sm" 
+      variant="soft" 
+      color="neutral" 
+      onClick={handleDismiss} 
+      sx={{ position: "absolute", top: 20, right: 20, borderRadius: "50%" }}
+    >
+      <X size={18} />
+    </IconButton>
+
+    {/* Header Section */}
+    <Box sx={{ mb: 4 }}>
+      <Typography className={`${isDark ? "text-[#cad5e2]!" : "text-slate-80/90!"} sm:text-[24px]! text-[22px]!`} level="h3" sx={{ fontWeight: 800, mb: 1 }}>
+        Let's get you ready 🚀
+      </Typography>
+      <Typography sx={{ color: "neutral.500", fontSize: "14px" }}>
+        Complete these steps to start accepting payments.
+      </Typography>
+    </Box>
+
+    {/* Catchy Task List */}
+    <Stack spacing={2}>
+      {tasks.map((item, idx) => (
+        <Box 
+          key={idx} 
+          onClick={() => {!item.done && navigate(item.link), handleDismiss}} 
+          sx={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: 2.5, 
+            p: 2.5, 
+            borderRadius: "20px", 
+            border: "2px solid", 
+            cursor: !item.done ? "pointer" : "default",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            // Dynamic Borders & Bg
+            borderColor: item.done 
+              ? (isDark ? "rgba(16, 185, 129, 0.2)" : "#ecfdf5") 
+              : (isDark ? "#334155" : "#f1f5f9"),
+            bgcolor: item.done 
+              ? (isDark ? "rgba(16, 185, 129, 0.05)" : "#f0fdf4") 
+              : "transparent",
+            "&:hover": {
+              transform: !item.done ? "translateY(-2px)" : "none",
+              borderColor: !item.done && "#3b82f6",
+              boxShadow: !item.done && "0 10px 15px -3px rgba(59, 130, 246, 0.1)"
+            }
+          }}
+        >
+          {/* Catchy Status Icon */}
+          <Box 
+            sx={{ 
+              width: 40, 
+              height: 40, 
+              borderRadius: "12px", 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center",
+              transition: "all 0.3s",
+              bgcolor: item.done ? "#10b981" : (isDark ? "#334155" : "#f1f5f9"),
+              color: item.done ? "white" : (isDark ? "slate.200" : "#64748b")
+            }}
+          >
+            {item.done ? <CheckCircle2 size={22} /> : (idx + 1)}
+          </Box>
+
+          <Box sx={{ textAlign: "left", flex: 1 }}>
+            <Typography className={`${isDark ? "text-slate-300/90!": "text-slate-800/90!"}`} sx={{ 
+              fontSize: "16px", 
+              fontWeight: 700, 
+              textDecoration: item.done ? "line-through" : "none" 
+            }}>
+              {item.task}
+            </Typography>
+            {!item.done && (
+              <Typography sx={{ fontSize: "12px", color: "#3b82f6", fontWeight: 600 }}>
+                Action Required →
+              </Typography>
+            )}
+          </Box>
+        </Box>
+      ))}
+    </Stack>
+
+    <Button 
+      className={`${isDark ? "text-[#cad5e2]!" : "text-slate-900!"}`}
+      fullWidth 
+      variant="plain" 
+      onClick={handleDismiss} 
+      sx={{ mt: 3,  fontWeight: 600 }}
+    >
+      I'll do this later
+    </Button>
+  </Box>
+</Box>
+  );
+};
+// If all tasks are done, you might want to hide it automatically, 
+// but the 'close' button gives the user manual control.
+if (!showOnboarding) return null;
   useEffect(() => {
     if (!localStorage.getItem("layemart-auth")) {
       navigate("/auth/sign-in");
@@ -519,6 +683,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
       {/* Logout Footer */}
       <Box sx={{ pt: 2, borderTop: "1px solid #f1f5f9" }}>
         <Button
+          className={`${isDark ? "text-[#cad5e2]!" : "text-slate-80/90!"}`}
           onClick={() => setIsLogoutModalOpen(true)}
           variant="plain"
           color="danger"
@@ -800,7 +965,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
             }}
           >
             {!isCollapsed && (
-              <Typography sx={{ fontWeight: 600, fontSize: "14px", ml: 1 }}>
+              <Typography className={`${isDark ? "text-[#cad5e2]!" : "text-slate-800/90!"}`} sx={{ fontWeight: 600, fontSize: "14px", ml: 1 }}>
                 Log out
               </Typography>
             )}
@@ -1328,6 +1493,11 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
               )}
             </Sheet>
           )}
+          <OnboardingChecklist 
+    isDark={isDark} 
+    user={user} 
+    store={store} 
+  />
 
           {store?.plan === "starter" && (
             <Box
@@ -1337,11 +1507,10 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
                 alignItems: "center",
                 justifyContent: "center",
                 px: 2,
-                py: 1,
                 borderRadius: "12px",
                 // Glassmorphism logic based on isDark
                 bgcolor: isDark
-                  ? "rgba(15, 23, 42, 0.7)"
+                  ? "#cad5e2"
                   : "rgba(255, 255, 255, 0.7)",
                 backdropFilter: "blur(10px)",
                 border: "1px solid",
@@ -1361,6 +1530,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
               }}
             >
               <Typography
+               className={`${isDark ? "text-slate-900!" : "text-slate-800/90!"}`}
                 sx={{
                   fontSize: "8px",
                   fontWeight: 800,
