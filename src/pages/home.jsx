@@ -16,12 +16,16 @@ import {
 } from "lucide-react";
 import Footer from "../components/footer";
 import Account from "./admin(demo)/account";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { toast } from "react-toastify";
+import { Container } from "@mui/material";
+import { copy } from "../../lib/copy";
+import { cn } from "../../lib/cn";
 
 function Home(props) {
   const [openIndex, setOpenIndex] = useState(null);
+  const navigate = useNavigate()
   const [mode, setMode] = useState(false);
   const [demo, setDemo] = useState(null);
   const [billing, setBilling] = useState("yearly");
@@ -324,179 +328,120 @@ function Home(props) {
               </Link>
             </div>
           </Box>
-          <section id="product" className="md:py-0 py-10 bg-background">
-            <div className="container mx-auto px-6">
-              {/* Header */}
-              <div className="flex items-center justify-center flex-col text-center gap-5 mb-16">
-                <div className="py-1 text-indigo-600 font-semibold border-b-2 border-indigo-600 mb-1.5">
-                  Platform Capabilities
-                </div>
-                <h2 className="text-[22px] md:text-3xl font-bold text-foreground">
-                  Everything You Need to Launch Your Store
-                </h2>                
+          <section className="relative py-section md:py-section-lg bg-gradient-to-b from-[#f3f4ff] to-[#ffffff] overflow-hidden">
+  {/* Background Blobs for Elegance */}
+  <span className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full bg-indigo-100/30 blur-3xl opacity-50"></span>
+  <span className="absolute bottom-[-10%] right-[-10%] w-[35%] h-[35%] rounded-full bg-blue-100/30 blur-3xl opacity-60"></span>
+
+  <Container>
+    {/* Header */}
+    <SectionHeading
+      eyebrow="The Problem"
+      title={copy.problem.title}
+      description={copy.problem.lead}
+      align="center"
+      className="mb-16"
+    />
+
+    {/* Conversation Flow Cards */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+      {copy.problem.conversationFlow.map((item, index) => (
+        <motion.div
+          key={item}
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: index * 0.1 }}
+          whileHover={{ y: -3, scale: 1.01 }}
+          className="relative group rounded-3xl border border-neutral-200/10 bg-white/90 p-6 md:p-8 shadow-md hover:shadow-lg transition-all overflow-hidden"
+        >
+          {/* Accent Circle */}
+          <span className="absolute -top-5 -left-5 h-12 w-12 rounded-full bg-gradient-to-tr from-indigo-200 to-blue-200 opacity-20"></span>
+
+          {/* Text */}
+          <p className="text-body font-medium text-neutral-900">{item}</p>
+        </motion.div>
+      ))}
+    </div>
+
+    {/* Problem Bullets */}
+    <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+      {copy.problem.bullets.map((bullet, index) => (
+        <motion.div
+          key={bullet}
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: index * 0.12 }}
+          whileHover={{ y: -2, scale: 1.01 }}
+          className="relative group rounded-3xl border border-neutral-200/10 bg-white/90 p-6 md:p-8 shadow-md hover:shadow-lg transition-all overflow-hidden flex items-start gap-3"
+        >
+          {/* Bullet Accent Dot */}
+          <span className="flex-shrink-0 h-3 w-3 mt-1 rounded-full bg-blue-500"></span>
+
+          <p className="text-body text-neutral-800 font-semibold">{bullet}</p>
+        </motion.div>
+      ))}
+    </div>
+
+    {/* Close Text */}
+    <p className="mt-12 text-body fst-italic font-semibold text-neutral-900 max-w-3xl mx-auto text-center">
+      {copy.problem.close}
+    </p>
+  </Container>
+</section>
+
+
+   <section className="py-section md:py-section-lg bg-neutral-50">
+      <Container>
+        {/* Header */}
+        <SectionHeading
+          eyebrow="The Solution"
+          title={copy.solution.title}
+          description={copy.solution.lead}
+          align="center"
+          className="mb-16"
+        />
+
+        {/* Solution Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {copy.solution.bullets.map((item, index) => (
+            <motion.div
+              key={item}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              whileHover={{ y: -2 }}
+              className="relative rounded-2xl bg-white border-none p-6 md:p-8 shadow-sm hover:shadow-lg transition-all overflow-hidden"
+            >
+              {/* Optional Icon */}
+              <div className="flex items-center justify-center w-12 h-12 mb-4 rounded-lg bg-green-50">
+                <CheckCircle2 className="w-6 h-6 text-[#4f46e5]" />
               </div>
 
-              {/* Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-                {/* Feature 1: Quick Store Setup */}
-                <div className="group">
-                  <div className="flex flex-col gap-6 rounded-xl h-full bg-background border shadow-sm border-slate-200 transition-all duration-500 p-8 relative overflow-hidden hover:shadow-lg hover:border-blue-500">
-                    <div className="flex items-start justify-between mb-8">
-                      <div className="size-12 rounded-full flex items-center justify-center bg-blue-100/40 dark:bg-blue-950/40 group-hover:scale-110 transition-all duration-500">
-                        <svg
-                          className="size-5 text-blue-600"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M3 3h18v18H3V3z" />
-                          <path d="M3 9h18" />
-                        </svg>
-                      </div>
+              {/* Card Text */}
+              <p className="text-body text-neutral-900 font-semibold">{item}</p>
+            </motion.div>
+          ))}
+        </div>
 
-                      <div className="text-right">
-                        <div className="text-2xl font-semibold">
-                          Launch Fast
-                        </div>
-                        <div className="text-sm text-muted-foreground uppercase tracking-wide">
-                          Setup Time
-                        </div>
-                      </div>
-                    </div>
+        {/* CTA */}
+        <div className="mt-12 flex flex-col items-center text-center gap-4">
+          <p className="text-body text-neutral-900 font-semibold max-w-2xl">
+            {copy.solution.close}
+          </p>
+          <Button
+            onClick={() => navigate("/auth/sign-up")}
+            className="px-10! py-3!  text-lg bg-[#4f46e5]! md:text-[17px]! text-[16px]! mb-7!"
+          >
+            {copy.ctas.createStore}
+          </Button>
+        </div>
+      </Container>
+    </section>
 
-                    <h3 className="text-2xl font-bold mb-6">
-                      Quick Store Setup
-                    </h3>
-                    <p className="text-muted-foreground font-medium leading-relaxed">
-                      Create your online store in minutes with pre-configured
-                      settings, product pages, and payment options—no technical
-                      skills needed.
-                    </p>
 
-                    <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-50/0 to-slate-100/0 group-hover:from-slate-50/30 group-hover:to-slate-100/10 dark:from-slate-900/0 dark:to-slate-800/0 transition-all duration-500 pointer-events-none"></div>
-                  </div>
-                </div>
-
-                {/* Feature 2: Prebuilt Templates */}
-                <div className="group">
-                  <div className="flex flex-col gap-6 rounded-xl h-full bg-background border shadow-sm border-slate-200 transition-all duration-500 p-8 relative overflow-hidden hover:shadow-lg hover:border-red-500">
-                    <div className="flex items-start justify-between mb-8">
-                      <div className="size-12 rounded-full flex items-center justify-center bg-red-100/40 dark:bg-red-950/40 group-hover:scale-110 transition-all duration-500">
-                        <svg
-                          className="size-5 text-red-600"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M12 2l8 4v6c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V6z" />
-                        </svg>
-                      </div>
-
-                      <div className="text-right">
-                        <div className="text-2xl font-semibold">
-                          Professional
-                        </div>
-                        <div className="text-sm text-muted-foreground uppercase tracking-wide">
-                          Designs
-                        </div>
-                      </div>
-                    </div>
-
-                    <h3 className="text-2xl font-bold mb-6">
-                      Prebuilt Templates
-                    </h3>
-                    <p className="text-muted-foreground font-medium leading-relaxed">
-                      Choose from a library of beautifully designed templates
-                      optimized for sales and mobile experience.
-                    </p>
-
-                    <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-red-600 to-red-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-50/0 to-slate-100/0 group-hover:from-slate-50/30 group-hover:to-slate-100/10 dark:from-slate-900/0 dark:to-slate-800/0 transition-all duration-500 pointer-events-none"></div>
-                  </div>
-                </div>
-
-                {/* Feature 3: Integrations */}
-                <div className="group">
-                  <div className="flex flex-col gap-6 rounded-xl h-full bg-background border shadow-sm border-slate-200 transition-all duration-500 p-8 relative overflow-hidden hover:shadow-lg hover:border-emerald-500">
-                    <div className="flex items-start justify-between mb-8">
-                      <div className="size-12 rounded-full flex items-center justify-center bg-emerald-100/40 dark:bg-emerald-950/40 group-hover:scale-110 transition-all duration-500">
-                        <svg
-                          className="size-5 text-emerald-600 flex! items-center! justify-center!"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                          viewBox="0 0 24 24"
-                        >
-                          <circle cx="9" cy="7" r="4" />
-                          <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
-                        </svg>
-                      </div>
-
-                      <div className="text-right">
-                        <div className="text-2xl font-semibold">Seamless</div>
-                        <div className="text-sm text-muted-foreground uppercase tracking-wide">
-                          Integrations
-                        </div>
-                      </div>
-                    </div>
-
-                    <h3 className="text-2xl font-bold mb-6">
-                      Seamless Integrations
-                    </h3>
-                    <p className="text-muted-foreground font-medium leading-relaxed">
-                      Connect payment gateways, shipping providers, and
-                      marketing tools effortlessly to streamline store
-                      management.
-                    </p>
-
-                    <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-50/0 to-slate-100/0 group-hover:from-slate-50/30 group-hover:to-slate-100/10 dark:from-slate-900/0 dark:to-slate-800/0 transition-all duration-500 pointer-events-none"></div>
-                  </div>
-                </div>
-
-                {/* Feature 4: Analytics */}
-                <div className="group">
-                  <div className="flex flex-col gap-6 rounded-xl h-full bg-background border shadow-sm border-slate-200 transition-all duration-500 p-8 relative overflow-hidden hover:shadow-lg hover:border-amber-500">
-                    <div className="flex items-start justify-between mb-8">
-                      <div className="size-12 rounded-full flex items-center justify-center bg-amber-100/40 dark:bg-amber-950/30 group-hover:scale-110 transition-all duration-500">
-                        <svg
-                          className="size-5 text-amber-600"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M3 3v18h18" />
-                          <path d="M18 17V9M13 17V5M8 17v-3" />
-                        </svg>
-                      </div>
-
-                      <div className="text-right">
-                        <div className="text-2xl font-semibold">Actionable</div>
-                        <div className="text-sm text-muted-foreground uppercase tracking-wide">
-                          Insights
-                        </div>
-                      </div>
-                    </div>
-
-                    <h3 className="text-2xl font-bold mb-6">
-                      Analytics & Insights
-                    </h3>
-                    <p className="text-muted-foreground font-medium leading-relaxed">
-                      Track sales, customer behavior, and marketing performance
-                      with real-time analytics for smarter business decisions.
-                    </p>
-
-                    <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-50/0 to-slate-100/0 group-hover:from-slate-50/30 group-hover:to-slate-100/10 dark:from-slate-900/0 dark:to-slate-800/0 transition-all duration-500 pointer-events-none"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
           <section id="pricing" className="py-24 bg-background! ">
             <div className="container md:mx-auto lg:px-6">
               {/* Header */}
@@ -1175,3 +1120,59 @@ function PricingCard({
     </>
   );
 }
+
+
+export const SectionHeading = ({
+  eyebrow,
+  title,
+  description,
+  align = "left",
+  tone = "default",
+  action,
+  className,
+}) => {
+  const aligned = align === "center";
+  const inverse = tone === "inverse";
+
+  return (
+    <header
+      className={cn(
+        "mt-10 flex flex-col gap-4",
+        aligned ? "items-center text-center" : "items-start text-left",
+        className
+      )}
+    >
+      {eyebrow && (
+        <p
+          className={cn(
+            "rounded-pill px-3 pt-6 text-indigo-600  border-b-2 border-indigo-600 py-1 text-small font-semibold capitalize tracking-wide",
+            inverse
+              ? "bg-neutral-0/15 text-neutral-0"
+              : "bg-accent-200 text-primary-800"
+          )}
+        >
+          {eyebrow}
+        </p>
+      )}
+      <h2
+        className={cn(
+          "max-w-3xl text-h2 text-[#0F172A]! text-[20px]! md:text-3xl! font-bold mx- text-foreground",
+          inverse ? "text-neutral-0" : "text-neutral-900"
+        )}
+      >
+        {title}
+      </h2>
+      {description && (
+        <p
+          className={cn(
+            "max-w-3xl text-body",
+            inverse ? "text-neutral-100" : "text-neutral-600"
+          )}
+        >
+          {description}
+        </p>
+      )}
+      {action}
+    </header>
+  );
+};
