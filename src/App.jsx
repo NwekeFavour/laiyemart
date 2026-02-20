@@ -79,6 +79,7 @@ function App() {
     () => localStorage.getItem("theme") === "dark",
   );
 
+  const [showConstruction, setShowConstruction] = useState(true)
   const toggleDarkMode = (checked) => {
     setIsDark(checked);
     localStorage.setItem("theme", checked ? "dark" : "light");
@@ -256,15 +257,18 @@ function App() {
     }
   };
   // Handle Under Construction state for Subdomain Stores
-  if (isStorefront && storeData?.isOnboarded === false) {
+  // if (isStorefront && storeData?.isOnboarded === false) {
+  if (showConstruction) {
     return (
       <>
         <Helmet>
-          <title>{storeData.name} | Coming Soon</title>
+          {/* <title>{storeData.name} | Coming Soon</title> */}
         </Helmet>
         <UnderConstructionState
-          storeName={storeData.name}
-          storeLogo={storeData.logo?.url}
+          // storeName={storeData?.name || "Layemart Commerce"}
+          // storeLogo={storeData?.logo?.url || ""}
+          storeName={"Layemart Commerce"}
+          storeLogo={""}
         />
       </>
     );
