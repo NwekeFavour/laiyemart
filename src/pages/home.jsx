@@ -1507,7 +1507,7 @@ const PricingCard = ({
 
         {/* Coupon Badge */}
         {coupons.length > 0 && (
-          <span className="absolute top-4 right-4 inline-flex items-center gap-1 font-bold bg-indigo-50 text-[#4f46e5] text-[10px] px-2 py-1 rounded-lg border border-indigo-100 animate-pulse">
+          <span className={`absolute top-4 right-4 inline-flex items-center gap-1 font-bold bg-indigo-50 text-[#4f46e5] text-[10px] px-2 py-1 rounded-lg border border-indigo-100 animate-pulse ${title === "Professional" ? "block!" : "hidden!"}`}>
             🏷️{" "}
             {coupons[0].discountType === "percentage"
               ? `${coupons[0].discountPercent}% OFF`
