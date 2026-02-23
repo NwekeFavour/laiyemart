@@ -14,7 +14,7 @@ export default function Footer() {
     el.scrollIntoView({ behavior: "smooth" });
   };
   return (
-    <Box component="footer" className="bg-neutral-100 md:py-6! py-4! text-[#0F172A]!">
+    <Box component="footer" className="bg-neutral-100 md:pt-12! md:pb-0! py-4! text-[#0F172A]!">
       <div className="container mx-auto px-4 grid! grid-cols-1! md:grid-cols-3! gap-10!">
         {/* BRAND */}
         <div className="flex flex-col gap-3">
