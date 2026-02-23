@@ -224,6 +224,7 @@ const pricingData = [
       "Advanced templates & layouts",
       "Marketing tools & SEO",
       "3% Service fee",
+      "Domain Name Integration (T&Cs applied) ",
       "Payment integration",
       "Priority email support",
     ],
@@ -1099,7 +1100,7 @@ const pricingData = [
               </Link>
             </div>
           </section>
-                    <section id="faq" className="py-16 bg-gray-50">
+                    <section id="faqs" className="py-16 bg-gray-50">
             <div className="max-w-5xl mx-auto px-4">
               <h2 className="lg:text-[46px]! md:text-[38px]! text-[26px]! font-bold! text-center mb-10">
                 Frequently Asked Questions
@@ -1518,10 +1519,13 @@ const PricingCard = ({
 
         {/* Coupon Badge */}
         {title === "Professional" && (
-          <span className={`absolute top-4 right-4 inline-flex items-center gap-1 font-bold bg-indigo-50 text-[#4f46e5] text-[10px] px-2 py-1 rounded-lg border border-indigo-100 animate-pulse ${billing === "yearly" ? "block!" : "hidden!"}`}>
-            🏷️{" "}
-              DISCOUNT
-          </span>
+          <span
+  className={`absolute top-4 right-4 inline-flex items-center gap-1 font-bold bg-indigo-50 text-[#4f46e5] text-[10px] px-2 py-1 rounded-lg border border-indigo-100 animate-pulse ${
+    billing === "yearly" ? "block!" : "hidden!"
+  }`}
+>
+-20% DISCOUNT
+</span>
         )}
 
         <div className="text-center sm:text-left">
@@ -1553,23 +1557,30 @@ const PricingCard = ({
         </div>
 
         <div className="flex-1">
-          <ul className="space-y-4">
-            {features.map((feature, idx) => (
-              <li
-                key={idx}
-                className={`flex items-start text-sm ${title === "Professional" ? "text-white!" : "text-gray-600!"}`}
-              >
-                <Check
-                  className="h-5 w-5 text-[#4f46e5] mr-3 flex-shrink-0"
-                  strokeWidth={3}
-                />
-                {feature}
-              </li>
-            ))}
-          </ul>
+          <ul className="space-y-4 ps-2! md:ps-[30px]!">
+  {(
+    // Prepend discount for yearly Professional, and append store URL if it exists
+    (billing === "yearly" && title === "Professional" ? [ ...features] : features)
+  ).concat(
+    storeUrl && title !== "Enterprise" ? [`${storeUrl.label}: ${storeUrl.example}`] : []
+  ).map((feature, idx) => (
+    <li
+      key={idx}
+      className={`flex items-start text-sm ${
+        title === "Professional" ? "text-white!" : "text-gray-600!"
+      }`}
+    >
+      <Check
+        className="h-5 w-5 text-[#4f46e5] mr-3 flex-shrink-0"
+        strokeWidth={3}
+      />
+      {feature}
+    </li>
+  ))}
+</ul>
         </div>
 
-                {/* Store URL section */}
+                {/* Store URL section
 {storeUrl && title !== "Enterprise" && (
   <div
     className={`rounded-2xl border flex  items-center gap-2 p-2 ${
@@ -1590,7 +1601,7 @@ const PricingCard = ({
       {storeUrl.example}
     </p>
   </div>
-)}
+)} */}
 
 
         <button
