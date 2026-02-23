@@ -6,11 +6,10 @@ import LogoDark13 from "../assets/img/logo-13-dark.svg";
 import Layemart from "../assets/img/layemart-icon.jpg"
 
 const navItems = [
-  { label: "Solutions", href: "#" },
-  { label: "Products", href: "product" },
-  { label: "Resources", href: "blog-sidebar.html" },
-  { label: "Pricing", href: "pricing" },
-  { label: "About", href: "about-us" },
+  { label: "Features", href: "#main-features" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "How It works", href: "#about-us" },
+  { label: "FAQs", href: "#faqs" },
 ];
 
 function PageHeader() {
@@ -45,7 +44,7 @@ function PageHeader() {
 
             {/* Action Buttons & Mobile Toggle */}
             <div className="flex items-center gap-3">
-              {!isAuthenticated ? (
+              {!isAuthenticated && (
                 <>
                   <a href="/auth/sign-in" className="hidden lg:flex px-6 py-2.5 text-sm font-semibold rounded-full bg-slate-900 text-white! hover:opacity-90 transition-opacity">
                     Login
@@ -54,8 +53,6 @@ function PageHeader() {
                     Start Free Store
                   </a>
                 </>
-              ) : (
-                <span className="hidden lg:block text-sm font-medium italic">Welcome, {user?.name}</span>
               )}
 
               {/* Mobile Menu Button */}

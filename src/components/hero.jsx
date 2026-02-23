@@ -51,8 +51,8 @@ export default function Hero({ onCreateStore }) {
     <section className="relative overflow-hidden bg-[#f3f4ff] lg:min-h-screen rounded-b-none">
       <PageHeader/>
       {/* Decorative Background Blobs - Matches Reference Style */}
-      <div className="absolute top-[-5%] left-[-5%] w-[45%] h-[45%] rounded-full bg-[#4F46E5]/30 blur-[120px] opacity-60"></div>
-      <div className="absolute bottom-[5%] right-[-5%] w-[35%] h-[45%] rounded-full bg-[#4F46E5] blur-[130px] opacity-70"></div>
+      <div className="absolute! top-[-5%]! left-[-5%]! w-[45%]! h-[45%]! rounded-full! bg-[#4F46E5]/30! blur-[120px]! opacity-60!"></div>
+      <div className="absolute! bottom-[5%]! right-[-5%]! w-[35%]! h-[45%]! rounded-ful! bg-[#4F46E5]! blur-[130px]! opacity-70!"></div>
 
       <div className="hero-content relative z-10">
         
@@ -102,19 +102,19 @@ export default function Hero({ onCreateStore }) {
                 <div id="hero_header" className="hero-header section panel overflow-hidden">
             <div className="absolute top-0 start-0 end-0 w-100 h-100">
                 <div className="h-4/5 sm:h-2/3 bg-gradient-45n from-tertiary to-quaternary rounded-bottom-2 xl:rounded-bottom-3 lg:mx-2 lg:mt-0 dark:hidden"></div>
-                <div className="h-4/5 sm:h-2/3 bg-gray-800 lg:rounded-bottom-2 xl:rounded-bottom-3 lg:mx-2 lg:mt-0 hidden dark:block"></div>
-                <div className="h-100 bg-secondary dark:bg-gray-800 rounded-top-2 xl:rounded-top-3 lg:mx-4 mt-2"></div>
+                <div className="h-4/5 sm:h-2/3 bg-gray-800 lg:rounded-bottom-2 xl:rounded-bottom-3 lg:mx-2 lg:mt-0 hidden "></div>
+                <div className="h-100 bg-secondary  rounded-top-2 xl:rounded-top-3 lg:mx-4 mt-2"></div>
             </div>
             <div className="section-outer panel pt-8 lg:pt-2">
                 <div className="container">
                     <div className="section-inner panel">
                         <div className="block" data-anime="targets: >*; scale: [0, 1]; opacity: [0, 1]; easing: easeOutCubic; duration: 750; delay: anime.stagger(150, {start: 500});">
                             <img src={Finger} alt="Icon" className="inline-block lg:block! hidden! absolute! w-[64px]! xl:w-[80px]!" style={{top: "30%", left: "35%"}} data-uc-svg/>
-                            <img src={Star1} alt="Icon" className="inline-block absolute w-[32px]! xl:w-[48px]! dark:text-white" style={{top: "1%", left: "8%"}} data-uc-svg/>
-                            <img src={Star1} alt="Icon" className="inline-block absolute w-[20px]! xl:w-[32px]! dark:text-white" style={{top: "8%", right: "6%"}} data-uc-svg/>
-                            <img src={Star2} alt="Icon" className="inline-block absolute w-[18px]! xl:w-[24px]! dark:text-white" style={{top: "5%", left: "13%"}} data-uc-svg/>
-                            <img src={Star2} alt="Icon" className="inline-block absolute w-20px xl:w-32px dark:text-white" style={{top: "24%", left: "7%"}} data-uc-svg/>
-                            <img src={Star2} alt="Icon" className="inline-block absolute w-[20px]! xl:w-[32px]! dark:text-white" style={{top: "28%", right: "21%"}} data-uc-svg/>
+                            <img src={Star1} alt="Icon" className="inline-block absolute w-[32px]! xl:w-[48px]! " style={{top: "1%", left: "8%"}} data-uc-svg/>
+                            <img src={Star1} alt="Icon" className="inline-block absolute w-[20px]! xl:w-[32px]! " style={{top: "8%", right: "6%"}} data-uc-svg/>
+                            <img src={Star2} alt="Icon" className="inline-block absolute w-[18px]! xl:w-[24px]! " style={{top: "5%", left: "13%"}} data-uc-svg/>
+                            <img src={Star2} alt="Icon" className="inline-block absolute w-20px xl:w-32px " style={{top: "24%", left: "7%"}} data-uc-svg/>
+                            <img src={Star2} alt="Icon" className="inline-block absolute w-[20px]! xl:w-[32px]! " style={{top: "28%", right: "21%"}} data-uc-svg/>
                         </div>
                         <div className="row child-cols-12 justify-center items-center g-8">
                             <div className="lg:col-10 md:mt-10! mt-4!">
@@ -127,12 +127,12 @@ export default function Hero({ onCreateStore }) {
                                                 And Start Getting Paid the Easy Way
                                             </span>
                                         </h1>
-                                        <p className="fs-6 xl:fs-5 xl:px-9 dark:text-white text-opacity-70" data-uc-splitext="types: 'words'" data-anime="targets: > *; translateX: [5, 0]; opacity: [0, 1]; easing: easeOutExpo; duration: 450; delay: anime.stagger(50, {start:650});">Create your online store in minutes, accept payments across Africa, and manage orders in one simple system.</p>
+                                        <p className="fs-6 xl:fs-5 xl:px-9  text-opacity-70" data-uc-splitext="types: 'words'" data-anime="targets: > *; translateX: [5, 0]; opacity: [0, 1]; easing: easeOutExpo; duration: 450; delay: anime.stagger(50, {start:650});">Create your online store in minutes, accept payments across Africa, and manage orders in one simple system.</p>
                                         <div className="vstack gap-2 items-center my-1 lg:my-3" data-anime="translateY: [24, 0]; opacity: [0, 1]; easing: easeOutExpo; duration: 750; delay: 750;">
                                             <a href="/auth/sign-up" className="btn btn-md xl:btn-lg bg-[#4F46E5]! text-slate-100! fs-6 rounded-pill px-5 lg:px-7 w-auto">
                                                 <span>Get Your Free Store</span>
                                             </a>
-                                            <span className="fs-7 dark:text-white text-opacity-75">No technical skills needed • No Credit Card Needed • Built for African businesses</span>
+                                            <span className="fs-7  text-opacity-75">No technical skills needed • No Credit Card Needed • Built for African businesses</span>
                                         </div>
                                     </div>
                                     <span className="bg-transparent! rounded-2" data-anime="translateY: [80, 0]; opacity: [0, 1]; easing: easeOutCubic; duration: 450; delay: 950;">

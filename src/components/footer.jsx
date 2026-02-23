@@ -73,13 +73,13 @@ export default function Footer() {
             Legal
           </Typography>
           <Link
-            to="/legal/terms"
+            to="#"
             className="text-sm text-gray-600 hover:underline"
           >
             Terms of Service
           </Link>
           <Link
-            to="/legal/privacy"
+            to="#"
             className="text-sm text-gray-600 hover:underline"
           >
             Privacy Policy

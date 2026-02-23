@@ -32,6 +32,9 @@ import {
   CheckCircle2,
   Rocket,
   Zap,
+  ArrowRight,
+  Plus,
+  Minus,
 } from "lucide-react";
 import Footer from "../components/footer";
 import Account from "./admin(demo)/account";
@@ -39,6 +42,7 @@ import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { toast } from "react-toastify";
 import { Mail } from "@mui/icons-material";
+import { StoreUrlPreview } from "../components/storePreviewUrl";
 
 function Home(props) {
   const [openIndex, setOpenIndex] = useState(null);
@@ -94,6 +98,30 @@ html{
     localStorage.removeItem("demo");
   }, []);
 
+  const [open, setOpen] = useState(0);
+
+const faqs = [
+  {
+    q: "Can I use my own domain?",
+    a: "Yes. You can connect a custom domain so your workspace or storefront runs on your own brand URL.",
+  },
+  {
+    q: "Can I sell services?",
+    a: "Absolutely. You can offer services, digital products, or subscriptions directly through your platform.",
+  },
+  {
+    q: "How do payments work?",
+    a: "Payments are processed securely through integrated payment providers, allowing you to accept cards, transfers, and other supported methods.",
+  },
+  {
+    q: "Do I need technical skills?",
+    a: "No. The platform is designed to be beginner-friendly, with templates and guided setup so you can launch without coding.",
+  },
+  {
+    q: "Is this only for Nigeria?",
+    a: "No. While it supports local payment options, the platform is built for creators and businesses globally.",
+  },
+];
   const handleCreateStore = () => {
     // 1. Toggle the mode
     setMode((prev) => !prev);
@@ -105,7 +133,26 @@ html{
     // 3. Optional: Sync the 'demo' state if you have one
     if (setDemo) setDemo(true);
   };
+  const [storeNameInput, setStoreNameInput] = useState("GIW");
+  const [customDomainInput, setCustomDomainInput] = useState("www.GIW.com");
+  const [hadInvalid, setHadInvalid] = useState(false);
 
+  // helper → same logic you already had
+  const normalizeStoreName = (value) =>
+    value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+
+  // build urls
+  const urls = useMemo(() => {
+    const base = "layemart.com";
+
+    return {
+      pathUrl: storeNameInput ? `${base}/store/${storeNameInput}` : "—",
+      subdomainUrl: storeNameInput ? `${storeNameInput}.${base}` : "—",
+      customUrl: customDomainInput || "—",
+    };
+  }, [storeNameInput, customDomainInput]);
+
+  const isReady = storeNameInput.length >= 3;
   const steps = [
     {
       step: "01",
@@ -197,33 +244,7 @@ html{
     },
   ];
 
-  const faqs = [
-    {
-      question: "How fast can my store go live?",
-      answer:
-        "Most builds are ready in just a few days. We focus on speed without sacrificing quality or structure.",
-    },
-    {
-      question: "Which platforms do you support?",
-      answer:
-        "We primarily build with modern headless ecommerce stacks, including React.js or NextJs, VueJs and custom solutions depending on your needs.",
-    },
-    {
-      question: "What happens after launch?",
-      answer:
-        "You get clean, maintainable code, documentation, and optional ongoing support to scale your store safely.",
-    },
-    {
-      question: "Can I request custom features?",
-      answer:
-        "Absolutely. Every build can be tailored to your requirements, from layout tweaks to full custom integrations.",
-    },
-    {
-      question: "Do you provide support after delivery?",
-      answer:
-        "Yes. We offer optional post-launch support packages to ensure your store stays fast, secure, and scalable.",
-    },
-  ];
+
 
   return (
     <div>
@@ -439,10 +460,10 @@ html{
             </div>
           </Box>
           <div
-            id="main_features"
+            id="main-features"
             className="main-features mb-7 section panel overflow-hidden"
           >
-            <div className="section-outer panel py-3 sm:py-2 xl:py-0 lg:mx-2 rounded-bottom-2 xl:rounded-bottom-3 bg-secondary dark:bg-gray-800">
+            <div className="section-outer panel py-3 sm:py-2 xl:py-0 lg:mx-2 rounded-bottom-2 xl:rounded-bottom-3 bg-secondary ">
               <div className="container">
                 <div className="section-inner panel">
                   <div
@@ -463,7 +484,7 @@ html{
                       data-anime="onview: -200; targets: >*; translateY: [48, 0]; opacity: [0, 1]; easing: easeOutCubic; duration: 500; delay: anime.stagger(100, {start: 200});"
                     >
                       <div>
-                        <div className="feature-item panel overflow-hidden p-2 bg-white border border-1 dark:bg-opacity-5 dark:text-white rounded-2 xl:rounded-3">
+                        <div className="feature-item panel overflow-hidden p-2 bg-white border border-1 dark:bg-opacity-5  rounded-2 xl:rounded-3">
                           <div className="panel vstack items-start gap-1 xl:gap-2 p-1 pb-2 lg:p-3 xl:p-4">
                             <h4 className="h4 xl:h3 m-0 text-inherit">
                               Instant Storefront
@@ -480,7 +501,7 @@ html{
                       </div>
 
                       <div>
-                        <div className="feature-item panel overflow-hidden p-2 bg-white border border-1 dark:bg-opacity-5 dark:text-white rounded-2 xl:rounded-3">
+                        <div className="feature-item panel overflow-hidden p-2 bg-white border border-1 dark:bg-opacity-5  rounded-2 xl:rounded-3">
                           <div className="panel vstack items-start gap-1 xl:gap-2 p-1 pb-2 lg:p-3 xl:p-4">
                             <h4 className="h4 xl:h3 m-0 text-inherit">
                               Custom Domain Support
@@ -497,7 +518,7 @@ html{
                       </div>
 
                       <div>
-                        <div className="feature-item panel overflow-hidden p-2 bg-white border border-1 dark:bg-opacity-5 dark:text-white rounded-2 xl:rounded-3">
+                        <div className="feature-item panel overflow-hidden p-2 bg-white border border-1 dark:bg-opacity-5  rounded-2 xl:rounded-3">
                           <div className="panel vstack items-start gap-1 xl:gap-2 p-1 pb-2 lg:p-3 xl:p-4">
                             <h4 className="h4 xl:h3 m-0 text-inherit">
                               Built-In Payments
@@ -514,7 +535,7 @@ html{
                       </div>
 
                       <div>
-                        <div className="feature-item panel overflow-hidden p-2 bg-white border border-1 dark:bg-opacity-5 dark:text-white rounded-2 xl:rounded-3">
+                        <div className="feature-item panel overflow-hidden p-2 bg-white border border-1 dark:bg-opacity-5  rounded-2 xl:rounded-3">
                           <div className="panel vstack items-start gap-1 xl:gap-2 p-1 pb-2 lg:p-3 xl:p-4">
                             <h4 className="h4 xl:h3 m-0 text-inherit">
                               Order Management
@@ -537,7 +558,7 @@ html{
                       </div>
 
                       <div>
-                        <div className="feature-item panel overflow-hidden p-2 bg-white border border-1 dark:bg-opacity-5 dark:text-white rounded-2 xl:rounded-3">
+                        <div className="feature-item panel overflow-hidden p-2 bg-white border border-1 dark:bg-opacity-5  rounded-2 xl:rounded-3">
                           <div className="panel vstack items-start gap-1 xl:gap-2 p-1 pb-2 lg:p-3 xl:p-4">
                             <h4 className="h4 xl:h3 m-0 text-inherit">
                               Mobile Optimized
@@ -558,7 +579,7 @@ html{
                       </div>
 
                       <div>
-                        <div className="feature-item panel overflow-hidden p-2 bg-white border border-1 dark:bg-opacity-5 dark:text-white rounded-2 xl:rounded-3">
+                        <div className="feature-item panel overflow-hidden p-2 bg-white border border-1 dark:bg-opacity-5  rounded-2 xl:rounded-3">
                           <div className="panel vstack items-start gap-1 xl:gap-2 p-1 pb-2 lg:p-3 xl:p-4">
                             <h4 className="h4 xl:h3 m-0 text-inherit">
                               {" "}
@@ -590,7 +611,7 @@ html{
                     >
                       <span className="font-semibold!">Create Your Store</span>
                     </a>
-                    <span className="fs-7 dark:text-white text-opacity-75">
+                    <span className="fs-7  text-opacity-75">
                       No credit card required!
                     </span>
                   </div>
@@ -625,7 +646,7 @@ html{
                         <div className="features-item vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
                           <div className="icon-box">
                             <img
-                              className="w-48px h-48px text-[#4F46E5]! dark:text-quaternary"
+                              className="w-[48px]! h-[48px]! text-[#4F46E5]! dark:text-quaternary"
                               src={HomeIcon1301}
                               alt="feature-icon"
                               data-uc-svg
@@ -649,7 +670,7 @@ html{
                         <div className="features-item vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
                           <div className="icon-box">
                             <img
-                              className="w-48px h-48px text-primary dark:text-quaternary"
+                              className="w-[48px]! h-[48px]! text-primary dark:text-quaternary"
                               src={HomeIcon1302}
                               alt="feature-icon"
                               data-uc-svg
@@ -673,7 +694,7 @@ html{
                         <div className="features-item vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
                           <div className="icon-box">
                             <img
-                              className="w-48px h-48px text-primary dark:text-quaternary"
+                              className="w-[48px]! h-[48px]! text-primary dark:text-quaternary"
                               src={HomeIcon1303}
                               alt="feature-icon"
                               data-uc-svg
@@ -697,7 +718,7 @@ html{
                         <div className="features-item vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white ">
                           <div className="icon-box">
                             <img
-                              className="w-48px h-48px text-primary dark:text-quaternary"
+                              className="w-[48px]! h-[48px]! text-primary dark:text-quaternary"
                               src={HomeIcon1304}
                               alt="feature-icon"
                               data-uc-svg
@@ -721,7 +742,7 @@ html{
                         <div className="features-item vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
                           <div className="icon-box">
                             <img
-                              className="w-48px h-48px text-primary dark:text-quaternary"
+                              className="w-[48px]! h-[48px]! text-primary dark:text-quaternary"
                               src={HomeIcon1305}
                               alt="feature-icon"
                               data-uc-svg
@@ -776,7 +797,7 @@ html{
                     >
                       <span>Get Started for free</span>
                     </a>
-                    <span className="fs-7 text-gray-900 dark:text-white">
+                    <span className="fs-7 text-gray-900 ">
                       No credit card required!
                     </span>
                   </div>
@@ -880,19 +901,19 @@ html{
           <section id="pricing" className="py-20 ">
             <div className="ms-5! lg:h-250! md:h-600! rounded-l-[70px]! mx-auto  bg-gray-950!">
               {/* Header */}
-              <div className="text-center mb-6">
+              <div className="text-center mb-2">
                 <h2 className="text-[26px]! text-white! pt-10! md:text-[38px]! lg:text-[46px]! font-bold! mb-4">
                   Scalable and affordable prices
                 </h2>
 
                 {/* Billing Toggle */}
-                <div className="flex flex-col items-center gap-4 mt-12">
+                <div className="flex flex-col items-center gap-4 mt-8 px-4 w-full">
                   {/* Segmented Control Container */}
-                  <div className="group relative flex p-1.5 bg-gray-200/50 backdrop-blur-md rounded-full w-fit border border-gray-300/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]">
+                  <div className="group relative flex p-1 bg-gray-200/50 backdrop-blur-md rounded-full w-full max-w-[320px] sm:max-w-[350px] border border-gray-300/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]">
                     
                     {/* Sliding Background Pill */}
                     <div
-                      className={`absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.08)] transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) ${
+                      className={`absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) ${
                         billing === "yearly" ? "translate-x-full" : "translate-x-0"
                       }`}
                     />
@@ -900,8 +921,8 @@ html{
                     {/* Monthly Button */}
                     <button
                       onClick={() => setBilling("monthly")}
-                      className={`relative z-10 px-8 py-2.5 text-xs font-black uppercase tracking-tighter transition-colors duration-300 ${
-                        billing === "monthly" ? "text-indigo-600" : "text-slate-100! hover:text-gray-800"
+                      className={`relative z-10 flex-1 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-wider transition-colors duration-300 ${
+                        billing === "monthly" ? "text-indigo-600" : "text-gray-100 hover:text-gray-800"
                       }`}
                     >
                       Monthly
@@ -910,8 +931,8 @@ html{
                     {/* Yearly Button */}
                     <button
                       onClick={() => setBilling("yearly")}
-                      className={`relative z-10 px-8 py-2.5 text-xs font-black uppercase tracking-tighter transition-colors duration-300 ${
-                        billing === "yearly" ? "text-indigo-600" : "text-slate-100! hover:text-gray-800"
+                      className={`relative z-10 flex-1 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-wider transition-colors duration-300 ${
+                        billing === "yearly" ? "text-indigo-600" : "text-gray-100 hover:text-gray-800"
                       }`}
                     >
                       Yearly
@@ -919,14 +940,14 @@ html{
                   </div>
 
                   {/* Dynamic Value Badge */}
-                  <div className="h-6"> {/* Fixed height prevents layout shift */}
+                  <div className="h-8">
                     <div
-                      className={`flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-indigo-200 transition-all duration-500 ${
+                      className={`flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-indigo-200 transition-all duration-500 ${
                         billing === "yearly" ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
                       }`}
                     >
                       <Zap className="w-3 h-3 fill-current animate-pulse" />
-                      Get 2 Months Free
+                      Get 2 Months Free + Double Points
                     </div>
                   </div>
                 </div>
@@ -940,6 +961,70 @@ html{
               </div>
             </div>
           </section>
+
+          <section id="faq" className="py-16 bg-gray-50">
+            <div className="max-w-5xl mx-auto px-4">
+              <h2 className="text-[30px]! font-bold! text-center mb-10">
+                Frequently asked questions
+              </h2>
+
+              <div className="space-y-4">
+                {faqs.map((item, i) => {
+                  const active = open === i;
+
+                  return (
+                    <div
+                      key={i}
+                      className="bg-[#f6f4f0]!   rounded-2xl p-3"
+                    >
+                      <button
+                        onClick={() => setOpen(active ? null : i)}
+                        className="flex items-center justify-between w-full text-left"
+                      >
+                        <span className="font-semibold">{item.q}</span>
+
+                        {active ? (
+                          <Minus className="transition-transform" />
+                        ) : (
+                          <Plus className="transition-transform" />
+                        )}
+                      </button>
+
+                      {active && (
+                        <p className="mt-3 text-gray-600 leading-relaxed">
+                          {item.a}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="text-center mt-10">
+                <a
+                  href="#contact"
+                  className="inline-flex items-center gap-2 font-semibold text-[#4F46E5]! hover:gap-3 transition-all"
+                >
+                  Still have a question
+                  <ArrowRight size={18} />
+                </a>
+              </div>
+            </div>
+          </section>
+
+              <div className="max-w-4xl mx-auto md:py-20! py-12! ">
+      <StoreUrlPreview
+        storeNameInput={storeNameInput}
+        customDomainInput={customDomainInput}
+        setStoreNameInput={setStoreNameInput}
+        setCustomDomainInput={setCustomDomainInput}
+        normalizeStoreName={normalizeStoreName}
+        hadInvalid={hadInvalid}
+        setHadInvalid={setHadInvalid}
+        urls={urls}
+        isReady={isReady}
+      />
+    </div>
 
           {/* <Box component="section" className="w-full bg-neutral-800! py-24 px-4 md:px-6 rounded-t-[50px]">
                         <motion.div
@@ -1041,7 +1126,7 @@ html{
                 Ready to get started?
               </p>
 
-              <h1 className=" text-[23px]  md:text-[24px] sm:text-4xl md:text-5xl font-semibold text-white! mb-8">
+              <h1 className=" text-[23px]!  md:text-[24px]! sm:text-4xl md:text-5xl font-semibold text-white! mb-8">
                 Start your Journey today with Layemart Commerce
               </h1>
 
@@ -1401,14 +1486,14 @@ const PricingCard = ({
   return (
     <>
       <div
-        className={`bg-white mt-10! mb-10! dark:bg-gray-900 flex flex-col gap-6 rounded-3xl border p-8 shadow-sm md:min-w-[500px]! lg:min-w-full! md:h-full lg:w-full mx-auto relative transition-all duration-300 hover:shadow-xl ${
+        className={`bg-white mt-10! mb-10! flex flex-col gap-6 rounded-3xl border p-8 shadow-sm md:min-w-[500px]! lg:min-w-full! md:h-full lg:w-full mx-auto relative transition-all duration-300 hover:shadow-xl ${
           mostPopular
             ? "border-[#4f46e5] ring-1 ring-[#4f46e5] scale-105 z-10"
             : "border-gray-100 dark:border-gray-800"
         } ${
           title === "Professional"
             ? "!bg-[#1c1c1e] text-white!" // Use ! at the start, and ensure text is white
-            : "bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+            : "bg-white  text-gray-900 "
         } `}
       >
         {/* Most Popular Badge */}
@@ -1432,7 +1517,7 @@ const PricingCard = ({
 
         <div className="text-center sm:text-left">
           <div
-            className={`${title === "Professional" ? "text-white!" : ""} text-2xl font-bold text-gray-900 dark:text-white`}
+            className={`${title === "Professional" ? "text-white!" : ""} text-2xl font-bold text-gray-900 `}
           >
             {title}
           </div>
@@ -1444,7 +1529,7 @@ const PricingCard = ({
 
           <div className="mt-6 flex items-baseline justify-center sm:justify-start gap-1">
             <span
-              className={`${title === "Professional" ? "text-white!" : "text-gray-900!"}  text-4xl font-extrabold  dark:text-white`}
+              className={`${title === "Professional" ? "text-white!" : "text-gray-900!"}  text-4xl font-extrabold  `}
             >
               {billing === "monthly" ? monthly : yearly}
             </span>
@@ -1480,7 +1565,7 @@ const PricingCard = ({
           className={`w-full  py-3.5 rounded-[100px]! font-bold transition-all ${
             mostPopular
               ? "bg-[#4f46e5] text-white hover:bg-[#4338CA] shadow-lg shadow-indigo-200"
-              : "bg-gray-900 text-white hover:bg-black dark:bg-gray-800"
+              : "bg-gray-900 text-white hover:bg-black "
           }`}
         >
           {title === "Enterprise" ? "Contact Sales" : "Get Started"}
@@ -1490,10 +1575,10 @@ const PricingCard = ({
       {/* ENTERPRISE MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border dark:border-gray-800">
+          <div className="bg-white dark:bg-gray-100 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border dark:border-gray-800">
             <div className="p-8">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h3 className="text-2xl font-bold text-gray-900 ">
                   Custom Request Website
                 </h3>
                 <button
@@ -1509,7 +1594,7 @@ const PricingCard = ({
                   <input
                     type="text"
                     placeholder="Full Name"
-                    className="w-full border dark:border-gray-700 dark:bg-gray-800 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-[#4f46e5]"
+                    className="w-full border dark:border-gray-700  rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-[#4f46e5]"
                     value={formData.fullName}
                     onChange={(e) =>
                       setFormData({ ...formData, fullName: e.target.value })
@@ -1519,7 +1604,7 @@ const PricingCard = ({
                   <input
                     type="email"
                     placeholder="Work Email"
-                    className="w-full border dark:border-gray-700 dark:bg-gray-800 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-[#4f46e5]"
+                    className="w-full border dark:border-gray-700  rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-[#4f46e5]"
                     value={formData.userEmail}
                     onChange={(e) =>
                       setFormData({ ...formData, userEmail: e.target.value })
@@ -1529,7 +1614,7 @@ const PricingCard = ({
                 </div>
                 <textarea
                   placeholder="Tell us about your project..."
-                  className="w-full border dark:border-gray-700 dark:bg-gray-800 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-[#4f46e5]"
+                  className="w-full border dark:border-gray-700  rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-[#4f46e5]"
                   rows="4"
                   value={formData.details}
                   onChange={(e) =>
@@ -1539,7 +1624,7 @@ const PricingCard = ({
                 />
                 <div className="grid! grid-cols-2! gap-4!">
                   <select
-                    className="w-full border dark:border-gray-700 dark:bg-gray-800 rounded-xl p-3 text-sm outline-none"
+                    className="w-full border dark:border-gray-700  rounded-xl p-3 text-sm outline-none"
                     value={formData.budget}
                     onChange={(e) =>
                       setFormData({ ...formData, budget: e.target.value })
@@ -1550,7 +1635,7 @@ const PricingCard = ({
                     <option>₦5M+</option>
                   </select>
                   <select
-                    className="w-full border dark:border-gray-700 dark:bg-gray-800 rounded-xl p-3 text-sm outline-none"
+                    className="w-full border dark:border-gray-700  rounded-xl p-3 text-sm outline-none"
                     value={formData.timeline}
                     onChange={(e) =>
                       setFormData({ ...formData, timeline: e.target.value })
