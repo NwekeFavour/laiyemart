@@ -1135,9 +1135,9 @@ const pricingData = [
               </div>            
             </div>
           </section>
-          <section id="contact" className="md:py-14! py-8! bg-background! xl:px-0 lg:px-6 px-4">
+          <section id="contact" className="md:py-16! py-8! bg-background! xl:px-0 lg:px-6 px-4">
             <div
-              className="gap-5 mb-12! md:mb-20!"
+              className="gap-5 mb-12! md:mb-13!"
               style={{ opacity: "1", transform: "none" }}
             >             
               <h2 className="text-[20px] text-center! md:text-3xl font-bold text-foreground">
