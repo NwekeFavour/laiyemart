@@ -15,7 +15,7 @@ export default function Footer() {
   };
   return (
     <Box component="footer" className="bg-neutral-100 py-12 text-[#0F172A]!">
-      <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-10">
+      <div className="container mx-auto px-4 grid! grid-cols-1! md:grid-cols-3! gap-10!">
         {/* BRAND */}
         <div className="flex flex-col gap-3">
         <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
@@ -31,13 +31,13 @@ export default function Footer() {
           </Typography>
           <div className="flex items-center gap-3 mt-2">
             <Link to="https://x.com/layemart" className="text-slate-800">
-              <X size={12} className="text-[20px] sm:text-[17px]!" />
+              <X size={12} className="text-[20px] text-[#4F46E5]! t sm:text-[17px]!" />
             </Link>
               <Link to="https://www.instagram.com/layemart/" className="text-slate-800">
-              <Instagram className=" text-[20px] sm:text-[17px]!" />
+              <Instagram className=" text-[20px] text-[#4F46E5]! sm:text-[17px]!" />
             </Link>
             <Link to="https://www.facebook.com/layemartcommerce" className="text-slate-800">
-              <Facebook className=" text-[20px] sm:text-[17px]!" />
+              <Facebook className=" text-[20px] text-[#4F46E5]! sm:text-[17px]!" />
             </Link>
           </div>
         </div>
@@ -45,7 +45,7 @@ export default function Footer() {
         {/* PRODUCT LINKS */}
         <div className="flex flex-col gap-2">
           <Typography fontWeight="bold" className="mb-2">
-            Product
+            Company
           </Typography>
           <Link
             onClick={() => handleScroll("product")}
@@ -61,6 +61,9 @@ export default function Footer() {
             className="text-sm text-gray-600 hover:underline"
           >
             About Us
+          </Link>
+          <Link to="/contact" className="text-sm text-gray-600 hover:underline">
+            Contact
           </Link>
         </div>
 
@@ -81,9 +84,12 @@ export default function Footer() {
           >
             Privacy Policy
           </Link>
-          <Link to="/contact" className="text-sm text-gray-600 hover:underline">
-            Contact
-          </Link>
+          {!isAuthenticated && (<Link
+              to="/auth/sign-up"
+              className="text-sm text-gray-600 hover:underline"
+            >
+              Sign Up
+            </Link>) } 
             {!isAuthenticated && (<Link
               to="/auth/sign-in"
               className="text-sm text-gray-600 hover:underline"

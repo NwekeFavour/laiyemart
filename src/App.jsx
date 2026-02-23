@@ -257,8 +257,8 @@ function App() {
     }
   };
   // Handle Under Construction state for Subdomain Stores
-  // if (isStorefront && storeData?.isOnboarded === false) {
-  if (showConstruction) {
+  if (isStorefront && storeData?.isOnboarded === false) {
+  // if (showConstruction) {
     return (
       <>
         <Helmet>
