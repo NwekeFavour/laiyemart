@@ -128,16 +128,35 @@ export default function Hero({ onCreateStore }) {
                                             </span>
                                         </h1>
                                         <p className="fs-6 xl:fs-5 xl:px-9  text-opacity-70" data-uc-splitext="types: 'words'" data-anime="targets: > *; translateX: [5, 0]; opacity: [0, 1]; easing: easeOutExpo; duration: 450; delay: anime.stagger(50, {start:650});">Create your online store in minutes, accept payments across Africa, and manage orders in one simple system.</p>
-                                        <div className="vstack gap-2 items-center my-1 lg:my-3" data-anime="translateY: [24, 0]; opacity: [0, 1]; easing: easeOutExpo; duration: 750; delay: 750;">
-                                            <a href="/auth/sign-up" className="btn btn-md xl:btn-lg bg-[#4F46E5]! text-slate-100! fs-6 rounded-pill px-5 lg:px-7 w-auto">
-                                                <span>Get Your Free Store</span>
-                                            </a>
-                                            <span className="fs-7  text-opacity-75">No technical skills needed • No Credit Card Needed • Built for African businesses</span>
-                                        </div>
+                                        <div className="flex flex-col items-center gap-3 my-2 lg:my-4">
+  {/* Buttons row */}
+  <div className="flex! flex-wrap! justify-items-center! justify-center! items-center gap-3">
+    {/* Main CTA */}
+    <a
+      href="/auth/sign-up"
+      className="btn btn-md xl:btn-lg bg-[#4F46E5]! text-slate-100! rounded-pill px-5 lg:px-7"
+    >
+      Get Your Free Store
+    </a>
+
+    {/* How it works */}
+    <button
+      onClick={onCreateStore}
+      className="text-sm font-semibold text-[#4F46E5]! hover:text-neutral-900"
+    >
+      How it works
+    </button>
+  </div>
+
+  {/* Sub text */}
+  <span className="text-xs text-neutral-500 text-center">
+    No technical skills needed • No credit card • Built for African businesses
+  </span>
+</div>
                                     </div>
-                                    <span className="bg-transparent! rounded-2" data-anime="translateY: [80, 0]; opacity: [0, 1]; easing: easeOutCubic; duration: 450; delay: 950;">
+                                    {/* <span className="bg-transparent! rounded-2" data-anime="translateY: [80, 0]; opacity: [0, 1]; easing: easeOutCubic; duration: 450; delay: 950;">
                                         <img src={DashboardScreen}alt="Dashboard Lexend"/>
-                                    </span>
+                                    </span> */}
                                 </div>
                             </div>
                         </div>
