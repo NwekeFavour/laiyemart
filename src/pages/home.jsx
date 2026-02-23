@@ -224,7 +224,7 @@ const pricingData = [
       "Advanced templates & layouts",
       "Marketing tools & SEO",
       "3% Service fee",
-      "Domain Name Integration (T&Cs applied) ",
+      "Domain Name Integration (T&Cs apply) ",
       "Payment integration",
       "Priority email support",
     ],
@@ -1084,11 +1084,11 @@ const pricingData = [
 
             {/* CONTENT */}
             <div className="relative z-10 flex h-full flex-col items-center justify-center text-center px-6 sm:px-10">
-              <p className="text-xs tracking-widest text-[#4F46E5]! uppercase mb-3">
+              <p className="text-xs tracking-widest text-[#4F46E5]! uppercase mb-0!">
                 Ready to get started?
               </p>
 
-              <h1 className=" text-[23px]!  md:text-[24px]! sm:text-4xl md:text-5xl font-semibold text-white! mb-8">
+              <h1 className=" text-[23px]!  md:text-[46px]!  font-semibold text-white! mb-8">
                 Start your Journey today with Layemart Commerce
               </h1>
 

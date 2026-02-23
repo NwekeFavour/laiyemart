@@ -33,8 +33,8 @@ export function StoreUrlPreview({
 
   return (
     <div>
-      <h3 className="text-2xl md:text-[46px]! font-bold text-neutral-900 capitalize!">
-        Preview your store url
+      <h3 className="text-2xl font-bold! text-center! md:text-[46px]! font-bold text-neutral-900 capitalize!">
+        Preview your store URL
       </h3>
       <div className="rounded-3xl md:border border-neutral-200 bg-white md:p-7 p-4 md:shadow-sm">
         {/* Header */}
