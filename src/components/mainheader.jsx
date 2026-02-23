@@ -6,10 +6,11 @@ import LogoDark13 from "../assets/img/logo-13-dark.svg";
 import Layemart from "../assets/img/layemart-icon.jpg"
 
 const navItems = [
+  { label: "How It works", href: "#about-us" },
   { label: "Features", href: "#main-features" },
   { label: "Pricing", href: "#pricing" },
-  { label: "How It works", href: "#about-us" },
   { label: "FAQs", href: "#faqs" },
+  { label: "Contact", href: "#contact" },
 ];
 
 function PageHeader() {
@@ -17,7 +18,7 @@ function PageHeader() {
   const { isAuthenticated, user } = useAuthStore();
 
   return (
-    <header className="sticky top-0 z-[999] w-full transition-all duration-300 bg-transparent border-b border-transparent">
+    <header className="fixed top-0 z-[999] w-full transition-all duration-300 bg-white/30 backdrop-blur-md border-b border-transparent">
       <nav className="relative z-10 w-full md:px-4 py-2 lg:py-0">
         <div className="container mx-auto">
           <div className="flex items-center justify-between min-h-[64px] lg:min-h-[96px] text-slate-900 dark:text-white">
