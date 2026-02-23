@@ -391,13 +391,10 @@ const pricingData = [
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
                 className="mb-20 text-center"
-              >
-                <div className="py-1 text-indigo-600 font-semibold border-b-2 border-indigo-600 w-fit mx-auto mb-1.5">
-                  How it works
-                </div>
-                <Typography className="text-[#0F172A]! text-[20px]! md:text-3xl! font-bold mx- text-foreground!">
-                  A simple, structured process designed <br />
-                  for speed and clarity.
+              >               
+                <Typography className="text-[#0F172A]! text-[20px]! md:text-[40px]! font-bold mx- text-foreground!">
+                  A simple, Structured Process Designed <br />
+                  For Speed and Clarity.
                 </Typography>
               </motion.div>
 
@@ -647,8 +644,7 @@ const pricingData = [
             className="key-features rounded-b-3! section panel overflow-hidden"
           >
             <div className="section-outer panel py-6 sm:py-8 xl:py-10 lg:mx-2 mt-2 ">
-              <div className="absolute top-[-5%] left-[-5%] w-[45%] h-[45%] rounded-full bg-[#4F46E5]/30 blur-[120px] opacity-60"></div>
-              <div className="absolute bottom-[5%] right-[-5%] w-[35%] h-[45%] rounded-full bg-[#4F46E5] blur-[130px] opacity-70"></div>
+              
               <div className="container ">
                 <div className="section-inner panel">
                   <div
@@ -665,7 +661,7 @@ const pricingData = [
                       data-anime="onview: -200; targets: >*; translateY: [48, 0]; opacity: [0, 1]; easing: easeOutCubic; duration: 500; delay: anime.stagger(100, {start: 200});"
                     >
                       <div>
-                        <div className="features-item vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
+                        <div className="features-item vstack justify-between gap-4 shadow-md! px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
                           <div className="icon-box">
                             <img
                               className="w-[48px]! h-[48px]! text-[#4F46E5]! dark:text-quaternary"
@@ -689,7 +685,7 @@ const pricingData = [
                       </div>
 
                       <div>
-                        <div className="features-item vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
+                        <div className="features-item vstack justify-between shadow-md! gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
                           <div className="icon-box">
                             <img
                               className="w-[48px]! h-[48px]! text-primary dark:text-quaternary"
@@ -713,7 +709,7 @@ const pricingData = [
                       </div>
 
                       <div>
-                        <div className="features-item vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
+                        <div className="features-item shadow-md! vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
                           <div className="icon-box">
                             <img
                               className="w-[48px]! h-[48px]! text-primary dark:text-quaternary"
@@ -737,7 +733,7 @@ const pricingData = [
                       </div>
 
                       <div>
-                        <div className="features-item vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white ">
+                        <div className="features-item shadow-md! vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white ">
                           <div className="icon-box">
                             <img
                               className="w-[48px]! h-[48px]! text-primary dark:text-quaternary"
@@ -761,7 +757,7 @@ const pricingData = [
                       </div>
 
                       <div>
-                        <div className="features-item vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
+                        <div className="features-item shadow-md! vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
                           <div className="icon-box">
                             <img
                               className="w-[48px]! h-[48px]! text-primary dark:text-quaternary"
@@ -785,7 +781,7 @@ const pricingData = [
                       </div>
 
                       <div>
-                        <div className="features-item vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
+                        <div className="features-item shadow-md! vstack justify-between gap-4 px-3 py-4 xl:p-5 rounded-2 bg-white dark:bg-opacity-5">
                           <div className="icon-box">
                             <img
                               className="w-48px h-48px text-primary dark:text-quaternary"
@@ -1089,7 +1085,7 @@ const pricingData = [
               </p>
 
               <h1 className=" text-[23px]!  md:text-[46px]!  font-semibold text-white! mb-8">
-                Start your Journey today with Layemart Commerce
+                Start your Journey today with <br/> Layemart Commerce
               </h1>
 
               <Link
@@ -1136,27 +1132,14 @@ const pricingData = [
                     </div>
                   );
                 })}
-              </div>
-
-              <div className="text-center mt-10">
-                <a
-                  href="#contact"
-                  className="inline-flex items-center gap-2 font-semibold text-[#4F46E5]! hover:gap-3 transition-all"
-                >
-                  Still have a question
-                  <ArrowRight size={18} />
-                </a>
-              </div>
+              </div>            
             </div>
           </section>
           <section id="contact" className="md:py-24! py-14! bg-background! xl:px-0 lg:px-6 px-4">
             <div
               className="gap-5 mb-12! md:mb-25!"
               style={{ opacity: "1", transform: "none" }}
-            >
-              <div className="py-1 text-indigo-600 font-semibold border-b-2 w-fit! mx-auto! text-center! border-indigo-600 mb-1.5">
-                Get in Touch
-              </div>
+            >             
               <h2 className="text-[20px] text-center! md:text-3xl font-bold text-foreground">
                 Contact Us
               </h2>
