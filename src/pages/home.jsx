@@ -133,25 +133,27 @@ const faqs = [
     // 3. Optional: Sync the 'demo' state if you have one
     if (setDemo) setDemo(true);
   };
-  const [storeNameInput, setStoreNameInput] = useState("GIW");
-  const [customDomainInput, setCustomDomainInput] = useState("www.GIW.com");
-  const [hadInvalid, setHadInvalid] = useState(false);
+const [storeNameInput, setStoreNameInput] = useState("GIW");
+const [customDomainInput, setCustomDomainInput] = useState("www.GIW.com");
+const [hadInvalid, setHadInvalid] = useState(false);
 
-  // helper → same logic you already had
-  const normalizeStoreName = (value) =>
-    value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+const normalizeStoreName = (value) =>
+  value.toLowerCase().replace(/[^a-z0-9-]/g, "");
 
-  // build urls
-  const urls = useMemo(() => {
-    const base = "layemart.com";
+// Build URLs
+const urls = useMemo(() => {
+  const base = "layemart.com";
+  const store = storeNameInput?.trim().toLowerCase();
 
-    return {
-      pathUrl: storeNameInput ? `${base}/store/${storeNameInput}` : "—",
-      subdomainUrl: storeNameInput ? `${storeNameInput}.${base}` : "—",
-      customUrl: customDomainInput || "—",
-    };
-  }, [storeNameInput, customDomainInput]);
+  // If input is empty, show default; else use what user typed
+  const effectiveCustom = customDomainInput?.trim() || "www.mystore.com";
 
+  return {
+    pathUrl: store ? `${base}/${store}` : base,
+    subdomainUrl: store ? `${store}.${base}` : base,
+    customUrl: effectiveCustom,
+  };
+}, [storeNameInput, customDomainInput]);
   const isReady = storeNameInput.length >= 3;
   const steps = [
     {
@@ -184,42 +186,55 @@ const faqs = [
     },
   ];
 
-  const pricingData = [
-    {
-      title: "Starter",
-      description: "For new store owners just getting started",
-      monthly: "₦0",
-      yearly: "₦0",
-      features: [
-        "Up to 100 products",
-        "Basic store templates",
-        "Payment integration",
-        "Email support",
-      ],
+const pricingData = [
+  {
+    title: "Starter",
+    description: "For new store owners just getting started",
+    monthly: "₦0",
+    yearly: "₦0",
+    storeUrl: {
+      label: "Store URL",
+      example: "layemart.com/mystore",
     },
-    {
-      title: "Professional",
-      description: "For growing online stores",
-      monthly: "₦15,000",
-      yearly: "₦153,000",
-      features: [
-        "Up to 200 products",
-        "Advanced templates & layouts",
-        "Marketing tools & SEO",
-        "Priority email support",
-      ],
-      mostPopular: true,
+    features: [
+      "Up to 100 products",
+      "Basic store templates",
+      "Payment integration",
+      "10% Service fee",
+      "Email support",
+    ],
+  },
+  {
+    title: "Professional",
+    description: "For growing online stores",
+    monthly: "₦15,000",
+    yearly: "₦153,000",
+    storeUrl: {
+      label: "Store URL",
+      example: "mystore.layemart.com",
     },
-    {
-      title: "Enterprise",
-      description: "For large businesses",
-      monthly: "Custom",
-      yearly: "Custom",
-      features: [
-        "Custom Development & Integration", // Relevant to your transaction logic
-      ],
+    features: [
+      "Up to 200 products",
+      "Advanced templates & layouts",
+      "Marketing tools & SEO",
+      "3% Service fee",
+      "Payment integration",
+      "Priority email support",
+    ],
+    mostPopular: true,
+  },
+  {
+    title: "Enterprise",
+    description: "For large businesses",
+    monthly: "Custom",
+    yearly: "Custom",
+    storeUrl: {
+      label: "White-label infrastructure",
+      example: "Fully custom domains",
     },
-  ];
+    features: ["Custom development & integrations"],
+  },
+];
 
   const reasons = [
     {
@@ -899,11 +914,11 @@ const faqs = [
           </section> */}
 
           <section id="pricing" className="py-20 ">
-            <div className="ms-5! lg:h-250! md:h-600! rounded-l-[70px]! mx-auto  bg-gray-950!">
+            <div className="ms-5! lg:h-300! md:h-600! h-700! rounded-l-[70px]! mx-auto bg-gray-950!">
               {/* Header */}
               <div className="text-center mb-2">
                 <h2 className="text-[26px]! text-white! pt-10! md:text-[38px]! lg:text-[46px]! font-bold! mb-4">
-                  Scalable and affordable prices
+                  Scalable and Affordable Prices
                 </h2>
 
                 {/* Billing Toggle */}
@@ -962,57 +977,7 @@ const faqs = [
             </div>
           </section>
 
-          <section id="faq" className="py-16 bg-gray-50">
-            <div className="max-w-5xl mx-auto px-4">
-              <h2 className="text-[30px]! font-bold! text-center mb-10">
-                Frequently asked questions
-              </h2>
-
-              <div className="space-y-4">
-                {faqs.map((item, i) => {
-                  const active = open === i;
-
-                  return (
-                    <div
-                      key={i}
-                      className="bg-[#f6f4f0]!   rounded-2xl p-3"
-                    >
-                      <button
-                        onClick={() => setOpen(active ? null : i)}
-                        className="flex items-center justify-between w-full text-left"
-                      >
-                        <span className="font-semibold">{item.q}</span>
-
-                        {active ? (
-                          <Minus className="transition-transform" />
-                        ) : (
-                          <Plus className="transition-transform" />
-                        )}
-                      </button>
-
-                      {active && (
-                        <p className="mt-3 text-gray-600 leading-relaxed">
-                          {item.a}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="text-center mt-10">
-                <a
-                  href="#contact"
-                  className="inline-flex items-center gap-2 font-semibold text-[#4F46E5]! hover:gap-3 transition-all"
-                >
-                  Still have a question
-                  <ArrowRight size={18} />
-                </a>
-              </div>
-            </div>
-          </section>
-
-              <div className="max-w-4xl mx-auto md:py-20! py-12! ">
+                        <div className="max-w-4xl mx-auto md:py-20! py-12! ">
       <StoreUrlPreview
         storeNameInput={storeNameInput}
         customDomainInput={customDomainInput}
@@ -1026,9 +991,11 @@ const faqs = [
       />
     </div>
 
+
+
           {/* <Box component="section" className="w-full bg-neutral-800! py-24 px-4 md:px-6 rounded-t-[50px]">
                         <motion.div
-                            initial={{ opacity: 0, y: 16 }}
+                            iniretial={{ opacity: 0, y: 16 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5 }}
@@ -1131,14 +1098,63 @@ const faqs = [
               </h1>
 
               <Link
-                className="pointer-events-auto rounded-[100px] outline-none! bg-white px-6 py-2 text-sm font-medium text-black! hover:bg-gray-200 transition"
+                className="pointer-events-auto rounded-[100px] outline-none! bg-white px-6 text-[16px]! md:text-[17px]! py-2 text-sm font-medium text-black! hover:bg-gray-200 transition"
                 to={"/auth/sign-in"}
               >
                 Get started
               </Link>
             </div>
           </section>
-          <section className="md:py-24! py-14! bg-background! xl:px-0 lg:px-6 px-4">
+                    <section id="faq" className="py-16 bg-gray-50">
+            <div className="max-w-5xl mx-auto px-4">
+              <h2 className="lg:text-[46px]! md:text-[38px]! text-[26px]! font-bold! text-center mb-10">
+                Frequently Asked Questions
+              </h2>
+
+              <div className="space-y-4">
+                {faqs.map((item, i) => {
+                  const active = open === i;
+
+                  return (
+                    <div
+                      key={i}
+                      className="bg-[#f6f4f0]!   rounded-2xl p-3"
+                    >
+                      <button
+                        onClick={() => setOpen(active ? null : i)}
+                        className="flex items-center justify-between w-full text-left"
+                      >
+                        <span className="font-semibold">{item.q}</span>
+
+                        {active ? (
+                          <Minus className="transition-transform" />
+                        ) : (
+                          <Plus className="transition-transform" />
+                        )}
+                      </button>
+
+                      {active && (
+                        <p className="mt-3 text-gray-600 leading-relaxed">
+                          {item.a}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="text-center mt-10">
+                <a
+                  href="#contact"
+                  className="inline-flex items-center gap-2 font-semibold text-[#4F46E5]! hover:gap-3 transition-all"
+                >
+                  Still have a question
+                  <ArrowRight size={18} />
+                </a>
+              </div>
+            </div>
+          </section>
+          <section id="contact" className="md:py-24! py-14! bg-background! xl:px-0 lg:px-6 px-4">
             <div
               className="gap-5 mb-12! md:mb-25!"
               style={{ opacity: "1", transform: "none" }}
@@ -1377,6 +1393,7 @@ const PricingCard = ({
   yearly,
   features,
   billing,
+  storeUrl,
   mostPopular = false,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -1486,7 +1503,7 @@ const PricingCard = ({
   return (
     <>
       <div
-        className={`bg-white mt-10! mb-10! flex flex-col gap-6 rounded-3xl border p-8 shadow-sm w-[300px]!  md:min-w-[500px]! lg:min-w-full! md:h-full! md:w-full! mx-auto relative transition-all duration-300 hover:shadow-xl ${
+        className={`bg-white mt-10! mb-10! flex flex-col gap-6 rounded-3xl border p-8 shadow-sm w-[300px]! h-full! md:h-[780px]!  md:min-w-[500px]! lg:min-w-full!  md:w-full! mx-auto relative transition-all duration-300 hover:shadow-xl ${
           mostPopular
             ? "border-[#4f46e5] ring-1 ring-[#4f46e5] scale-105 z-10"
             : "border-gray-100 dark:border-gray-800"
@@ -1507,7 +1524,7 @@ const PricingCard = ({
 
         {/* Coupon Badge */}
         {coupons.length > 0 && (
-          <span className={`absolute top-4 right-4 inline-flex items-center gap-1 font-bold bg-indigo-50 text-[#4f46e5] text-[10px] px-2 py-1 rounded-lg border border-indigo-100 animate-pulse ${title === "Professional" ? "block!" : "hidden!"}`}>
+          <span className={`absolute top-4 right-4 inline-flex items-center gap-1 font-bold bg-indigo-50 text-[#4f46e5] text-[10px] px-2 py-1 rounded-lg border border-indigo-100 animate-pulse ${title === "Enterprise" ? "block!" : "hidden!"}`}>
             🏷️{" "}
             {coupons[0].discountType === "percentage"
               ? `${coupons[0].discountPercent}% OFF`
@@ -1559,6 +1576,30 @@ const PricingCard = ({
             ))}
           </ul>
         </div>
+
+                {/* Store URL section */}
+{storeUrl && title !== "Enterprise" && (
+  <div
+    className={`rounded-2xl border p-2 ${
+      title === "Professional"
+        ? "border-white/20 bg-white/5"
+        : "border-neutral-200 bg-neutral-50"
+    }`}
+  >
+    <p className="mt-1 text-sm font-semibold break-all">
+      {storeUrl.label}
+    </p>
+
+    <p
+      className={`text-xs break-all ${
+        title === "Professional" ? "text-neutral-300" : "text-neutral-600"
+      }`}
+    >
+      {storeUrl.example}
+    </p>
+  </div>
+)}
+
 
         <button
           onClick={() => handleAction(plan)}
