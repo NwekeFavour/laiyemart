@@ -20,6 +20,8 @@ function PageHeader() {
   return (
     <header className="fixed top-0 z-[999] w-full transition-all duration-300 bg-white/30 backdrop-blur-md border-b border-transparent">
       <nav className="relative z-10 w-full md:px-4 lg:py-0">
+             <div className="absolute! top-[-5%]! left-[-5%]! w-[45%]! h-[45%]! rounded-full! bg-[#4F46E5]/30! blur-[120px]! opacity-60!"></div>
+      <div className="absolute! bottom-[5%]! right-[-5%]! w-[35%]! h-[45%]! rounded-ful! bg-[#4F46E5]! blur-[130px]! opacity-70!"></div>
         <div className="container mx-auto">
           <div className="flex items-center justify-between min-h-[64px] lg:min-h-[96px] text-slate-900 dark:text-white">
             

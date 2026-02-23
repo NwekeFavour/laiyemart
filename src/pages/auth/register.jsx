@@ -657,7 +657,7 @@ export default function SignUpPage() {
                   >
                     Yearly{" "}
                     <span className="ml-1 text-[10px] text-emerald-600">
-                      (Save 15%)
+                      (Save 20%)
                     </span>
                   </button>
                 </div>
