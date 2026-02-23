@@ -393,7 +393,7 @@ const pricingData = [
                 className="mb-20 text-center"
               >               
                 <Typography className="text-[#0F172A]! text-[20px]! md:text-[40px]! font-bold mx- text-foreground!">
-                  A simple, Structured Process Designed <br />
+                  A Simple, Structured Process Designed <br />
                   For Speed and Clarity.
                 </Typography>
               </motion.div>
