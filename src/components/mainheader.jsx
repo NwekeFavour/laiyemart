@@ -19,7 +19,7 @@ function PageHeader() {
 
   return (
     <header className="fixed top-0 z-[999] w-full transition-all duration-300 bg-white/30 backdrop-blur-md border-b border-transparent">
-      <nav className="relative z-10 w-full md:px-4 py-2 lg:py-0">
+      <nav className="relative z-10 w-full md:px-4 lg:py-0">
         <div className="container mx-auto">
           <div className="flex items-center justify-between min-h-[64px] lg:min-h-[96px] text-slate-900 dark:text-white">
             

@@ -643,7 +643,7 @@ const pricingData = [
             id="key_features"
             className="key-features rounded-b-3! section panel overflow-hidden"
           >
-            <div className="section-outer panel py-6 sm:py-8 xl:py-10 lg:mx-2 mt-2 ">
+            <div className="section-outer panel py-6 sm:py-8 xl:py-4 lg:mx-2 mt-2 ">
               
               <div className="container ">
                 <div className="section-inner panel">
@@ -1601,7 +1601,7 @@ const PricingCard = ({
 
       {/* ENTERPRISE MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-1000! flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}>
           <div className="bg-white dark:bg-gray-100 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border dark:border-gray-800">
             <div className="p-8">
               <div className="flex justify-between items-center mb-6">
