@@ -109,7 +109,7 @@ export default function Hero({ onCreateStore }) {
                 <div className="container">
                     <div className="section-inner panel">
                         <div className="block" data-anime="targets: >*; scale: [0, 1]; opacity: [0, 1]; easing: easeOutCubic; duration: 750; delay: anime.stagger(150, {start: 500});">
-                            <img src={Finger} alt="Icon" className="inline-block lg:block! hidden! absolute! w-[64px]! xl:w-[80px]!" style={{top: "85%", left: "26%"}} data-uc-svg/>
+                            <img src={Finger} alt="Icon" className="inline-block lg:block! hidden! absolute! w-[64px]! xl:w-[80px]!" style={{top: "85%", left: "25%"}} data-uc-svg/>
                             <img src={Star1} alt="Icon" className="inline-block absolute w-[32px]! xl:w-[48px]! " style={{top: "1%", left: "8%"}} data-uc-svg/>
                             <img src={Star1} alt="Icon" className="inline-block absolute w-[20px]! xl:w-[32px]! " style={{top: "8%", right: "6%"}} data-uc-svg/>
                             <img src={Star2} alt="Icon" className="inline-block absolute w-[18px]! xl:w-[24px]! " style={{top: "5%", left: "13%"}} data-uc-svg/>

@@ -133,7 +133,7 @@ const faqs = [
     // 3. Optional: Sync the 'demo' state if you have one
     if (setDemo) setDemo(true);
   };
-const [storeNameInput, setStoreNameInput] = useState("GIW");
+const [storeNameInput, setStoreNameInput] = useState("");
 const [customDomainInput, setCustomDomainInput] = useState("www.GIW.com");
 const [hadInvalid, setHadInvalid] = useState(false);
 
@@ -145,13 +145,19 @@ const urls = useMemo(() => {
   const base = "layemart.com";
   const store = storeNameInput?.trim().toLowerCase();
 
-  // If input is empty, show default; else use what user typed
-  const effectiveCustom = customDomainInput?.trim() || "www.mystore.com";
+  // Remove protocol, trailing slash, and lowercase
+  const cleanedCustom = customDomainInput
+    ?.trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, "");
+
+  const effectiveCustom = cleanedCustom || "www.mystore.com";
 
   return {
     pathUrl: store ? `${base}/${store}` : base,
     subdomainUrl: store ? `${store}.${base}` : base,
-    customUrl: effectiveCustom,
+    customUrl: effectiveCustom, // ONLY the domain
   };
 }, [storeNameInput, customDomainInput]);
   const isReady = storeNameInput.length >= 3;
@@ -913,7 +919,7 @@ const pricingData = [
             </div>
           </section> */}
 
-          <section id="pricing" className="py-20 ">
+          <section id="pricing" className="md:py-12! py-6! ">
             <div className="ms-5! lg:h-300! md:h-600! h-700! rounded-l-[70px]! mx-auto bg-gray-950!">
               {/* Header */}
               <div className="text-center mb-2">
@@ -965,7 +971,7 @@ const pricingData = [
             </div>
           </section>
 
-                        <div className="max-w-4xl mx-auto md:py-20! py-12! ">
+                        <div className="max-w-4xl mx-auto md:py-3! py-6! ">
       <StoreUrlPreview
         storeNameInput={storeNameInput}
         customDomainInput={customDomainInput}
@@ -1511,12 +1517,10 @@ const PricingCard = ({
         )}
 
         {/* Coupon Badge */}
-        {coupons.length > 0 && (
-          <span className={`absolute top-4 right-4 inline-flex items-center gap-1 font-bold bg-indigo-50 text-[#4f46e5] text-[10px] px-2 py-1 rounded-lg border border-indigo-100 animate-pulse ${title === "Enterprise" ? "block!" : "hidden!"}`}>
+        {title === "Professional" && (
+          <span className={`absolute top-4 right-4 inline-flex items-center gap-1 font-bold bg-indigo-50 text-[#4f46e5] text-[10px] px-2 py-1 rounded-lg border border-indigo-100 animate-pulse ${billing === "yearly" ? "block!" : "hidden!"}`}>
             🏷️{" "}
-            {coupons[0].discountType === "percentage"
-              ? `${coupons[0].discountPercent}% OFF`
-              : `DISCOUNT`}
+              DISCOUNT
           </span>
         )}
 
@@ -1568,18 +1572,18 @@ const PricingCard = ({
                 {/* Store URL section */}
 {storeUrl && title !== "Enterprise" && (
   <div
-    className={`rounded-2xl border p-2 ${
+    className={`rounded-2xl border flex  items-center gap-2 p-2 ${
       title === "Professional"
         ? "border-white/20 bg-white/5"
         : "border-neutral-200 bg-neutral-50"
     }`}
   >
-    <p className="mt-1 text-sm font-semibold break-all">
-      {storeUrl.label}
+    <p className="my-0! text-sm font-semibold break-all">
+      {storeUrl.label}:
     </p>
 
     <p
-      className={`text-xs break-all ${
+      className={`text-xs my-0! break-all ${
         title === "Professional" ? "text-neutral-300" : "text-neutral-600"
       }`}
     >

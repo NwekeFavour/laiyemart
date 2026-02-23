@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Link, Store } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import { CheckCircle2 } from "lucide-react";
@@ -16,54 +16,26 @@ export function StoreUrlPreview({
   setHadInvalid,
   isReady,
 }) {
-  // Track the last valid custom domain
-  const [lastValidCustom, setLastValidCustom] = useState("www.mystore.com");
-
-  useEffect(() => {
-    if (!customDomainInput) return; // empty input, keep last valid
-
-    const cleaned = customDomainInput
-      .trim()
-      .toLowerCase()
-      .replace(/^https?:\/\//, "")
-      .replace(/\/$/, "");
-
-    const isValid =
-      cleaned && /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(cleaned);
-
-    if (isValid) {
-      setLastValidCustom(cleaned);
-    }
-  }, [customDomainInput]);
-
   // Build URLs
   const urls = useMemo(() => {
     const base = "layemart.com";
     const store = storeNameInput?.trim().toLowerCase() || "";
 
-    const cleanedCustom = customDomainInput
-      ?.trim()
-      .toLowerCase()
-      .replace(/^https?:\/\//, "")
-      .replace(/\/$/, "");
-
-    const effectiveCustom =
-      cleanedCustom && /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(cleanedCustom)
-        ? cleanedCustom
-        : lastValidCustom || "www.mystore.com";
+    // If input is empty, fallback to default
+    const effectiveCustom = customDomainInput?.trim() || "www.mystore.com";
 
     return {
       pathUrl: store ? `${base}/${store}` : base,
       subdomainUrl: store ? `${store}.${base}` : base,
       customUrl: effectiveCustom,
     };
-  }, [storeNameInput, customDomainInput, lastValidCustom]);
+  }, [storeNameInput, customDomainInput]);
 
   return (
     <div className="rounded-3xl md:border border-neutral-200 bg-white md:p-7 p-4 md:shadow-sm">
       {/* Header */}
       <div className="mb-3">
-        <h3 className="text-2xl md:text-[30px] font-bold text-neutral-900">
+        <h3 className="text-2xl md:text-[46px]! font-bold text-neutral-900">
           Preview your store URL
         </h3>
         <p className="mt-2 text-neutral-600">
@@ -100,10 +72,10 @@ export function StoreUrlPreview({
           <div className="relative">
             <FaGlobe className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4F46E5]" />
             <input
-              value={customDomainInput ?? ""}
+              value={customDomainInput || ""}
               onChange={(e) => setCustomDomainInput(e.target.value)}
               className="h-12 w-full lowercase rounded-xl border border-neutral-300 pl-10 pr-3 text-neutral-900 focus:border-neutral-900 outline-none"
-              placeholder="www.yourbrand.com"
+              placeholder="www.mystore.com"
             />
           </div>
         </div>
@@ -113,7 +85,7 @@ export function StoreUrlPreview({
       <div className="mt-4 space-y-3">
         <UrlCard icon={<Link className="text-[#4F46E5]" />} label="Path URL" value={urls.pathUrl} />
         <UrlCard icon={<Store className="text-[#4F46E5]" />} label="Subdomain" value={urls.subdomainUrl} />
-        <UrlCard icon={<FaGlobe className="text-[#4F46E5]" />} label="Custom domain" value={urls.customUrl} />
+        <UrlCard icon={<FaGlobe className="text-[#4F46E5] w-[20px]!" />} label="Custom domain" value={urls.customUrl} />
       </div>
 
       {/* CTA */}
@@ -128,7 +100,7 @@ export function StoreUrlPreview({
 
         <div className="flex items-center gap-2 text-sm text-neutral-600">
           {isReady && <CheckCircle2 size={16} className="text-[#4F46E5]" />}
-          <span className="text-[#4F46E5]">{isReady ? "Your store name looks great." : "Use at least 3 characters."}</span>
+          <span className="text-[#4F46E5]">{isReady && "Your store name looks great."}</span>
         </div>
       </div>
     </div>
@@ -145,18 +117,18 @@ function UrlCard({ icon, label, value }) {
   };
 
   return (
-    <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
-      <div className="flex items-center gap-3">
+    <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-2 sm:px-4 py-0">
+      <div className="flex items-center gap-3 py-4!">
         <div className="text-neutral-500">{icon}</div>
         <div>
-          <p className="text-xs text-neutral-500">{label}</p>
-          <p className="text-sm font-semibold lowercase text-neutral-900 break-all">{value}</p>
+          <p className="text-xs mb-1! text-neutral-500">{label}</p>
+          <p className="text-sm my-0! font-semibold lowercase text-neutral-900 break-all">{value}</p>
         </div>
       </div>
 
       <button
         onClick={handleCopy}
-        className={`text-xs font-semibold transition ${copied ? "text-[#4F46E5]" : "text-neutral-600 hover:text-neutral-900"}`}
+        className={`text-xs! font-semibold transition ${copied ? "text-[#4F46E5]" : "text-neutral-600 hover:text-neutral-900"}`}
       >
         {copied ? "Copied" : "Copy"}
       </button>
