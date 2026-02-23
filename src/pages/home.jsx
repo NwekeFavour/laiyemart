@@ -953,18 +953,6 @@ const pricingData = [
                       Yearly
                     </button>
                   </div>
-
-                  {/* Dynamic Value Badge */}
-                  <div className="h-8">
-                    <div
-                      className={`flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-indigo-200 transition-all duration-500 ${
-                        billing === "yearly" ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
-                      }`}
-                    >
-                      <Zap className="w-3 h-3 fill-current animate-pulse" />
-                      Get 2 Months Free + Double Points
-                    </div>
-                  </div>
                 </div>
               </div>
 
