@@ -495,7 +495,7 @@ function App() {
 
         {/* --- GLOBAL ROUTES --- */}
         <Route path="/unauthorized" element={<Unauthorized />} />
-        {/* <Route path="*" element={<NotFound />} /> */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
       {isStorefront && storeData && (

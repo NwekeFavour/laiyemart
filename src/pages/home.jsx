@@ -1486,7 +1486,7 @@ const PricingCard = ({
   return (
     <>
       <div
-        className={`bg-white mt-10! mb-10! flex flex-col gap-6 rounded-3xl border p-8 shadow-sm min-w-[130px]! md:min-w-[500px]! lg:min-w-full! md:h-full lg:w-full mx-auto relative transition-all duration-300 hover:shadow-xl ${
+        className={`bg-white mt-10! mb-10! flex flex-col gap-6 rounded-3xl border p-8 shadow-sm w-[300px]! sm:w-[400px]! md:min-w-[500px]! lg:min-w-full! md:h-full lg:w-full mx-auto relative transition-all duration-300 hover:shadow-xl ${
           mostPopular
             ? "border-[#4f46e5] ring-1 ring-[#4f46e5] scale-105 z-10"
             : "border-gray-100 dark:border-gray-800"
@@ -1499,7 +1499,7 @@ const PricingCard = ({
         {/* Most Popular Badge */}
         {mostPopular && (
           <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-            <span className="bg-[#4f46e5] text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase tracking-widest">
+            <span className="bg-[#4f46e5] text-white text-[10px] font-bold sm:px-4! px-2! py-1 rounded-full uppercase tracking-widest">
               Most Popular
             </span>
           </div>
