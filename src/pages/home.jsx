@@ -1137,7 +1137,7 @@ const pricingData = [
           </section>
           <section id="contact" className="md:py-24! py-14! bg-background! xl:px-0 lg:px-6 px-4">
             <div
-              className="gap-5 mb-12! md:mb-25!"
+              className="gap-5 mb-12! md:mb-20!"
               style={{ opacity: "1", transform: "none" }}
             >             
               <h2 className="text-[20px] text-center! md:text-3xl font-bold text-foreground">

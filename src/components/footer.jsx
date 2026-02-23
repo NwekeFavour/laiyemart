@@ -14,7 +14,7 @@ export default function Footer() {
     el.scrollIntoView({ behavior: "smooth" });
   };
   return (
-    <Box component="footer" className="bg-neutral-100 py-12 text-[#0F172A]!">
+    <Box component="footer" className="bg-neutral-100 md:py-6! py-4! text-[#0F172A]!">
       <div className="container mx-auto px-4 grid! grid-cols-1! md:grid-cols-3! gap-10!">
         {/* BRAND */}
         <div className="flex flex-col gap-3">
@@ -100,7 +100,7 @@ export default function Footer() {
       </div>
 
       {/* COPYRIGHT */}
-      <div className="mt-10 border-t border-gray-200 pt-6 text-center text-sm text-gray-500">
+      <div className="mt-3 border-t pb-2! border-gray-200 pt-2! text-center text-sm text-gray-500">
         &copy; {new Date().getFullYear()} LAYEMART. All rights reserved.
       </div>
     </Box>
