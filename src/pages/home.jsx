@@ -1486,7 +1486,7 @@ const PricingCard = ({
   return (
     <>
       <div
-        className={`bg-white mt-10! mb-10! flex flex-col gap-6 rounded-3xl border p-8 shadow-sm md:min-w-[500px]! lg:min-w-full! md:h-full lg:w-full mx-auto relative transition-all duration-300 hover:shadow-xl ${
+        className={`bg-white mt-10! mb-10! flex flex-col gap-6 rounded-3xl border p-8 shadow-sm min-w-[130px]! md:min-w-[500px]! lg:min-w-full! md:h-full lg:w-full mx-auto relative transition-all duration-300 hover:shadow-xl ${
           mostPopular
             ? "border-[#4f46e5] ring-1 ring-[#4f46e5] scale-105 z-10"
             : "border-gray-100 dark:border-gray-800"
