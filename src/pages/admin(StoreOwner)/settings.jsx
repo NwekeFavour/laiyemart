@@ -17,6 +17,10 @@ import {
   Modal,
   Autocomplete,
   ModalDialog,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanel,
 } from "@mui/joy";
 import {
   User,
@@ -101,13 +105,17 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
 
   // 2. Data States
   // Pulled from your User object
-  const [is2FAEnabled, setIs2FAEnabled] = useState(user?.is2FAEnabled);
+  const [is2FAEnabled, setIs2FAEnabled] = useState(true);
   const [isSettingUp2FA, setIsSettingUp2FA] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [is2FAModalOpen, set2FAModalOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [secretText, setSecretText] = useState("");
+  const [method, setMethod] = useState('app'); // 'app' or 'phone'
+  const storeHasPhone = !!(store?.phoneNumber || store?.phone2FA?.phoneNumber);
+const [phoneNumber, setPhoneNumber] = useState(store?.phoneNumber || "");
+const [isSendingSMS, setIsSendingSMS] = useState(false);
   // 3. Disable Flow (Optional but recommended)
   const [avatarPreview, setAvatarPreview] = useState(
     user?.profilePicture?.url || "",
@@ -171,10 +179,66 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     }
   }, []);
 
-  const [isIdentity2FAModalOpen, setIsIdentity2FAModalOpen] = useState(false);
-  const [identityTwoFactorCode, setIdentityTwoFactorCode] = useState("");
-  const [isVerifyingIdentity, setIsVerifyingIdentity] = useState(false);
+  const handleRequestPhoneOTP = async () => {
+    setIsSendingSMS(true);
+    const token = useAuthStore.getState().token;
+    try {
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/security/2fa/phone/initiate`, 
+        { 
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json", 
+          },
+          body: JSON.stringify({ phoneNumber })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to send code");
+        }
+        toast.success(data.message || "Code sent to your phone!");
+    } catch (err) {
+      toast.error("Failed to send code.");
+    } finally {
+      setIsSendingSMS(false);
+    }
+  };
 
+  const handleVerifyPhoneEnable = async () => {
+  if (!twoFactorCode || twoFactorCode.length < 6) {
+    return toast.error("Please enter a valid 6-digit code");
+  }
+
+  setIsVerifying(true);
+  const token = useAuthStore.getState().token;
+
+  try {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/2fa/phone/enable`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ code: twoFactorCode.replace(/\s/g, "") }) 
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Invalid verification code");
+    }
+
+    toast.success("Phone 2FA enabled successfully!");
+    
+    // 2. Clean up and close
+    set2FAModalOpen(false);
+    setTwoFactorCode(""); 
+  } catch (err) {
+    toast.error(err.message || "Failed to verify code");
+  } finally {
+    setIsVerifying(false);
+  }
+};
   const handleIdentitySubmit = async () => {
     setIsUpdating(true);
     try {
@@ -2376,6 +2440,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                                 businessName: e.target.value,
                               })
                             }
+                            className={`${isDark && "placeholder:text-slate-100! text-slate-100!"}`}
                             sx={{
                               bgcolor: isDark ? "neutral.800" : "common.white",
                             }}
@@ -2561,55 +2626,87 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
             )}
           </Sheet>
         </Box>
-        <Modal open={is2FAModalOpen} onClose={() => set2FAModalOpen(false)}>
-          <ModalDialog sx={{ maxWidth: 400 }}>
-            <Typography level="h4">Setup Authenticator App</Typography>
-            <Typography level="body-sm" sx={{ mb: 2 }}>
-              Scan this QR code with Google Authenticator or Authy, or copy the
-              secret below.
-            </Typography>
+<Modal open={is2FAModalOpen} onClose={() => set2FAModalOpen(false)}>
+  <ModalDialog className="overflow-auto h-150" sx={{ maxWidth: 400 }}>
+    <Typography level="h4">Secure Your Account</Typography>
+    
+    {/* Option Toggle */}
+    <Tabs
+      defaultValue={0} 
+      onChange={(e, value) => setMethod(value === 0 ? 'app' : 'phone')}
+      sx={{ bgcolor: 'transparent', mt: 2 }}
+    >
+      <TabList variant="plain" size="sm">
+        <Tab>Authenticator App</Tab>
+        <Tab>Phone Number</Tab>
+      </TabList>
 
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                p: 2,
-                bgcolor: "white",
-                borderRadius: "md",
-              }}
-            >
-              <img
-                src={qrCodeUrl}
-                alt="2FA QR Code"
-                style={{ width: "100%" }}
-              />
-            </Box>
+      {/* --- APP FLOW --- */}
+      <TabPanel value={0} sx={{ p: 0, pt: 2 }}>
+        <Typography level="body-sm" sx={{ mb: 2 }}>
+          Scan this QR code with Google Authenticator or Authy.
+        </Typography>
+        <Box sx={{ display: "flex", justifyContent: "center", p: 2, bgcolor: "white", borderRadius: "md" }}>
+          <img src={qrCodeUrl} alt="2FA" style={{ width: "70%" }} />
+        </Box>
+        <Typography level="body-sm" sx={{ mt: 1 }}>
+          Secret: <strong>{secretText || "Loading..."}</strong>
+        </Typography>
+      </TabPanel>
 
-            <Typography level="body-sm" sx={{ mt: 1 }}>
-              Secret: <strong>{secretText ? secretText : "Loading..."}</strong>
-            </Typography>
+      {/* --- PHONE FLOW --- */}
+      <TabPanel value={1} sx={{ p: 0, pt: 2 }}>
+        <Typography level="body-sm" sx={{ mb: 2 }}>
+          We will send a code to your phone. If you don't have a number saved, please enter it below.
+        </Typography>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel>Phone Number</FormLabel>
+          <Input 
+            placeholder="+234..." 
+            value={phoneNumber} 
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            disabled={storeHasPhone} // Disable if store already has a phone
+            slotProps={{
+              input: {
+                readOnly: storeHasPhone // Secondary layer of protection
+              }
+            }}
+          />
+        </FormControl>
+        <Button 
+          variant="outlined" 
+          size="sm" 
+          onClick={handleRequestPhoneOTP}
+          loading={isSendingSMS}
+        >
+          Send Code
+        </Button>
+      </TabPanel>
+    </Tabs>
 
-            <Stack spacing={2} sx={{ mt: 2 }}>
-              <FormControl>
-                <FormLabel>Verification Code</FormLabel>
-                <Input
-                  autoFocus
-                  placeholder="123 456"
-                  value={twoFactorCode}
-                  onChange={handleCodeChange}
-                  slotProps={{ input: { maxLength: 7 } }} // 6 digits + optional space
-                />
-              </FormControl>
-              <Button
-                onClick={handleVerifyAndEnable}
-                loading={isVerifying}
-                fullWidth
-              >
-                Verify & Enable
-              </Button>
-            </Stack>
-          </ModalDialog>
-        </Modal>
+    {/* --- COMMON VERIFICATION SECTION --- */}
+    <Divider sx={{ my: 2 }} />
+    <Stack spacing={2}>
+      <FormControl>
+        <FormLabel>Verification Code</FormLabel>
+        <Input
+          autoFocus
+          placeholder="123 456"
+          value={twoFactorCode}
+          onChange={handleCodeChange}
+          slotProps={{ input: { maxLength: 7 } }}
+        />
+      </FormControl>
+      <Button
+        onClick={method === 'app' ? handleVerifyAndEnable : handleVerifyPhoneEnable}
+        loading={isVerifying}
+        fullWidth
+      >
+        Verify & Enable
+      </Button>
+    </Stack>
+  </ModalDialog>
+</Modal>
       </Box>
     </StoreOwnerLayout>
   );

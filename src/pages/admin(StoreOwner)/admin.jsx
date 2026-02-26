@@ -428,7 +428,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                   <a
                     href={(() => {
                       // 1. Check for slug (since your DB uses 'slug')
-                      const storeIdentifier = store?.slug || store?.subdomain;
+                      const storeIdentifier = store?.subdomain;
                       if (!storeIdentifier) return "#";
 
                       // Base domain cleanup (removes dashboard. and www.)

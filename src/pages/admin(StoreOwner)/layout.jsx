@@ -87,7 +87,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
           iconBg: "bg-amber-400",
           title: `${store?.plan?.toUpperCase()} PLAN`,
           subtext:
-            "You are exploring pro features for free. Upgrade to remove limits.",
+            "",
           btnText: "Upgrade to Pro",
           showButton: true,
         }
@@ -683,7 +683,7 @@ if (!showOnboarding) return null;
       {/* Logout Footer */}
       <Box sx={{ pt: 2, borderTop: "1px solid #f1f5f9" }}>
         <Button
-          className={`${isDark ? "text-[#cad5e2]!" : "text-slate-80/90!"}`}
+          className={`${isDark && "text-[#cad5e2]! hover:text-slate-800/90!"}`}
           onClick={() => setIsLogoutModalOpen(true)}
           variant="plain"
           color="danger"
@@ -947,11 +947,12 @@ if (!showOnboarding) return null;
 
         {/* 5. Bottom Logout Section */}
         <Box
-          className={`${isDark ? "text-slate-200! border-t! border-slate-100/50! bg-slate-950!" : ""}`}
+          className={`${isDark ? "border-t! border-slate-100/50! bg-slate-950!" : ""}`}
           sx={{ p: 2, mt: "auto", borderTop: "1px solid #f1f5f9" }}
         >
           <Button
             variant="plain"
+            className={`${isDark && " text-white hover:text-slate-800/90!"}`}
             color="danger"
             onClick={() => setIsLogoutModalOpen(true)}
             startDecorator={<LogOut size={20} />}
@@ -965,7 +966,7 @@ if (!showOnboarding) return null;
             }}
           >
             {!isCollapsed && (
-              <Typography className={`${isDark ? "text-[#cad5e2]!" : "text-slate-800/90!"}`} sx={{ fontWeight: 600, fontSize: "14px", ml: 1 }}>
+              <Typography className={`${isDark ? "" : "text-slate-800/90!"}`} sx={{ fontWeight: 600, fontSize: "14px", ml: 1 }}>
                 Log out
               </Typography>
             )}
@@ -1358,7 +1359,7 @@ if (!showOnboarding) return null;
         >
           {(isStarter || isExpired || hasPaidBefore) && (
             <Sheet
-              className={`${config.bg} ${config.color} lg:items-center! items-end! flex! justify-between! flex-wrap! shadow-lg`}
+              className={`${config.bg} ${config.color} items-start flex! justify-between! flex-wrap! shadow-lg`}
               variant="solid"
               sx={{ p: 2, borderRadius: "20px", mb: 3 }}
             >
@@ -1493,11 +1494,11 @@ if (!showOnboarding) return null;
               )}
             </Sheet>
           )}
-          <OnboardingChecklist 
+          {/* <OnboardingChecklist 
     isDark={isDark} 
     user={user} 
     store={store} 
-  />
+  /> */}
 
           {store?.plan === "starter" && (
             <Box

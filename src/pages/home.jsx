@@ -43,6 +43,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { toast } from "react-toastify";
 import { Mail } from "@mui/icons-material";
 import { StoreUrlPreview } from "../components/storePreviewUrl";
+import ContactForm from "../components/contact";
 
 function Home(props) {
   const [openIndex, setOpenIndex] = useState(null);
@@ -1241,79 +1242,7 @@ const pricingData = [
               <div>
                 <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl  py-6 shadow-sm border-border/50">
                   <div className="p-8">
-                    <form className="space-y-6">
-                      <div className="grid! grid-cols-1! md:grid-cols-2! gap-4!">
-                        <div className="grid! gap-2!">
-                          <label
-                            htmlFor="name"
-                            className="flex items-center gap-2 text-sm font-medium"
-                          >
-                            Name
-                          </label>
-                          <input
-                            id="name"
-                            name="name"
-                            type="text"
-                            placeholder="Your name"
-                            className="border-input  flex h-9 w-full rounded-md border border-slate-100 bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:border-slate-300 focus-visible:shadow-md"
-                          />
-                        </div>
-
-                        <div className="grid! gap-2!">
-                          <label
-                            htmlFor="email"
-                            className="flex items-center gap-2 text-sm font-medium"
-                          >
-                            Email
-                          </label>
-                          <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            placeholder="your@email.com"
-                            className="border-input  flex h-9 w-full rounded-md border border-slate-100 bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:border-slate-300 focus-visible:shadow-md"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid! gap-2!">
-                        <label
-                          htmlFor="subject"
-                          className="flex items-center gap-2 text-sm font-medium"
-                        >
-                          Subject
-                        </label>
-                        <input
-                          id="subject"
-                          name="subject"
-                          type="text"
-                          placeholder="What's this about?"
-                          className="border-input  flex h-9 w-full rounded-md border border-slate-100 bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:border-slate-300 focus-visible:shadow-md"
-                        />
-                      </div>
-
-                      <div className="grid! gap-2!">
-                        <label
-                          htmlFor="message"
-                          className="flex items-center gap-2 text-sm font-medium"
-                        >
-                          Message
-                        </label>
-                        <textarea
-                          id="message"
-                          name="message"
-                          placeholder="Tell us more about your project or question..."
-                          className="border-input  flex h-24 w-full   md:h-30] rounded-md border border-slate-100 bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:border-slate-300 focus-visible:shadow-md"
-                        />
-                      </div>
-
-                      <button
-                        type="submit"
-                        className="inline-flex bg-[#4F46E5]/90 text-white items-center rounded-[100px]! justify-center gap-2 text-sm font-medium bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-10 rounded-md w-full px-6"
-                      >
-                        Send Message
-                      </button>
-                    </form>
+                   <ContactForm/>
                   </div>
                 </div>
               </div>
@@ -1601,7 +1530,7 @@ const PricingCard = ({
 
       {/* ENTERPRISE MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-1000! flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}>
+        <div className="fixed inset-0 z-1000! flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" >
           <div className="bg-white dark:bg-gray-100 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border dark:border-gray-800">
             <div className="p-8">
               <div className="flex justify-between items-center mb-6">
