@@ -58,6 +58,15 @@ function PageHeader() {
                 </>
               )}
 
+              {isAuthenticated && (
+                <>
+                  <a href="/auth-sync" className="hidden lg:flex px-6 py-2.5 text-sm font-semibold rounded-full bg-slate-900 text-white! hover:opacity-90 transition-opacity">
+                    Dashboard
+                  </a>
+                </>
+              )}
+
+
               {/* Mobile Menu Button */}
               {/* <button 
                 className="lg:hidden p-2 text-slate-900 dark:text-white"

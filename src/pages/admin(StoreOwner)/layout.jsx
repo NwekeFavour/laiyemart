@@ -1494,11 +1494,11 @@ if (!showOnboarding) return null;
               )}
             </Sheet>
           )}
-          {/* <OnboardingChecklist 
-    isDark={isDark} 
-    user={user} 
-    store={store} 
-  /> */}
+        {/* <OnboardingChecklist 
+            isDark={isDark} 
+            user={user} 
+            store={store} 
+          /> */}
 
           {store?.plan === "starter" && (
             <Box
