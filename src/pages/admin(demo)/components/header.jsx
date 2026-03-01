@@ -19,7 +19,13 @@ import { toast } from "react-toastify";
 import { useCartStore } from "../../../../services/cartService";
 import { useProductStore } from "../../../../services/productService";
 
-export default function Header({ storeSlug, storeName, storeLogo, isStarter, storeData }) {
+export default function Header({
+  storeSlug,
+  storeName,
+  storeLogo,
+  isStarter,
+  storeData,
+}) {
   const [open, setOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const { pathname } = useLocation();
@@ -30,7 +36,7 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter, sto
 
   const uniqueItemCount = cart?.items?.length || 0;
 
-    const getStorePath = (path) => {
+  const getStorePath = (path) => {
     // 1. Clean the path to ensure it starts with / and has no double slashes
     const cleanPath = path.startsWith("/") ? path : `/${path}`;
 
@@ -54,14 +60,12 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter, sto
     return `/${storeSlug}${cleanPath}`;
   };
 
-
   const handleLogout = () => {
     logout();
-    setIsLogoutModalOpen(false)
+    setIsLogoutModalOpen(false);
     toast.success("Signed out successfully");
     // navigate(isStarter ? `/${storeData.subdomain}/login}` : `/login`);
   };
-
 
   const categories = useMemo(() => {
     const names = products.map((p) => p.category?.name).filter(Boolean);
@@ -118,16 +122,26 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter, sto
             sx={{ display: { xs: "none", md: "flex" } }}
           >
             {navItems.map((item) => {
-              // Convert "Home" to "/", others to "/shop", "/about", etc.
-              const rawPath = item === "Home" ? "/" : `/${item.toLowerCase()}`;
-              const active = pathname === rawPath || pathname === getStorePath(rawPath);
+              const lower = item.toLowerCase();
 
+              // Convert "Home" to "/", others to "/shop", "/about", etc.
+              let path;
+
+              if (item === "Home") {
+                path = isStarter ? `/${storeData.subdomain}` : "/";
+              } else {
+                path = isStarter
+                  ? `/${storeData.subdomain}/${lower}`
+                  : `/${lower}`;
+              }
+
+              const active = pathname === path;
               return (
                 <Link
                   key={item}
-                  to={rawPath === "/" ? getStorePath("/") : getStorePath(rawPath)}
+                  to={path}
                   style={{
-                    textDecoration: active ? "underline neutral.900" : "none",
+                    textDecoration: active ? "underline" : "none",
                     color: "#111827",
                     fontWeight: 600,
                     fontSize: 14,
@@ -141,8 +155,14 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter, sto
           {/* Right */}
           <Stack direction="row" spacing={2} alignItems="center">
             <Link
-              to={localStorage.getItem("demo") ? "#" : isStarter ? `/${storeData.subdomain}/cart` : "/cart"}
-              style={{  color: "inherit" }}
+              to={
+                localStorage.getItem("demo")
+                  ? "#"
+                  : isStarter
+                    ? `/${storeData.subdomain}/cart`
+                    : "/cart"
+              }
+              style={{ color: "inherit" }}
             >
               <Badge
                 // Show the actual count
@@ -185,7 +205,11 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter, sto
                 sx={{ display: { xs: "none", md: "flex" } }}
               >
                 {isAuthenticated ? (
-                  <Link to={getStorePath("/account")}>
+                  <Link
+                    to={
+                      isStarter ? `/${storeData.subdomain}/account` : "/account"
+                    }
+                  >
                     <Button
                       className="px-5! border-slate-900! text-slate-800/90! hover:bg-slate-300/10!"
                       size="sm"
@@ -197,7 +221,11 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter, sto
                 ) : (
                   <div className="flex items-center gap-3">
                     {/* Login Button - Outlined Slate */}
-                    <Link to={isStarter ? `/${storeData.subdomain}/login` : "/login"}>
+                    <Link
+                      to={
+                        isStarter ? `/${storeData.subdomain}/login` : "/login"
+                      }
+                    >
                       <Button
                         className="px-5! border-slate-900! text-slate-800/90! hover:bg-slate-300/10!"
                         size="sm"
@@ -208,7 +236,13 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter, sto
                     </Link>
 
                     {/* Register Button - Solid Slate (Primary Action) */}
-                    <Link to={getStorePath(`/register`)}>
+                    <Link
+                      to={
+                        isStarter
+                          ? `/${storeData.subdomain}/register`
+                          : "/register"
+                      }
+                    >
                       <Button
                         className="px-5! bg-slate-900! text-white! border-slate-900! hover:bg-slate-800!"
                         size="sm"
@@ -241,7 +275,7 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter, sto
             {["home", "shop", "account"]
               .filter((item) => (item === "account" ? isAuthenticated : true))
               .map((item) => {
-                // 1. Determine the Base Path 
+                // 1. Determine the Base Path
                 // If Starter: /storename
                 // If Pro: /
                 const base = isStarter ? `/${storeSlug}` : "";
@@ -266,7 +300,7 @@ export default function Header({ storeSlug, storeName, storeLogo, isStarter, sto
                     style={{
                       fontSize: 18,
                       fontWeight: active ? 700 : 500,
-                      textDecoration: active ? "underline #ef4444" : "none",                      
+                      textDecoration: active ? "underline #ef4444" : "none",
                       textUnderlineOffset: "6px",
                       color: "#111827",
                     }}
