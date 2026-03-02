@@ -458,7 +458,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
                     {/* Dynamic Text Display */}
                     {store.plan === "starter"
                       ? `layemart.com/${store?.subdomain ? store?.subdomain : store?.slug}`
-                      : `${store?.slug || store?.subdomain || "shop"}.layemart.com`}
+                      : `${store?.subdomain || "shop"}.layemart.com`}
                     <ExternalLink size={14} className="mb-0.5" />
                   </a>
                 </Typography>

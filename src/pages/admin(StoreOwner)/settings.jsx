@@ -105,7 +105,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
 
   // 2. Data States
   // Pulled from your User object
-  const [is2FAEnabled, setIs2FAEnabled] = useState(true);
+  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [isSettingUp2FA, setIsSettingUp2FA] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [is2FAModalOpen, set2FAModalOpen] = useState(false);
@@ -2093,7 +2093,7 @@ const [isSendingSMS, setIsSendingSMS] = useState(false);
                 </Box>
 
                 {/* 2FA GATE */}
-                {!is2FAEnabled ? (
+                {is2FAEnabled === false ? (
                   <Box
                     sx={{
                       display: "flex",
@@ -2158,10 +2158,7 @@ const [isSendingSMS, setIsSendingSMS] = useState(false);
                           sx={{ color: isDark ? "info.300" : "primary.700" }}
                         >
                           <strong>Note:</strong> Please ensure your names match
-                          the records tied to your <strong>BVN</strong>. If you
-                          have verified your identity on another
-                          Paystack-powered platform, our system will
-                          automatically sync your records.
+                          the records tied to your <strong>BVN</strong>.
                         </Typography>
                       </Box>
                     )}

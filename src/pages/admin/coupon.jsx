@@ -113,7 +113,7 @@ const CouponPage = () => {
     <SuperAdminLayout>
       <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: "1200px", mx: "auto" }}>
         {/* Header Section */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
+        <Box className="md:flex md:items-center! items-start!" sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
           <Box sx={{ p: 1, bgcolor: "primary.100", borderRadius: "lg" }}>
             <TicketPercent size={28} className="text-blue-600" />
           </Box>
@@ -129,9 +129,9 @@ const CouponPage = () => {
 
         {/* Create Coupon Form Card */}
         <Sheet
+          className="md:p-3 p-2"
           variant="outlined"
           sx={{
-            p: 3,
             borderRadius: "xl",
             bgcolor: "white",
             boxShadow: "sm",

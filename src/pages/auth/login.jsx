@@ -98,7 +98,7 @@ export default function LoginPage() {
         </Box>
 
         {/* Social Login */}
-        <Box sx={{ display: "block", gap: 2 }}>
+        {/* <Box sx={{ display: "block", gap: 2 }}>
           <Button
             variant="outlined"
             color="neutral"
@@ -108,7 +108,7 @@ export default function LoginPage() {
           >
             Continue with Email
           </Button>
-        </Box>
+        </Box> */}
 
         <Divider sx={{ my: 1 }}>
           <Typography
