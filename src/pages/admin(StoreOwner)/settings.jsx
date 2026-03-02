@@ -2093,7 +2093,7 @@ const [isSendingSMS, setIsSendingSMS] = useState(false);
                 </Box>
 
                 {/* 2FA GATE */}
-                {is2FAEnabled === false ? (
+                {is2FAEnabled === true ? (
                   <Box
                     sx={{
                       display: "flex",
