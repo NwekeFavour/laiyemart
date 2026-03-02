@@ -101,28 +101,28 @@ html{
 
   const [open, setOpen] = useState(0);
 
-const faqs = [
-  {
-    q: "Can I use my own domain?",
-    a: "Yes. You can connect a custom domain so your workspace or storefront runs on your own brand URL.",
-  },
-  {
-    q: "Can I sell services?",
-    a: "Absolutely. You can offer services, digital products, or subscriptions directly through your platform.",
-  },
-  {
-    q: "How do payments work?",
-    a: "Payments are processed securely through integrated payment providers, allowing you to accept cards, transfers, and other supported methods.",
-  },
-  {
-    q: "Do I need technical skills?",
-    a: "No. The platform is designed to be beginner-friendly, with templates and guided setup so you can launch without coding.",
-  },
-  {
-    q: "Is this only for Nigeria?",
-    a: "No. While it supports local payment options, the platform is built for creators and businesses globally.",
-  },
-];
+  const faqs = [
+    {
+      q: "Can I use my own domain?",
+      a: "Yes. You can connect a custom domain so your workspace or storefront runs on your own brand URL.",
+    },
+    {
+      q: "Can I sell services?",
+      a: "Absolutely. You can offer services, digital products, or subscriptions directly through your platform.",
+    },
+    {
+      q: "How do payments work?",
+      a: "Payments are processed securely through integrated payment providers, allowing you to accept cards, transfers, and other supported methods.",
+    },
+    {
+      q: "Do I need technical skills?",
+      a: "No. The platform is designed to be beginner-friendly, with templates and guided setup so you can launch without coding.",
+    },
+    {
+      q: "Is this only for Nigeria?",
+      a: "No. While it supports local payment options, the platform is built for creators and businesses globally.",
+    },
+  ];
   const handleCreateStore = () => {
     // 1. Toggle the mode
     setMode((prev) => !prev);
@@ -134,33 +134,33 @@ const faqs = [
     // 3. Optional: Sync the 'demo' state if you have one
     if (setDemo) setDemo(true);
   };
-const [storeNameInput, setStoreNameInput] = useState("");
-const [customDomainInput, setCustomDomainInput] = useState("www.GIW.com");
-const [hadInvalid, setHadInvalid] = useState(false);
+  const [storeNameInput, setStoreNameInput] = useState("");
+  const [customDomainInput, setCustomDomainInput] = useState("www.GIW.com");
+  const [hadInvalid, setHadInvalid] = useState(false);
 
-const normalizeStoreName = (value) =>
-  value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+  const normalizeStoreName = (value) =>
+    value.toLowerCase().replace(/[^a-z0-9-]/g, "");
 
-// Build URLs
-const urls = useMemo(() => {
-  const base = "layemart.com";
-  const store = storeNameInput?.trim().toLowerCase();
+  // Build URLs
+  const urls = useMemo(() => {
+    const base = "layemart.com";
+    const store = storeNameInput?.trim().toLowerCase();
 
-  // Remove protocol, trailing slash, and lowercase
-  const cleanedCustom = customDomainInput
-    ?.trim()
-    .toLowerCase()
-    .replace(/^https?:\/\//, "")
-    .replace(/\/$/, "");
+    // Remove protocol, trailing slash, and lowercase
+    const cleanedCustom = customDomainInput
+      ?.trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/\/$/, "");
 
-  const effectiveCustom = cleanedCustom || "www.mystore.com";
+    const effectiveCustom = cleanedCustom || "www.mystore.com";
 
-  return {
-    pathUrl: store ? `${base}/${store}` : base,
-    subdomainUrl: store ? `${store}.${base}` : base,
-    customUrl: effectiveCustom, // ONLY the domain
-  };
-}, [storeNameInput, customDomainInput]);
+    return {
+      pathUrl: store ? `${base}/${store}` : base,
+      subdomainUrl: store ? `${store}.${base}` : base,
+      customUrl: effectiveCustom, // ONLY the domain
+    };
+  }, [storeNameInput, customDomainInput]);
   const isReady = storeNameInput.length >= 3;
   const steps = [
     {
@@ -193,56 +193,56 @@ const urls = useMemo(() => {
     },
   ];
 
-const pricingData = [
-  {
-    title: "Starter",
-    description: "For new store owners just getting started",
-    monthly: "₦0",
-    yearly: "₦0",
-    storeUrl: {
-      label: "Store URL",
-      example: "layemart.com/mystore",
+  const pricingData = [
+    {
+      title: "Starter",
+      description: "For new store owners just getting started",
+      monthly: "₦0",
+      yearly: "₦0",
+      storeUrl: {
+        label: "Store URL",
+        example: "layemart.com/mystore",
+      },
+      features: [
+        "Up to 100 products",
+        "Basic store templates",
+        "Payment integration",
+        "10% Service fee",
+        "Email support",
+      ],
     },
-    features: [
-      "Up to 100 products",
-      "Basic store templates",
-      "Payment integration",
-      "10% Service fee",
-      "Email support",
-    ],
-  },
-  {
-    title: "Professional",
-    description: "For growing online stores",
-    monthly: "₦15,000",
-    yearly: "₦153,000",
-    storeUrl: {
-      label: "Store URL",
-      example: "mystore.layemart.com",
+    {
+      title: "Professional",
+      description: "For growing online stores",
+      monthly: "₦15,000",
+      yearly: "₦153,000",
+      storeUrl: {
+        label: "Store URL",
+        example: "mystore.layemart.com",
+      },
+      features: [
+        "Up to 200 products",
+        "Advanced templates & layouts",
+        "Marketing tools & SEO",
+        "3% Service fee",
+        "Domain Name Integration (T&Cs apply) ",
+        "Payment integration",
+        "Priority email support",
+      ],
+      mostPopular: true,
     },
-    features: [
-      "Up to 200 products",
-      "Advanced templates & layouts",
-      "Marketing tools & SEO",
-      "3% Service fee",
-      "Domain Name Integration (T&Cs apply) ",
-      "Payment integration",
-      "Priority email support",
-    ],
-    mostPopular: true,
-  },
-  {
-    title: "Enterprise",
-    description: "For large businesses",
-    monthly: "Custom",
-    yearly: "Custom",
-    storeUrl: {
-      label: "White-label infrastructure",
-      example: "Fully custom domains",
+    {
+      title: "Enterprise",
+      description: "For large businesses",
+      monthly: "Custom",
+      yearly: "Custom",
+      storeUrl: {
+        label: "White-label infrastructure",
+        example: "Fully custom domains",
+      },
+      features: ["Custom development & integrations"],
     },
-    features: ["Custom development & integrations"],
-  },
-];
+  ];
 
   const reasons = [
     {
@@ -266,8 +266,6 @@ const pricingData = [
         "You get documented, production-ready code with clarity on what’s delivered and what’s next.",
     },
   ];
-
-
 
   return (
     <div>
@@ -392,7 +390,7 @@ const pricingData = [
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
                 className="mb-20 text-center"
-              >               
+              >
                 <Typography className="text-[#0F172A]! text-[20px]! md:text-[40px]! font-bold mx- text-foreground!">
                   A Simple, Structured Process Designed <br />
                   For Speed and Clarity.
@@ -645,7 +643,6 @@ const pricingData = [
             className="key-features rounded-b-3! section panel overflow-hidden"
           >
             <div className="section-outer panel py-6 sm:py-8 xl:py-4 lg:mx-2 mt-2 ">
-              
               <div className="container ">
                 <div className="section-inner panel">
                   <div
@@ -929,11 +926,12 @@ const pricingData = [
                 <div className="flex flex-col items-center gap-4 mt-8 px-4 w-full">
                   {/* Segmented Control Container */}
                   <div className="group relative flex p-1 bg-gray-200/50 backdrop-blur-md rounded-full w-full max-w-[320px] sm:max-w-[350px] border border-gray-300/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]">
-                    
                     {/* Sliding Background Pill */}
                     <div
                       className={`absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) ${
-                        billing === "yearly" ? "translate-x-full" : "translate-x-0"
+                        billing === "yearly"
+                          ? "translate-x-full"
+                          : "translate-x-0"
                       }`}
                     />
 
@@ -941,7 +939,9 @@ const pricingData = [
                     <button
                       onClick={() => setBilling("monthly")}
                       className={`relative z-10 flex-1 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-wider transition-colors duration-300 ${
-                        billing === "monthly" ? "text-indigo-600" : "text-gray-100 hover:text-gray-800"
+                        billing === "monthly"
+                          ? "text-indigo-600"
+                          : "text-gray-100 hover:text-gray-800"
                       }`}
                     >
                       Monthly
@@ -951,7 +951,9 @@ const pricingData = [
                     <button
                       onClick={() => setBilling("yearly")}
                       className={`relative z-10 flex-1 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-wider transition-colors duration-300 ${
-                        billing === "yearly" ? "text-indigo-600" : "text-gray-100 hover:text-gray-800"
+                        billing === "yearly"
+                          ? "text-indigo-600"
+                          : "text-gray-100 hover:text-gray-800"
                       }`}
                     >
                       Yearly
@@ -969,21 +971,19 @@ const pricingData = [
             </div>
           </section>
 
-                        <div className="max-w-4xl mx-auto md:py-3! py-6! ">
-      <StoreUrlPreview
-        storeNameInput={storeNameInput}
-        customDomainInput={customDomainInput}
-        setStoreNameInput={setStoreNameInput}
-        setCustomDomainInput={setCustomDomainInput}
-        normalizeStoreName={normalizeStoreName}
-        hadInvalid={hadInvalid}
-        setHadInvalid={setHadInvalid}
-        urls={urls}
-        isReady={isReady}
-      />
-    </div>
-
-
+          <div className="max-w-4xl mx-auto md:py-3! py-6! ">
+            <StoreUrlPreview
+              storeNameInput={storeNameInput}
+              customDomainInput={customDomainInput}
+              setStoreNameInput={setStoreNameInput}
+              setCustomDomainInput={setCustomDomainInput}
+              normalizeStoreName={normalizeStoreName}
+              hadInvalid={hadInvalid}
+              setHadInvalid={setHadInvalid}
+              urls={urls}
+              isReady={isReady}
+            />
+          </div>
 
           {/* <Box component="section" className="w-full bg-neutral-800! py-24 px-4 md:px-6 rounded-t-[50px]">
                         <motion.div
@@ -1086,7 +1086,7 @@ const pricingData = [
               </p>
 
               <h1 className=" text-[23px]!  md:text-[46px]!  font-semibold text-white! mb-8">
-                Start your Journey today with <br/> Layemart Commerce
+                Start your Journey today with <br /> Layemart Commerce
               </h1>
 
               <Link
@@ -1097,7 +1097,7 @@ const pricingData = [
               </Link>
             </div>
           </section>
-                    <section id="faqs" className="py-16 bg-gray-50">
+          <section id="faqs" className="py-16 bg-gray-50">
             <div className="max-w-5xl mx-auto px-4">
               <h2 className="lg:text-[46px]! md:text-[38px]! text-[26px]! font-bold! text-center mb-10">
                 Frequently Asked Questions
@@ -1108,10 +1108,7 @@ const pricingData = [
                   const active = open === i;
 
                   return (
-                    <div
-                      key={i}
-                      className="bg-[#f6f4f0]!   rounded-2xl p-3"
-                    >
+                    <div key={i} className="bg-[#f6f4f0]!   rounded-2xl p-3">
                       <button
                         onClick={() => setOpen(active ? null : i)}
                         className="flex items-center justify-between w-full text-left"
@@ -1133,14 +1130,17 @@ const pricingData = [
                     </div>
                   );
                 })}
-              </div>            
+              </div>
             </div>
           </section>
-          <section id="contact" className="md:py-16! py-8! bg-background! xl:px-0 lg:px-6 px-4">
+          <section
+            id="contact"
+            className="md:py-16! py-8! bg-background! xl:px-0 lg:px-6 px-4"
+          >
             <div
               className="gap-5 mb-12! md:mb-13!"
               style={{ opacity: "1", transform: "none" }}
-            >             
+            >
               <h2 className="text-[20px] text-center! md:text-3xl font-bold text-foreground">
                 Contact Us
               </h2>
@@ -1162,7 +1162,7 @@ const pricingData = [
                 <div className="space-y-6">
                   {/* Email */}
                   <div className="flex items-start gap-4">
-                    <Mail className="text-[20px]! flex items-center justify-center"/>
+                    <Mail className="text-[20px]! flex items-center justify-center" />
                     <div>
                       <h4 className="font-semibold text-foreground mb-1">
                         Email
@@ -1242,11 +1242,22 @@ const pricingData = [
               <div>
                 <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl  py-6 shadow-sm border-border/50">
                   <div className="p-8">
-                   <ContactForm/>
+                    <ContactForm />
                   </div>
                 </div>
               </div>
             </div>
+            <a
+              href="https://t.me/Layemart_bot"
+              target="_blank"
+              id="telegram-float-button"
+              title="Chat with us on Telegram"
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg"
+                alt="Telegram"
+              />
+            </a>
           </section>
           <Footer />
         </div>
@@ -1432,12 +1443,12 @@ const PricingCard = ({
         {/* Coupon Badge */}
         {title === "Professional" && (
           <span
-  className={`absolute top-4 right-4 inline-flex items-center gap-1 font-bold bg-indigo-50 text-[#4f46e5] text-[10px] px-2 py-1 rounded-lg border border-indigo-100 animate-pulse ${
-    billing === "yearly" ? "block!" : "hidden!"
-  }`}
->
--20% DISCOUNT
-</span>
+            className={`absolute top-4 right-4 inline-flex items-center gap-1 font-bold bg-indigo-50 text-[#4f46e5] text-[10px] px-2 py-1 rounded-lg border border-indigo-100 animate-pulse ${
+              billing === "yearly" ? "block!" : "hidden!"
+            }`}
+          >
+            -20% DISCOUNT
+          </span>
         )}
 
         <div className="text-center sm:text-left">
@@ -1470,29 +1481,34 @@ const PricingCard = ({
 
         <div className="flex-1">
           <ul className="space-y-4 ps-2! md:ps-[30px]!">
-  {(
-    // Prepend discount for yearly Professional, and append store URL if it exists
-    (billing === "yearly" && title === "Professional" ? [ ...features] : features)
-  ).concat(
-    storeUrl && title !== "Enterprise" ? [`${storeUrl.label}: ${storeUrl.example}`] : []
-  ).map((feature, idx) => (
-    <li
-      key={idx}
-      className={`flex items-start text-sm ${
-        title === "Professional" ? "text-white!" : "text-gray-600!"
-      }`}
-    >
-      <Check
-        className="h-5 w-5 text-[#4f46e5] mr-3 flex-shrink-0"
-        strokeWidth={3}
-      />
-      {feature}
-    </li>
-  ))}
-</ul>
+            {// Prepend discount for yearly Professional, and append store URL if it exists
+            (billing === "yearly" && title === "Professional"
+              ? [...features]
+              : features
+            )
+              .concat(
+                storeUrl && title !== "Enterprise"
+                  ? [`${storeUrl.label}: ${storeUrl.example}`]
+                  : [],
+              )
+              .map((feature, idx) => (
+                <li
+                  key={idx}
+                  className={`flex items-start text-sm ${
+                    title === "Professional" ? "text-white!" : "text-gray-600!"
+                  }`}
+                >
+                  <Check
+                    className="h-5 w-5 text-[#4f46e5] mr-3 flex-shrink-0"
+                    strokeWidth={3}
+                  />
+                  {feature}
+                </li>
+              ))}
+          </ul>
         </div>
 
-                {/* Store URL section
+        {/* Store URL section
 {storeUrl && title !== "Enterprise" && (
   <div
     className={`rounded-2xl border flex  items-center gap-2 p-2 ${
@@ -1515,7 +1531,6 @@ const PricingCard = ({
   </div>
 )} */}
 
-
         <button
           onClick={() => handleAction(plan)}
           className={`w-full  py-3.5 rounded-[100px]! font-bold transition-all ${
@@ -1530,12 +1545,12 @@ const PricingCard = ({
 
       {/* ENTERPRISE MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-1000! flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" >
+        <div className="fixed inset-0 z-1000! flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-gray-100 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border dark:border-gray-800">
             <div className="p-8">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-bold text-gray-900 ">
-                  Custom Request Website
+                  Request for Enterprise Plan
                 </h3>
                 <button
                   onClick={() => setIsModalOpen(false)}
@@ -1559,7 +1574,7 @@ const PricingCard = ({
                   />
                   <input
                     type="email"
-                    placeholder="Work Email"
+                    placeholder="Email"
                     className="w-full border dark:border-gray-700  rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-[#4f46e5]"
                     value={formData.userEmail}
                     onChange={(e) =>

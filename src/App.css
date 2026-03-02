@@ -17,6 +17,32 @@ serif;  */
   font-style: normal;
 }
 
+#telegram-float-button {
+  position: fixed;
+  bottom: 20px;       /* distance from bottom */
+  right: 20px;         /* distance from left */
+  width: 60px;        /* size of button */
+  height: 60px;
+  border-radius: 50%;
+  background-color: #0088cc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 9999;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+#telegram-float-button:hover {
+  transform: scale(1.1);
+}
+
+#telegram-float-button img {
+  width: 35px;
+  height: 35px;
+}
+
 .css-1sxru7a-JoyTypography-root{
   font-family: "DM Sans", sans-serif !important;
 }
