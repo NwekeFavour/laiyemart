@@ -2,7 +2,7 @@ import { Box, Typography } from "@mui/joy";
 import { Link } from "react-router-dom";
 import { Twitter, Github, Linkedin } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Facebook, Instagram, X } from "@mui/icons-material";
+import { Facebook, Instagram, Telegram, X } from "@mui/icons-material";
 import Layemart from '../assets/img/layemart-icon.jpg'
 
 export default function Footer() {
@@ -39,6 +39,9 @@ export default function Footer() {
             <Link to="https://www.facebook.com/layemartcommerce" className="text-slate-800">
               <Facebook className=" text-[20px] text-[#4F46E5]! sm:text-[17px]!" />
             </Link>
+            <a href="https://t.me/Layemart_bot" target="_blank">
+              <Telegram className=" text-[20px] text-[#4F46E5]! sm:text-[17px]!" />
+            </a>
           </div>
         </div>
 
