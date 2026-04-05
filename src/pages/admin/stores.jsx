@@ -1,13 +1,132 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Box, Typography, Button, Sheet, Avatar, Chip, IconButton, Input, Link } from "@mui/joy";
-import { Search, Filter, Store as StoreIcon, Download, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Box, Typography, Button, Sheet, Avatar, Chip, Input, Link, Modal, ModalDialog, ModalClose, Divider } from "@mui/joy";
+import { Search, Store as StoreIcon, Download, ShieldCheck, ShieldAlert, Trash2, AlertTriangle } from "lucide-react";
 import { useAdminStore } from '../../../services/adminService';
 import SuperAdminLayout from './layout';
 
+// ─── Confirmation Modal ───────────────────────────────────────────────────────
+function DeleteStoreModal({ store, onConfirm, onCancel, isDeleting }) {
+  if (!store) return null;
+
+  return (
+    <Modal open={!!store} onClose={onCancel}>
+      <ModalDialog
+        variant="outlined"
+        role="alertdialog"
+        sx={{
+          maxWidth: 440,
+          borderRadius: '20px',
+          p: 0,
+          overflow: 'hidden',
+          border: '1px solid #fecaca',
+        }}
+      >
+        {/* Red accent top bar */}
+        <Box sx={{ height: 5, bgcolor: '#ef4444', width: '100%' }} />
+
+        <Box sx={{ p: 3.5 }}>
+          {/* Icon + Title */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: '12px',
+                bgcolor: '#fef2f2',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <AlertTriangle size={22} color="#ef4444" />
+            </Box>
+            <Box>
+              <Typography level="title-lg" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                Delete Store
+              </Typography>
+              <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>
+                This action cannot be undone
+              </Typography>
+            </Box>
+          </Box>
+
+          <Divider sx={{ mb: 2.5 }} />
+
+          {/* Store preview */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              p: 2,
+              bgcolor: '#f8fafc',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              mb: 2.5,
+            }}
+          >
+            <Avatar
+              src={store.logo?.url}
+              sx={{ borderRadius: '10px', width: 40, height: 40, flexShrink: 0 }}
+            >
+              {store.name?.charAt(0)}
+            </Avatar>
+            <Box>
+              <Typography level="title-sm" sx={{ fontWeight: 700 }}>
+                {store.name}
+              </Typography>
+              <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>
+                {store.owner?.email}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Typography level="body-sm" sx={{ color: '#475569', mb: 3, lineHeight: 1.7 }}>
+            You are about to permanently delete this store and all its associated data,
+            including orders and assets. This <strong>cannot be reversed</strong>.
+          </Typography>
+
+          {/* Actions */}
+          <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
+            <Button
+              variant="plain"
+              color="neutral"
+              onClick={onCancel}
+              disabled={isDeleting}
+              sx={{ borderRadius: '10px', fontWeight: 600 }}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="danger"
+              onClick={onConfirm}
+              loading={isDeleting}
+              startDecorator={!isDeleting ? <Trash2 size={16} /> : null}
+              sx={{
+                borderRadius: '10px',
+                fontWeight: 700,
+                bgcolor: '#ef4444',
+                '&:hover': { bgcolor: '#dc2626' },
+              }}
+            >
+              {isDeleting ? 'Deleting...' : 'Yes, Delete Store'}
+            </Button>
+          </Box>
+        </Box>
+      </ModalDialog>
+    </Modal>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function StoreManagement() {
-  const { stores, fetchAllStores, loadingStores } = useAdminStore();
+  const { stores, fetchAllStores, loadingStores, deleteStore } = useAdminStore();
   const [searchTerm, setSearchTerm] = useState("");
-  const isDark = false; // Replace with your dark mode state logic
+  const [storeToDelete, setStoreToDelete] = useState(null); // store object to confirm
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [toast, setToast] = useState(null); // { type: 'success' | 'error', message: string }
+  const isDark = false;
 
   useEffect(() => {
     fetchAllStores();
@@ -15,21 +134,68 @@ export default function StoreManagement() {
 
   const filteredStores = useMemo(() => {
     if (!stores?.data) return [];
-    return stores.data.filter(store => 
-      store.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      store.owner?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    return stores.data.filter(
+      (store) =>
+        store.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        store.owner?.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [stores, searchTerm]);
 
-  // Styles to match your Recent Orders table
+  // ── Handlers ──
+  const handleDeleteClick = (store) => setStoreToDelete(store);
+  const handleCancelDelete = () => {
+    if (!isDeleting) setStoreToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!storeToDelete) return;
+    setIsDeleting(true);
+
+    const result = await deleteStore(storeToDelete._id);
+
+    setIsDeleting(false);
+    setStoreToDelete(null);
+
+    setToast({
+      type: result.success ? 'success' : 'error',
+      message: result.message,
+    });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  // ── Styles ──
   const thStyle = `px-4 py-3 font-semibold text-[13px] ${isDark ? "text-slate-200" : "text-gray-900"}`;
   const tdStyle = `px-4 py-4 text-[13px] ${isDark ? "text-slate-300" : "text-gray-700"}`;
 
   return (
     <SuperAdminLayout>
       <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: '1600px', mx: 'auto' }}>
-        
-        {/* --- UNIFORM HEADER --- */}
+
+        {/* ── Toast Notification ── */}
+        {toast && (
+          <Box
+            sx={{
+              position: 'fixed',
+              top: 24,
+              right: 24,
+              zIndex: 9999,
+              px: 3,
+              py: 1.5,
+              borderRadius: '12px',
+              bgcolor: toast.type === 'success' ? '#f0fdf4' : '#fef2f2',
+              border: `1px solid ${toast.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
+              color: toast.type === 'success' ? '#15803d' : '#dc2626',
+              fontWeight: 600,
+              fontSize: 14,
+              boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+              animation: 'fadeIn 0.2s ease',
+            }}
+          >
+            {toast.message}
+          </Box>
+        )}
+
+        {/* ── Header ── */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
           <Box>
             <Typography level="h3" sx={{ fontWeight: 800 }}>Store Management</Typography>
@@ -37,24 +203,38 @@ export default function StoreManagement() {
               Manage and monitor {stores?.count || 0} merchant storefronts.
             </Typography>
           </Box>
-          <Button startDecorator={<Download size={18} />} variant="outlined" color="neutral" sx={{ borderRadius: '12px' }}>
+          <Button
+            startDecorator={<Download size={18} />}
+            variant="outlined"
+            color="neutral"
+            sx={{ borderRadius: '12px' }}
+          >
             Export CSV
           </Button>
         </Box>
 
-        {/* --- UNIFORM TABLE SHEET --- */}
+        {/* ── Table Sheet ── */}
         <Sheet
           className={`${isDark ? "bg-slate-950! border-[#314158]! text-slate-200!" : "border-slate-100! text-gray-900!"}`}
           sx={{
             mb: 4,
-            borderRadius: "24px",
-            border: "1px solid #e2e8f0",
-            bgcolor: "white",
-            overflow: "hidden" // Ensures the border-radius clips the table
+            borderRadius: '24px',
+            border: '1px solid #e2e8f0',
+            bgcolor: 'white',
+            overflow: 'hidden',
           }}
         >
-          {/* Header/Search Bar */}
-          <Box sx={{ p: 2, display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: '1px solid', borderColor: isDark ? '#314158' : '#f1f5f9' }}>
+          {/* Search Bar */}
+          <Box
+            sx={{
+              p: 2,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              borderBottom: '1px solid',
+              borderColor: isDark ? '#314158' : '#f1f5f9',
+            }}
+          >
             <Input
               variant="plain"
               placeholder="Search merchants..."
@@ -66,44 +246,61 @@ export default function StoreManagement() {
             <Typography level="title-md" sx={{ fontWeight: 700 }}>All Stores</Typography>
           </Box>
 
-          <Box className="hide-scrollbar" sx={{ overflowX: "auto" }}>
-            <table className={`w-full text-left border-collapse min-w-[1000px]`}>
+          <Box className="hide-scrollbar" sx={{ overflowX: 'auto' }}>
+            <table className={`w-full text-left border-collapse min-w-[1100px]`}>
               <thead>
-                <tr className={`text-[13px] border-b ${isDark ? "bg-slate-900/50 border-[#314158]" : "bg-gray-50/50 border-slate-100"}`}>
-                  <th className={`px-4 py-3 w-12 text-center border-r ${isDark ? "border-[#314158]" : "border-slate-100"}`}>S/N</th>
+                <tr
+                  className={`text-[13px] border-b ${
+                    isDark ? 'bg-slate-900/50 border-[#314158]' : 'bg-gray-50/50 border-slate-100'
+                  }`}
+                >
+                  <th className={`px-4 py-3 w-12 text-center border-r ${isDark ? 'border-[#314158]' : 'border-slate-100'}`}>
+                    S/N
+                  </th>
                   <th className={thStyle}>Store Details</th>
                   <th className={thStyle}>Category</th>
                   <th className={thStyle}>Plan</th>
                   <th className={thStyle}>KYC Status</th>
                   <th className={thStyle}>Status</th>
-                  <th className="px-4 py-3 w-[100px] text-center">Action</th>
+                  <th className="px-4 py-3 w-[130px] text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className={`divide-y ${isDark ? "divide-slate-800" : "divide-gray-100"}`}>
+              <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-gray-100'}`}>
                 {filteredStores.length > 0 ? (
                   filteredStores.map((store, i) => (
-                    <tr 
-                      key={store._id} 
-                      className={`transition-colors hover:bg-gray-50/50 ${isDark ? "hover:bg-slate-800/40" : ""}`}
+                    <tr
+                      key={store._id}
+                      className={`transition-colors hover:bg-gray-50/50 ${isDark ? 'hover:bg-slate-800/40' : ''}`}
                     >
-                      <td className={`px-4 py-4 text-center border-r ${isDark ? "border-slate-800" : "border-slate-100"}`}>
+                      <td className={`px-4 py-4 text-center border-r ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
                         {i + 1}
                       </td>
+
                       <td className={tdStyle}>
                         <div className="flex items-center gap-3">
-                          <Avatar src={store.logo?.url} sx={{ borderRadius: '10px' }}>{store.name?.charAt(0)}</Avatar>
+                          <Avatar src={store.logo?.url} sx={{ borderRadius: '10px' }}>
+                            {store.name?.charAt(0)}
+                          </Avatar>
                           <div className="flex flex-col">
                             <span className="font-bold">{store.name}</span>
                             <span className="text-[11px] text-gray-500">{store.owner?.email}</span>
                           </div>
                         </div>
                       </td>
+
                       <td className={`${tdStyle} capitalize`}>{store.storeType || 'General'}</td>
+
                       <td className={tdStyle}>
-                        <Chip size="sm" variant="soft" color="neutral" sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '10px' }}>
+                        <Chip
+                          size="sm"
+                          variant="soft"
+                          color="neutral"
+                          sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '10px' }}
+                        >
                           {store.plan}
                         </Chip>
                       </td>
+
                       <td className={tdStyle}>
                         <div className="flex items-center gap-2">
                           {store.paystack?.verified ? (
@@ -111,35 +308,86 @@ export default function StoreManagement() {
                           ) : (
                             <ShieldAlert size={16} className="text-rose-500" />
                           )}
-                          <span className={store.paystack?.verified ? "text-emerald-600 font-medium" : "text-rose-600 font-medium"}>
+                          <span
+                            className={
+                              store.paystack?.verified
+                                ? 'text-emerald-600 font-medium'
+                                : 'text-rose-600 font-medium'
+                            }
+                          >
                             {store.paystack?.verified ? 'Verified' : 'Pending'}
                           </span>
                         </div>
                       </td>
+
                       <td className={tdStyle}>
-                        <span className={`px-2 py-1 rounded-md text-[11px] font-bold ${
-                          store.status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                        }`}>
+                        <span
+                          className={`px-2 py-1 rounded-md text-[11px] font-bold ${
+                            store.status === 'ACTIVE'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}
+                        >
                           {store.status}
                         </span>
                       </td>
-                      <td className="px-4 py-4 text-center">
-                        <Link className="text-blue-500 flex flex-col items-center group cursor-pointer">
-                          <span className="text-[12px] font-medium group-hover:underline">manage</span>
-                          <div className="w-8 border-t border-dashed border-blue-300 mt-0.5" />
-                        </Link>
+
+                      {/* ── Actions cell ── */}
+                      <td className="px-4 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          {/* Manage link */}
+                          <Link className="text-blue-500 flex flex-col items-center group cursor-pointer">
+                            <span className="text-[12px] font-medium group-hover:underline">manage</span>
+                            <div className="w-8 border-t border-dashed border-blue-300 mt-0.5" />
+                          </Link>
+
+                          {/* Delete button */}
+                          <button
+                            onClick={() => handleDeleteClick(store)}
+                            title="Delete store"
+                            className="
+                              w-8 h-8 rounded-lg flex items-center justify-center
+                              text-rose-400 hover:text-rose-600
+                              hover:bg-rose-50
+                              transition-colors duration-150
+                              cursor-pointer
+                            "
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan={7}>
-                      <Box sx={{ py: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                        <Box sx={{ width: 56, height: 56, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "#f1f5f9" }}>
+                      <Box
+                        sx={{
+                          py: 10,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 2,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 56,
+                            height: 56,
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            bgcolor: '#f1f5f9',
+                          }}
+                        >
                           <StoreIcon size={24} className="text-slate-400" />
                         </Box>
                         <Typography level="title-md">No stores found</Typography>
-                        <Typography level="body-sm" sx={{ color: 'text.tertiary' }}>Try adjusting your search query.</Typography>
+                        <Typography level="body-sm" sx={{ color: 'text.tertiary' }}>
+                          Try adjusting your search query.
+                        </Typography>
                       </Box>
                     </td>
                   </tr>
@@ -149,6 +397,14 @@ export default function StoreManagement() {
           </Box>
         </Sheet>
       </Box>
+
+      {/* ── Delete Confirmation Modal ── */}
+      <DeleteStoreModal
+        store={storeToDelete}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isDeleting={isDeleting}
+      />
     </SuperAdminLayout>
   );
 }

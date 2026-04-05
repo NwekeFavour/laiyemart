@@ -13,7 +13,7 @@ export const useAdminStore = create(
     loading: false,
     platformOrders: [],
     adminNotifications: [],
-  adminUnreadCount: 0,
+    adminUnreadCount: 0,
     platformStats: {
       totalGMV: 0,
       orderCount: 0,
@@ -29,21 +29,20 @@ export const useAdminStore = create(
     loadingOrders: false,
     error: null,
 
-    
     // ===== ACTIONS =====
 
-
-
-    
     /* -------- FETCH SUBSCRIPTION EARNINGS -------- */
     fetchPlatformEarnings: async () => {
       set({ loadingTransactions: true, error: null });
       const { token } = useAuthStore.getState();
 
       try {
-        const res = await fetch(`${VITE_BACKEND_URL}/api/transactions/stats/total`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${VITE_BACKEND_URL}/api/transactions/stats/total`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
 
         if (!res.ok) throw new Error("Failed to fetch earnings");
 
@@ -63,9 +62,12 @@ export const useAdminStore = create(
     fetchEarningsBreakdown: async () => {
       const { token } = useAuthStore.getState();
       try {
-        const res = await fetch(`${VITE_BACKEND_URL}/api/transactions/stats/breakdown`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${VITE_BACKEND_URL}/api/transactions/stats/breakdown`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
 
         const data = await res.json();
         if (data.success) {
@@ -77,15 +79,15 @@ export const useAdminStore = create(
     },
 
     // Add to useAdminStore actions
-fetchAdminNotifications: async () => {
-  const { token } = useAuthStore.getState();
-  const res = await fetch(`${VITE_BACKEND_URL}/api/notifications/admin`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const data = await res.json();
-  if (data.success) set({ notifications: data.notifications });
-  console.log(data)
-},
+    fetchAdminNotifications: async () => {
+      const { token } = useAuthStore.getState();
+      const res = await fetch(`${VITE_BACKEND_URL}/api/notifications/admin`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) set({ notifications: data.notifications });
+      console.log(data);
+    },
     /* -------- FETCH ALL STORES -------- */
     fetchAllStores: async () => {
       set({ loading: true, error: null });
@@ -146,15 +148,18 @@ fetchAdminNotifications: async () => {
       set({ loadingOrders: true });
       try {
         // 1. Get your token from wherever it's stored (localStorage/Cookies)
-        const {token} = useAuthStore.getState()
+        const { token } = useAuthStore.getState();
 
-        const response = await fetch(`${VITE_BACKEND_URL}/api/orders/admin/platform-orders`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Assuming you need auth
+        const response = await fetch(
+          `${VITE_BACKEND_URL}/api/orders/admin/platform-orders`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // Assuming you need auth
+            },
           },
-        });
+        );
 
         // 2. Fetch doesn't throw on 404/500, so we check response.ok
         if (!response.ok) {
@@ -180,63 +185,126 @@ fetchAdminNotifications: async () => {
       }
     },
 
-fetchAdminNotifications: async () => {
-    const { token } = useAuthStore.getState();
-    try {
-      const response = await fetch(`${VITE_BACKEND_URL}/api/notifications/admin`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+    fetchAdminNotifications: async () => {
+      const { token } = useAuthStore.getState();
+      try {
+        const response = await fetch(
+          `${VITE_BACKEND_URL}/api/notifications/admin`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const data = await response.json();
+        const unreadCount = data.notifications.filter(
+          (n) => n.isRead === false,
+        ).length;
+        if (data.success) {
+          set({
+            adminNotifications: data.notifications,
+            adminUnreadCount: unreadCount,
+          });
         }
-      });
-
-
-      const data = await response.json();
-      const unreadCount = data.notifications.filter(n => n.isRead === false).length;
-      if (data.success) {
-        set({ 
-          adminNotifications: data.notifications,
-          adminUnreadCount: unreadCount 
-        });
+      } catch (err) {
+        console.error("Error fetching admin alerts:", err);
       }
-    } catch (err) {
-      console.error("Error fetching admin alerts:", err);
-    }
-  },
+    },
 
-  handleMarkAdminAllRead: async () => {
-    const { token } = useAuthStore.getState();
-    try {
-      const response = await fetch(`${VITE_BACKEND_URL}/api/notifications/admin/read-all`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`
+    handleMarkAdminAllRead: async () => {
+      const { token } = useAuthStore.getState();
+      try {
+        const response = await fetch(
+          `${VITE_BACKEND_URL}/api/notifications/admin/read-all`,
+          {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const data = await response.json();
+        if (data.success) {
+          set({ adminUnreadCount: 0 });
+          get().fetchAdminNotifications(); // Refresh the list
         }
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        set({ adminUnreadCount: 0 });
-        get().fetchAdminNotifications(); // Refresh the list
+      } catch (err) {
+        console.error("Error marking alerts as read:", err);
       }
-    } catch (err) {
-      console.error("Error marking alerts as read:", err);
-    }
-  },
+    },
 
     fetchCategoryStats: async () => {
       try {
         const token = useAuthStore.getState().token;
-        const response = await fetch(`${VITE_BACKEND_URL}/api/stores/admin/category-intelligence`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await fetch(
+          `${VITE_BACKEND_URL}/api/stores/admin/category-intelligence`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         const data = await response.json();
         if (data.success) set({ categoryStats: data.stats });
       } catch (error) {
         console.error("Failed to fetch intelligence data", error);
       }
     },
+
+    deleteStore: async (storeId) => {
+      const { token } = useAuthStore.getState();
+      try {
+        const res = await fetch(`${VITE_BACKEND_URL}/api/stores/${storeId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+ 
+        const data = await res.json();
+ 
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to delete store");
+        }
+ 
+        // Optimistically remove the store from local state
+        set((state) => ({
+          stores: {
+            ...state.stores,
+            count: (state.stores.count || 1) - 1,
+            data: state.stores.data?.filter((s) => s._id !== storeId) ?? [],
+          },
+        }));
+ 
+        return { success: true, message: data.message };
+      } catch (err) {
+        console.log("Delete Store Error:", err);
+        console.error("Delete Store Error:", err);
+        return { success: false, message: err.message };
+      }
+    },
+ 
+    // Suspend toggle
+suspendStore: async (storeId, reason) => {
+  const res = await fetch(`${API_URL}/api/stores/${storeId}/suspend`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAdminToken()}` },
+    body: JSON.stringify({ reason }),
+  });
+  return res.json();
+},
+
+// Broadcast
+sendBroadcast: async ({ subject, message, targetPlan }) => {
+  const res = await fetch(`${API_URL}/api/admin/broadcast`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAdminToken()}` },
+    body: JSON.stringify({ subject, message, targetPlan }),
+  });
+  return res.json();
+},
 
     /* -------- RESET -------- */
     resetAdminState: () =>

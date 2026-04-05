@@ -32,6 +32,13 @@ export const verifyCustomerOTP = async ({ email, otp, storeSlug }) => {
   });
 
   const data = await res.json();
+
+  useCustomerAuthStore.getState().login({
+    token: data.token,
+    customer: data.customer,
+    store: data.store,
+  });
+  return data;
   if (!res.ok) throw new Error(data.message || "Verification failed");
 return data;
 };
