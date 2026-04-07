@@ -27,6 +27,11 @@ import { IconButton } from "@mui/material";
 const CouponPage = () => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [selectedCoupon, setSelectedCoupon] = useState(null); // Stores the coupon object being viewed
+  const [usageDetails, setUsageDetails] = useState([]); // Stores the list of users
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [open, setOpen] = useState(false); // Controls the Modal/Sheet
   const [formData, setFormData] = useState({
     code: "",
     discountPercent: "",
@@ -58,6 +63,25 @@ const CouponPage = () => {
   useEffect(() => {
     fetchCoupons();
   }, []);
+
+  const fetchUsageDetails = async (coupon) => {
+    setOpen(true);
+    setSelectedCoupon(coupon);
+    setLoadingDetails(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/coupon/usage/${coupon.code}`,
+      );
+      const data = await res.json();
+      if (data.success) {
+        setUsageDetails(data.users); // Assuming your API returns a 'users' array
+      }
+    } catch (err) {
+      toast.error("Could not load usage data");
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -113,7 +137,10 @@ const CouponPage = () => {
     <SuperAdminLayout>
       <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: "1200px", mx: "auto" }}>
         {/* Header Section */}
-        <Box className="md:flex md:items-center! items-start!" sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
+        <Box
+          className="md:flex md:items-center! items-start!"
+          sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}
+        >
           <Box sx={{ p: 1, bgcolor: "primary.100", borderRadius: "lg" }}>
             <TicketPercent size={28} className="text-blue-600" />
           </Box>
@@ -129,7 +156,7 @@ const CouponPage = () => {
 
         {/* Create Coupon Form Card */}
         <Sheet
-          className="md:p-3 p-2"
+          className="md:p-3! p-4!"
           variant="outlined"
           sx={{
             borderRadius: "xl",
@@ -175,6 +202,7 @@ const CouponPage = () => {
                   // The magic button inside the input
                   endDecorator={
                     <Button
+                      className="underline! text-green-700"
                       variant="ghost"
                       color="neutral"
                       size="sm"
@@ -352,7 +380,7 @@ const CouponPage = () => {
                         }}
                       >
                         <Tooltip title="Usage Analytics" variant="soft">
-                          <IconButton size="sm" variant="plain" color="neutral">
+                          <IconButton onClick={() => fetchUsageDetails(c)} size="sm" variant="plain" color="neutral">
                             <Info size={18} />
                           </IconButton>
                         </Tooltip>
@@ -390,6 +418,67 @@ const CouponPage = () => {
               )}
             </tbody>
           </Table>
+        </Sheet>
+        <Sheet
+          sx={{
+            display: open ? "flex" : "none",
+            position: "fixed",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: { xs: "100%", md: 400 },
+            bgcolor: "background.surface",
+            boxShadow: "lg",
+            p: 3,
+            zIndex: 1000,
+            flexDirection: "column",
+            borderLeft: "1px solid",
+            borderColor: "divider",
+          }}
+        >
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+            <Typography level="h4">Usage: {selectedCoupon?.code}</Typography>
+            <Button
+              variant="plain"
+              color="neutral"
+              onClick={() => setOpen(false)}
+            >
+              Close
+            </Button>
+          </Box>
+
+          <Divider sx={{ mb: 2 }} />
+
+          {loadingDetails ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
+              <Loader2 className="animate-spin" />
+            </Box>
+          ) : (
+            <Box sx={{ overflowY: "auto" }}>
+              <Table variant="plain">
+                <thead>
+                  <tr>
+                    <th>User Email</th>
+                    <th>Date Joined</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usageDetails.length > 0 ? (
+                    usageDetails.map((user) => (
+                      <tr key={user._id}>
+                        <td>{user.email}</td>
+                        <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={2}>No users registered yet.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+            </Box>
+          )}
         </Sheet>
       </Box>
     </SuperAdminLayout>

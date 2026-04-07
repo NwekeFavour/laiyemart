@@ -173,8 +173,11 @@ export const useAdminStore = create(
             platformOrders: data.orders,
             platformStats: {
               totalGMV: data.totalGMV,
-              orderCount: data.count,
               pendingReviews: data.pendingReviews,
+              gmvTrend: data.gmvTrend,
+              ordersTrend: data.ordersTrend,
+              ownersTrend: data.ownersTrend,
+              storesTrend: data.storesTrend,
             },
             loadingOrders: false,
           });
@@ -262,13 +265,13 @@ export const useAdminStore = create(
             Authorization: `Bearer ${token}`,
           },
         });
- 
+
         const data = await res.json();
- 
+
         if (!res.ok) {
           throw new Error(data.message || "Failed to delete store");
         }
- 
+
         // Optimistically remove the store from local state
         set((state) => ({
           stores: {
@@ -277,7 +280,7 @@ export const useAdminStore = create(
             data: state.stores.data?.filter((s) => s._id !== storeId) ?? [],
           },
         }));
- 
+
         return { success: true, message: data.message };
       } catch (err) {
         console.log("Delete Store Error:", err);
@@ -285,26 +288,32 @@ export const useAdminStore = create(
         return { success: false, message: err.message };
       }
     },
- 
-    // Suspend toggle
-suspendStore: async (storeId, reason) => {
-  const res = await fetch(`${API_URL}/api/stores/${storeId}/suspend`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAdminToken()}` },
-    body: JSON.stringify({ reason }),
-  });
-  return res.json();
-},
 
-// Broadcast
-sendBroadcast: async ({ subject, message, targetPlan }) => {
-  const res = await fetch(`${API_URL}/api/admin/broadcast`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAdminToken()}` },
-    body: JSON.stringify({ subject, message, targetPlan }),
-  });
-  return res.json();
-},
+    // Suspend toggle
+    suspendStore: async (storeId, reason) => {
+      const res = await fetch(`${API_URL}/api/stores/${storeId}/suspend`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAdminToken()}`,
+        },
+        body: JSON.stringify({ reason }),
+      });
+      return res.json();
+    },
+
+    // Broadcast
+    sendBroadcast: async ({ subject, message, targetPlan }) => {
+      const res = await fetch(`${API_URL}/api/admin/broadcast`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAdminToken()}`,
+        },
+        body: JSON.stringify({ subject, message, targetPlan }),
+      });
+      return res.json();
+    },
 
     /* -------- RESET -------- */
     resetAdminState: () =>

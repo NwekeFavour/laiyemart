@@ -25,6 +25,7 @@ import {
 import { Stack } from "@mui/material";
 import SuperAdminLayout from "./layout";
 import { useAdminStore } from "../../../services/adminService";
+import { useNavigate } from "react-router-dom";
 
 export default function SuperAdminDashboard() {
   const {
@@ -43,6 +44,7 @@ export default function SuperAdminDashboard() {
     loadingOwners,
     loading,
   } = useAdminStore();
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchStoreOwners();
@@ -60,43 +62,51 @@ export default function SuperAdminDashboard() {
     fetchCategoryStats,
   ]);
 
+
+  const totalOwners = owners?.length || 0;
+const totalStores = stores?.length || 0;
   // console.log(categoryStats)
   /* ------------------ Operational Metrics ------------------ */
   const stats = useMemo(() => {
     const totalStores = stores?.count || 0;
     const totalOwners = owners?.count || 0;
     
-    return [
-      {
-        label: "Total Merchants",
-        value: totalOwners,
-        sub: "Registered Users",
-        icon: <Users />,
-        color: "#6366f1",
-      },
-      {
-        label: "Active Storefronts",
-        value: totalStores,
-        sub: "Public Shops",
-        icon: <Store />,
-        color: "#0ea5e9",
-      },
-      {
-        label: "Ecosystem GMV",
-        value: `₦${(platformStats?.totalGMV || 0).toLocaleString()}`,
-        sub: "Platform Wide",
-        icon: <ShoppingBag />,
-        color: "#10b981",
-      },
-      {
-        label: "Pending Reviews",
-        value: platformStats?.pendingReviews || 0,
-        sub: "Needs Attention",
-        icon: <Clock />,
-        color: "#f43f5e",
-      },
-    ];
-  }, [stores, owners, platformStats]);
+return [
+    {
+      label: "Total Merchants",
+      value: totalOwners,
+      sub: "Registered Users",
+      icon: <Users />,
+      color: "#6366f1",
+      // Accessing dynamic trend from backend
+      trend: platformStats?.ownersTrend || 0, 
+    },
+    {
+      label: "Active Storefronts",
+      value: totalStores,
+      sub: "Public Shops",
+      icon: <Store />,
+      color: "#0ea5e9",
+      trend: platformStats?.storesTrend || 0,
+    },
+    {
+      label: "Ecosystem GMV",
+      value: `₦${(platformStats?.totalGMV || 0).toLocaleString()}`,
+      sub: "Platform Wide",
+      icon: <ShoppingBag />,
+      color: "#10b981",
+      trend: platformStats?.gmvTrend || 0,
+    },
+    {
+      label: "Pending Reviews",
+      value: platformStats?.pendingReviews || 0,
+      sub: "Needs Attention",
+      icon: <Clock />,
+      color: "#f43f5e",
+      trend: platformStats?.reviewsTrend || 0,
+    },
+  ];
+}, [totalOwners, totalStores, platformStats]);
 
   const recentStores = useMemo(
     () =>
@@ -142,76 +152,79 @@ export default function SuperAdminDashboard() {
         </Box>
 
         {/* Core KPIs */}
-        <Grid container spacing={3} sx={{ mb: 5 }}>
-          {loading
-            ? Array.from({ length: 4 }).map((_, i) => (
-                <Grid key={i} xs={12} sm={6} md={3}>
-                  <Skeleton
-                    variant="rectangular"
-                    height={120}
-                    sx={{ borderRadius: "24px" }}
-                  />
-                </Grid>
-              ))
-            : stats.map((stat, i) => (
-                <Grid key={i} xs={12} sm={6} md={3}>
-                  <Sheet
-                    variant="plain"
-                    sx={{
-                      p: 3,
-                      borderRadius: "24px",
-                      bgcolor: "white",
-                      border: "1px solid",
-                      borderColor: "neutral.100",
-                      boxShadow: "sm",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        mb: 2,
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          p: 1,
-                          borderRadius: "12px",
-                          bgcolor: `${stat.color}15`,
-                          color: stat.color,
-                        }}
-                      >
-                        {React.cloneElement(stat.icon, { size: 22 })}
-                      </Box>
-                      <Chip
-                        size="sm"
-                        variant="soft"
-                        color="success"
-                        startDecorator={<TrendingUp size={12} />}
-                      >
-                        12%
-                      </Chip>
-                    </Box>
-                    <Typography
-                      level="body-xs"
-                      sx={{
-                        fontWeight: 700,
-                        color: "neutral.500",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {stat.label}
-                    </Typography>
-                    <Typography level="h2" sx={{ fontWeight: 800, my: 0.5 }}>
-                      {stat.value}
-                    </Typography>
-                    <Typography level="body-xs" sx={{ color: "neutral.400" }}>
-                      {stat.sub}
-                    </Typography>
-                  </Sheet>
-                </Grid>
-              ))}
+<Grid container spacing={3} sx={{ mb: 5 }}>
+  {loading
+    ? Array.from({ length: 4 }).map((_, i) => (
+        <Grid key={i} xs={12} sm={6} md={3}>
+          <Skeleton
+            variant="rectangular"
+            height={120}
+            sx={{ borderRadius: "24px" }}
+          />
         </Grid>
+      ))
+    : stats.map((stat, i) => {
+        const isPositive = stat.trend >= 0;
+        
+        return (
+          <Grid key={i} xs={12} sm={6} md={3}>
+            <Sheet
+              variant="plain"
+              sx={{
+                p: 3,
+                borderRadius: "24px",
+                bgcolor: "white",
+                border: "1px solid",
+                borderColor: "neutral.100",
+                boxShadow: "sm",
+              }}
+            >
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+                <Box
+                  sx={{
+                    p: 1,
+                    borderRadius: "12px",
+                    bgcolor: `${stat.color}15`,
+                    color: stat.color,
+                  }}
+                >
+                  {React.cloneElement(stat.icon, { size: 22 })}
+                </Box>
+
+                {/* DYNAMIC CHIP */}
+                <Chip
+                  size="sm"
+                  variant="soft"
+                  color={isPositive ? "success" : "danger"}
+                  startDecorator={
+                    isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />
+                  }
+                >
+                  {isPositive ? "+" : ""}{stat.trend}%
+                </Chip>
+              </Box>
+
+              <Typography
+                level="body-xs"
+                sx={{
+                  fontWeight: 700,
+                  color: "neutral.500",
+                  textTransform: "uppercase",
+                }}
+              >
+                {stat.label}
+              </Typography>
+              <Typography level="h2" sx={{ fontWeight: 800, my: 0.5 }}>
+                {stat.value}
+              </Typography>
+              <Typography level="body-xs" sx={{ color: "neutral.400" }}>
+                {stat.sub}
+              </Typography>
+            </Sheet>
+          </Grid>
+        );
+      })}
+</Grid>
 
         <Grid container spacing={4}>
           {/* New Merchants List */}
@@ -236,6 +249,7 @@ export default function SuperAdminDashboard() {
                   Recently Joined Merchants
                 </Typography>
                 <Button
+                  onClick={() => navigate("/admin/stores")}
                   variant="plain"
                   size="sm"
                   endDecorator={<ArrowRight size={16} />}

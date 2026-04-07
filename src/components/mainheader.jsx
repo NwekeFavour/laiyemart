@@ -52,7 +52,7 @@ function PageHeader() {
                   <a href="/auth/sign-in" className="hidden lg:flex px-6 py-2.5 text-sm font-semibold rounded-full bg-slate-900 text-white! hover:opacity-90 transition-opacity">
                     Login
                   </a>
-                  <a href="/auth/sign-up" className="hidden lg:flex px-6 py-2.5 text-sm font-semibold rounded-full bg-[#4F46E5] text-white! hover:bg-[#4F46E5]/90 transition-colors">
+                  <a href="/auth/sign-up" className="hidden lg:flex items-center px-6 py-2.5 text-sm font-semibold rounded-full bg-[#4F46E5] text-white! hover:bg-[#4F46E5]/90 transition-colors">
                     Start Free Store
                   </a>
                 </>
