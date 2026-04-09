@@ -1260,7 +1260,7 @@ if (!showOnboarding) return null;
                         <p
                           className={`${isDark ? "text-slate-200!" : "text-slate-900"} text-sm font-semibold `}
                         >
-                          {user?.fullName || "Sean"}
+                          {user?.fullName || "Vendor"}
                         </p>
                         <p
                           className={`text-xs ${

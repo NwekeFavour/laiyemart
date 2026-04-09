@@ -9,6 +9,8 @@ export const useAdminStore = create(
     // ===== STATE =====
     stores: [],
     owners: [],
+    transactions: [],
+    platformWideStats: null,
     categoryStats: [],
     loading: false,
     platformOrders: [],
@@ -32,6 +34,45 @@ export const useAdminStore = create(
     // ===== ACTIONS =====
 
     /* -------- FETCH SUBSCRIPTION EARNINGS -------- */
+    fetchTransactions: async () => {
+      set({ loadingTransactions: true});
+      try {
+        const response = await fetch(`${VITE_BACKEND_URL}/api/transactions`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            // Add Authorization header here if your admin routes are protected
+            // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch transactions');
+        
+        const result = await response.json();
+        set({ transactions: result.data, loadingTransactions: false });
+      } catch (err) {
+        console.error("Fetch Transactions Error:", err);
+        set({ loadingTransactions: false, error: err.message });
+      }
+    },
+    fetchPlatformWideStats: async () => {
+      try {
+        const response = await fetch(`${VITE_BACKEND_URL}/api/transactions/stats/platform-wide`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch earnings stats');
+        
+        const result = await response.json();
+        console.log("Platform-Wide Stats:", result);
+        set({ platformWideStats: result.stats });
+      } catch (err) {
+        console.error("Fetch Earnings Error:", err);
+      }
+    },
     fetchPlatformEarnings: async () => {
       set({ loadingTransactions: true, error: null });
       const { token } = useAuthStore.getState();
@@ -171,13 +212,21 @@ export const useAdminStore = create(
         if (data.success) {
           set({
             platformOrders: data.orders,
+            // Mapping the new Mission Control metrics
             platformStats: {
-              totalGMV: data.totalGMV,
-              pendingReviews: data.pendingReviews,
-              gmvTrend: data.gmvTrend,
-              ordersTrend: data.ordersTrend,
-              ownersTrend: data.ownersTrend,
-              storesTrend: data.storesTrend,
+              // Financials
+              platformRev: data.stats.platformRev,      // The "10% cut"
+              vendorPayouts: data.stats.vendorPayouts,  // Money split to subaccounts
+              pendingReviews: data.stats.pendingReviews,
+              escrowBalance: data.stats.escrowBalance,  // Funds currently in escrow
+              // Totals & Trends
+              totalOrders: data.count,
+              gmvTrend: data.stats.gmvTrend,
+              ordersTrend: data.stats.ordersTrend,
+              totalGMV: data.stats.totalGMV,
+              // Keeping these if you calculate them elsewhere
+              ownersTrend: data.stats.ownersTrend || 0,
+              storesTrend: data.stats.storesTrend || 0,
             },
             loadingOrders: false,
           });

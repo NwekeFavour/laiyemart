@@ -45,7 +45,7 @@ export default function Sidebar({
     {
       id: "tr",
       label: "Transactions",
-      path: "",
+      path: "/admin/transactions",
       icon: <ArrowLeftRight size={20} />,
     },
     // REPLACED: Simple list of all registered customers (the buyers)

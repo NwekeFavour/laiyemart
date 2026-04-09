@@ -70,7 +70,7 @@ const totalStores = stores?.length || 0;
   const stats = useMemo(() => {
     const totalStores = stores?.count || 0;
     const totalOwners = owners?.count || 0;
-    
+      console.log("Platform Stats:", platformStats); // Debug log to check data structure
 return [
     {
       label: "Total Merchants",

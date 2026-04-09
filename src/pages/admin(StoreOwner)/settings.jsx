@@ -559,12 +559,23 @@ const [isSendingSMS, setIsSendingSMS] = useState(false);
       if (!response.ok) throw new Error(data.message);
       const nameToSet = data.verifiedName || data.store?.paystack?.accountName;
       const currentUser = useAuthStore.getState().user;
-      useAuthStore.getState().setUser({
-        ...currentUser,
-        fullName: nameToSet,
-      });
+      useAuthStore.getState().setUser(updatedUser)
       // Update the local store state to reflect the "Active" status
+      setFullName(nameToSet);
       setStore(data.store);
+
+      try {
+      const freshUser = await fetchMe(token);
+        if (freshUser) {
+          useAuthStore.getState().setUser(freshUser);
+          setFullName(freshUser.fullName || nameToSet);
+        }
+      } catch {
+        // If fetching fresh user data fails, we can still proceed with the updated name
+        // Silent fallback — local state already patched above
+        console.warn("Failed to fetch fresh user data after bank update. Using local update.");
+        toast.success("Bank details updated, but failed to refresh user data. Please refresh the page.");
+      }
       toast.success(
         "Congratulations! Your store is now active and ready for payouts.",
       );

@@ -61,6 +61,7 @@ import { MessageSquarePlus } from "lucide-react";
 import OrderDetails from "./pages/(demo)/orderDetails";
 import CouponPage from "./pages/admin/coupon";
 import VendorStoreWrapper from "./components/VendorStoreWrapper";
+import TransactionsPage from "./pages/admin/transaction";
 
 function App() {
   const isDashboard = isDashboardSubdomain();
@@ -371,6 +372,14 @@ function App() {
                 <Route
                   path="/admin/coupons"
                   element={<CouponPage />}
+                />
+              </Route>
+              <Route
+                element={<ProtectedRoute allowedRoles={["SUPER_ADMIN"]} />}
+              >
+                <Route
+                  path="/admin/transactions"
+                  element={<TransactionsPage />}
                 />
               </Route>
             </Route>

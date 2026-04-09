@@ -22,6 +22,7 @@ import {
   Avatar,
   Divider,
   List,
+  Button,
 } from "@mui/joy"; // Added GlobalStyles
 import Sidebar from "../../components/sidebar";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +31,7 @@ import { MenuItem, Switch, Typography } from "@mui/material";
 import { useAuthStore } from "../../store/useAuthStore";
 export default function SuperAdminLayout({ children, isDark }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuthStore();
@@ -145,12 +147,12 @@ export default function SuperAdminLayout({ children, isDark }) {
           }}
         >
           <IconButton
-          className="text-[#0F1720]!"
+            className="text-[#0F1720]!"
             variant="plain"
             sx={{ display: { lg: "none" } }}
             onClick={() => setIsMobileOpen(true)}
           >
-            <MenuIcon  className="text-[#1f1720]!"/>
+            <MenuIcon className="text-[#1f1720]!" />
           </IconButton>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -274,7 +276,6 @@ export default function SuperAdminLayout({ children, isDark }) {
                           : "transparent",
                         transition: "all 0.2s",
                       }}
-                      
                       onMouseEnter={(e) =>
                         (e.currentTarget.style.backgroundColor = isDark
                           ? "#0f172a"
@@ -338,71 +339,140 @@ export default function SuperAdminLayout({ children, isDark }) {
               <Dropdown>
                 <MenuButton
                   slots={{ root: IconButton }}
-                  className="w-9 h-9 rounded-full"
+                  sx={{
+                    borderRadius: "50%",
+                    p: 0,
+                    minWidth: 40,
+                    minHeight: 40,
+                    border: "2px solid",
+                    borderColor: isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0",
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      borderColor: "primary.500",
+                      transform: "scale(1.05)",
+                      bgcolor: "transparent",
+                    },
+                  }}
                 >
                   <Avatar
                     src={user?.profilePicture?.url}
-                    sx={{ width: 32, height: 32 }}
+                    sx={{ width: 34, height: 34 }}
                   />
                 </MenuButton>
+
                 <Menu
                   placement="bottom-end"
                   sx={{
-                    p: 0,
-                    minWidth: 200,
-                    borderRadius: "xl",
-                    bgcolor: isDark ? "#0f172a" : "white",
-                    boxShadow: "xl",
-                    border: isDark ? "1px solid #1e293b" : "1px solid #e2e8f0",
+                    mt: 1.5,
+                    p: 1, // Inner padding for a "floating items" look
+                    minWidth: 240,
+                    borderRadius: "20px",
+                    backdropFilter: "blur(8px)",
+                    bgcolor: isDark
+                      ? "rgba(15, 23, 42, 0.95)"
+                      : "rgba(255, 255, 255, 0.95)",
+                    boxShadow:
+                      "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                    border: "1px solid",
+                    borderColor: isDark
+                      ? "rgba(255,255,255,0.1)"
+                      : "rgba(0,0,0,0.05)",
                   }}
                 >
+                  {/* Profile Header Section */}
                   <Box
                     sx={{
-                      p: 2,
+                      p: 1.5,
+                      mb: 1,
                       display: "flex",
                       alignItems: "center",
                       gap: 1.5,
+                      borderRadius: "14px",
+                      bgcolor: isDark ? "rgba(255,255,255,0.05)" : "#f8fafc",
                     }}
                   >
-                    <Avatar src={user?.profilePicture?.url} size="sm" />
-                    <Box>
-                      <Typography
-                        level="title-sm"
-                        className={isDark ? "text-white!" : ""}
-                      >
-                        {user?.fullName || "Admin"}
+                    <Avatar
+                      src={user?.profilePicture?.url}
+                      size="md"
+                      sx={{ borderRadius: "12px", border: "2px solid white" }}
+                    />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography level="title-sm" sx={{ fontWeight: 700 }}>
+                        {user?.fullName || "Admin User"}
                       </Typography>
-                      <Typography level="body-xs">
-                        System Administrator
+                      <Typography
+                        level="body-xs"
+                        sx={{ color: "text.tertiary", fontSize: "0.7rem" }}
+                      >
+                        SYSTEM ADMINISTRATOR
                       </Typography>
                     </Box>
                   </Box>
-                  <Divider />
-                  <MenuItem onClick={() => navigate("/admin/settings")}>
-                    <Settings size={18} /> Settings
+
+                  {/* Menu Items */}
+                  <MenuItem
+                    onClick={() => navigate("/admin/settings")}
+                    sx={{ borderRadius: "10px", py: 1 }}
+                  >
+                    <Settings
+                      size={18}
+                      strokeWidth={2.5}
+                      style={{ opacity: 0.7 }}
+                    />
+                    <Typography level="body-sm" sx={{ ml: 1, fontWeight: 500 }}>
+                      Account Settings
+                    </Typography>
                   </MenuItem>
-                  <div className="flex items-center justify-between px-3 py-2">
-                    <div className="flex items-center gap-2 text-sm">
+
+                  {/* Custom Styled Switch Row */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      px: 1.5,
+                      py: 1,
+                      my: 0.5,
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       {isDark ? (
                         <SunDim size={18} className="text-amber-400" />
                       ) : (
-                        <Moon size={18} />
+                        <Moon size={18} className="text-slate-500" />
                       )}
-                      <span>Dark Mode</span>
-                    </div>
+                      <Typography level="body-sm" sx={{ fontWeight: 500 }}>
+                        Dark Mode
+                      </Typography>
+                    </Box>
                     <Switch
                       size="sm"
                       checked={isDark}
                       onChange={(e) => toggleDarkMode(e.target.checked)}
+                      sx={{
+                        "--Switch-trackWidth": "36px",
+                        "--Switch-trackHeight": "20px",
+                      }}
                     />
-                  </div>
-                  <Divider />
+                  </Box>
+
+                  <Divider sx={{ my: 1, opacity: 0.6 }} />
+
                   <MenuItem
                     variant="soft"
                     color="danger"
                     onClick={() => setIsLogoutModalOpen(true)}
+                    sx={{
+                      borderRadius: "10px",
+                      color: "danger.500",
+                      fontWeight: 600,
+                      "&:hover": { bgcolor: "danger.50" },
+                    }}
                   >
-                    <LogOut size={18} /> Log out
+                    <LogOut size={18} strokeWidth={2.5} />
+                    <Typography level="body-sm" color="danger" sx={{ ml: 1 }}>
+                      Sign Out
+                    </Typography>
                   </MenuItem>
                 </Menu>
               </Dropdown>
@@ -410,6 +480,32 @@ export default function SuperAdminLayout({ children, isDark }) {
           </Box>
         </Sheet>
 
+         {isLogoutModalOpen && (
+            <Box
+              onClick={() => setIsLogoutModalOpen(false)}
+            />
+          )}
+          {isLogoutModalOpen && (
+            <Box
+              sx={{ position: "fixed", inset: 0, zIndex: 1500, display: "flex", alignItems: "center", justifyContent: "center" }}
+            >
+              <Box
+                onClick={(e) => e.stopPropagation()}
+                sx={{ bgcolor: "white", p: 4, borderRadius: 2, boxShadow: "0 10px 15px rgba(0,0,0,0.1)" }}
+              >
+                <Typography level="h6" sx={{ mb: 2 }}>Confirm Logout</Typography>
+                <Typography level="body1" sx={{ mb: 4 }}>Are you sure you want to log out?</Typography>
+                <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+                  <Button variant="outlined" onClick={() => setIsLogoutModalOpen(false)}>Cancel</Button>
+                  <Button variant="contained" color="danger" onClick={() => {
+                    setIsLogoutModalOpen(false);
+                    useAuthStore.getState().logout();
+                    navigate("/auth/sign-in");
+                  }}>Logout</Button>
+                </Box>
+              </Box>
+            </Box>
+          )}              
         {/* Dynamic Page Content (The actual scrollable area) */}
         <Box
           className="hide-scrollbar"
