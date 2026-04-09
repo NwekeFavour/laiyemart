@@ -42,6 +42,7 @@ import {
   CheckCircle,
   ShieldAlert,
   CheckCircleIcon,
+  Download,
 } from "lucide-react";
 import StoreOwnerLayout from "./layout";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -68,6 +69,12 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     newPassword: "",
     confirmPassword: "",
   });
+
+  // domain verification states
+  const [domainInput, setDomainInput] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [isPointed, setIsPointed] = useState(false);
+  const [verifyMessage, setVerifyMessage] = useState(""); // ← new
 
   const { store, user, token, setUser, setStore } = useAuthStore();
   const [formHeroTitle, setFormHeroTitle] = useState(store?.heroTitle || "");
@@ -112,10 +119,10 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [secretText, setSecretText] = useState("");
-  const [method, setMethod] = useState('app'); // 'app' or 'phone'
+  const [method, setMethod] = useState("app"); // 'app' or 'phone'
   const storeHasPhone = !!(store?.phoneNumber || store?.phone2FA?.phoneNumber);
-const [phoneNumber, setPhoneNumber] = useState(store?.phoneNumber || "");
-const [isSendingSMS, setIsSendingSMS] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState(store?.phoneNumber || "");
+  const [isSendingSMS, setIsSendingSMS] = useState(false);
   // 3. Disable Flow (Optional but recommended)
   const [avatarPreview, setAvatarPreview] = useState(
     user?.profilePicture?.url || "",
@@ -179,24 +186,68 @@ const [isSendingSMS, setIsSendingSMS] = useState(false);
     }
   }, []);
 
+  const handleVerify = async () => {
+    if (!domainInput) return;
+
+    setVerifying(true);
+    setVerifyMessage("");
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/stores/domains/verify?url=${encodeURIComponent(domainInput)}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+
+      if (!response.ok) throw new Error("Verification failed");
+
+      const data = await response.json();
+
+      // Assuming your backend returns { isValid: true/false }
+      setIsPointed(data.isValid);
+      setVerifyMessage(data.message);
+    } catch (error) {
+      console.error("Domain ping error:", error);
+      setIsPointed(false);
+      setVerifyMessage(
+        "Could not reach verification service. Please try again.",
+      );
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const downloadHostingerConfig = () => {
+    const content = `@   IN  A   76.76.21.21\nwww IN  CNAME domains.layemart.com`;
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `layemart-setup-${domainInput || "domain"}.txt`;
+    link.click();
+  };
+
   const handleRequestPhoneOTP = async () => {
     setIsSendingSMS(true);
     const token = useAuthStore.getState().token;
     try {
-      await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/security/2fa/phone/initiate`, 
-        { 
+      await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/security/2fa/phone/initiate`,
+        {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json", 
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ phoneNumber })
-        });
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to send code");
-        }
-        toast.success(data.message || "Code sent to your phone!");
+          body: JSON.stringify({ phoneNumber }),
+        },
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to send code");
+      }
+      toast.success(data.message || "Code sent to your phone!");
     } catch (err) {
       toast.error("Failed to send code.");
     } finally {
@@ -205,40 +256,43 @@ const [isSendingSMS, setIsSendingSMS] = useState(false);
   };
 
   const handleVerifyPhoneEnable = async () => {
-  if (!twoFactorCode || twoFactorCode.length < 6) {
-    return toast.error("Please enter a valid 6-digit code");
-  }
-
-  setIsVerifying(true);
-  const token = useAuthStore.getState().token;
-
-  try {
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/2fa/phone/enable`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ code: twoFactorCode.replace(/\s/g, "") }) 
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Invalid verification code");
+    if (!twoFactorCode || twoFactorCode.length < 6) {
+      return toast.error("Please enter a valid 6-digit code");
     }
 
-    toast.success("Phone 2FA enabled successfully!");
-    
-    // 2. Clean up and close
-    set2FAModalOpen(false);
-    setTwoFactorCode(""); 
-  } catch (err) {
-    toast.error(err.message || "Failed to verify code");
-  } finally {
-    setIsVerifying(false);
-  }
-};
+    setIsVerifying(true);
+    const token = useAuthStore.getState().token;
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/2fa/phone/enable`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ code: twoFactorCode.replace(/\s/g, "") }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Invalid verification code");
+      }
+
+      toast.success("Phone 2FA enabled successfully!");
+
+      // 2. Clean up and close
+      set2FAModalOpen(false);
+      setTwoFactorCode("");
+    } catch (err) {
+      toast.error(err.message || "Failed to verify code");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
   const handleIdentitySubmit = async () => {
     setIsUpdating(true);
     try {
@@ -313,6 +367,7 @@ const [isSendingSMS, setIsSendingSMS] = useState(false);
         </Box>
       ),
     },
+    { id: "domain", label: "Custom Domain", icon: <Globe size={18} /> },
   ];
 
   const handlePhoneChange = (e) => {
@@ -559,13 +614,13 @@ const [isSendingSMS, setIsSendingSMS] = useState(false);
       if (!response.ok) throw new Error(data.message);
       const nameToSet = data.verifiedName || data.store?.paystack?.accountName;
       const currentUser = useAuthStore.getState().user;
-      useAuthStore.getState().setUser(updatedUser)
+      useAuthStore.getState().setUser(updatedUser);
       // Update the local store state to reflect the "Active" status
       setFullName(nameToSet);
       setStore(data.store);
 
       try {
-      const freshUser = await fetchMe(token);
+        const freshUser = await fetchMe(token);
         if (freshUser) {
           useAuthStore.getState().setUser(freshUser);
           setFullName(freshUser.fullName || nameToSet);
@@ -573,8 +628,12 @@ const [isSendingSMS, setIsSendingSMS] = useState(false);
       } catch {
         // If fetching fresh user data fails, we can still proceed with the updated name
         // Silent fallback — local state already patched above
-        console.warn("Failed to fetch fresh user data after bank update. Using local update.");
-        toast.success("Bank details updated, but failed to refresh user data. Please refresh the page.");
+        console.warn(
+          "Failed to fetch fresh user data after bank update. Using local update.",
+        );
+        toast.success(
+          "Bank details updated, but failed to refresh user data. Please refresh the page.",
+        );
       }
       toast.success(
         "Congratulations! Your store is now active and ready for payouts.",
@@ -2357,26 +2416,26 @@ const [isSendingSMS, setIsSendingSMS] = useState(false);
                               })
                             }
                             slotProps={{ input: { maxLength: 11 } }}
-                             sx={{
-                            flex: 1,
-                            borderRadius: "lg",
-                            bgcolor: isDark ? "#0f172b" : "neutral.50",
-                            borderColor: isDark ? "#90a1b9" : "neutral.200",
-                            color: isDark ? "#90a1b9" : "neutral.600",
-                            "&.Mui-disabled": {
-                              bgcolor: isDark
-                                ? "rgba(15, 23, 42, 0.5)"
-                                : "neutral.50",
-                              color: isDark ? "#62748e" : "neutral.500",
+                            sx={{
+                              flex: 1,
+                              borderRadius: "lg",
+                              bgcolor: isDark ? "#0f172b" : "neutral.50",
                               borderColor: isDark ? "#90a1b9" : "neutral.200",
-                              cursor: "not-allowed",
-                              "& input": {
-                                WebkitTextFillColor: isDark
-                                  ? "#64748b"
-                                  : "#64748b",
+                              color: isDark ? "#90a1b9" : "neutral.600",
+                              "&.Mui-disabled": {
+                                bgcolor: isDark
+                                  ? "rgba(15, 23, 42, 0.5)"
+                                  : "neutral.50",
+                                color: isDark ? "#62748e" : "neutral.500",
+                                borderColor: isDark ? "#90a1b9" : "neutral.200",
+                                cursor: "not-allowed",
+                                "& input": {
+                                  WebkitTextFillColor: isDark
+                                    ? "#64748b"
+                                    : "#64748b",
+                                },
                               },
-                            },
-                          }}
+                            }}
                             endDecorator={
                               <IconButton
                                 onClick={() => setShowBVN(!showBVN)}
@@ -2384,7 +2443,15 @@ const [isSendingSMS, setIsSendingSMS] = useState(false);
                                   color: isDark ? "neutral.400" : "neutral.600",
                                 }}
                               >
-                                {showBVN ? <VisibilityOff className={`${isDark ? "text-[#cad5e2]!" : "text-slate-800/90!"}`} /> : <Visibility  className={`${isDark ? "text-[#cad5e2]!" : "text-slate-800/90!"}`} />}
+                                {showBVN ? (
+                                  <VisibilityOff
+                                    className={`${isDark ? "text-[#cad5e2]!" : "text-slate-800/90!"}`}
+                                  />
+                                ) : (
+                                  <Visibility
+                                    className={`${isDark ? "text-[#cad5e2]!" : "text-slate-800/90!"}`}
+                                  />
+                                )}
                               </IconButton>
                             }
                           />
@@ -2489,6 +2556,405 @@ const [isSendingSMS, setIsSendingSMS] = useState(false);
                       </Stack>
                     )}
                   </>
+                )}
+              </Stack>
+            )}
+
+            {activeSection === "domain" && (
+              <Stack gap={4}>
+                {/* Header Section */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <Box>
+                    <Typography
+                      level="h4"
+                      sx={{
+                        fontWeight: 700,
+                        color: isDark ? "white" : "inherit",
+                      }}
+                    >
+                      Domain Settings
+                    </Typography>
+                    <Typography level="body-sm" sx={{ color: "text.tertiary" }}>
+                      Manage how customers access your store online.
+                    </Typography>
+                  </Box>
+                  <Typography
+                    level="body-xs"
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      fontWeight: 800,
+                      textTransform: "uppercase",
+                      letterSpacing: "1px",
+                      color:
+                        store?.plan === "starter"
+                          ? "text.tertiary"
+                          : "primary.500",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        bgcolor:
+                          store?.plan === "starter" ? "#94a3b8" : "#6366f1",
+                      }}
+                    />
+                    {store?.plan} Plan
+                  </Typography>
+                </Box>
+
+                <Divider />
+
+                {/* Current Active Domain Card */}
+                <Box sx={{ position: "relative" }}>
+                  <Sheet
+                    variant="soft"
+                    className={`${isDark ? "bg-[#0f172b] text-slate-100!" : ""}`}
+                    sx={{
+                      p: 3,
+                      borderRadius: "xl",
+                      display: "flex",
+                      flexDirection: { xs: "column", sm: "row" },
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 2,
+                      border: "1px solid",
+                      borderColor: "primary.200",
+                      filter:
+                        !store?.paystack || store?.paystack.length === 0
+                          ? "blur(4px)"
+                          : "none",
+                      transition: "filter 0.3s ease",
+                      pointerEvents:
+                        !store?.paystack || store?.paystack.length === 0
+                          ? "none"
+                          : "auto",
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Box
+                        sx={{
+                          p: 1,
+                          bgcolor: "white",
+                          borderRadius: "lg",
+                          boxShadow: "sm",
+                        }}
+                      >
+                        <Globe size={24} className="text-blue-600" />
+                      </Box>
+                      <Box>
+                        <Typography level="title-md" sx={{ fontWeight: 700 }}>
+                          {store?.plan === "starter"
+                            ? `layemart.com/${store?.subdomain}`
+                            : `${store?.subdomain}.layemart.com`}
+                        </Typography>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <CheckCircle size={14} className="text-green-600" />
+                          <Typography
+                            level="body-xs"
+                            sx={{ color: "success.700", fontWeight: 600 }}
+                          >
+                            {store?.plan === "starter"
+                              ? "Default Store Path"
+                              : "Custom Subdomain Active"}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+
+                    <Button
+                      variant="white"
+                      size="sm"
+                      onClick={() =>
+                        window.open(
+                          store?.plan === "starter"
+                            ? `https://layemart.com/${store?.subdomain}`
+                            : `https://${store?.subdomain}.layemart.com`,
+                          "_blank",
+                        )
+                      }
+                      startDecorator={<Visibility size={16} />}
+                      sx={{ borderRadius: "lg" }}
+                    >
+                      View Live
+                    </Button>
+                  </Sheet>
+
+                  {/* Payout Blur Overlay */}
+                  {(!store?.paystack || store?.paystack.length === 0) && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 2,
+                      }}
+                    >
+                      <Button
+                        variant="solid"
+                        color="primary"
+                        startDecorator={<Banknote size={18} />}
+                        onClick={() => setActiveSection("st")}
+                        sx={{ borderRadius: "xl", boxShadow: "md" }}
+                      >
+                        Setup Bank Details to Activate Domain
+                      </Button>
+                    </Box>
+                  )}
+                </Box>
+
+                {/* Custom Domain Input & Verify */}
+                <Box sx={{ opacity: store?.plan === "starter" ? 0.6 : 1 }}>
+                  <Typography className={isDark ? "text-white!" : "text-black!"} level="title-md" sx={{ mb: 1, fontWeight: 700 }}>
+                    External Custom Domain
+                  </Typography>
+                  <Typography
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    level="body-sm"
+                    sx={{ mb: 2, color: "text.secondary" }}
+                  >
+                    Point your own domain to your LayeMart store.
+                    {store?.plan === "starter" &&
+                      " (Upgrade to Professional to enable)"}
+                  </Typography>
+
+                  <Stack gap={2}>
+                    <Stack direction="row" gap={1} sx={{ maxWidth: 500 }}>
+                      <Input
+                        disabled={store?.plan === "starter"}
+                        placeholder="yourdomain.com"
+                        startDecorator="https://"
+                        value={domainInput}
+                        onChange={(e) => setDomainInput(e.target.value)}
+                        sx={{ flex: 1, borderRadius: "lg" }}
+                      />
+                      <Button
+                        disabled={store?.plan === "starter" || !domainInput}
+                        loading={verifying}
+                        onClick={handleVerify}
+                        sx={{ borderRadius: "lg", px: 3 }}
+                      >
+                        Verify & Connect
+                      </Button>
+                    </Stack>
+
+                    {/* Hostinger Helper Link */}
+                    {store?.plan !== "starter" && (
+                      <Typography
+                        level="body-xs"
+                        onClick={downloadHostingerConfig}
+                        sx={{
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          color: "primary.600",
+                          fontWeight: 600,
+                          "&:hover": { textDecoration: "underline" },
+                        }}
+                      >
+                        <Download size={14} /> Download Hostinger DNS Zone File
+                        (.txt)
+                      </Typography>
+                    )}
+                  </Stack>
+                </Box>
+
+                {/* Result Message */}
+                {/* 4. Update the Alert to show the backend message + propagation note */}
+                {store?.plan !== "starter" && verifyMessage && (
+                  <Alert
+                    variant="soft"
+                    color={isPointed ? "success" : "warning"}
+                    startDecorator={
+                      isPointed ? <CheckCircle size={18} /> : <Info size={18} />
+                    }
+                    sx={{ borderRadius: "lg", py: 2 }}
+                  >
+                    <Box>
+                      <Typography
+                        level="title-sm"
+                        color={isPointed ? "success" : "warning"}
+                      >
+                        {isPointed ? "Domain Connected" : "Action Required"}
+                      </Typography>
+                      <Typography level="body-xs" sx={{ mt: 0.5 }}>
+                        {verifyMessage}
+                      </Typography>
+                      {/* ← propagation warning only shown when not yet pointed */}
+                      {!isPointed && (
+                        <Typography
+                          level="body-xs"
+                          sx={{
+                            mt: 1,
+                            fontStyle: "italic",
+                            color: "text.tertiary",
+                          }}
+                        >
+                          DNS changes can take up to 48 hours to propagate
+                          globally.
+                        </Typography>
+                      )}
+                    </Box>
+                  </Alert>
+                )}
+
+                {/* DNS Setup Instructions */}
+                {store?.plan !== "starter" && (
+                  <Box
+                    sx={{
+                      p: 3,
+                      borderRadius: "xl",
+                      border: "1px solid",
+                      borderColor: isDark ? "#314158" : "neutral.200",
+                      bgcolor: isDark ? "#0f172a" : "#f8fafc",
+                    }}
+                  >
+                    <Typography
+                      level="title-sm"
+                      sx={{ fontWeight: 700, mb: 1 }}
+                    >
+                      📋 How to point your domain
+                    </Typography>
+                    <Typography
+                      level="body-xs"
+                      sx={{ color: "text.secondary", mb: 2 }}
+                    >
+                      In your domain registrar (Namecheap, GoDaddy, Hostinger
+                      etc.), add these DNS records:
+                    </Typography>
+
+                    {/* DNS Records Table */}
+                    <Box
+                      sx={{
+                        borderRadius: "md",
+                        overflow: "hidden",
+                        border: "1px solid",
+                        borderColor: isDark ? "#1e293b" : "neutral.200",
+                      }}
+                    >
+                      {/* Table Header */}
+                      <Box
+                        sx={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr 2fr",
+                          px: 2,
+                          py: 1,
+                          bgcolor: isDark ? "#1e293b" : "neutral.100",
+                          borderBottom: "1px solid",
+                          borderColor: isDark ? "#314158" : "neutral.200",
+                        }}
+                      >
+                        {["Type", "Host", "Value"].map((h) => (
+                          <Typography
+                            key={h}
+                            level="body-xs"
+                            sx={{ fontWeight: 700, color: "text.tertiary" }}
+                          >
+                            {h}
+                          </Typography>
+                        ))}
+                      </Box>
+
+                      {/* A Record Row */}
+                      {[
+                        { type: "A", host: "@", value: "76.76.21.21" },
+                        {
+                          type: "CNAME",
+                          host: "www",
+                          value: "domains.layemart.com",
+                        },
+                      ].map((record, i) => (
+                        <Box
+                          key={i}
+                          sx={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr 2fr",
+                            px: 2,
+                            py: 1.5,
+                            borderBottom: i === 0 ? "1px solid" : "none",
+                            borderColor: isDark ? "#1e293b" : "neutral.100",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Typography
+                            level="body-xs"
+                            sx={{
+                              fontWeight: 700,
+                              color:
+                                record.type === "A"
+                                  ? "primary.500"
+                                  : "warning.500",
+                            }}
+                          >
+                            {record.type}
+                          </Typography>
+                          <Typography
+                            level="body-xs"
+                            sx={{ fontFamily: "monospace" }}
+                          >
+                            {record.host}
+                          </Typography>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <Typography
+                              level="body-xs"
+                              sx={{ fontFamily: "monospace", fontWeight: 600 }}
+                            >
+                              {record.value}
+                            </Typography>
+                            {/* Copy Button */}
+                            <Button
+                              variant="plain"
+                              size="sm"
+                              sx={{
+                                minHeight: 0,
+                                py: 0.25,
+                                px: 0.5,
+                                fontSize: "11px",
+                              }}
+                              onClick={() => {
+                                navigator.clipboard.writeText(record.value);
+                                toast.success(`Copied: ${record.value}`);
+                              }}
+                            >
+                              Copy
+                            </Button>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+
+                    <Typography
+                      level="body-xs"
+                      sx={{
+                        mt: 2,
+                        color: "text.tertiary",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      ⏱ DNS changes can take up to 48 hours to propagate. Once
+                      done, enter your domain above and click Verify & Connect.
+                    </Typography>
+                  </Box>
                 )}
               </Stack>
             )}
@@ -2634,87 +3100,100 @@ const [isSendingSMS, setIsSendingSMS] = useState(false);
             )}
           </Sheet>
         </Box>
-<Modal open={is2FAModalOpen} onClose={() => set2FAModalOpen(false)}>
-  <ModalDialog className="overflow-auto h-150" sx={{ maxWidth: 400 }}>
-    <Typography level="h4">Secure Your Account</Typography>
-    
-    {/* Option Toggle */}
-    <Tabs
-      defaultValue={0} 
-      onChange={(e, value) => setMethod(value === 0 ? 'app' : 'phone')}
-      sx={{ bgcolor: 'transparent', mt: 2 }}
-    >
-      <TabList variant="plain" size="sm">
-        <Tab>Authenticator App</Tab>
-        <Tab>Phone Number</Tab>
-      </TabList>
+        <Modal open={is2FAModalOpen} onClose={() => set2FAModalOpen(false)}>
+          <ModalDialog className="overflow-auto h-150" sx={{ maxWidth: 400 }}>
+            <Typography level="h4">Secure Your Account</Typography>
 
-      {/* --- APP FLOW --- */}
-      <TabPanel value={0} sx={{ p: 0, pt: 2 }}>
-        <Typography level="body-sm" sx={{ mb: 2 }}>
-          Scan this QR code with Google Authenticator or Authy.
-        </Typography>
-        <Box sx={{ display: "flex", justifyContent: "center", p: 2, bgcolor: "white", borderRadius: "md" }}>
-          <img src={qrCodeUrl} alt="2FA" style={{ width: "70%" }} />
-        </Box>
-        <Typography level="body-sm" sx={{ mt: 1 }}>
-          Secret: <strong>{secretText || "Loading..."}</strong>
-        </Typography>
-      </TabPanel>
+            {/* Option Toggle */}
+            <Tabs
+              defaultValue={0}
+              onChange={(e, value) => setMethod(value === 0 ? "app" : "phone")}
+              sx={{ bgcolor: "transparent", mt: 2 }}
+            >
+              <TabList variant="plain" size="sm">
+                <Tab>Authenticator App</Tab>
+                <Tab>Phone Number</Tab>
+              </TabList>
 
-      {/* --- PHONE FLOW --- */}
-      <TabPanel value={1} sx={{ p: 0, pt: 2 }}>
-        <Typography level="body-sm" sx={{ mb: 2 }}>
-          We will send a code to your phone. If you don't have a number saved, please enter it below.
-        </Typography>
-        <FormControl sx={{ mb: 2 }}>
-          <FormLabel>Phone Number</FormLabel>
-          <Input 
-            placeholder="+234..." 
-            value={phoneNumber} 
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            disabled={storeHasPhone} // Disable if store already has a phone
-            slotProps={{
-              input: {
-                readOnly: storeHasPhone // Secondary layer of protection
-              }
-            }}
-          />
-        </FormControl>
-        <Button 
-          variant="outlined" 
-          size="sm" 
-          onClick={handleRequestPhoneOTP}
-          loading={isSendingSMS}
-        >
-          Send Code
-        </Button>
-      </TabPanel>
-    </Tabs>
+              {/* --- APP FLOW --- */}
+              <TabPanel value={0} sx={{ p: 0, pt: 2 }}>
+                <Typography level="body-sm" sx={{ mb: 2 }}>
+                  Scan this QR code with Google Authenticator or Authy.
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    p: 2,
+                    bgcolor: "white",
+                    borderRadius: "md",
+                  }}
+                >
+                  <img src={qrCodeUrl} alt="2FA" style={{ width: "70%" }} />
+                </Box>
+                <Typography level="body-sm" sx={{ mt: 1 }}>
+                  Secret: <strong>{secretText || "Loading..."}</strong>
+                </Typography>
+              </TabPanel>
 
-    {/* --- COMMON VERIFICATION SECTION --- */}
-    <Divider sx={{ my: 2 }} />
-    <Stack spacing={2}>
-      <FormControl>
-        <FormLabel>Verification Code</FormLabel>
-        <Input
-          autoFocus
-          placeholder="123 456"
-          value={twoFactorCode}
-          onChange={handleCodeChange}
-          slotProps={{ input: { maxLength: 7 } }}
-        />
-      </FormControl>
-      <Button
-        onClick={method === 'app' ? handleVerifyAndEnable : handleVerifyPhoneEnable}
-        loading={isVerifying}
-        fullWidth
-      >
-        Verify & Enable
-      </Button>
-    </Stack>
-  </ModalDialog>
-</Modal>
+              {/* --- PHONE FLOW --- */}
+              <TabPanel value={1} sx={{ p: 0, pt: 2 }}>
+                <Typography level="body-sm" sx={{ mb: 2 }}>
+                  We will send a code to your phone. If you don't have a number
+                  saved, please enter it below.
+                </Typography>
+                <FormControl sx={{ mb: 2 }}>
+                  <FormLabel>Phone Number</FormLabel>
+                  <Input
+                    placeholder="+234..."
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    disabled={storeHasPhone} // Disable if store already has a phone
+                    slotProps={{
+                      input: {
+                        readOnly: storeHasPhone, // Secondary layer of protection
+                      },
+                    }}
+                  />
+                </FormControl>
+                <Button
+                  variant="outlined"
+                  size="sm"
+                  onClick={handleRequestPhoneOTP}
+                  loading={isSendingSMS}
+                >
+                  Send Code
+                </Button>
+              </TabPanel>
+            </Tabs>
+
+            {/* --- COMMON VERIFICATION SECTION --- */}
+            <Divider sx={{ my: 2 }} />
+            <Stack spacing={2}>
+              <FormControl>
+                <FormLabel>Verification Code</FormLabel>
+                <Input
+                  autoFocus
+                  placeholder="123 456"
+                  value={twoFactorCode}
+                  onChange={handleCodeChange}
+                  slotProps={{ input: { maxLength: 7 } }}
+                />
+              </FormControl>
+              <Button
+                onClick={
+                  method === "app"
+                    ? handleVerifyAndEnable
+                    : handleVerifyPhoneEnable
+                }
+                loading={isVerifying}
+                fullWidth
+              >
+                Verify & Enable
+              </Button>
+            </Stack>
+          </ModalDialog>
+        </Modal>
       </Box>
     </StoreOwnerLayout>
   );

@@ -1320,11 +1320,13 @@ if (!showOnboarding) return null;
                     <Divider className="border-t border-gray-200 dark:border-[#E5E7EB]" />
 
                     {/* Help */}
-                    <MenuItem
-                      className={`${isDark ? "text-slate-200! hover:text-slate-950!" : ""}  px-4 py-3 gap-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-none`}
-                    >
-                      <HelpCircle size={20} /> Help
-                    </MenuItem>
+                    <Link to="https://t.me/Layemart_bot" target="_blank">
+                      <MenuItem
+                        className={`${isDark ? "text-slate-200! hover:text-slate-950!" : ""}  px-4 py-3 gap-3 text-sm hover:bg-gray-100 dark:hover:bg-slate-800 rounded-none`}
+                      >
+                        <HelpCircle size={20} /> Help
+                      </MenuItem>
+                    </Link>
 
                     <Divider className="border-t border-gray-200 dark:border-[#E5E7EB]" />
 
