@@ -472,6 +472,10 @@ const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
           storeName={storeData?.name}
           storeEmail={storeData?.email}
           storeDescription={storeData?.description}
+          storeInstagram={storeData?.socialLinks?.instagram}
+          storeFacebook={storeData?.socialLinks?.facebook}
+          storeAddress={storeData?.address}
+          storeTwitter={storeData?.socialLinks?.twitter}
           storeLogo={storeData?.logo?.url}
           storeId={storeData?._id}
           isStarter={storeData?.plan === "starter"}

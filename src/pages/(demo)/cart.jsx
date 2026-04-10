@@ -530,11 +530,19 @@ const hasAddress = customer?.shippingAddress?.some(
         </ModalDialog>
       </Modal>
 
-      <Footer
-        storeDescription={storeData?.description}
-        storeLogo={storeData?.logo?.url}
-        storeName={storeData?.name}
-      />
+        <Footer
+          storeName={storeData?.name}
+          storeEmail={storeData?.email}
+          storeDescription={storeData?.description}
+          storeInstagram={storeData?.socialLinks?.instagram}
+          storeFacebook={storeData?.socialLinks?.facebook}
+          storeAddress={storeData?.address}
+          storeTwitter={storeData?.socialLinks?.twitter}
+          storeLogo={storeData?.logo?.url}
+          storeId={storeData?._id}
+          isStarter={storeData?.plan === "starter"}
+          storeSlug={storeSlug}
+        />
     </Box>
   );
 };

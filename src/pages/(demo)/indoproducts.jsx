@@ -428,11 +428,19 @@ const handleAddToCart = async () => {
       </Box>
       <div className="mt-10!">
         <div className="relative bottom-0 right-0  left-0">
-          <Footer
-            storeDescription={storeData?.description}
-            storeLogo={storeData?.logo?.url}
-            storeName={storeData?.name}
-          />
+                  <Footer
+                    storeName={storeData?.name}
+                    storeEmail={storeData?.email}
+                    storeDescription={storeData?.description}
+                    storeInstagram={storeData?.socialLinks?.instagram}
+                    storeFacebook={storeData?.socialLinks?.facebook}
+                    storeAddress={storeData?.address}
+                    storeTwitter={storeData?.socialLinks?.twitter}
+                    storeLogo={storeData?.logo?.url}
+                    storeId={storeData?._id}
+                    isStarter={storeData?.plan === "starter"}
+                    storeSlug={storeSlug}
+                  />
         </div>
       </div>
     </Box>

@@ -571,7 +571,9 @@ function Products({ storeSlug, isStarter }) {
                             {/* Left: Rating & Price */}
                             <Box>
                               <IconButton
-                                sx={{ color: product.star ? "#e11d48" : "#94a3b8" }}
+                                sx={{
+                                  color: product.star ? "#e11d48" : "#94a3b8",
+                                }}
                                 onClick={() =>
                                   toggleStar(product._id, storeData._id)
                                 }
@@ -670,7 +672,12 @@ function Products({ storeSlug, isStarter }) {
       </div>
       <Footer
         storeName={storeData?.name}
+        storeEmail={storeData?.email}
         storeDescription={storeData?.description}
+        storeInstagram={storeData?.socialLinks?.instagram}
+        storeFacebook={storeData?.socialLinks?.facebook}
+        storeAddress={storeData?.address}
+        storeTwitter={storeData?.socialLinks?.twitter}
         storeLogo={storeData?.logo?.url}
         storeId={storeData?._id}
         isStarter={storeData?.plan === "starter"}

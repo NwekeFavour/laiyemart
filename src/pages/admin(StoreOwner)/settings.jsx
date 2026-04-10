@@ -98,6 +98,9 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     youtube: store?.socialLinks?.youtube || "", // Ensure these exist
     linkedin: store?.socialLinks?.linkedin || "", // Ensure these exist
   });
+
+  const isLocked = store?.identityLocked;
+
   const [formDescription, setFormDescription] = useState(store?.description);
   const [otp, setOtp] = useState("");
   const [fullName, setFullName] = useState(user?.fullName || "");
@@ -2217,7 +2220,37 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
               </Stack>
             )}
 
-            {activeSection === "st" && (
+            {activeSection === "st" ? (
+             isLocked ? (
+  <Box
+    sx={{
+      p: 4,
+      textAlign: "center",
+      borderRadius: "md",
+      border: "1px dashed",
+      borderColor: isDark ? "neutral.700" : "neutral.300",
+      bgcolor: isDark ? "rgba(255,255,255,0.02)" : "neutral.50",
+    }}
+  >
+    <Typography fontSize={40}>🔒</Typography>
+
+    <Typography level="title-md" sx={{ mt: 1 }}>
+      Identity Locked
+    </Typography>
+
+    <Typography level="body-sm" sx={{ mt: 1, maxWidth: 360, mx: "auto" }}>
+      Your financial and identity details have been verified and locked.
+      To make changes, contact support:
+    </Typography>
+
+    <Typography
+      level="title-sm"
+      sx={{ mt: 2, color: "primary.500" }}
+    >
+      info@layemart.com
+    </Typography>
+  </Box>
+) :(
               <Stack gap={3}>
                 <Box>
                   <Typography
@@ -2632,7 +2665,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   </>
                 )}
               </Stack>
-            )}
+            )) : null}
 
             {activeSection === "domain" && (
               <Stack gap={4}>
