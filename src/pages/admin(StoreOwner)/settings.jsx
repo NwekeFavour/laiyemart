@@ -87,6 +87,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
   const [formEmail, setFormEmail] = useState(store?.email);
   const [formPhone, setFormPhone] = useState(store?.phoneNumber || "");
   const [formAddress, setFormAddress] = useState(store?.address || "");
+  const [billingCycle, setBillingCycle] = useState(store?.billingCycle || "monthly");
 
   // Social Links initialized as an object
   const [socialLinks, setSocialLinks] = useState({
@@ -320,6 +321,42 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
       setIsUpdating(false);
     }
   };
+
+  const handleUpdateBilling = async () => {
+    setLoading(true)
+  try {
+
+    const res = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/auth/billingCycle`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          billingCycle: billingCycle.toLowerCase(), // Ensure backend expects lowercase
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast.error(data.message || "Update failed");
+      return;
+    }
+
+    toast.success("Billing cycle updated successfully");
+
+  } catch (error) {
+
+    console.error(error);
+    toast.error(error.message);
+
+  }
+};
+
   const strengthLabels = ["Very Weak", "Weak", "Fair", "Good", "Strong"];
   const strengthColors = [
     "#ef4444",
@@ -1942,6 +1979,43 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   />
                 </FormControl>
 
+                <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                  <FormLabel
+                    className={`${isDark ? "text-slate-400!" : ""}`}
+                    sx={{ minWidth: 140 }}
+                  >
+                    Billing Cycle
+                  </FormLabel>
+
+                  <Select
+                    value={billingCycle}
+                    onChange={(e) => setBillingCycle(e.target.value)}
+                    sx={{
+                      flex: 1,
+                      maxWidth: 250,
+                      borderRadius: "lg",
+                      bgcolor: isDark ? "#0f172b" : "neutral.50",
+                      borderColor: isDark ? "#1d293d" : "neutral.200",
+                      color: isDark ? "#90a1b9" : "neutral.600",
+                    }}
+                  >
+                    <Option value="monthly">Monthly</Option>
+                    <Option value="yearly">Yearly</Option>
+                  </Select>
+
+                  <Button
+                    onClick={handleUpdateBilling}
+                    disabled={loading}
+                    className="hover:bg-slate-800/90! w-fit! bg-slate-800!"
+                    sx={{
+                      borderRadius: "lg",
+                      color: "#fff",                      
+                    }}
+                  >
+                    Update
+                  </Button>
+                </FormControl>
+
                 <Divider />
 
                 {/* Password */}
@@ -2718,7 +2792,11 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
 
                 {/* Custom Domain Input & Verify */}
                 <Box sx={{ opacity: store?.plan === "starter" ? 0.6 : 1 }}>
-                  <Typography className={isDark ? "text-white!" : "text-black!"} level="title-md" sx={{ mb: 1, fontWeight: 700 }}>
+                  <Typography
+                    className={isDark ? "text-white!" : "text-black!"}
+                    level="title-md"
+                    sx={{ mb: 1, fontWeight: 700 }}
+                  >
                     External Custom Domain
                   </Typography>
                   <Typography
