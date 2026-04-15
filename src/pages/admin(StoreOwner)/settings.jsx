@@ -338,7 +338,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          billingCycle: billingCycle.toLowerCase(), // Ensure backend expects lowercase
+          billingCycle: billingCycle // Ensure backend expects lowercase
         }),
       }
     );
@@ -626,10 +626,11 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
   };
 
   const handleSaveBankDetails = async () => {
-    setIsUpdating(true);
     if (!bankForm.businessName) {
       return toast.error("Please enter your business name.");
     }
+
+    setIsUpdating(true);
 
     try {
       const response = await fetch(
@@ -654,7 +655,8 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
       if (!response.ok) throw new Error(data.message);
       const nameToSet = data.verifiedName || data.store?.paystack?.accountName;
       const currentUser = useAuthStore.getState().user;
-      useAuthStore.getState().setUser(updatedUser);
+      useAuthStore.getState().setUser({ ...currentUser, fullName: nameToSet });
+
       // Update the local store state to reflect the "Active" status
       setFullName(nameToSet);
       setStore(data.store);
@@ -1992,7 +1994,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
 
                   <Select
                     value={billingCycle}
-                    onChange={(e) => setBillingCycle(e.target.value)}
+                    onChange={(_, value) => setBillingCycle(value)}
                     sx={{
                       flex: 1,
                       maxWidth: 250,
