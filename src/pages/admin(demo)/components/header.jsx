@@ -36,6 +36,24 @@ export default function Header({
 
   const uniqueItemCount = cart?.items?.length || 0;
 
+
+  const buildPath = (path = "/") => {
+    const hostname = window.location.hostname;
+    const isSubdomain =
+      hostname.split(".").length > 2 ||
+      (hostname.includes("localhost") &&
+        hostname.split(".").length > 1 &&
+        !hostname.startsWith("localhost"));
+
+    // On a subdomain (Pro), never prefix with slug
+    if (isSubdomain) return path === "/" ? "/" : path;
+
+    // On main domain (Starter), prefix with slug
+    // Use storeSlug as the safe fallback — it's always passed as a prop
+    const base = storeSlug ? `/${storeSlug}` : "";
+    return path === "/" ? base || "/" : `${base}${path}`;
+  };
+  
   const getStorePath = (path) => {
     // 1. Clean the path to ensure it starts with / and has no double slashes
     const cleanPath = path.startsWith("/") ? path : `/${path}`;
@@ -122,20 +140,10 @@ export default function Header({
             sx={{ display: { xs: "none", md: "flex" } }}
           >
             {navItems.map((item) => {
-              const lower = item.toLowerCase();
+                const lower = item.toLowerCase();
+                const path = item === "Home" ? buildPath("/") : buildPath(`/${lower}`);
+                const active = pathname === path;
 
-              // Convert "Home" to "/", others to "/shop", "/about", etc.
-              let path;
-
-              if (item === "Home") {
-                path = isStarter ? `/${storeData.subdomain}` : "/";
-              } else {
-                path = isStarter
-                  ? `/${storeData.subdomain}/${lower}`
-                  : `/${lower}`;
-              }
-
-              const active = pathname === path;
               return (
                 <Link
                   key={item}
@@ -155,13 +163,7 @@ export default function Header({
           {/* Right */}
           <Stack direction="row" spacing={2} alignItems="center">
             <Link
-              to={
-                localStorage.getItem("demo")
-                  ? "#"
-                  : isStarter
-                    ? `/${storeData.subdomain}/cart`
-                    : "/cart"
-              }
+              to={localStorage.getItem("demo") ? "#" : buildPath("/cart")}
               style={{ color: "inherit" }}
             >
               <Badge
@@ -206,9 +208,7 @@ export default function Header({
               >
                 {isAuthenticated ? (
                   <Link
-                    to={
-                      isStarter ? `/${storeData.subdomain}/account` : "/account"
-                    }
+                    to={buildPath("/account")}
                   >
                     <Button
                       className="px-5! border-slate-900! text-slate-800/90! hover:bg-slate-300/10!"
@@ -222,9 +222,7 @@ export default function Header({
                   <div className="flex items-center gap-3">
                     {/* Login Button - Outlined Slate */}
                     <Link
-                      to={
-                        isStarter ? `/${storeData.subdomain}/login` : "/login"
-                      }
+                      to={buildPath("/login")}
                     >
                       <Button
                         className="px-5! border-slate-900! text-slate-800/90! hover:bg-slate-300/10!"
@@ -237,11 +235,7 @@ export default function Header({
 
                     {/* Register Button - Solid Slate (Primary Action) */}
                     <Link
-                      to={
-                        isStarter
-                          ? `/${storeData.subdomain}/register`
-                          : "/register"
-                      }
+                      to={buildPath("/register")}
                     >
                       <Button
                         className="px-5! bg-slate-900! text-white! border-slate-900! hover:bg-slate-800!"
@@ -279,14 +273,12 @@ export default function Header({
                 // If Starter: /storename
                 // If Pro: /
                 const base = isStarter ? `/${storeSlug}` : "";
+                const lower = item.toLowerCase();
 
                 // 2. Build the specific route
                 let path;
-                if (item === "home") {
-                  path = isStarter ? `${base}` : "/";
-                } else {
-                  path = `${base}/${item}`;
-                }
+                if (item === "Home") path = buildPath("/");
+                  else path = buildPath(`/${lower}`);
 
                 // 3. Match active state correctly
                 const active = pathname === path;
@@ -331,7 +323,7 @@ export default function Header({
                 categories.map((category) => (
                   <Link
                     key={category} // Use the string as the key
-                    to={getStorePath("/shop")}
+                    to={buildPath("/shop")}
                     state={{
                       selectedCategory: category, // This must match the string in your Products category list
                     }}
@@ -373,7 +365,7 @@ export default function Header({
               Sign Out
             </Button>
           ) : (
-            <Link to={isStarter ? `/${storeData.subdomain}/login` : "/login"}>
+            <Link to={buildPath("/login")}>
               <Button
                 className="bg-slate-800! hover:bg-slate-800/90! "
                 fullWidth

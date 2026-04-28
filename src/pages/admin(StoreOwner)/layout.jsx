@@ -66,6 +66,9 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
     store?.trialEndsAt &&
     new Date(store.trialEndsAt).getTime() < new Date().getTime();
 
+    const getFirstName = (fullName) => {
+      return fullName.split(" ")[0];
+    }
   // Determine Banner Configuration
   const config = isExpired
     ? {
@@ -1260,7 +1263,7 @@ if (!showOnboarding) return null;
                         <p
                           className={`${isDark ? "text-slate-200!" : "text-slate-900"} text-sm font-semibold `}
                         >
-                          {user?.fullName || "Vendor"}
+                          {getFirstName(user?.fullName) || "Vendor"}
                         </p>
                         <p
                           className={`text-xs ${
@@ -1421,7 +1424,7 @@ if (!showOnboarding) return null;
                   onClick={() =>
                     handlePay(isExpired ? store?.plan : "professional")
                   }
-                  className="md:mt-0 mt-4!"
+                  className={`md:mt-0 mt-4! ${isDark ? "hover:text-black!" : ""}`}
                   size="sm"
                   sx={{
                     bgcolor: isExpired ? "white" : isDark ? "black" : "white",
