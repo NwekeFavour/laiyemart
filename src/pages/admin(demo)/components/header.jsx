@@ -64,7 +64,7 @@ export default function Header({
     logout();
     setIsLogoutModalOpen(false);
     toast.success("Signed out successfully");
-    // navigate(isStarter ? `/${storeData.subdomain}/login}` : `/login`);
+    // navigate(isStarter ? `/${storeData?.subdomain}/login}` : `/login`);
   };
 
   const categories = useMemo(() => {
@@ -126,12 +126,12 @@ export default function Header({
 
               // Convert "Home" to "/", others to "/shop", "/about", etc.
               let path;
-              console.log(storeData.slug)
+              console.log(storeData?.slug)
               if (item === "Home") {
-                path = isStarter ? `/${storeData.subdomain || storeData.slug}` : "/";
+                path = isStarter ? `/${storeData?.subdomain || storeData?.slug}` : "/";
               } else {
                 path = isStarter
-                  ? `/${storeData.slug}/${lower}`
+                  ? `/${storeData?.slug}/${lower}`
                   : `/${lower}`;
               }
 
@@ -159,7 +159,7 @@ export default function Header({
                 localStorage.getItem("demo")
                   ? "#"
                   : isStarter
-                    ? `/${storeData.subdomain}/cart`
+                    ? `/${storeData?.subdomain || storeData?.slug}/cart`
                     : "/cart"
               }
               style={{ color: "inherit" }}
@@ -207,7 +207,7 @@ export default function Header({
                 {isAuthenticated ? (
                   <Link
                     to={
-                      isStarter ? `/${storeData.subdomain || storeData.slug}/account` : "/account"
+                      isStarter ? `/${storeData?.subdomain || storeData?.slug}/account` : "/account"
                     }
                   >
                     <Button
@@ -223,7 +223,7 @@ export default function Header({
                     {/* Login Button - Outlined Slate */}
                     <Link
                       to={
-                        isStarter ? `/${storeData.subdomain || storeData.slug}/login` : "/login"
+                        isStarter ? `/${storeData?.subdomain || storeData?.slug}/login` : "/login"
                       }
                     >
                       <Button
@@ -239,7 +239,7 @@ export default function Header({
                     <Link
                       to={
                         isStarter
-                          ? `/${storeData.subdomain || storeData.slug}/register`
+                          ? `/${storeData?.subdomain || storeData?.slug}/register`
                           : "/register"
                       }
                     >
@@ -373,7 +373,7 @@ export default function Header({
               Sign Out
             </Button>
           ) : (
-            <Link to={isStarter ? `/${storeData.subdomain}/login` : "/login"}>
+            <Link to={isStarter ? `/${storeData?.subdomain}/login` : "/login"}>
               <Button
                 className="bg-slate-800! hover:bg-slate-800/90! "
                 fullWidth
