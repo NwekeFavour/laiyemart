@@ -50,6 +50,7 @@ import { useCategoryStore } from "../../../services/categoryService";
 import { useAuthStore } from "../../store/useAuthStore";
 import { toast } from "react-toastify";
 import { Switch } from "@mui/material";
+import VariantsSection from "../admin(demo)/components/variations";
 
 export default function ProductsPage({ isDark, toggleDarkMode }) {
   const fileInputRef = useRef(null);
@@ -62,6 +63,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
     deleteProduct,
   } = useProductStore();
   const { categories, getCategories, createCategory } = useCategoryStore();
+const [variants, setVariants] = useState([]);
   const [error, setError] = useState(null);
   const { store } = useAuthStore();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -148,6 +150,8 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
     setReturnPolicy(product.returnPolicy);
     setIsFeatured(!!product.isFeatured);
     setIsUnlimited(!!product.isUnlimited);
+    setVariants(product.variants || []);
+
     // Convert existing image URLs to your state format if needed
     setImages(
       product.images.map((img) => ({
@@ -233,6 +237,8 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
       formData.append("isUnlimited", isUnlimited ? "true" : "false");
       formData.append("isFeatured", isFeatured ? "true" : "false");
       formData.append("returnPolicy", returnPolicy);
+      formData.append("variants", JSON.stringify(variants));
+
   formData.append("warranty", warranty);
   formData.append("delivery", delivery)
       images.forEach((img) => {
@@ -255,6 +261,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
       setReturnPolicy("")
       setWarranty("")
       setDoorDelivery("")
+      setVariants([]);
       setIsFeatured(false);
       setIsUnlimited(false);
       fetchMyProducts(); // Refresh list
@@ -310,6 +317,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
       formData.append("isUnlimited", isUnlimited);
       formData.append("warranty", warranty);
       formData.append("delivery", delivery);
+      formData.append("variants", JSON.stringify(variants));
       formData.append("returnPolicy", returnPolicy);
       const keptImageIds = images
         .filter((img) => img.isExisting)
@@ -1472,6 +1480,8 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                 </FormControl>
                 {/* Add this after the Inventory FormControl inside the Stack */}
 
+                <VariantsSection variants={variants} setVariants={setVariants} isDark={isDark} />
+
                 <Stack direction="row" spacing={3} sx={{ mt: 1 }}>
                   {/* FEATURED TOGGLE */}
                   <FormControl
@@ -2026,7 +2036,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                 />
               </FormControl>
             </Stack>
-            <Stack spacing={2.5}>
+            <Stack className="mb-5!" spacing={2.5}>
               {/* PRICE CONTROL */}
               <FormControl required>
                 <FormLabel
@@ -2263,6 +2273,9 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
                 </Typography>
               </FormControl>
             </Stack>
+
+
+                <VariantsSection variants={variants} setVariants={setVariants} isDark={isDark} />
 
             {/* --- NEW: FEATURED & UNLIMITED CONTROLS --- */}
             <Box

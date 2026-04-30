@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { useCustomerAuthStore } from "../src/store/useCustomerAuthStore";
 import { getSubdomain } from "../storeResolver";
+import { toast } from "react-toastify";
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
@@ -61,33 +62,26 @@ export const useCartStore = create((set, get) => ({
   },
 
   // 2. Add Item to Cart
-  addToCart: async (storeId, productId, quantity = 1) => {
-  // 1. Clear previous errors and start loading
+addToCart: async (storeId, productId, quantity = 1, variantSelection = {}) => {
   set({ loading: true, error: null });
-
   try {
     const response = await fetch(`${API_URL}/api/cart/`, {
       method: "POST",
       headers: get().getHeaders(),
-      // storeId can now safely be the Slug or the _id 
-      // because our backend resolver handles both.
-      body: JSON.stringify({ storeId, productId, quantity }),
+      body: JSON.stringify({
+        storeId,
+        productId,
+        quantity,
+        selectedColor: variantSelection.color || null,
+        selectedSize: variantSelection.size || null,
+        selectedPrice: variantSelection.price || null,
+      }),
     });
 
-    const data = await response.json(); // Using standard json() or your handleResponse
-
-    if (!response.ok) {
-      // Catch "Store not found" or "Product out of stock"
-      throw new Error(data.message || "Could not add item to cart");
-    }
-
-    if (data.success) {
-      set({ cart: data.data });
-      // Logic check: Ensure the cart we just got back matches the store we are in
-      // This is vital for subaccount isolation!
-    }
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Could not add item to cart");
+    if (data.success) set({ cart: data.data });
   } catch (err) {
-    console.error("Sorry For the Inconvenience in seems, they might have been an error:", err.message);
     set({ error: err.message });
   } finally {
     set({ loading: false });

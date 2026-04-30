@@ -25,7 +25,7 @@ import {
   ArrowLeft,
   CreditCard,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCartStore } from "../../../services/cartService";
 import { useCustomerAuthStore } from "../../store/useCustomerAuthStore";
 import Header from "../admin(demo)/components/header";
@@ -36,7 +36,7 @@ import { fetchCustomerMe } from "../../../services/customerService";
 
 const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
   const navigate = useNavigate();
-
+  // console.log(storeSlug, isStarter, storeData )
   // Store & Auth State
   const { cart, loading, fetchCart, updateQuantity, removeItem } =
     useCartStore();
@@ -57,8 +57,10 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
   });
 
   useEffect(() => {
-    fetchCustomerMe()
-  }, [])
+    fetchCustomerMe();
+  }, []);
+
+  console.log(cart);
 
   // console.log(customer)
   // 1. Auth Guard
@@ -73,26 +75,26 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
   // }, [customer, navigate]);
 
   // 1. Auth Guard - Only redirect if we AREN'T loading and there's no token
-useEffect(() => {
-  const token = useCustomerAuthStore.getState().token;
-  
-  // If there's no token at all, they definitely need to login
-  if (!token) {
-     toast.error("Please login to view your bag!", {
+  useEffect(() => {
+    const token = useCustomerAuthStore.getState().token;
+
+    // If there's no token at all, they definitely need to login
+    if (!token) {
+      toast.error("Please login to view your bag!", {
         containerId: "STOREFRONT",
       });
-    navigate(getStorePath("/login")); // Adjust path as needed
-    return;
-  }
+      navigate(getStorePath("/login")); // Adjust path as needed
+      return;
+    }
 
-  // If there is a token but no customer data, try to fetch it instead of logging out
-  if (token && !customer) {
-    fetchCustomerMe().catch(() => {
-       // Only redirect if the API actually says the token is invalid
-       navigate(getStorePath("/login"));
-    });
-  }
-}, [customer, navigate]);
+    // If there is a token but no customer data, try to fetch it instead of logging out
+    if (token && !customer) {
+      fetchCustomerMe().catch(() => {
+        // Only redirect if the API actually says the token is invalid
+        navigate(getStorePath("/login"));
+      });
+    }
+  }, [customer, navigate]);
 
   // 2. Pre-fill Address Form when modal opens or customer loads
   useEffect(() => {
@@ -112,9 +114,9 @@ useEffect(() => {
       fetchCart(storeData._id);
     }
   }, [storeData?._id, customer, fetchCart]);
-const hasAddress = customer?.shippingAddress?.some(
-  (address) => address.isDefault === true
-);// Dependency on the specific object is more reliable
+  const hasAddress = customer?.shippingAddress?.some(
+    (address) => address.isDefault === true,
+  ); // Dependency on the specific object is more reliable
 
   // console.log(hasAddress)
 
@@ -299,9 +301,17 @@ const hasAddress = customer?.shippingAddress?.some(
                         />
                         <Box sx={{ flex: 1 }}>
                           <Stack direction="row" justifyContent="space-between">
-                            <Typography level="title-md" fontWeight="bold">
-                              {item.product?.name}
-                            </Typography>
+                            <Link
+                              to={
+                                isStarter
+                                  ? `/${storeData?.slug}/shop/product/${item.product?._id}`
+                                  : `/shop/product/${item.product?._id}`
+                              }
+                            >
+                              <Typography level="title-md" fontWeight="bold">
+                                {item.product?.name}
+                              </Typography>
+                            </Link>
                             <IconButton
                               size="sm"
                               color="danger"
@@ -314,8 +324,29 @@ const hasAddress = customer?.shippingAddress?.some(
                             </IconButton>
                           </Stack>
                           <Typography level="body-sm" sx={{ mb: 1 }}>
-                            ₦{item.product?.price?.toLocaleString()}
+                            <Typography level="title-md" fontWeight="lg">
+  ₦{item.selectedPrice?.toLocaleString()}
+</Typography>
                           </Typography>
+
+{(item.selectedColor || item.selectedSize) && (
+  <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ mb: 1 }}>
+    {item.selectedColor && (
+      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5,
+        px: 1, py: 0.25, bgcolor: "#f1f5f9", borderRadius: "4px", fontSize: "11px", color: "#475569" }}>
+        <Box sx={{ width: 10, height: 10, borderRadius: "50%",
+          bgcolor: item.selectedColorHex || "#e2e8f0", border: "1px solid #e2e8f0", flexShrink: 0 }} />
+        {item.selectedColor}
+      </Box>
+    )}
+    {item.selectedSize && (
+      <Box sx={{ px: 1, py: 0.25, bgcolor: "#f1f5f9",
+        borderRadius: "4px", fontSize: "11px", color: "#475569" }}>
+        {item.selectedSize}
+      </Box>
+    )}
+  </Stack>
+)}
                           <Stack
                             direction="row"
                             alignItems="center"
@@ -473,9 +504,7 @@ const hasAddress = customer?.shippingAddress?.some(
                 />
               </FormControl>
 
-              <Box
-              className="grid grid-cols-1 md:grid-cols-2 gap-4"
-              >
+              <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormControl required>
                   <FormLabel>City</FormLabel>
                   <Input
@@ -530,19 +559,19 @@ const hasAddress = customer?.shippingAddress?.some(
         </ModalDialog>
       </Modal>
 
-        <Footer
-          storeName={storeData?.name}
-          storeEmail={storeData?.email}
-          storeDescription={storeData?.description}
-          storeInstagram={storeData?.socialLinks?.instagram}
-          storeFacebook={storeData?.socialLinks?.facebook}
-          storeAddress={storeData?.address}
-          storeTwitter={storeData?.socialLinks?.twitter}
-          storeLogo={storeData?.logo?.url}
-          storeId={storeData?._id}
-          isStarter={storeData?.plan === "starter"}
-          storeSlug={storeSlug}
-        />
+      <Footer
+        storeName={storeData?.name}
+        storeEmail={storeData?.email}
+        storeDescription={storeData?.description}
+        storeInstagram={storeData?.socialLinks?.instagram}
+        storeFacebook={storeData?.socialLinks?.facebook}
+        storeAddress={storeData?.address}
+        storeTwitter={storeData?.socialLinks?.twitter}
+        storeLogo={storeData?.logo?.url}
+        storeId={storeData?._id}
+        isStarter={storeData?.plan === "starter"}
+        storeSlug={storeSlug}
+      />
     </Box>
   );
 };

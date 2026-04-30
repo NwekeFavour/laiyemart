@@ -1318,7 +1318,7 @@ export default function CustomerAccountPage({
                                     </Button>
 
                                     <Link
-                                      to={getStorePath(`/shop/${product._id}`)}
+                                      to={getStorePath(`/shop/product/${product._id}`)}
                                       className="bg-neutral-800 px-4 py-2 text-white rounded-sm text-xs font-bold uppercase no-underline hover:opacity-90"
                                     >
                                       Buy Now

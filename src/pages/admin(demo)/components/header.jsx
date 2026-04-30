@@ -126,7 +126,7 @@ export default function Header({
 
               // Convert "Home" to "/", others to "/shop", "/about", etc.
               let path;
-              console.log(storeData?.slug)
+              // console.log(storeData?.slug)
               if (item === "Home") {
                 path = isStarter ? `/${storeData?.subdomain || storeData?.slug}` : "/";
               } else {

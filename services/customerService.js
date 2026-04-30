@@ -69,7 +69,6 @@ export const registerCustomer = async ({ email, password, name, storeSlug, }) =>
 };
 
 // 👤 Get logged-in customer
-// 👤 Get logged-in customer
 export const fetchCustomerMe = async () => {
   const state = useCustomerAuthStore.getState();
   const token = state.token;
