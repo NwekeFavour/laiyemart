@@ -67,7 +67,7 @@ export const useAdminStore = create(
         if (!response.ok) throw new Error('Failed to fetch earnings stats');
         
         const result = await response.json();
-        console.log("Platform-Wide Stats:", result);
+        // console.log("Platform-Wide Stats:", result);
         set({ platformWideStats: result.stats });
       } catch (err) {
         console.error("Fetch Earnings Error:", err);
@@ -127,7 +127,7 @@ export const useAdminStore = create(
       });
       const data = await res.json();
       if (data.success) set({ notifications: data.notifications });
-      console.log(data);
+      // console.log(data);
     },
     /* -------- FETCH ALL STORES -------- */
     fetchAllStores: async () => {

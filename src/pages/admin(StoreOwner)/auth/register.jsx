@@ -34,7 +34,7 @@ export default function CustomerSignUp({ isStarter, storeSlug, storeData }) {
 const handleRegister = async (e) => {
   e.preventDefault();
   setLoading(true);
-  console.log(storeSlug)
+  // console.log(storeSlug)
   if (!storeSlug) {
     setError("We couldn't identify which store you are joining.");
     setLoading(false);

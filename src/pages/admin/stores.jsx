@@ -199,7 +199,7 @@ export default function StoreManagement() {
     );
   }, [stores, searchTerm]);
 
-  console.log(stores)
+  // console.log(stores)
   // ── Handlers ──
   const handleDeleteClick = (store) => setStoreToDelete(store);
   const handleCancelDelete = () => {

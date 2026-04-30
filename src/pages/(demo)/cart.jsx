@@ -60,7 +60,7 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
     fetchCustomerMe();
   }, []);
 
-  console.log(cart);
+  // console.log(cart);
 
   // console.log(customer)
   // 1. Auth Guard

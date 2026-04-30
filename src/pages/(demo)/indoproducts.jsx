@@ -134,7 +134,7 @@ const ProductPage = ({ storeSlug, isStarter, storeData }) => {
     };
     return map[name.toLowerCase()] || "#e2e8f0";
   };
-  console.log(product);
+  // console.log(product);
   // 1. Optimized useEffect to prevent unnecessary flicker
   useEffect(() => {
     let isMounted = true;
