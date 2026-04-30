@@ -79,7 +79,7 @@ const NewArrivalsGrid = ({
     const productId = product._id || product.id;
     const targetStoreId = product.store?._id || product.store || storeData?._id;
     if (!customer) {
-      navigate(isStarter ? `/${storeData?.subdomain || store?.slug}/login` : "/login");
+      navigate(isStarter ? `/${storeData?.subdomain || storeData?.slug}/login` : "/login");
       return;
     }
 
@@ -235,7 +235,7 @@ const NewArrivalsGrid = ({
                     {/* Compact Add Button */}
                     <div className="flex flex-col justify-end gap-3">
                       <Link
-                        to={`${isStarter ? `/${storeData?.subdomain || store?.slug}/shop/product/${product._id}` : `/shop/product/${product._id}`}`}
+                        to={`${isStarter ? `/${storeData?.subdomain || storeData?.slug}/shop/product/${product._id}` : `/shop/product/${product._id}`}`}
                         className="text-slate-800/90 text-[12px] underline text-end"
                       >
                         view more
