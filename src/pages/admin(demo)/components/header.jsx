@@ -106,7 +106,7 @@ export default function Header({
               <Menu />
             </IconButton>
 
-            <Link to="/">
+            <Link to={`/${isStarter ? storeData?.slug : ""}`}>
               <Avatar
                 src={storeLogo}
                 sx={{ width: 40, height: 40 }}
