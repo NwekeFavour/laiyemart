@@ -443,7 +443,7 @@ function App() {
             <Route
               path="shop/product/:id"
               element={
-                <ProductPage  />
+                <ProductPage storeData={storeData} storeSlug={activeSlug} isStarter={storeData?.plan === "starter"} />
               }
               
             />

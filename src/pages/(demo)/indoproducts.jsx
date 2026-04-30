@@ -75,7 +75,6 @@ const ProductPage = ({ storeSlug, isStarter, storeData }) => {
 
       const pData = await pRes.json();
       const rData = await rRes.json();
-
       if (isMounted) {
         if (pData.product) setProduct(pData.product);
         if (rData.products) {
