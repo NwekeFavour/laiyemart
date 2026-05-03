@@ -64,23 +64,20 @@ export default function Sidebar({
     },
   ];
 
-  const handleLogout = () => {
-    // 1. Clear state and storage
-    logout();
+const handleLogout = () => {
+  logout();
+  toast.success("Signed out successfully");
+  localStorage.removeItem("layemart-auth");
 
-    // 2. Trigger a well-designed success toast
-    toast.success("Signed out successfully");
+  const isLocal = window.location.hostname.includes("localhost");
 
-    // 3. Redirect to login page
-    localStorage.removeItem("layemart-auth");
+  // ✅ Stay on dashboard subdomain, not the main domain
+  const authSyncBase = isLocal
+    ? "localhost:5173"
+    : "dashboard.layemart.com"; // was "layemart.com" — that's what caused the 403
 
-    // 2. Determine the path to the OTHER domain (e.g., localhost:5173)
-    const isLocal = window.location.hostname.includes("localhost");
-    const mainBase = isLocal ? "localhost:5173" : "layemart.com";
-
-    // This tells the main site to wipe its localStorage too
-    window.location.href = `${window.location.protocol}//${mainBase}/auth-sync?action=logout&redirect=/auth/sign-in`;
-  };
+  window.location.href = `${window.location.protocol}//${authSyncBase}/auth-sync?action=logout&redirect=/auth/sign-in`;
+};
   /**
    * Internal Menu Component to reuse logic between Desktop and Mobile
    */
