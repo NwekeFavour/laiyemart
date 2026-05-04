@@ -62,6 +62,7 @@ import OrderDetails from "./pages/(demo)/orderDetails";
 import CouponPage from "./pages/admin/coupon";
 import VendorStoreWrapper from "./components/VendorStoreWrapper";
 import TransactionsPage from "./pages/admin/transaction";
+import DebugPage from "./pages/admin(StoreOwner)/debug";
 
 function App() {
   const isDashboard = isDashboardSubdomain();
@@ -283,7 +284,7 @@ function App() {
       <Routes>
         {/* --- SHARED SYSTEM ROUTES --- */}
         <Route path="/auth-sync" element={<AuthSync />} />
-
+        <Route path="/debug" element={<DebugPage />} />
         {/* --- CASE 1: DASHBOARD SUBDOMAIN (dashboard.layemart.com) --- */}
         {isDashboard && (
           <>
