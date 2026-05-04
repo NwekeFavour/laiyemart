@@ -66,9 +66,9 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
     store?.trialEndsAt &&
     new Date(store.trialEndsAt).getTime() < new Date().getTime();
 
-    const getFirstName = (fullName) => {
-      return fullName.split(" ")[0];
-    }
+  const getFirstName = (fullName) => {
+    return fullName.split(" ")[0];
+  };
   // Determine Banner Configuration
   const config = isExpired
     ? {
@@ -89,8 +89,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
           icon: <Zap size={20} className="text-slate-900" />,
           iconBg: "bg-amber-400",
           title: `${store?.plan?.toUpperCase()} PLAN`,
-          subtext:
-            "",
+          subtext: "",
           btnText: "Upgrade to Pro",
           showButton: true,
         }
@@ -335,169 +334,205 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
     },
   ];
   const [showOnboarding, setShowOnboarding] = useState(true);
-// Move this ENTIRE function above your "export default function StoreOwnerLayout"
-const OnboardingChecklist = ({ isDark, user, store }) => {
-  const navigate = useNavigate();
-  const [isDismissed, setIsDismissed] = useState(
-    localStorage.getItem("dismissOnboarding") === "true"
-  );
+  // Move this ENTIRE function above your "export default function StoreOwnerLayout"
+  const OnboardingChecklist = ({ isDark, user, store }) => {
+    const navigate = useNavigate();
+    const [isDismissed, setIsDismissed] = useState(
+      localStorage.getItem("dismissOnboarding") === "true",
+    );
 
-  const shouldShow = !isDismissed && (!store?.paystack?.verified || !user?.is2FAEnabled);
+    const shouldShow =
+      !isDismissed && (!store?.paystack?.verified || !user?.is2FAEnabled);
 
-  if (!shouldShow) return null;
+    if (!shouldShow) return null;
 
-  const handleDismiss = () => {
-    setIsDismissed(true);
-    localStorage.setItem("dismissOnboarding", "true");
-  };
+    const handleDismiss = () => {
+      setIsDismissed(true);
+      localStorage.setItem("dismissOnboarding", "true");
+    };
 
-  const tasks = [
-    {
-      task: "Secure your account with 2FA",
-      done: !!user?.is2FAEnabled,
-      link: "/settings?section=security",
-    },
-    {
-      task: "Verify your business (Paystack)",
-      done: !!store?.paystack?.verified,
-      link: "/settings?section=bank-details",
-    },
-  ];
+    const tasks = [
+      {
+        task: "Secure your account with 2FA",
+        done: !!user?.is2FAEnabled,
+        link: "/settings?section=security",
+      },
+      {
+        task: "Verify your business (Paystack)",
+        done: !!store?.paystack?.verified,
+        link: "/settings?section=bank-details",
+      },
+    ];
 
-  return (
-<Box 
-  sx={{ 
-    position: "fixed", 
-    top: 0, 
-    left: 0, 
-    right: 0, 
-    bottom: 0, 
-    width: "100vw", 
-    height: "100vh", 
-    zIndex: 10000, // Highest priority
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    // Premium Backdrop
-    bgcolor: isDark ? "rgba(2, 6, 23, 0.8)" : "rgba(241, 245, 249, 0.8)", 
-    backdropFilter: "blur(12px)", 
-  }}
->
-  <Box 
-    sx={{ 
-      width: "90%", 
-      maxWidth: 500, 
-      p: 4, 
-      borderRadius: "32px", 
-      bgcolor: isDark ? "#1e293b" : "white", 
-      border: "1px solid", 
-      borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "slate.200", 
-      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-      position: "relative",
-      textAlign: "center"
-    }}
-  >
-    {/* Close Button at top right of the card */}
-    <IconButton 
-      size="sm" 
-      variant="soft" 
-      color="neutral" 
-      onClick={handleDismiss} 
-      sx={{ position: "absolute", top: 20, right: 20, borderRadius: "50%" }}
-    >
-      <X size={18} />
-    </IconButton>
-
-    {/* Header Section */}
-    <Box sx={{ mb: 4 }}>
-      <Typography className={`${isDark ? "text-[#cad5e2]!" : "text-slate-80/90!"} sm:text-[24px]! text-[22px]!`} level="h3" sx={{ fontWeight: 800, mb: 1 }}>
-        Let's get you ready 🚀
-      </Typography>
-      <Typography sx={{ color: "neutral.500", fontSize: "14px" }}>
-        Complete these steps to start accepting payments.
-      </Typography>
-    </Box>
-
-    {/* Catchy Task List */}
-    <Stack spacing={2}>
-      {tasks.map((item, idx) => (
-        <Box 
-          key={idx} 
-          onClick={() => {!item.done && navigate(item.link), handleDismiss}} 
-          sx={{ 
-            display: "flex", 
-            alignItems: "center", 
-            gap: 2.5, 
-            p: 2.5, 
-            borderRadius: "20px", 
-            border: "2px solid", 
-            cursor: !item.done ? "pointer" : "default",
-            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            // Dynamic Borders & Bg
-            borderColor: item.done 
-              ? (isDark ? "rgba(16, 185, 129, 0.2)" : "#ecfdf5") 
-              : (isDark ? "#334155" : "#f1f5f9"),
-            bgcolor: item.done 
-              ? (isDark ? "rgba(16, 185, 129, 0.05)" : "#f0fdf4") 
-              : "transparent",
-            "&:hover": {
-              transform: !item.done ? "translateY(-2px)" : "none",
-              borderColor: !item.done && "#3b82f6",
-              boxShadow: !item.done && "0 10px 15px -3px rgba(59, 130, 246, 0.1)"
-            }
+    return (
+      <Box
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: "100vw",
+          height: "100vh",
+          zIndex: 10000, // Highest priority
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          // Premium Backdrop
+          bgcolor: isDark ? "rgba(2, 6, 23, 0.8)" : "rgba(241, 245, 249, 0.8)",
+          backdropFilter: "blur(12px)",
+        }}
+      >
+        <Box
+          sx={{
+            width: "90%",
+            maxWidth: 500,
+            p: 4,
+            borderRadius: "32px",
+            bgcolor: isDark ? "#1e293b" : "white",
+            border: "1px solid",
+            borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "slate.200",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+            position: "relative",
+            textAlign: "center",
           }}
         >
-          {/* Catchy Status Icon */}
-          <Box 
-            sx={{ 
-              width: 40, 
-              height: 40, 
-              borderRadius: "12px", 
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: "center",
-              transition: "all 0.3s",
-              bgcolor: item.done ? "#10b981" : (isDark ? "#334155" : "#f1f5f9"),
-              color: item.done ? "white" : (isDark ? "slate.200" : "#64748b")
+          {/* Close Button at top right of the card */}
+          <IconButton
+            size="sm"
+            variant="soft"
+            color="neutral"
+            onClick={handleDismiss}
+            sx={{
+              position: "absolute",
+              top: 20,
+              right: 20,
+              borderRadius: "50%",
             }}
           >
-            {item.done ? <CheckCircle2 size={22} /> : (idx + 1)}
-          </Box>
+            <X size={18} />
+          </IconButton>
 
-          <Box sx={{ textAlign: "left", flex: 1 }}>
-            <Typography className={`${isDark ? "text-slate-300/90!": "text-slate-800/90!"}`} sx={{ 
-              fontSize: "16px", 
-              fontWeight: 700, 
-              textDecoration: item.done ? "line-through" : "none" 
-            }}>
-              {item.task}
+          {/* Header Section */}
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              className={`${isDark ? "text-[#cad5e2]!" : "text-slate-80/90!"} sm:text-[24px]! text-[22px]!`}
+              level="h3"
+              sx={{ fontWeight: 800, mb: 1 }}
+            >
+              Let's get you ready 🚀
             </Typography>
-            {!item.done && (
-              <Typography sx={{ fontSize: "12px", color: "#3b82f6", fontWeight: 600 }}>
-                Action Required →
-              </Typography>
-            )}
+            <Typography sx={{ color: "neutral.500", fontSize: "14px" }}>
+              Complete these steps to start accepting payments.
+            </Typography>
           </Box>
-        </Box>
-      ))}
-    </Stack>
 
-    <Button 
-      className={`${isDark ? "text-[#cad5e2]!" : "text-slate-900!"}`}
-      fullWidth 
-      variant="plain" 
-      onClick={handleDismiss} 
-      sx={{ mt: 3,  fontWeight: 600 }}
-    >
-      I'll do this later
-    </Button>
-  </Box>
-</Box>
-  );
-};
-// If all tasks are done, you might want to hide it automatically, 
-// but the 'close' button gives the user manual control.
-if (!showOnboarding) return null;
+          {/* Catchy Task List */}
+          <Stack spacing={2}>
+            {tasks.map((item, idx) => (
+              <Box
+                key={idx}
+                onClick={() => {
+                  (!item.done && navigate(item.link), handleDismiss);
+                }}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2.5,
+                  p: 2.5,
+                  borderRadius: "20px",
+                  border: "2px solid",
+                  cursor: !item.done ? "pointer" : "default",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  // Dynamic Borders & Bg
+                  borderColor: item.done
+                    ? isDark
+                      ? "rgba(16, 185, 129, 0.2)"
+                      : "#ecfdf5"
+                    : isDark
+                      ? "#334155"
+                      : "#f1f5f9",
+                  bgcolor: item.done
+                    ? isDark
+                      ? "rgba(16, 185, 129, 0.05)"
+                      : "#f0fdf4"
+                    : "transparent",
+                  "&:hover": {
+                    transform: !item.done ? "translateY(-2px)" : "none",
+                    borderColor: !item.done && "#3b82f6",
+                    boxShadow:
+                      !item.done && "0 10px 15px -3px rgba(59, 130, 246, 0.1)",
+                  },
+                }}
+              >
+                {/* Catchy Status Icon */}
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.3s",
+                    bgcolor: item.done
+                      ? "#10b981"
+                      : isDark
+                        ? "#334155"
+                        : "#f1f5f9",
+                    color: item.done
+                      ? "white"
+                      : isDark
+                        ? "slate.200"
+                        : "#64748b",
+                  }}
+                >
+                  {item.done ? <CheckCircle2 size={22} /> : idx + 1}
+                </Box>
+
+                <Box sx={{ textAlign: "left", flex: 1 }}>
+                  <Typography
+                    className={`${isDark ? "text-slate-300/90!" : "text-slate-800/90!"}`}
+                    sx={{
+                      fontSize: "16px",
+                      fontWeight: 700,
+                      textDecoration: item.done ? "line-through" : "none",
+                    }}
+                  >
+                    {item.task}
+                  </Typography>
+                  {!item.done && (
+                    <Typography
+                      sx={{
+                        fontSize: "12px",
+                        color: "#3b82f6",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Action Required →
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            ))}
+          </Stack>
+
+          <Button
+            className={`${isDark ? "text-[#cad5e2]!" : "text-slate-900!"}`}
+            fullWidth
+            variant="plain"
+            onClick={handleDismiss}
+            sx={{ mt: 3, fontWeight: 600 }}
+          >
+            I'll do this later
+          </Button>
+        </Box>
+      </Box>
+    );
+  };
+  // If all tasks are done, you might want to hide it automatically,
+  // but the 'close' button gives the user manual control.
+  if (!showOnboarding) return null;
   useEffect(() => {
     if (!localStorage.getItem("layemart-auth")) {
       navigate("/auth/sign-in");
@@ -971,7 +1006,10 @@ if (!showOnboarding) return null;
             }}
           >
             {!isCollapsed && (
-              <Typography className={`${isDark ? "" : "text-slate-800/90!"}`} sx={{ fontWeight: 600, fontSize: "14px", ml: 1 }}>
+              <Typography
+                className={`${isDark ? "" : "text-slate-800/90!"}`}
+                sx={{ fontWeight: 600, fontSize: "14px", ml: 1 }}
+              >
                 Log out
               </Typography>
             )}
@@ -1501,7 +1539,7 @@ if (!showOnboarding) return null;
               )}
             </Sheet>
           )}
-        {/* <OnboardingChecklist 
+          {/* <OnboardingChecklist 
             isDark={isDark} 
             user={user} 
             store={store} 
@@ -1509,55 +1547,61 @@ if (!showOnboarding) return null;
 
           {store?.plan === "starter" && (
             <Box
-              className={`fixed z-20 w-50 mx-auto bottom-2 end-5 md:start-10 transition-all duration-300`}
+              component="a"
+              href="https://layemart.com"
+              target="_blank"
+              className="fixed bottom-4 right-4 z-20 transition-all duration-300"
               sx={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                px: 2,
-                borderRadius: "12px",
-                // Glassmorphism logic based on isDark
+                gap: 1,
+                px: 1.5,
+                py: 0.8,
+                borderRadius: "999px", // pill shape
                 bgcolor: isDark
-                  ? "#cad5e2"
-                  : "rgba(255, 255, 255, 0.7)",
+                  ? "rgba(15, 23, 42, 0.85)"
+                  : "rgba(255,255,255,0.85)",
                 backdropFilter: "blur(10px)",
                 border: "1px solid",
                 borderColor: isDark
-                  ? "rgba(51, 65, 85, 0.5)"
-                  : "rgba(226, 232, 240, 0.8)",
-                boxShadow: isDark
-                  ? "0 4px 15px -3px rgba(0, 0, 0, 0.5)"
-                  : "0 4px 15px -3px rgba(0, 0, 0, 0.08)",
+                  ? "rgba(255,255,255,0.08)"
+                  : "rgba(0,0,0,0.08)",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+                textDecoration: "none",
                 "&:hover": {
-                  transform: "translateY(-3px)",
-                  borderColor: isDark
-                    ? "rgba(59, 130, 246, 0.4)"
-                    : "rgba(59, 130, 246, 0.2)",
-                  bgcolor: isDark ? "rgba(15, 23, 42, 0.9)" : "#ffffff",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
                 },
               }}
             >
               <Typography
-               className={`${isDark ? "text-slate-900!" : "text-slate-800/90!"}`}
                 sx={{
-                  fontSize: "8px",
-                  fontWeight: 800,
-                  // Text color shifts for readability
-                  color: isDark ? "#94a3b8" : "#64748b",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  color: isDark ? "#64748b" : "#94a3b8",
                   textTransform: "uppercase",
-                  mb: 0.3,
+                  letterSpacing: "0.08em",
+                  lineHeight: 1,
                 }}
               >
                 Powered by
               </Typography>
-
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
-                <img
-                  src="https://res.cloudinary.com/dzrfqk1zk/image/upload/v1771239090/layemart-icon-removebg-preview_lh5vom.png"
-                  alt="Layemart Logo"
-                  className="h-16 w-auto object-contain"
-                />
-              </Box>
+              <img
+                src="https://res.cloudinary.com/dzrfqk1zk/image/upload/v1771239090/layemart-icon-removebg-preview_lh5vom.png"
+                alt="Layemart"
+                style={{ height: 16, width: "auto", objectFit: "contain" }}
+              />
+              <Typography
+                sx={{
+                  fontSize: "10px",
+                  fontWeight: 800,
+                  color: isDark ? "#cbd5e1" : "#0f172a",
+                  letterSpacing: "-0.01em",
+                  lineHeight: 1,
+                }}
+              >
+                Layemart
+              </Typography>
             </Box>
           )}
           {/* --- DYNAMIC VERIFICATION REMINDER BANNER --- */}
