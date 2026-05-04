@@ -81,6 +81,14 @@ export const fetchMe = async () => {
 
   if (!res.ok) throw new Error("Unauthorized");
 
+  if (res.status === 401) {
+    // ✅ Token expired — clear everything and redirect
+    localStorage.removeItem("layemart-auth");
+    useAuthStore.getState().logout();
+    window.location.href = "/auth/sign-in";
+    return;
+  }
+
   const data = await res.json();
 
   useAuthStore.getState().login({

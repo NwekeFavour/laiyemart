@@ -283,14 +283,16 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
     const loadUser = async () => {
       try {
         const data = await fetchMe();
-        // console.log(data)
       } catch (err) {
-        setError("Failed to fetch user:", err);
+        // ✅ Don't just set error — redirect if unauthorized
+        if (err?.status === 401 || err?.message?.includes("401")) {
+          localStorage.removeItem("layemart-auth");
+          navigate("/auth/sign-in");
+        }
       } finally {
         setLoading(false);
       }
     };
-
     loadUser();
   }, []);
 
