@@ -260,23 +260,20 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
     const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
   }, []);
-  const handleLogout = () => {
-    // 1. Clear state and storage
-    logout();
+const handleLogout = () => {
+  logout();
+  toast.success("Signed out successfully");
+  localStorage.removeItem("layemart-auth");
 
-    // 2. Trigger a well-designed success toast
-    toast.success("Signed out successfully");
+  const isLocal = window.location.hostname.includes("localhost");
+  
+  // ✅ Stay on dashboard, never redirect to layemart.com
+  const authSyncBase = isLocal
+    ? "dashboard.localhost:5173"
+    : "dashboard.layemart.com";
 
-    // 3. Redirect to login page
-    localStorage.removeItem("layemart-auth");
-
-    // 2. Determine the path to the OTHER domain (e.g., localhost:5173)
-    const isLocal = window.location.hostname.includes("localhost");
-    const mainBase = isLocal ? "localhost:5173" : "layemart.com";
-
-    // This tells the main site to wipe its localStorage too
-    window.location.href = `${window.location.protocol}//${mainBase}/auth-sync?action=logout&redirect=/auth/sign-in`;
-  };
+  window.location.href = `${window.location.protocol}//${authSyncBase}/auth-sync?action=logout&redirect=/auth/sign-in`;
+};
 
   useEffect(() => {
     const loadUser = async () => {
@@ -747,7 +744,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   return (
     <Box
       className={`${isDark ? "text-slate-200! bg-slate-950!" : ""}`}
-      sx={{ display: "flex", minHeight: "100vh" }}
+      sx={{ display: "flex", minHeight: "100vh" }}  
     >
       {/* 1. Desktop Sidebar Wrapper */}
       <Box

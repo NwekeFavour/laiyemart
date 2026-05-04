@@ -283,11 +283,12 @@ function App() {
     <div className="hide-scrollbar">
       <Routes>
         {/* --- SHARED SYSTEM ROUTES --- */}
-        <Route path="/auth-sync" element={<AuthSync />} />
         <Route path="/debug" element={<DebugPage />} />
         {/* --- CASE 1: DASHBOARD SUBDOMAIN (dashboard.layemart.com) --- */}
         {isDashboard && (
           <>
+        <Route path="/auth-sync" element={<AuthSync />} />
+
             <Route path="/auth/sign-in" element={<LoginPage />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route
