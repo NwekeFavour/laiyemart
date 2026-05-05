@@ -41,13 +41,13 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
-  // ✅ Clear any stale auth when landing on sign-in page
-  const { logout, token } = useAuthStore.getState();
-  if (token) {
-    logout();
-    localStorage.removeItem("layemart-auth");
-  }
-}, []);
+    // ✅ Clear any stale auth when landing on sign-in page
+    const { logout, token } = useAuthStore.getState();
+    if (token) {
+      logout();
+      localStorage.removeItem("layemart-auth");
+    }
+  }, []);
   return (
     <Box
       sx={{
@@ -88,7 +88,7 @@ export default function LoginPage() {
               alignItems: "center",
               justifyContent: "center",
               flex: 1,
-              cursor: "pointer"
+              cursor: "pointer",
             }}
           >
             <img
@@ -184,47 +184,36 @@ export default function LoginPage() {
             } catch (err) {
               let message = "Something went wrong. Please try again.";
 
-              // 🔹 1. Server responded with error (4xx / 5xx)
-              if (err.response) {
-                const { status, data } = err.response;
+              // ✅ Since loginStoreOwner uses fetch (not axios),
+              // errors come as err.message strings, not err.response
 
-                switch (status) {
-                  case 400:
-                    message = data?.message || "Invalid request.";
-                    break;
-                  case 401:
-                    message = "Invalid email or password.";
-                    break;
-                  case 403:
-                    message = "You are not authorized to access this account.";
-                    break;
-                  case 404:
-                    message = "Login service not found.";
-                    break;
-                  case 500:
-                    message = "Server error. Please try again later.";
-                    break;
-                  default:
-                    message = data?.message || "Unexpected server error.";
-                }
+              if (
+                err.message?.toLowerCase().includes("not verified") ||
+                err.message?.toLowerCase().includes("verify")
+              ) {
+                // ✅ Unverified email — redirect to OTP page with email pre-filled
+                navigate("/auth/verify-email", { state: { email } });
+                return;
               }
 
-              // 🔹 2. Request made but no response (network / CORS / server down)
-              else if (err.request) {
+              if (
+                err.message?.toLowerCase().includes("invalid credentials") ||
+                err.message?.toLowerCase().includes("invalid email or password")
+              ) {
+                message = "Invalid email or password.";
+              } else if (
+                err.message?.toLowerCase().includes("network") ||
+                err.message === "Failed to fetch"
+              ) {
                 message =
                   "Network error. Please check your internet connection.";
-              }
-
-              // 🔹 3. JS or unknown error
-              else if (err.message) {
+              } else if (err.message) {
                 message = err.message;
               }
 
               setError(message);
               toast.error(message);
               console.error("Login Error:", err);
-
-              // Auto-clear inline error
               setTimeout(() => setError(null), 5000);
             } finally {
               setLoading(false);

@@ -63,6 +63,7 @@ import CouponPage from "./pages/admin/coupon";
 import VendorStoreWrapper from "./components/VendorStoreWrapper";
 import TransactionsPage from "./pages/admin/transaction";
 import DebugPage from "./pages/admin(StoreOwner)/debug";
+import ResendOTPPage from "./pages/auth/resend";
 
 function App() {
   const isDashboard = isDashboardSubdomain();
@@ -491,6 +492,7 @@ function App() {
         {!isStorefront && !isDashboard && (
           <>
             <Route path="/" element={<Home />} />
+            <Route path="/auth/verify-email" element={<ResendOTPPage />} /> 
             <Route path="/auth/sign-in" element={<LoginPage />} />
             <Route path="/auth/sign-up" element={<SignUpPage />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
