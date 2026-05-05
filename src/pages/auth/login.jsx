@@ -34,20 +34,21 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (localStorage.getItem("layemart-auth")) {
-      navigate("/auth/redirect");
-    }
-  }, []);
+useEffect(() => {
+  const { logout, token } = useAuthStore.getState();
+  
+  if (token) {
+    // Clear stale auth first, then stay on sign-in
+    logout();
+    localStorage.removeItem("layemart-auth");
+    return; // don't redirect, let them sign in fresh
+  }
 
-  useEffect(() => {
-    // ✅ Clear any stale auth when landing on sign-in page
-    const { logout, token } = useAuthStore.getState();
-    if (token) {
-      logout();
-      localStorage.removeItem("layemart-auth");
-    }
-  }, []);
+  // Only redirect if auth is genuinely valid
+  if (localStorage.getItem("layemart-auth")) {
+    navigate("/auth/redirect");
+  }
+}, []);
   return (
     <Box
       sx={{
