@@ -110,7 +110,7 @@ export default function LoginPage() {
           </Button>
         </Box> */}
 
-        <Divider sx={{ my: 1 }}>
+        {/* <Divider sx={{ my: 1 }}>
           <Typography
             level="body-xs"
             sx={{
@@ -120,8 +120,8 @@ export default function LoginPage() {
             }}
           >
             or continue with
-          </Typography>
-        </Divider>
+          </Typography>              
+        </Divider> */}
 
         {error && (
           <Typography

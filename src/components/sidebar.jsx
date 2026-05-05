@@ -70,13 +70,21 @@ const handleLogout = () => {
   localStorage.removeItem("layemart-auth");
 
   const isLocal = window.location.hostname.includes("localhost");
+  const mainBase = isLocal ? "localhost:5173" : "layemart.com";
+  const dashBase = isLocal ? "dashboard.localhost:5173" : "dashboard.layemart.com";
+  const protocol = window.location.protocol;
 
-  // ✅ Stay on dashboard subdomain, not the main domain
-  const authSyncBase = isLocal
-    ? "localhost:5173"
-    : "dashboard.layemart.com"; // was "layemart.com" — that's what caused the 403
+  // ✅ Load a hidden iframe on layemart.com to clear its localStorage
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = `${protocol}//${mainBase}/auth-sync?action=logout&redirect=/auth/sign-in`;
+  document.body.appendChild(iframe);
 
-  window.location.href = `${window.location.protocol}//${authSyncBase}/auth-sync?action=logout&redirect=/auth/sign-in`;
+  // ✅ After iframe has time to clear, redirect dashboard to sign-in
+  setTimeout(() => {
+    document.body.removeChild(iframe);
+    window.location.href = `${protocol}//${dashBase}/auth-sync?action=logout&redirect=/auth/sign-in`;
+  }, 800); // 800ms gives iframe time to run
 };
   /**
    * Internal Menu Component to reuse logic between Desktop and Mobile
