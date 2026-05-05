@@ -1,29 +1,54 @@
+import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
+
+const isTokenExpired = (token) => {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+};
 
 export default function RoleRedirect() {
   const { user, token, logout } = useAuthStore();
+  const [checking, setChecking] = useState(true);
 
-  // ✅ Check if token is expired before doing anything
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const isExpired = payload.exp * 1000 < Date.now();
-      
-      if (isExpired) {
-        // Clear everything and send to login fresh
+  useEffect(() => {
+    const verify = async () => {
+      // 1. Check token expiry locally first
+      if (!token || isTokenExpired(token)) {
         logout();
         localStorage.removeItem("layemart-auth");
         window.location.href = "/auth/sign-in";
-        return null;
+        return;
       }
-    } catch (e) {
-      // Malformed token — clear and redirect
-      logout();
-      localStorage.removeItem("layemart-auth");
-      window.location.href = "/auth/sign-in";
-      return null;
-    }
-  }
+
+      // 2. Verify token is still valid on backend
+      try {
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!res.ok) {
+          logout();
+          localStorage.removeItem("layemart-auth");
+          window.location.href = "/auth/sign-in";
+          return;
+        }
+      } catch {
+        // Network error — allow through
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    verify();
+  }, []);
+
+  // ✅ Wait for verification before doing anything
+  if (checking) return null;
 
   if (!user || !token) {
     window.location.href = "/auth/sign-in";

@@ -99,6 +99,21 @@ html{
     localStorage.removeItem("demo");
   }, []);
 
+  useEffect(() => {
+  const { token, logout } = useAuthStore.getState();
+  
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (payload.exp * 1000 < Date.now()) {
+        logout(); // clears localStorage automatically
+      }
+    } catch {
+      logout();
+    }
+  }
+}, []);
+
   const [open, setOpen] = useState(0);
 
   const faqs = [
