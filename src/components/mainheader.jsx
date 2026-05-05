@@ -13,10 +13,42 @@ const navItems = [
   { label: "Contact", href: "#contact" },
 ];
 
+const isTokenExpired = (token) => {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+};
+
+
 function PageHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isAuthenticated, user } = useAuthStore();
+  const isLoggedIn = isAuthenticated && token && !isTokenExpired(token);
 
+  // ✅ If token is expired, clear it silently
+  if (isAuthenticated && isTokenExpired(token)) {
+    logout();
+  }
+
+  const isLocal = window.location.hostname.includes("localhost");
+  const protocol = window.location.protocol;
+  const dashBase = isLocal ? "dashboard.localhost:5173" : "dashboard.layemart.com";
+
+  const handleDashboardClick = (e) => {
+    e.preventDefault();
+    const authData = localStorage.getItem("layemart-auth");
+    if (!authData) {
+      window.location.href = "/auth/sign-in";
+      return;
+    }
+    const encodedAuth = encodeURIComponent(authData);
+    const path = user?.role === "SUPER_ADMIN" ? "/admin/dashboard" : "/";
+    window.location.href = `${protocol}//${dashBase}/auth-sync?data=${encodedAuth}&redirect=${path}`;
+  };
   return (
     <header className="fixed top-0 z-[999] w-full transition-all duration-300 bg-white/30 backdrop-blur-md border-b border-transparent">
       <nav className="relative z-10 w-full md:px-4 lg:py-0">
@@ -58,12 +90,15 @@ function PageHeader() {
                 </>
               )}
 
-              {isAuthenticated && (
-                <>
-                  <a href="/auth-sync" className="hidden lg:flex px-6 py-2.5 text-sm font-semibold rounded-full bg-slate-900 text-white! hover:opacity-90 transition-opacity">
-                    Dashboard
-                  </a>
-                </>
+              {isLoggedIn && (
+                
+                <a
+                  href="#"
+                  onClick={handleDashboardClick}
+                  className="hidden lg:flex px-6 py-2.5 text-sm font-semibold rounded-full bg-slate-900 text-white! hover:opacity-90 transition-opacity"
+                >
+                  Dashboard →
+                </a>
               )}
 
 
