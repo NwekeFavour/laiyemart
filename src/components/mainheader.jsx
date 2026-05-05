@@ -26,7 +26,7 @@ const isTokenExpired = (token) => {
 
 function PageHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, token, logout } = useAuthStore();
   const isLoggedIn = isAuthenticated && token && !isTokenExpired(token);
 
   // ✅ If token is expired, clear it silently
