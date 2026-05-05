@@ -39,6 +39,15 @@ export default function LoginPage() {
       navigate("/auth/redirect");
     }
   }, []);
+
+  useEffect(() => {
+  // ✅ Clear any stale auth when landing on sign-in page
+  const { logout, token } = useAuthStore.getState();
+  if (token) {
+    logout();
+    localStorage.removeItem("layemart-auth");
+  }
+}, []);
   return (
     <Box
       sx={{

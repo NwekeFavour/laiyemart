@@ -266,22 +266,12 @@ const handleLogout = () => {
   localStorage.removeItem("layemart-auth");
 
   const isLocal = window.location.hostname.includes("localhost");
-  const mainBase = isLocal ? "localhost:5173" : "layemart.com";
-  const dashBase = isLocal ? "dashboard.localhost:5173" : "dashboard.layemart.com";
   const protocol = window.location.protocol;
+  const mainBase = isLocal ? "localhost:5173" : "layemart.com";
 
-  // ✅ Load a hidden iframe on layemart.com to clear its localStorage
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = `${protocol}//${mainBase}/auth-sync?action=logout&redirect=/auth/sign-in`;
-  document.body.appendChild(iframe);
-
-  // ✅ After iframe has time to clear, redirect dashboard to sign-in
-  setTimeout(() => {
-    document.body.removeChild(iframe);
-    window.location.href = `${protocol}//${dashBase}/auth-sync?action=logout&redirect=/auth/sign-in`;
-  }, 800); // 800ms gives iframe time to run
-};
+  // ✅ Redirect directly to layemart.com sign-in
+  window.location.href = `${protocol}//${mainBase}/auth/sign-in`;
+};  
 
   useEffect(() => {
     const loadUser = async () => {
