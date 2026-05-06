@@ -2,14 +2,20 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Loader2, AlertCircle, ArrowRight } from "lucide-react";
-import { useAuthStore } from "../store/useAuthStore";
+import { encodeAuthForSync } from "../utils/authSync";
 
 export default function PaymentSuccess({ isStarter, storeData }) {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState("verifying"); // verifying, success, error
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-  const { logout } = useAuthStore();
+  const encodedAuth = encodeAuthForSync();
+  const dashboardBase = window.location.hostname.includes("localhost")
+    ? "dashboard.localhost:5173"
+    : "dashboard.layemart.com";
+  const dashboardUrl = encodedAuth
+    ? `${window.location.protocol}//${dashboardBase}/auth-sync?data=${encodedAuth}`
+    : "/auth/sign-in";
 
   useEffect(() => {
     const ref = params.get("reference");
@@ -113,7 +119,7 @@ export default function PaymentSuccess({ isStarter, storeData }) {
                 If you were charged, don't worry—contact our team.
               </p>
               <a
-                href={`${window.location.protocol}//dashboard.localhost:5173/auth-sync?data=${encodeURIComponent(localStorage.getItem("layemart-auth"))}`}
+                href={dashboardUrl}
                 className="mt-8 flex items-center justify-center gap-2 w-full py-4 bg-black text-white rounded-xl font-bold hover:bg-zinc-800 transition-all group"
               >
                 Go to Dashboard

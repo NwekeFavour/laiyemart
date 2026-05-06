@@ -21,6 +21,7 @@ import { toast } from "react-toastify";
 import { useAuthStore } from "../../store/useAuthStore";
 import Layemart from '../../assets/img/layemart-icon.jpg'
 import { Box } from "@mui/joy";
+import { encodeAuthForSync } from "../../utils/authSync";
 
 export default function SignUpPage() {
   // 1. New State Management
@@ -785,8 +786,10 @@ export default function SignUpPage() {
                       await handlePay(response.store.plan, storeId, billingCycle);
                     } else if(response.store.plan === "starter") {
                       // Logic for Free/Starter plans
-                      const authString = localStorage.getItem("layemart-auth");
-                      const encodedAuth = encodeURIComponent(authString);
+                      const encodedAuth = encodeAuthForSync();
+                      if (!encodedAuth) {
+                        throw new Error("Could not prepare dashboard login.");
+                      }
                       const { protocol } = window.location;
                       const base = window.location.hostname.includes(
                         "localhost",

@@ -25,6 +25,7 @@ import { loginStoreOwner } from "../../../services/authService";
 import { toast } from "react-toastify";
 import { CircularProgress } from "@mui/material";
 import Layemart from "../../assets/img/layemart-icon.jpg";
+import { encodeAuthForSync } from "../../utils/authSync";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -156,9 +157,7 @@ useEffect(() => {
                 throw new Error("Invalid server response");
               }
 
-              // 1. Get the auth string from local storage
-              const authString = localStorage.getItem("layemart-auth");
-              const encodedAuth = encodeURIComponent(authString);
+              const encodedAuth = encodeAuthForSync(data);
 
               // 2. Determine the base URL
               const { protocol, hostname } = window.location;

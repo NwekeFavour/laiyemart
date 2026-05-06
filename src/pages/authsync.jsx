@@ -24,7 +24,14 @@ export default function AuthSync() {
 
     if (data) {
       try {
-        localStorage.setItem("layemart-auth", decodeURIComponent(data));
+        const decodedAuth = decodeURIComponent(data);
+        const parsedAuth = JSON.parse(decodedAuth);
+
+        if (!parsedAuth?.state?.token || !parsedAuth?.state?.user) {
+          throw new Error("Invalid auth sync payload");
+        }
+
+        localStorage.setItem("layemart-auth", decodedAuth);
         window.location.replace(redirect);
       } catch (err) {
         console.error("Sync Error:", err);

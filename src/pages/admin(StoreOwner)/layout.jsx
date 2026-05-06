@@ -67,7 +67,8 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
     new Date(store.trialEndsAt).getTime() < new Date().getTime();
 
   const getFirstName = (fullName) => {
-    return fullName.split(" ")[0];
+    if (!fullName || typeof fullName !== "string") return "Vendor";
+    return fullName.trim().split(/\s+/)[0] || "Vendor";
   };
   // Determine Banner Configuration
   const config = isExpired

@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import LogoLight13 from "../assets/img/logo-13-light.svg";
 import LogoDark13 from "../assets/img/logo-13-dark.svg";
 import Layemart from "../assets/img/layemart-icon.jpg"
+import { encodeAuthForSync } from "../utils/authSync";
 
 const navItems = [
   { label: "How It works", href: "#about-us" },
@@ -40,12 +41,11 @@ function PageHeader() {
 
   const handleDashboardClick = (e) => {
     e.preventDefault();
-    const authData = localStorage.getItem("layemart-auth");
-    if (!authData) {
+    const encodedAuth = encodeAuthForSync();
+    if (!encodedAuth) {
       window.location.href = "/auth/sign-in";
       return;
     }
-    const encodedAuth = encodeURIComponent(authData);
     const path = user?.role === "SUPER_ADMIN" ? "/admin/dashboard" : "/";
     window.location.href = `${protocol}//${dashBase}/auth-sync?data=${encodedAuth}&redirect=${path}`;
   };

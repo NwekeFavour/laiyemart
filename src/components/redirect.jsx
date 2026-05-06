@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
+import { encodeAuthForSync } from "../utils/authSync";
 
 const isTokenExpired = (token) => {
   if (!token) return true;
@@ -61,8 +62,12 @@ export default function RoleRedirect() {
     ? "dashboard.localhost:5173"
     : "dashboard.layemart.com";
 
-  const authData = localStorage.getItem("layemart-auth");
-  const encodedAuth = encodeURIComponent(authData);
+  const encodedAuth = encodeAuthForSync();
+
+  if (!encodedAuth) {
+    window.location.href = "/auth/sign-in";
+    return null;
+  }
 
   const getSyncUrl = (path) =>
     `${protocol}//${dashboardBase}/auth-sync?data=${encodedAuth}&redirect=${path}`;
