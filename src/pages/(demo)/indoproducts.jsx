@@ -243,7 +243,7 @@ const ProductPage = ({ storeSlug, isStarter, storeData }) => {
             underline="hover"
             color="neutral"
             sx={{ fontSize: "13px" }}
-            onClick={() => navigate("/")}
+            onClick={() => navigate(getStorePath(`/`))}
           >
             Home
           </Link>
@@ -562,6 +562,7 @@ const ProductPage = ({ storeSlug, isStarter, storeData }) => {
                                             sx={{
                                               fontSize: "11px",
                                               ml: 0.5,
+                                              color: selectedSize ? "#f68b1e" : "#75757A",
                                               opacity: 0.75,
                                             }}
                                           >

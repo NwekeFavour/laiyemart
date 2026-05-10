@@ -213,6 +213,7 @@ const pageDescription = storeData?.description
 const pageUrl = window.location.href;
 const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
 
+// console.log(storeData)
   if (error) return <StoreNotFound />;
 
   const UnderConstructionState = ({ storeName, storeLogo }) => (

@@ -87,7 +87,9 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
   const [formEmail, setFormEmail] = useState(store?.email);
   const [formPhone, setFormPhone] = useState(store?.phoneNumber || "");
   const [formAddress, setFormAddress] = useState(store?.address || "");
-  const [billingCycle, setBillingCycle] = useState(store?.billingCycle || "monthly");
+  const [billingCycle, setBillingCycle] = useState(
+    store?.billingCycle || "monthly",
+  );
 
   // Social Links initialized as an object
   const [socialLinks, setSocialLinks] = useState({
@@ -150,6 +152,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     accountNumber: store?.paystack?.accountNumber || "",
     // Add these two to fix the "uncontrolled to controlled" warning
     bvn: "",
+    selectedSlug: "",
   });
 
   useEffect(() => {
@@ -326,39 +329,35 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
   };
 
   const handleUpdateBilling = async () => {
-    setLoading(true)
-  try {
-
-    const res = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/api/auth/billingCycle`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/billingCycle`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            billingCycle: billingCycle, // Ensure backend expects lowercase
+          }),
         },
-        body: JSON.stringify({
-          billingCycle: billingCycle // Ensure backend expects lowercase
-        }),
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Update failed");
+        return;
       }
-    );
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      toast.error(data.message || "Update failed");
-      return;
+      toast.success("Billing cycle updated successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error(error.message);
     }
-
-    toast.success("Billing cycle updated successfully");
-
-  } catch (error) {
-
-    console.error(error);
-    toast.error(error.message);
-
-  }
-};
+  };
 
   const strengthLabels = ["Very Weak", "Weak", "Fair", "Good", "Strong"];
   const strengthColors = [
@@ -646,6 +645,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
             bankCode: bankForm.bankCode,
             accountNumber: bankForm.accountNumber,
             verifiedName: verifiedInfo.name,
+            selectedSlug: bankForm.selectedSlug,            
           }),
         },
       );
@@ -818,6 +818,25 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
       }
     }
   };
+
+  // Add this useEffect after your existing ones
+  useEffect(() => {
+    if (store?.paystack?.verified && store?.paystack?.accountNumber) {
+      // Identity already verified — skip to step 2 so business name section shows
+      setValidationStep(2);
+      setVerifiedInfo({
+        name: store?.paystack?.accountName || user?.fullName || "",
+        code: store?.paystack?.customerCode || "",
+      });
+      // Pre-fill business name if they had one
+      setBankForm((prev) => ({
+        ...prev,
+        businessName: store?.name || store?.paystack?.businessName || "",
+        bankCode: store?.paystack?.bankCode || "",
+        accountNumber: store?.paystack?.accountNumber || "",
+      }));
+    }
+  }, [store?.paystack?.verified]);
 
   return (
     <StoreOwnerLayout isDark={isDark} toggleDarkMode={toggleDarkMode}>
@@ -2014,7 +2033,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                     className="hover:bg-slate-800/90! w-fit! bg-slate-800!"
                     sx={{
                       borderRadius: "lg",
-                      color: "#fff",                      
+                      color: "#fff",
                     }}
                   >
                     Update
@@ -2223,308 +2242,235 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
             )}
 
             {activeSection === "st" ? (
-             isLocked ? (
-  <Box
-    sx={{
-      p: 4,
-      textAlign: "center",
-      borderRadius: "md",
-      border: "1px dashed",
-      borderColor: isDark ? "neutral.700" : "neutral.300",
-      bgcolor: isDark ? "rgba(255,255,255,0.02)" : "neutral.50",
-    }}
-  >
-    <Typography fontSize={40}>🔒</Typography>
+              isLocked ? (
+                <Box
+                  sx={{
+                    p: 4,
+                    textAlign: "center",
+                    borderRadius: "md",
+                    border: "1px dashed",
+                    borderColor: isDark ? "neutral.700" : "neutral.300",
+                    bgcolor: isDark ? "rgba(255,255,255,0.02)" : "neutral.50",
+                  }}
+                >
+                  <Typography fontSize={40}>🔒</Typography>
 
-    <Typography level="title-md" sx={{ mt: 1 }}>
-      Identity Locked
-    </Typography>
-
-    <Typography level="body-sm" sx={{ mt: 1, maxWidth: 360, mx: "auto" }}>
-      Your financial and identity details have been verified and locked.
-      To make changes, contact support:
-    </Typography>
-
-    <Typography
-      level="title-sm"
-      sx={{ mt: 2, color: "primary.500" }}
-    >
-      info@layemart.com
-    </Typography>
-  </Box>
-) :(
-              <Stack gap={3}>
-                <Box>
-                  <Typography
-                    level="h4"
-                    sx={{ color: isDark ? "neutral.100" : "neutral.900" }}
-                  >
-                    Financial & Identity Verification
+                  <Typography level="title-md" sx={{ mt: 1 }}>
+                    Identity Locked
                   </Typography>
+
                   <Typography
                     level="body-sm"
-                    sx={{ color: isDark ? "neutral.400" : "neutral.600" }}
+                    sx={{ mt: 1, maxWidth: 360, mx: "auto" }}
                   >
-                    {validationStep === 1
-                      ? "Step 1: Confirm your legal identity."
-                      : "Step 2: Enter your business name to complete setup."}
+                    Your financial and identity details have been verified and
+                    locked. To make changes, contact support:
+                  </Typography>
+
+                  <Typography
+                    level="title-sm"
+                    sx={{ mt: 2, color: "primary.500" }}
+                  >
+                    info@layemart.com
                   </Typography>
                 </Box>
-
-                {/* 2FA GATE */}
-                {is2FAEnabled === true ? (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      textAlign: "center",
-                      gap: 2,
-                      p: 4,
-                      borderRadius: "md",
-                      border: "1px dashed",
-                      borderColor: isDark ? "neutral.700" : "neutral.300",
-                      bgcolor: isDark ? "rgba(255,255,255,0.02)" : "neutral.50",
-                    }}
-                  >
-                    <Typography fontSize={40}>🔒</Typography>
+              ) : (
+                <Stack gap={3}>
+                  <Box>
                     <Typography
-                      level="title-md"
-                      sx={{ color: isDark ? "neutral.200" : "neutral.800" }}
+                      level="h4"
+                      sx={{ color: isDark ? "neutral.100" : "neutral.900" }}
                     >
-                      Two-Factor Authentication Required
+                      Financial & Identity Verification
                     </Typography>
                     <Typography
                       level="body-sm"
-                      sx={{
-                        color: isDark ? "neutral.400" : "neutral.600",
-                        maxWidth: 320,
-                      }}
+                      sx={{ color: isDark ? "neutral.400" : "neutral.600" }}
                     >
-                      You must enable 2FA in your Security settings before you
-                      can access financial details.
+                      {validationStep === 1
+                        ? "Step 1: Confirm your legal identity."
+                        : "Step 2: Enter your business name to complete setup."}
                     </Typography>
-                    <Button
-                      variant="outlined"
-                      color="neutral"
-                      onClick={() => setActiveSection("security")} // change "security" to whatever your security tab key is
+                  </Box>
+
+                  {/* 2FA GATE */}
+                  {is2FAEnabled === true ? (
+                    <Box
                       sx={{
-                        borderColor: isDark ? "neutral.600" : "neutral.400",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        textAlign: "center",
+                        gap: 2,
+                        p: 4,
+                        borderRadius: "md",
+                        border: "1px dashed",
+                        borderColor: isDark ? "neutral.700" : "neutral.300",
+                        bgcolor: isDark
+                          ? "rgba(255,255,255,0.02)"
+                          : "neutral.50",
                       }}
                     >
-                      Go to Security Settings
-                    </Button>
-                  </Box>
-                ) : (
-                  <>
-                    {/* Pre-flight Disclaimer */}
-                    {validationStep === 1 && (
-                      <Box
+                      <Typography fontSize={40}>🔒</Typography>
+                      <Typography
+                        level="title-md"
+                        sx={{ color: isDark ? "neutral.200" : "neutral.800" }}
+                      >
+                        Two-Factor Authentication Required
+                      </Typography>
+                      <Typography
+                        level="body-sm"
                         sx={{
-                          p: 1.5,
-                          bgcolor: isDark
-                            ? "rgba(10, 100, 255, 0.1)"
-                            : "info.softBg",
-                          borderRadius: "sm",
-                          border: "1px solid",
-                          borderColor: isDark
-                            ? "rgba(10, 100, 255, 0.2)"
-                            : "info.outlinedBorder",
+                          color: isDark ? "neutral.400" : "neutral.600",
+                          maxWidth: 320,
                         }}
                       >
-                        <Typography
-                          level="body-xs"
-                          sx={{ color: isDark ? "info.300" : "primary.700" }}
+                        You must enable 2FA in your Security settings before you
+                        can access financial details.
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        color="neutral"
+                        onClick={() => setActiveSection("security")} // change "security" to whatever your security tab key is
+                        sx={{
+                          borderColor: isDark ? "neutral.600" : "neutral.400",
+                        }}
+                      >
+                        Go to Security Settings
+                      </Button>
+                    </Box>
+                  ) : (
+                    <>
+                      {/* Pre-flight Disclaimer */}
+                      {validationStep === 1 && (
+                        <Box
+                          sx={{
+                            p: 1.5,
+                            bgcolor: isDark
+                              ? "rgba(10, 100, 255, 0.1)"
+                              : "info.softBg",
+                            borderRadius: "sm",
+                            border: "1px solid",
+                            borderColor: isDark
+                              ? "rgba(10, 100, 255, 0.2)"
+                              : "info.outlinedBorder",
+                          }}
                         >
-                          <strong>Note:</strong> Please ensure your names match
-                          the records tied to your <strong>BVN</strong>.
-                        </Typography>
-                      </Box>
-                    )}
+                          <Typography
+                            level="body-xs"
+                            sx={{ color: isDark ? "info.300" : "primary.700" }}
+                          >
+                            <strong>Note:</strong> Please ensure your names
+                            match the records tied to your <strong>BVN</strong>.
+                          </Typography>
+                        </Box>
+                      )}
 
-                    <Divider
-                      sx={{
-                        borderColor: isDark ? "neutral.800" : "neutral.200",
-                      }}
-                    />
+                      <Divider
+                        sx={{
+                          borderColor: isDark ? "neutral.800" : "neutral.200",
+                        }}
+                      />
 
-                    {/* STEP 1 FIELDS */}
-                    <Stack
-                      gap={2}
-                      sx={{ opacity: validationStep === 2 ? 0.5 : 1 }}
-                    >
-                      <FormControl>
-                        <FormLabel
-                          sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
-                        >
-                          Bank
-                        </FormLabel>
-                        <Autocomplete
-                          placeholder="Search for your bank"
-                          options={banks}
-                          getOptionLabel={(option) => option.name}
-                          value={
-                            banks.find((b) => b.code === bankForm.bankCode) ||
-                            null
-                          }
-                          onChange={(_, newValue) =>
-                            setBankForm({
-                              ...bankForm,
-                              bankCode: newValue?.code || "",
-                            })
-                          }
-                          disabled={validationStep === 2}
-                          variant={isDark ? "soft" : "outlined"}
-                          slotProps={{
-                            input: { className: "hide-scrollbar" },
-                            listbox: {
-                              sx: {
-                                maxHeight: "240px",
-                                bgcolor: isDark ? "#0f172b" : "common.white",
-                                borderColor: isDark ? "#90a1b9" : "neutral.200",
-                                boxShadow: "lg",
-                                "& .MuiAutocomplete-option": {
-                                  color: isDark ? "#94a3b8" : "neutral.800",
-                                  '&[aria-selected="true"]': {
-                                    bgcolor: isDark
-                                      ? "#334155"
-                                      : "primary.softBg",
-                                    color: isDark
-                                      ? "#fff"
-                                      : "primary.solidColor",
-                                  },
-                                  "&:hover": {
-                                    bgcolor: isDark ? "#1e293b" : "neutral.100",
-                                    color: isDark ? "#f8fafc" : "neutral.900",
+                      {/* STEP 1 FIELDS */}
+                      <Stack
+                        gap={2}
+                        sx={{ opacity: validationStep === 2 ? 0.5 : 1 }}
+                      >
+                        <FormControl>
+                          <FormLabel
+                            sx={{
+                              color: isDark ? "neutral.300" : "neutral.700",
+                            }}
+                          >
+                            Bank
+                          </FormLabel>
+                          <Autocomplete
+                            placeholder="Search for your bank"
+                            options={banks}
+                            getOptionLabel={(option) => option.name}
+                            value={
+                              banks.find((b) => b.code === bankForm.bankCode) ||
+                              null
+                            }
+                            onChange={(_, newValue) =>
+                              setBankForm({
+                                ...bankForm,
+                                bankCode: newValue?.code || "",
+                              })
+                            }
+                            disabled={validationStep === 2}
+                            variant={isDark ? "soft" : "outlined"}
+                            slotProps={{
+                              input: { className: "hide-scrollbar" },
+                              listbox: {
+                                sx: {
+                                  maxHeight: "240px",
+                                  bgcolor: isDark ? "#0f172b" : "common.white",
+                                  borderColor: isDark
+                                    ? "#90a1b9"
+                                    : "neutral.200",
+                                  boxShadow: "lg",
+                                  "& .MuiAutocomplete-option": {
+                                    color: isDark ? "#94a3b8" : "neutral.800",
+                                    '&[aria-selected="true"]': {
+                                      bgcolor: isDark
+                                        ? "#334155"
+                                        : "primary.softBg",
+                                      color: isDark
+                                        ? "#fff"
+                                        : "primary.solidColor",
+                                    },
+                                    "&:hover": {
+                                      bgcolor: isDark
+                                        ? "#1e293b"
+                                        : "neutral.100",
+                                      color: isDark ? "#f8fafc" : "neutral.900",
+                                    },
                                   },
                                 },
                               },
-                            },
-                          }}
-                          sx={{
-                            flex: 1,
-                            borderRadius: "lg",
-                            bgcolor: isDark ? "#0f172b" : "neutral.50",
-                            borderColor: isDark ? "#90a1b9" : "neutral.200",
-                            "& .MuiAutocomplete-input": {
-                              color: isDark ? "#f8fafc" : "neutral.900",
-                            },
-                            "&.Mui-disabled": {
-                              bgcolor: isDark
-                                ? "rgba(15, 23, 42, 0.5)"
-                                : "neutral.50",
-                              "& .MuiAutocomplete-input": {
-                                WebkitTextFillColor: isDark
-                                  ? "#475569"
-                                  : "#94a3b8",
-                              },
-                            },
-                          }}
-                        />
-                      </FormControl>
-
-                      <FormControl>
-                        <FormLabel
-                          sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
-                        >
-                          Account Number
-                        </FormLabel>
-                        <Input
-                          variant={isDark ? "soft" : "outlined"}
-                          disabled={validationStep === 2}
-                          value={bankForm.accountNumber}
-                          onChange={(e) =>
-                            setBankForm({
-                              ...bankForm,
-                              accountNumber: e.target.value,
-                            })
-                          }
-                          sx={{
-                            flex: 1,
-                            borderRadius: "lg",
-                            bgcolor: isDark ? "#0f172b" : "neutral.50",
-                            borderColor: isDark ? "#90a1b9" : "neutral.200",
-                            color: isDark ? "#90a1b9" : "neutral.600",
-                            "&.Mui-disabled": {
-                              bgcolor: isDark
-                                ? "rgba(15, 23, 42, 0.5)"
-                                : "neutral.50",
-                              color: isDark ? "#62748e" : "neutral.500",
-                              borderColor: isDark ? "#90a1b9" : "neutral.200",
-                              cursor: "not-allowed",
-                              "& input": {
-                                WebkitTextFillColor: isDark
-                                  ? "#64748b"
-                                  : "#64748b",
-                              },
-                            },
-                          }}
-                        />
-                      </FormControl>
-
-                      <FormControl>
-                        <FormLabel
-                          sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
-                        >
-                          Identity Status
-                        </FormLabel>
-                        {store?.paystack?.verified ? (
-                          <Stack
-                            direction="row"
-                            alignItems="center"
-                            spacing={1.5}
+                            }}
                             sx={{
-                              p: 1.5,
-                              bgcolor: isDark
-                                ? "rgba(30, 70, 50, 0.3)"
-                                : "success.softBg",
-                              borderRadius: "md",
-                              border: "1px solid",
-                              borderColor: isDark
-                                ? "success.800"
-                                : "success.softBorder",
+                              flex: 1,
+                              borderRadius: "lg",
+                              bgcolor: isDark ? "#0f172b" : "neutral.50",
+                              borderColor: isDark ? "#90a1b9" : "neutral.200",
+                              "& .MuiAutocomplete-input": {
+                                color: isDark ? "#f8fafc" : "neutral.900",
+                              },
+                              "&.Mui-disabled": {
+                                bgcolor: isDark
+                                  ? "rgba(15, 23, 42, 0.5)"
+                                  : "neutral.50",
+                                "& .MuiAutocomplete-input": {
+                                  WebkitTextFillColor: isDark
+                                    ? "#475569"
+                                    : "#94a3b8",
+                                },
+                              },
+                            }}
+                          />
+                        </FormControl>
+
+                        <FormControl>
+                          <FormLabel
+                            sx={{
+                              color: isDark ? "neutral.300" : "neutral.700",
                             }}
                           >
-                            <CheckCircleIcon
-                              sx={{
-                                color: isDark
-                                  ? "success.400"
-                                  : "success.solidBg",
-                                fontSize: "xl",
-                              }}
-                            />
-                            <Box>
-                              <Typography
-                                level="title-sm"
-                                sx={{
-                                  color: isDark ? "success.300" : "success.700",
-                                }}
-                              >
-                                BVN Verified
-                              </Typography>
-                              <Typography
-                                level="body-xs"
-                                sx={{
-                                  color: isDark ? "neutral.400" : "neutral.600",
-                                }}
-                              >
-                                Linked to: {user?.fullName}
-                              </Typography>
-                            </Box>
-                          </Stack>
-                        ) : (
+                            Account Number
+                          </FormLabel>
                           <Input
                             variant={isDark ? "soft" : "outlined"}
-                            type={showBVN ? "text" : "password"}
-                            placeholder="Enter 11-digit BVN"
-                            value={bankForm.bvn}
+                            disabled={validationStep === 2}
+                            value={bankForm.accountNumber}
                             onChange={(e) =>
                               setBankForm({
                                 ...bankForm,
-                                bvn: e.target.value.replace(/\D/g, ""),
+                                accountNumber: e.target.value,
                               })
                             }
-                            slotProps={{ input: { maxLength: 11 } }}
                             sx={{
                               flex: 1,
                               borderRadius: "lg",
@@ -2545,129 +2491,426 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                                 },
                               },
                             }}
-                            endDecorator={
-                              <IconButton
-                                onClick={() => setShowBVN(!showBVN)}
-                                sx={{
-                                  color: isDark ? "neutral.400" : "neutral.600",
-                                }}
-                              >
-                                {showBVN ? (
-                                  <VisibilityOff
-                                    className={`${isDark ? "text-[#cad5e2]!" : "text-slate-800/90!"}`}
-                                  />
-                                ) : (
-                                  <Visibility
-                                    className={`${isDark ? "text-[#cad5e2]!" : "text-slate-800/90!"}`}
-                                  />
-                                )}
-                              </IconButton>
-                            }
                           />
-                        )}
-                      </FormControl>
+                        </FormControl>
 
-                      {validationStep === 1 && (
-                        <Button
-                          sx={{
-                            bgcolor: isDark ? "neutral.100" : "neutral.900",
-                            color: isDark ? "neutral.900" : "common.white",
-                            "&:hover": {
-                              bgcolor: isDark ? "neutral.300" : "neutral.800",
-                            },
-                          }}
-                          loading={isUpdating}
-                          onClick={handleIdentitySubmit}
-                        >
-                          {store?.paystack?.verified
-                            ? "Update Bank Details"
-                            : "Verify My Identity"}
-                        </Button>
-                      )}
-                    </Stack>
-
-                    {/* STEP 2: BUSINESS INFO */}
-                    {validationStep === 2 && (
-                      <Stack
-                        gap={2}
-                        sx={{
-                          p: 2,
-                          bgcolor: isDark
-                            ? "rgba(30, 70, 50, 0.2)"
-                            : "success.softBg",
-                          borderRadius: "md",
-                          border: "1px dashed",
-                          borderColor: isDark ? "success.800" : "success.main",
-                        }}
-                      >
-                        <Typography
-                          level="title-md"
-                          sx={{ color: isDark ? "success.300" : "success.700" }}
-                        >
-                          Verified: {verifiedInfo.name}
-                        </Typography>
                         <FormControl>
                           <FormLabel
                             sx={{
                               color: isDark ? "neutral.300" : "neutral.700",
                             }}
                           >
-                            Registered Store Name
+                            BVN
                           </FormLabel>
-                          <Input
-                            variant={isDark ? "soft" : "outlined"}
-                            placeholder="This name appears on customer receipts"
-                            value={bankForm.businessName}
-                            onChange={(e) =>
-                              setBankForm({
-                                ...bankForm,
-                                businessName: e.target.value,
-                              })
-                            }
-                            className={`${isDark && "placeholder:text-slate-100! text-slate-100!"}`}
-                            sx={{
-                              bgcolor: isDark ? "neutral.800" : "common.white",
-                            }}
-                          />
+                          {store?.paystack?.verified ? (
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              spacing={1.5}
+                              sx={{
+                                p: 1.5,
+                                bgcolor: isDark
+                                  ? "rgba(30, 70, 50, 0.3)"
+                                  : "success.softBg",
+                                borderRadius: "md",
+                                border: "1px solid",
+                                borderColor: isDark
+                                  ? "success.800"
+                                  : "success.softBorder",
+                              }}
+                            >
+                              <CheckCircleIcon
+                                sx={{
+                                  color: isDark
+                                    ? "success.400"
+                                    : "success.solidBg",
+                                  fontSize: "xl",
+                                }}
+                              />
+                            </Stack>
+                          ) : (
+                            <Input
+                              variant={isDark ? "soft" : "outlined"}
+                              type={showBVN ? "text" : "password"}
+                              placeholder="Enter 11-digit BVN"
+                              value={bankForm.bvn}
+                              onChange={(e) =>
+                                setBankForm({
+                                  ...bankForm,
+                                  bvn: e.target.value.replace(/\D/g, ""),
+                                })
+                              }
+                              slotProps={{ input: { maxLength: 11 } }}
+                              sx={{
+                                flex: 1,
+                                borderRadius: "lg",
+                                bgcolor: isDark ? "#0f172b" : "neutral.50",
+                                borderColor: isDark ? "#90a1b9" : "neutral.200",
+                                color: isDark ? "#90a1b9" : "neutral.600",
+                                "&.Mui-disabled": {
+                                  bgcolor: isDark
+                                    ? "rgba(15, 23, 42, 0.5)"
+                                    : "neutral.50",
+                                  color: isDark ? "#62748e" : "neutral.500",
+                                  borderColor: isDark
+                                    ? "#90a1b9"
+                                    : "neutral.200",
+                                  cursor: "not-allowed",
+                                  "& input": {
+                                    WebkitTextFillColor: isDark
+                                      ? "#64748b"
+                                      : "#64748b",
+                                  },
+                                },
+                              }}
+                              endDecorator={
+                                <IconButton
+                                  onClick={() => setShowBVN(!showBVN)}
+                                  sx={{
+                                    color: isDark
+                                      ? "neutral.400"
+                                      : "neutral.600",
+                                  }}
+                                >
+                                  {showBVN ? (
+                                    <VisibilityOff
+                                      className={`${isDark ? "text-[#cad5e2]!" : "text-slate-800/90!"}`}
+                                    />
+                                  ) : (
+                                    <Visibility
+                                      className={`${isDark ? "text-[#cad5e2]!" : "text-slate-800/90!"}`}
+                                    />
+                                  )}
+                                </IconButton>
+                              }
+                            />
+                          )}
                         </FormControl>
-                        <Typography
-                          level="body-xs"
-                          sx={{
-                            color: isDark ? "neutral.400" : "neutral.600",
-                            mt: 1.5,
-                            fontStyle: "italic",
-                            display: "flex",
-                            gap: 1,
-                            alignItems: "flex-start",
-                            lineHeight: 1.5,
-                          }}
-                        >
-                          <span>ℹ️</span>
-                          <span>
-                            The name provided above will define your store
-                            identity and public URL.
-                            <strong>
-                              {" "}
-                              Any spaces in your name will be replaced with
-                              hyphens
-                            </strong>{" "}
-                            (e.g., "My Shop" becomes "my-shop").
-                          </span>
-                        </Typography>
-                        <Button
-                          color="success"
-                          variant="solid"
-                          loading={isUpdating}
-                          onClick={handleSaveBankDetails}
-                        >
-                          Activate Payouts
-                        </Button>
+
+                        {validationStep === 1 && (
+                          <Button
+                            sx={{
+                              bgcolor: isDark ? "neutral.100" : "neutral.900",
+                              color: isDark ? "neutral.900" : "common.white",
+                              "&:hover": {
+                                bgcolor: isDark ? "neutral.300" : "neutral.800",
+                              },
+                            }}
+                            loading={isUpdating}
+                            onClick={handleIdentitySubmit}
+                          >
+                            {store?.paystack?.verified
+                              ? "Update Bank Details"
+                              : "Verify My Identity"}
+                          </Button>
+                        )}
                       </Stack>
-                    )}
-                  </>
-                )}
-              </Stack>
-            )) : null}
+
+                      {/* STEP 2: BUSINESS INFO */}
+                      {validationStep === 2 &&
+                        (() => {
+                          const raw = bankForm.businessName?.trim() || "";
+                          const words = raw
+                            .toLowerCase()
+                            .split(/\s+/)
+                            .filter(Boolean);
+
+                          const generateSuggestions = (words, raw) => {
+                            if (!words.length) return [];
+                            const joined = words.join("");
+                            const hyphenated = words.join("-");
+                            const initials = words.map((w) => w[0]).join("");
+                            const initialsWithLast =
+                              initials.slice(0, -1) + words[words.length - 1];
+                            const firstAndLast =
+                              words.length > 1
+                                ? words[0] + words[words.length - 1]
+                                : null;
+                            const abbreviated = words
+                              .map((w) => (w.length > 4 ? w.slice(0, 4) : w))
+                              .join("");
+
+                            return [
+                              hyphenated, // giw-enterprise
+                              joined, // giwenterprise
+                              initialsWithLast, // giwenterprise → "giw" + "enterprise" = initialsWithLast
+                              firstAndLast, // giwenterprise
+                              initials + words[words.length - 1], // gEnterprise style
+                              abbreviated, // giwente
+                            ]
+                              .filter(Boolean)
+                              .map((s) =>
+                                s
+                                  .replace(/[^a-z0-9-]/g, "")
+                                  .replace(/-+/g, "-")
+                                  .replace(/^-|-$/g, ""),
+                              )
+                              .filter((s) => s.length > 1)
+                              .filter((s, i, arr) => arr.indexOf(s) === i)
+                              .slice(0, 5);
+                          };
+
+                          const suggestions = generateSuggestions(words, raw);
+                          const isCustom =
+                            bankForm.selectedSlug &&
+                            !suggestions.includes(bankForm.selectedSlug);
+
+                          return (
+                            <Stack
+                              gap={2}
+                              sx={{
+                                p: 2,
+                                bgcolor: isDark
+                                  ? "rgba(30, 70, 50, 0.2)"
+                                  : "success.softBg",
+                                borderRadius: "md",
+                                border: "1px dashed",
+                                borderColor: isDark
+                                  ? "success.800"
+                                  : "success.main",
+                              }}
+                            >                              
+
+                              {/* Store Name Input */}
+                              <FormControl>
+                                <FormLabel
+                                  sx={{
+                                    color: isDark
+                                      ? "neutral.300"
+                                      : "neutral.700",
+                                  }}
+                                >
+                                  Registered Store Name
+                                </FormLabel>
+                                <Input
+                                  variant={isDark ? "soft" : "outlined"}
+                                  placeholder="This name appears on customer receipts"
+                                  value={bankForm.businessName}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const words = value
+                                      .trim()
+                                      .toLowerCase()
+                                      .split(/\s+/)
+                                      .filter(Boolean);
+                                    const autoSlug = words
+                                      .join("-")
+                                      .replace(/[^a-z0-9-]/g, "");
+                                    setBankForm({
+                                      ...bankForm,
+                                      businessName: value,
+                                      selectedSlug: autoSlug,
+                                    });
+                                  }}
+                                  className={`${isDark && "placeholder:text-slate-100! text-slate-100!"}`}
+                                  sx={{
+                                    bgcolor: isDark
+                                      ? "neutral.800"
+                                      : "common.white",
+                                  }}
+                                />
+                              </FormControl>
+
+                              {/* Suggestions */}
+                              {raw && (
+                                <Box>
+                                  <Typography
+                                    level="body-xs"
+                                    sx={{
+                                      color: isDark
+                                        ? "neutral.400"
+                                        : "neutral.500",
+                                      mb: 1,
+                                      fontWeight: 600,
+                                      textTransform: "uppercase",
+                                      letterSpacing: "0.05em",
+                                    }}
+                                  >
+                                    Suggested{" "}
+                                    {store?.plan === "starter"
+                                      ? "store URLs"
+                                      : "subdomains"}{" "}
+                                    — pick one:
+                                  </Typography>
+
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      flexWrap: "wrap",
+                                      gap: 1,
+                                    }}
+                                  >
+                                    {suggestions.map((slug) => {
+                                      const isSelected =
+                                        bankForm.selectedSlug === slug;
+                                      const url =
+                                        store?.plan === "starter"
+                                          ? `layemart.com/${slug}`
+                                          : `${slug}.layemart.com`;
+
+                                      return (
+                                        <Box
+                                          key={slug}
+                                          onClick={() =>
+                                            setBankForm({
+                                              ...bankForm,
+                                              selectedSlug: slug,
+                                            })
+                                          }
+                                          sx={{
+                                            px: 1.5,
+                                            py: 0.6,
+                                            borderRadius: "8px",
+                                            border: "1px solid",
+                                            cursor: "pointer",
+                                            transition: "all 0.15s",
+                                            borderColor: isSelected
+                                              ? "success.500"
+                                              : isDark
+                                                ? "neutral.600"
+                                                : "neutral.300",
+                                            bgcolor: isSelected
+                                              ? isDark
+                                                ? "rgba(34,197,94,0.15)"
+                                                : "success.softBg"
+                                              : isDark
+                                                ? "neutral.800"
+                                                : "white",
+                                            "&:hover": {
+                                              borderColor: "success.400",
+                                              bgcolor: isDark
+                                                ? "rgba(34,197,94,0.08)"
+                                                : "success.softBg",
+                                            },
+                                          }}
+                                        >
+                                          <Typography
+                                            level="body-xs"
+                                            sx={{
+                                              fontFamily: "monospace",
+                                              fontWeight: isSelected
+                                                ? 700
+                                                : 500,
+                                              color: isSelected
+                                                ? isDark
+                                                  ? "success.300"
+                                                  : "success.700"
+                                                : isDark
+                                                  ? "neutral.300"
+                                                  : "neutral.700",
+                                            }}
+                                          >
+                                            {url}
+                                          </Typography>
+                                        </Box>
+                                      );
+                                    })}
+                                  </Box>
+                                  {/* Preview */}
+                                  {bankForm.selectedSlug && (
+                                    <Box
+                                      sx={{
+                                        mt: 1.5,
+                                        p: 1.5,
+                                        borderRadius: "8px",
+                                        bgcolor: isDark
+                                          ? "neutral.900"
+                                          : "neutral.50",
+                                        border: "1px solid",
+                                        borderColor: isDark
+                                          ? "neutral.700"
+                                          : "neutral.200",
+                                      }}
+                                    >
+                                      <Typography
+                                        level="body-xs"
+                                        sx={{
+                                          color: isDark
+                                            ? "neutral.400"
+                                            : "neutral.500",
+                                        }}
+                                      >
+                                        Your store link will be:
+                                      </Typography>
+                                      <Typography
+                                        level="body-sm"
+                                        sx={{
+                                          fontFamily: "monospace",
+                                          fontWeight: 700,
+                                          color: isDark
+                                            ? "success.300"
+                                            : "success.700",
+                                          mt: 0.3,
+                                        }}
+                                      >
+                                        {store?.plan === "starter"
+                                          ? `https://layemart.com/${bankForm.selectedSlug}`
+                                          : `https://${bankForm.selectedSlug}.layemart.com`}
+                                      </Typography>
+                                      {store?.plan === "starter" && (
+                                        <Typography
+                                          level="body-xs"
+                                          sx={{
+                                            color: isDark
+                                              ? "neutral.500"
+                                              : "neutral.400",
+                                            mt: 0.5,
+                                            fontStyle: "italic",
+                                          }}
+                                        >
+                                          Upgrade to Professional to get a
+                                          custom subdomain like{" "}
+                                          {bankForm.selectedSlug}.layemart.com
+                                        </Typography>
+                                      )}
+                                    </Box>
+                                  )}
+                                </Box>
+                              )}
+
+                              <Typography
+                                level="body-xs"
+                                sx={{
+                                  color: isDark ? "neutral.400" : "neutral.600",
+                                  fontStyle: "italic",
+                                  display: "flex",
+                                  gap: 1,
+                                  alignItems: "flex-start",
+                                  lineHeight: 1.5,
+                                }}
+                              >
+                                <span>ℹ️</span>
+                                <span>
+                                  The name provided above will define your store
+                                  identity and public URL.{" "}
+                                  <strong>
+                                    Any spaces will be replaced with hyphens
+                                  </strong>{" "}
+                                  (e.g., "My Shop" → "my-shop").
+                                </span>
+                              </Typography>
+
+                              <Button
+                                color="success"
+                                variant="solid"
+                                loading={isUpdating}
+                                disabled={
+                                  !bankForm.businessName?.trim() ||
+                                  (store?.plan !== "starter" &&
+                                    !bankForm.selectedSlug)
+                                }
+                                onClick={handleSaveBankDetails}
+                              >
+                                Activate Payouts
+                              </Button>
+                            </Stack>
+                          );
+                        })()}
+                    </>
+                  )}
+                </Stack>
+              )
+            ) : null}
 
             {activeSection === "domain" && (
               <Stack gap={4}>

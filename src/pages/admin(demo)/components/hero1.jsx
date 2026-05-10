@@ -43,7 +43,7 @@ const HERO_CONTENT = {
     headline: "Quality products. Better value.",
     subtext:
       "Find everything you need in one place, from daily essentials to unique finds across all categories.",
-    cta: "Browse Best Sellers", // Social proof - "Best Sellers" are less overwhelming in a general store
+    cta: "Shop Now", // Social proof - "Best Sellers" are less overwhelming in a general store
   },
 };
 
