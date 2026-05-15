@@ -1129,6 +1129,7 @@ const handleLogout = () => {
             >
               {/* Header: Sticky so it stays visible while scrolling notifications */}
               <Box
+                className={`${isDark && "text-neutral-900! bg-[#f5f5f5]! border-slate-800!"}`}
                 sx={{
                   p: 2,
                   display: "flex",
@@ -1139,14 +1140,13 @@ const handleLogout = () => {
                   bgcolor: "inherit",
                   zIndex: 10,
                   borderBottom: "1px solid",
-                  bgColor: isDark ? "#1d293d" : "background.body",
                   color: isDark ? "neutral.100" : "text.primary",
                   borderColor: isDark ? "slate.800" : "neutral.outlineBorder",
                 }}
               >
                 <div>
                   <Typography
-                    className={`${isDark && "text-neutral-100! "}`}
+                    className={`${isDark && "text-neutral-800! "}`}
                     level="title-md"
                     fontWeight="bold"
                   >
@@ -1158,7 +1158,7 @@ const handleLogout = () => {
                     <Button
                       size="sm"
                       variant="plain"
-                      className={`${isDark && "text-neutral-100!"}`}
+                      className={`${isDark && "text-neutral-800!"}`}
                       onClick={handleMarkAllRead}
                       sx={{ fontSize: "10px", minHeight: 0, py: 0.5 }}
                     >
@@ -1196,7 +1196,7 @@ const handleLogout = () => {
                   notifications.map((notif) => (
                     <MenuItem
                       key={notif._id}
-                      className={`${isDark && "text-neutral-100!  hover:bg-transparent!"}`}
+                      className={`${isDark && "text-neutral-100! hover:text-neutral-100!  hover:bg-transparent!"}`}
                       sx={{
                         py: 2, // Larger touch target for mobile fingers
                         px: 2,
@@ -1206,7 +1206,6 @@ const handleLogout = () => {
                         whiteSpace: "normal", // Critical: allow text to wrap on small screens
                         borderBottom: "1px solid",
                         borderColor: isDark ? "slate.900" : "neutral.softBg",
-                        color: isDark ? "neutral.200" : "text.primary",
                         bgcolor: !notif.isRead
                           ? isDark
                             ? "#f8fafc"
@@ -1215,7 +1214,7 @@ const handleLogout = () => {
                       }}
                     >
                       <Typography
-                        className={`${isDark && "text-neutral-100!"}`}
+                        className={`${isDark && "text-neutral-600! font-bold! "}`}
                         level="title-sm"
                         sx={{ fontSize: "14px", mb: 0.5 }}
                       >

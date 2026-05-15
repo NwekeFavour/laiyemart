@@ -78,42 +78,51 @@ const NewArrivalsGrid = ({
   const handleCartAction = async (product, action) => {
     const productId = product._id || product.id;
     const targetStoreId = product.store?._id || product.store || storeData?._id;
+
     if (!customer) {
-      navigate(isStarter ? `/${storeData?.subdomain || storeData?.slug}/login` : "/login");
+      navigate(
+        isStarter
+          ? `/${storeData?.subdomain || storeData?.slug}/login`
+          : "/login",
+      );
       return;
     }
 
-    if (!targetStoreId) {
-      console.error("Missing Store ID for product:", product);
-      // If you don't have the ID on the product, you might need to find it
-      // from the storeSlug or a global store state.
-      return;
-    }
+    if (!targetStoreId) return;
 
-    // console.log(targetStoreId);
-    // 1. Start Preloader
     setProcessingId(productId);
 
     try {
       const currentQty = getItemQty(productId);
 
       if (action === "increment") {
+        // Products with variants must go to product page for selection
+        if (product.variants?.length > 0) {
+          navigate(getStorePath(`/shop/product/${productId}`));
+          toast.info("Please select your options first", {
+            containerId: "STOREFRONT",
+          });
+          return;
+        }
+
         if (currentQty === 0) {
-          await addToCart(targetStoreId, productId, 1);
+          // ✅ Always pass the product's base price explicitly
+          await addToCart(targetStoreId, productId, 1, {
+            price: product.price, // base price, no variant
+          });
         } else {
           await updateQuantity(targetStoreId, productId, currentQty + 1);
         }
       } else if (action === "decrement") {
         if (currentQty === 1) {
-          await removeItem(product.store, productId);
+          await removeItem(targetStoreId, productId);
         } else {
-          await updateQuantity(product.store, productId, currentQty - 1);
+          await updateQuantity(targetStoreId, productId, currentQty - 1);
         }
       }
     } catch (error) {
       console.error("Cart update failed", error);
     } finally {
-      // 2. Stop Preloader - This runs for BOTH increment and decrement
       setProcessingId(null);
     }
   };
@@ -240,67 +249,75 @@ const NewArrivalsGrid = ({
                       >
                         view more
                       </Link>
-                      <div className="flex items-center justify-between w-full gap-3">
-                        <Typography
-                          variant="subtitle2" // ⬅️ Smaller price font
-                          fontWeight={800}
-                          sx={{ color: "#011B33", flexShrink: 0 }}
+                      {product.variants?.length > 0 ? (
+                        // Variant product — send to product page
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(
+                              getStorePath(`/shop/product/${product._id}`),
+                            );
+                          }}
+                          className="flex items-center gap-1 border border-gray-100 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
                         >
-                          ₦{(product.price || 0).toLocaleString()}
-                        </Typography>
-                        {getItemQty(product._id || product.id) === 0 ? (
-                          /* Initial "Add" Button */
+                          <ShoppingCartOutlined
+                            style={{ fontSize: 14 }}
+                            className="text-gray-400"
+                          />
+                          <span className="text-[11px] font-bold text-gray-700">
+                            Select
+                          </span>
+                        </button>
+                      ) : getItemQty(product._id || product.id) === 0 ? (
+                        // No-variant product — direct add
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCartAction(product, "increment");
+                          }}
+                          className="flex items-center gap-1 border border-gray-100 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                        >
+                          {processingId === (product._id || product.id) ? (
+                            <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <>
+                              <ShoppingCartOutlined
+                                style={{ fontSize: 14 }}
+                                className="text-gray-400"
+                              />
+                              <span className="text-[11px] font-bold text-gray-700">
+                                Add
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        // Already in cart — show stepper
+                        <div
+                          className="flex items-center gap-2 border border-gray-100 px-1 py-0.5 rounded-lg bg-gray-50/50"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCartAction(product, "increment");
-                            }}
-                            className="flex items-center gap-1 border border-gray-100 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                            onClick={() =>
+                              handleCartAction(product, "decrement")
+                            }
+                            className="p-1 hover:bg-white rounded-md transition-colors text-gray-500"
                           >
-                            {processingId === (product._id || product.id) ? (
-                              <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                              <>
-                                <ShoppingCartOutlined
-                                  style={{ fontSize: 14 }}
-                                  className="text-gray-400"
-                                />
-                                <span className="text-[11px] font-bold text-gray-700">
-                                  Add
-                                </span>
-                              </>
-                            )}
+                            <Remove style={{ fontSize: 12 }} />
                           </button>
-                        ) : (
-                          /* +/- Stepper Controls */
-                          <div
-                            className="flex items-center gap-2 border border-gray-100 px-1 py-0.5 rounded-lg bg-gray-50/50"
-                            onClick={(e) => e.stopPropagation()} // Prevent card navigation
+                          <span className="text-[11px] font-black text-gray-800 min-w-[12px] text-center">
+                            {getItemQty(product._id || product.id)}
+                          </span>
+                          <button
+                            onClick={() =>
+                              handleCartAction(product, "increment")
+                            }
+                            className="p-1 hover:bg-white rounded-md transition-colors text-gray-500"
                           >
-                            <button
-                              onClick={() =>
-                                handleCartAction(product, "decrement")
-                              }
-                              className="p-1 hover:bg-white rounded-md transition-colors text-gray-500 flex items-center justify-center"
-                            >
-                              <Remove style={{ fontSize: 14 }} />
-                            </button>
-
-                            <span className="text-[12px] font-black text-gray-800 min-w-[12px] text-center">
-                              {getItemQty(product._id || product.id)}
-                            </span>
-
-                            <button
-                              onClick={() =>
-                                handleCartAction(product, "increment")
-                              }
-                              className="p-1 hover:bg-white rounded-md transition-colors text-gray-500 flex items-center justify-center"
-                            >
-                              <Add style={{ fontSize: 14 }} />
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                            <Add style={{ fontSize: 12 }} />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </Stack>
                 </Box>

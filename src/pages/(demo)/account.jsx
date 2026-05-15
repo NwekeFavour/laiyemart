@@ -569,6 +569,99 @@ export default function CustomerAccountPage({
             <Typography level="title-md" sx={{ mb: 2, fontWeight: 700 }}>
               ORDER SUMMARY
             </Typography>
+
+            {/* ✅ Item breakdown with variants */}
+            <Stack spacing={1.5} sx={{ mb: 2 }}>
+              {order.items?.map((item, i) => (
+                <Box key={i}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <Box sx={{ flex: 1, pr: 1 }}>
+                      <Typography level="body-sm" fontWeight={600}>
+                        {item.name}
+                      </Typography>
+
+                      {/* ✅ Variants row — only shows if they exist */}
+                      {(item.selectedColor || item.selectedSize) && (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 0.5,
+                            mt: 0.3,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          {item.selectedColor && (
+                            <Box
+                              sx={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 0.5,
+                                px: 1,
+                                py: 0.2,
+                                bgcolor: "white",
+                                border: "1px solid #e2e8f0",
+                                borderRadius: "4px",
+                                fontSize: "11px",
+                                color: "#475569",
+                              }}
+                            >
+                              {item.selectedColorHex && (
+                                <Box
+                                  sx={{
+                                    width: 8,
+                                    height: 8,
+                                    borderRadius: "50%",
+                                    bgcolor: item.selectedColorHex,
+                                    border: "1px solid #e2e8f0",
+                                    flexShrink: 0,
+                                  }}
+                                />
+                              )}
+                              {item.selectedColor}
+                            </Box>
+                          )}
+                          {item.selectedSize && (
+                            <Box
+                              sx={{
+                                px: 1,
+                                py: 0.2,
+                                bgcolor: "white",
+                                border: "1px solid #e2e8f0",
+                                borderRadius: "4px",
+                                fontSize: "11px",
+                                color: "#475569",
+                              }}
+                            >
+                              {item.selectedSize}
+                            </Box>
+                          )}
+                        </Box>
+                      )}
+
+                      <Typography
+                        level="body-xs"
+                        sx={{ color: "#94a3b8", mt: 0.3 }}
+                      >
+                        Qty: {item.quantity}
+                      </Typography>
+                    </Box>
+
+                    
+                  </Box>
+
+                  {i < order.items.length - 1 && <Divider sx={{ mt: 1.5 }} />}
+                </Box>
+              ))}
+            </Stack>
+
+            <Divider sx={{ my: 1.5 }} />
+
             <Stack spacing={1.5}>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography level="body-sm">Items total</Typography>
@@ -1318,7 +1411,9 @@ export default function CustomerAccountPage({
                                     </Button>
 
                                     <Link
-                                      to={getStorePath(`/shop/product/${product._id}`)}
+                                      to={getStorePath(
+                                        `/shop/product/${product._id}`,
+                                      )}
                                       className="bg-neutral-800 px-4 py-2 text-white rounded-sm text-xs font-bold uppercase no-underline hover:opacity-90"
                                     >
                                       Buy Now
@@ -1573,7 +1668,7 @@ export default function CustomerAccountPage({
                   <form onSubmit={handleAddressSubmit}>
                     <Stack spacing={2}>
                       {/* Added Label Field */}
-                      <FormControl  required>
+                      <FormControl required>
                         <FormLabel>Address Label</FormLabel>
                         <Input
                           placeholder="e.g. Home, Office, Warehouse"
@@ -1585,7 +1680,7 @@ export default function CustomerAccountPage({
                             })
                           }
                           sx={{
-                            border: "1px solid neutral.900"
+                            border: "1px solid neutral.900",
                           }}
                           disabled={isSaving}
                           autoFocus

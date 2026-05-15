@@ -2506,6 +2506,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                             <Stack
                               direction="row"
                               alignItems="center"
+                              className={`${isDark ? "text-slate-200!" : ""} w-fit`}
                               spacing={1.5}
                               sx={{
                                 p: 1.5,
@@ -2533,6 +2534,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                               variant={isDark ? "soft" : "outlined"}
                               type={showBVN ? "text" : "password"}
                               placeholder="Enter 11-digit BVN"
+                              disabled={validationStep === 2}
                               value={bankForm.bvn}
                               onChange={(e) =>
                                 setBankForm({

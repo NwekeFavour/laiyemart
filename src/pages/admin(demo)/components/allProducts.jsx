@@ -37,35 +37,52 @@ const AllProductsSection = ({
   };
   const handleCartAction = async (product, action) => {
     const productId = product._id || product.id;
+    const targetStoreId = product.store?._id || product.store || storeData?._id;
 
     if (!customer) {
-      navigate(getStorePath("/login"));
+      navigate(
+        isStarter
+          ? `/${storeData?.subdomain || storeData?.slug}/login`
+          : "/login",
+      );
       return;
     }
 
-    // 1. Start Preloader
+    if (!targetStoreId) return;
+
     setProcessingId(productId);
 
     try {
       const currentQty = getItemQty(productId);
 
       if (action === "increment") {
+        // Products with variants must go to product page for selection
+        if (product.variants?.length > 0) {
+          navigate(getStorePath(`/shop/product/${productId}`));
+          toast.info("Please select your options first", {
+            containerId: "STOREFRONT",
+          });
+          return;
+        }
+
         if (currentQty === 0) {
-          await addToCart(product.store, productId, 1);
+          // ✅ Always pass the product's base price explicitly
+          await addToCart(targetStoreId, productId, 1, {
+            price: product.price, // base price, no variant
+          });
         } else {
-          await updateQuantity(product.store, productId, currentQty + 1);
+          await updateQuantity(targetStoreId, productId, currentQty + 1);
         }
       } else if (action === "decrement") {
         if (currentQty === 1) {
-          await removeItem(product.store, productId);
+          await removeItem(targetStoreId, productId);
         } else {
-          await updateQuantity(product.store, productId, currentQty - 1);
+          await updateQuantity(targetStoreId, productId, currentQty - 1);
         }
       }
     } catch (error) {
       console.error("Cart update failed", error);
     } finally {
-      // 2. Stop Preloader - This runs for BOTH increment and decrement
       setProcessingId(null);
     }
   };
@@ -217,7 +234,27 @@ const AllProductsSection = ({
                             ₦{(product.price || 0).toLocaleString()}
                           </Typography>
 
-                          {qty === 0 ? (
+                          {product.variants?.length > 0 ? (
+                            // Variant product — send to product page
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(
+                                  getStorePath(`/shop/product/${product._id}`),
+                                );
+                              }}
+                              className="flex items-center gap-1 border border-gray-100 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                            >
+                              <ShoppingCartOutlined
+                                style={{ fontSize: 14 }}
+                                className="text-gray-400"
+                              />
+                              <span className="text-[11px] font-bold text-gray-700">
+                                Select
+                              </span>
+                            </button>
+                          ) : getItemQty(product._id || product.id) === 0 ? (
+                            // No-variant product — direct add
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -240,6 +277,7 @@ const AllProductsSection = ({
                               )}
                             </button>
                           ) : (
+                            // Already in cart — show stepper
                             <div
                               className="flex items-center gap-2 border border-gray-100 px-1 py-0.5 rounded-lg bg-gray-50/50"
                               onClick={(e) => e.stopPropagation()}
@@ -253,7 +291,7 @@ const AllProductsSection = ({
                                 <Remove style={{ fontSize: 12 }} />
                               </button>
                               <span className="text-[11px] font-black text-gray-800 min-w-[12px] text-center">
-                                {qty}
+                                {getItemQty(product._id || product.id)}
                               </span>
                               <button
                                 onClick={() =>

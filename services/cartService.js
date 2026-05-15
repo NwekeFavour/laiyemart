@@ -28,16 +28,16 @@ export const useCartStore = create((set, get) => ({
   // Helper to get Auth Headers
   getHeaders: () => {
     const { token } = useCustomerAuthStore.getState();
-    
+
     // Logic for Starter vs Professional
-    const subdomain = getSubdomain(); 
+    const subdomain = getSubdomain();
     const pathParts = window.location.pathname.split("/").filter(Boolean);
     const resolvedSlug = subdomain || pathParts[0]; // Fallback to first path part for Starter plan
 
     return {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
-      "x-store-slug": resolvedSlug, 
+      "x-store-slug": resolvedSlug,
     };
   },
 
@@ -62,44 +62,65 @@ export const useCartStore = create((set, get) => ({
   },
 
   // 2. Add Item to Cart
-addToCart: async (storeId, productId, quantity = 1, variantSelection = {}) => {
-  set({ loading: true, error: null });
-  try {
-    const response = await fetch(`${API_URL}/api/cart/`, {
-      method: "POST",
-      headers: get().getHeaders(),
-      body: JSON.stringify({
-        storeId,
-        productId,
-        quantity,
-        selectedColor: variantSelection.color || null,
-        selectedSize: variantSelection.size || null,
-        selectedPrice: variantSelection.price || null,
-      }),
-    });
+  addToCart: async (
+    storeId,
+    productId,
+    quantity = 1,
+    variantSelection = {},
+  ) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch(`${API_URL}/api/cart/`, {
+        method: "POST",
+        headers: get().getHeaders(),
+        body: JSON.stringify({
+          storeId,
+          productId,
+          quantity,
+          selectedColor: variantSelection.color || null,
+          selectedSize: variantSelection.size || null,
+          selectedPrice: variantSelection.price || null,
+        }),
+      });
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Could not add item to cart");
-    if (data.success) set({ cart: data.data });
-  } catch (err) {
-    set({ error: err.message });
-  } finally {
-    set({ loading: false });
-  }
-},
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.message || "Could not add item to cart");
+      if (data.success) set({ cart: data.data });
+    } catch (err) {
+      set({ error: err.message });
+    } finally {
+      set({ loading: false });
+    }
+  },
 
   // 3. Update Quantity (Optimistic)
-  updateQuantity: async (storeId, productId, newQuantity) => {
-    // 1. OPTIMISTIC UPDATE (Instant UI change)
+  // Frontend
+  updateQuantity: async (
+    storeId,
+    productId,
+    newQuantity,
+    selectedColor = null,
+    selectedSize = null,
+  ) => {
+    // Optimistic update — match by product + variant
     set((state) => {
       if (!state.cart) return state;
-      const updatedItems = state.cart.items.map((item) =>
-        item.product._id === productId
+      const updatedItems = state.cart.items.map((item) => {
+        const sameProduct = item.product._id === productId;
+        const sameColor =
+          (item.selectedColor || null) === (selectedColor || null);
+        const sameSize = (item.selectedSize || null) === (selectedSize || null);
+        return sameProduct && sameColor && sameSize
           ? { ...item, quantity: newQuantity }
-          : item,
-      );
+          : item;
+      });
       const newTotal = updatedItems.reduce((acc, item) => {
-        const price = item.priceAtAddition || item.product.price;
+        const price =
+          item.selectedPrice ||
+          item.priceAtAddition ||
+          item.product?.price ||
+          0;
         return acc + item.quantity * price;
       }, 0);
       return {
@@ -107,62 +128,58 @@ addToCart: async (storeId, productId, quantity = 1, variantSelection = {}) => {
       };
     });
 
-    // 2. SERVER SYNC
     try {
       const response = await fetch(`${API_URL}/api/cart/quantity`, {
         method: "PATCH",
-        headers: {
-          ...get().getHeaders(),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ storeId, productId, quantity: newQuantity }),
+        headers: { ...get().getHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          storeId,
+          productId,
+          quantity: newQuantity,
+          selectedColor,
+          selectedSize,
+        }),
       });
 
-      // Check if response is actually JSON before parsing
       const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        const text = await response.text(); // Get the HTML/Text error from server
-        console.error("Server sent non-JSON response:", text);
+      if (!contentType?.includes("application/json")) {
         throw new Error("Server error: Check backend logs");
       }
 
       const result = await response.json();
-
-      if (!response.ok || !result.success) {
+      if (!response.ok || !result.success)
         throw new Error(result?.message || "Failed to update quantity");
-      }
 
-      // 3. FINAL SYNC
       set({ cart: result.data });
     } catch (err) {
       console.error("Update Quantity Error:", err.message);
-      // REVERT: If server fails, re-fetch the real cart so the UI doesn't stay wrong
-      const currentStoreId = storeId;
-      get().fetchCart(currentStoreId);
-
+      get().fetchCart(storeId);
       toast.error("Could not update quantity. Please try again.");
     }
   },
 
   // 4. Remove Item
-  removeItem: async (storeId, productId) => {
+  removeItem: async (
+    storeId,
+    productId,
+    selectedColor = null,
+    selectedSize = null,
+  ) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch(
-        `${API_URL}/api/cart/item/${storeId}/${productId}`,
-        {
-          method: "DELETE",
-          headers: get().getHeaders(),
-        },
-      );
+      const response = await fetch(`${API_URL}/api/cart/item/${storeId}/${productId}`, {
+        method: "DELETE",
+        headers: { ...get().getHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          storeId,
+          productId,
+          selectedColor,
+          selectedSize,
+        }),
+      });
 
       const data = await handleResponse(response);
-
-      if (data.success) {
-        // Ensure we are setting the full cart object
-        // data.data should look like { items: [...], cartTotal: 5000 }
-        set({ cart: data.data });
-      }
+      if (data.success) set({ cart: data.data });
     } catch (err) {
       set({ error: err.message });
       toast.error("Could not remove item");

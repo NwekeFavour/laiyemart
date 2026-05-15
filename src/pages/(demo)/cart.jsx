@@ -140,12 +140,9 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
       if (!res.ok)
         throw new Error(result.message || "Failed to update address");
 
-      // We update 'shippingAddress' so the useMemo(hasAddress) sees the change
-      updateCustomer({
-        ...customer,
-        shippingAddress: result.address,
-      });
 
+      // We update 'shippingAddress' so the useMemo(hasAddress) sees the change
+      await fetchCustomerMe(); // Refresh customer data to get updated address list
       toast.success("Address saved!", { containerId: "STOREFRONT" });
       setIsAddressModalOpen(false);
     } catch (err) {
@@ -284,9 +281,9 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
                 {/* Items List */}
                 <Box sx={{ flex: 1 }}>
                   <Stack spacing={2}>
-                    {cart.items.map((item) => (
+                    {cart.items.map((item, i) => (
                       <Card
-                        key={item.product?._id}
+                        key={i}
                         orientation="horizontal"
                         variant="outlined"
                         sx={{ gap: 2 }}
@@ -317,7 +314,12 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
                               color="danger"
                               variant="plain"
                               onClick={() =>
-                                removeItem(storeData._id, item.product._id)
+                                removeItem(
+                                  storeData._id,
+                                  item.product._id,
+                                  item.selectedColor,
+                                  item.selectedSize,
+                                )
                               }
                             >
                               <Trash2 size={16} />
@@ -325,28 +327,61 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
                           </Stack>
                           <Typography level="body-sm" sx={{ mb: 1 }}>
                             <Typography level="title-md" fontWeight="lg">
-  ₦{item.selectedPrice?.toLocaleString()}
-</Typography>
+                              ₦{item.selectedPrice?.toLocaleString()}
+                            </Typography>
                           </Typography>
 
-{(item.selectedColor || item.selectedSize) && (
-  <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ mb: 1 }}>
-    {item.selectedColor && (
-      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5,
-        px: 1, py: 0.25, bgcolor: "#f1f5f9", borderRadius: "4px", fontSize: "11px", color: "#475569" }}>
-        <Box sx={{ width: 10, height: 10, borderRadius: "50%",
-          bgcolor: item.selectedColorHex || "#e2e8f0", border: "1px solid #e2e8f0", flexShrink: 0 }} />
-        {item.selectedColor}
-      </Box>
-    )}
-    {item.selectedSize && (
-      <Box sx={{ px: 1, py: 0.25, bgcolor: "#f1f5f9",
-        borderRadius: "4px", fontSize: "11px", color: "#475569" }}>
-        {item.selectedSize}
-      </Box>
-    )}
-  </Stack>
-)}
+                          {(item.selectedColor || item.selectedSize) && (
+                            <Stack
+                              direction="row"
+                              spacing={0.5}
+                              flexWrap="wrap"
+                              sx={{ mb: 1 }}
+                            >
+                              {item.selectedColor && (
+                                <Box
+                                  sx={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 0.5,
+                                    px: 1,
+                                    py: 0.25,
+                                    bgcolor: "#f1f5f9",
+                                    borderRadius: "4px",
+                                    fontSize: "11px",
+                                    color: "#475569",
+                                  }}
+                                >
+                                  <Box
+                                    sx={{
+                                      width: 10,
+                                      height: 10,
+                                      borderRadius: "50%",
+                                      bgcolor:
+                                        item.selectedColorHex || "#e2e8f0",
+                                      border: "1px solid #e2e8f0",
+                                      flexShrink: 0,
+                                    }}
+                                  />
+                                  {item.selectedColor}
+                                </Box>
+                              )}
+                              {item.selectedSize && (
+                                <Box
+                                  sx={{
+                                    px: 1,
+                                    py: 0.25,
+                                    bgcolor: "#f1f5f9",
+                                    borderRadius: "4px",
+                                    fontSize: "11px",
+                                    color: "#475569",
+                                  }}
+                                >
+                                  {item.selectedSize}
+                                </Box>
+                              )}
+                            </Stack>
+                          )}
                           <Stack
                             direction="row"
                             alignItems="center"
@@ -356,13 +391,7 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
                               size="sm"
                               variant="outlined"
                               disabled={item.quantity <= 1 || loading}
-                              onClick={() =>
-                                updateQuantity(
-                                  storeData._id,
-                                  item.product._id,
-                                  item.quantity - 1,
-                                )
-                              }
+                              onClick={() => updateQuantity(storeData._id, item.product._id, item.quantity - 1, item.selectedColor, item.selectedSize)}
                             >
                               <Minus size={14} />
                             </IconButton>
@@ -373,13 +402,7 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
                               size="sm"
                               variant="outlined"
                               disabled={loading}
-                              onClick={() =>
-                                updateQuantity(
-                                  storeData._id,
-                                  item.product._id,
-                                  item.quantity + 1,
-                                )
-                              }
+                              onClick={() => updateQuantity(storeData._id, item.product._id, item.quantity + 1, item.selectedColor, item.selectedSize)}
                             >
                               <Plus size={14} />
                             </IconButton>

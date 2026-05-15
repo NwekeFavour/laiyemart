@@ -797,23 +797,51 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
                 <p className="text-[10px] uppercase font-bold text-slate-400 mb-3">
                   Purchased Items
                 </p>
-                <div className="space-y-3 max-h-40 overflow-y-auto pr-2">
+                <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
                   {viewingOrder.items?.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between items-center text-sm"
-                    >
-                      <div className="flex gap-2">
-                        <span className="text-slate-400 font-mono">
-                          {item.quantity}x
-                        </span>
-                        <span className="font-medium">
-                          {item.product?.name || "Product Name"}
-                        </span>
+                    <div key={idx} className={`text-sm pb-3 ${idx < viewingOrder.items.length - 1 ? `border-b ${isDark ? "border-slate-800" : "border-slate-100"}` : ""}`}>
+                      <div className="flex justify-between items-start">
+                        <div className="flex gap-2 flex-1 pr-2">
+                          <span className="text-slate-400 font-mono shrink-0">{item.quantity}x</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium">{item.name || item.product?.name}</span>
+
+                            {/* ✅ Variants */}
+                            {(item.selectedColor || item.selectedSize) && (
+                              <div className="flex gap-1 flex-wrap">
+                                {item.selectedColor && (
+                                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${isDark ? "bg-slate-800 text-slate-300" : "bg-slate-100 text-slate-600"}`}>
+                                    {item.selectedColorHex && (
+                                      <span
+                                        style={{ backgroundColor: item.selectedColorHex }}
+                                        className="w-2 h-2 rounded-full border border-slate-300 shrink-0"
+                                      />
+                                    )}
+                                    {item.selectedColor}
+                                  </span>
+                                )}
+                                {item.selectedSize && (
+                                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${isDark ? "bg-slate-800 text-slate-300" : "bg-slate-100 text-slate-600"}`}>
+                                    {item.selectedSize}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* ✅ Unit price × qty */}
+                        <div className="text-right shrink-0">
+                          <span className="font-mono font-semibold">
+                            ₦{((item.selectedPrice || item.price) * item.quantity)?.toLocaleString()}
+                          </span>
+                          {item.quantity > 1 && (
+                            <p className="text-[10px] text-slate-400 font-mono">
+                              ₦{(item.selectedPrice || item.price)?.toLocaleString()} each
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <span className="font-mono">
-                        ₦{item.product?.price.toLocaleString()}
-                      </span>
                     </div>
                   ))}
                 </div>
