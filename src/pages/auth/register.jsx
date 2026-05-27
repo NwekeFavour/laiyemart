@@ -69,6 +69,7 @@ export default function SignUpPage() {
       id: "professional",
       name: "Professional Plan",
       price: { monthly: "₦15,000", yearly: "₦153,000" },
+      disabled: true, // Marked as unavailable
       features: ["200 Products", "Advanced SEO", "Priority Support"],
     },
   ];
@@ -671,12 +672,16 @@ export default function SignUpPage() {
                   return (
                     <div
                       key={plan.id}
-                      onClick={() => setSelectedPlan(plan.id)}
+                      onClick={() => {
+                        if (plan.disabled) return;
+                        setSelectedPlan(plan.id);
+                      }}
                       className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                         isSelected
                           ? "border-blue-600 ring-2 ring-blue-600/10 bg-blue-50/30"
                           : "border-slate-100 bg-white hover:border-slate-200"
-                      }`}
+                      
+                      } ${plan.disabled ? "opacity-50! cursor-not-allowed! " : ""}`}
                     >
                       {plan.id === "professional" && (
                         <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] px-3 py-1 rounded-bl-lg font-bold uppercase">

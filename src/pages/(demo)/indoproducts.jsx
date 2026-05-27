@@ -59,7 +59,12 @@ const ProductPage = ({ storeSlug, isStarter, storeData }) => {
   const [allProducts, setAllProducts] = useState([]);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
+const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
+
+useEffect(() => {
+  setSelectedImageIndex(0);
+}, [id]);
   // Returns the best matching variant and whether the combo is valid
   const getVariantStatus = () => {
     if (!product?.variants?.length) {
@@ -254,6 +259,7 @@ const ProductPage = ({ storeSlug, isStarter, storeData }) => {
       </Box>
 
       <Grid
+        className="space-y-5!"
         container
         spacing={2}
         sx={{ maxWidth: "1200px", mx: "auto", px: { xs: 1, md: 2 } }}
@@ -265,25 +271,53 @@ const ProductPage = ({ storeSlug, isStarter, storeData }) => {
           >
             <Grid container spacing={4}>
               {/* Product Image */}
-              <Grid xs={12} sm={5}>
-                <AspectRatio
-                  ratio="1/1"
-                  sx={{ borderRadius: "sm", border: "1px solid #F1F1F2" }}
-                >
-                  <img
-                    src={product?.images?.[0]?.url || product?.image}
-                    alt={product?.name}
-                  />
-                </AspectRatio>
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  sx={{ mt: 2, overflowX: "auto" }}
-                >
-                  {/* Thumbnail mapping here if you have multiple images */}
-                </Stack>
-              </Grid>
+             <Grid xs={12} sm={5}>
+  {/* Main Image */}
+  <AspectRatio
+    ratio="1/1"
+    sx={{ borderRadius: "sm", border: "1px solid #F1F1F2", overflow: "hidden" }}
+  >
+    <img
+      src={product?.images?.[selectedImageIndex]?.url || product?.image}
+      alt={product?.name}
+      style={{ transition: "opacity 0.2s ease" }}
+    />
+  </AspectRatio>
 
+  {/* Thumbnail Strip — only show if more than 1 image */}
+  {product.images.map((img, index) => {
+  if (index === selectedImageIndex) return null;
+
+  return (
+    <Box
+      key={img._id || index}
+      onClick={() => setSelectedImageIndex(index)}
+      sx={{
+        width: 60,
+        height: 60,
+        flexShrink: 0,
+        borderRadius: "6px",
+        overflow: "hidden",
+        cursor: "pointer",
+        border: "2px solid",
+        borderColor: "#F1F1F2",
+        transition: "border-color 0.15s",
+        "&:hover": { borderColor: "#94a3b8" },
+      }}
+    >
+      <img
+        src={img.url}
+        alt={`${product.name} ${index + 1}`}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+        }}
+      />
+    </Box>
+  );
+})}
+</Grid>
               {/* Purchase Details */}
               {/* Purchase Details */}
               <Grid xs={12} sm={7}>

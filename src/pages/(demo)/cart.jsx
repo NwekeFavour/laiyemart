@@ -16,6 +16,9 @@ import {
   Input,
   FormLabel,
   Checkbox,
+  Select,
+  Option,
+  CircularProgress,
 } from "@mui/joy";
 import {
   Trash2,
@@ -24,6 +27,8 @@ import {
   ShoppingBag,
   ArrowLeft,
   CreditCard,
+  MapPin,
+  Truck,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCartStore } from "../../../services/cartService";
@@ -33,6 +38,7 @@ import { toast } from "react-toastify";
 import Footer from "../admin(demo)/components/footer";
 import { getSubdomain } from "../../../storeResolver";
 import { fetchCustomerMe } from "../../../services/customerService";
+import { calculateDeliveryOptions, getDeliveryProfile  } from "../../../services/deliveryService";
 
 const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
   const navigate = useNavigate();
@@ -41,13 +47,20 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
   const { cart, loading, fetchCart, updateQuantity, removeItem } =
     useCartStore();
   const { customer, updateCustomer, token } = useCustomerAuthStore();
-
+const [deliveryProfile, setDeliveryProfile] = useState(null);
+const [profileLoading, setProfileLoading] = useState(false);
   // Local UI State
 
   const [error, setError] = useState(false);
   const [payLoading, setPayLoading] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [deliveryOptions, setDeliveryOptions] = useState([]);
+  const [selectedDeliveryId, setSelectedDeliveryId] = useState("");
+  const [deliveryLoading, setDeliveryLoading] = useState(false);
+  const [deliveryError, setDeliveryError] = useState("");
+  const [deliveryNotes, setDeliveryNotes] = useState("");
+const [deliveryEnabled, setDeliveryEnabled] = useState(true);
 
   const [addressForm, setAddressForm] = useState({
     street: "",
@@ -60,20 +73,9 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
     fetchCustomerMe();
   }, []);
 
-  // console.log(cart);
 
-  // console.log(customer)
-  // 1. Auth Guard
-  // useEffect(() => {
-  //   if (!customer) {
-  //     toast.error("Please login to view your bag!", {
-  //       containerId: "STOREFRONT",
-  //     });
-  //     const timer = setTimeout(() => navigate(getStorePath("/login")), 2000);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [customer, navigate]);
 
+  
   // 1. Auth Guard - Only redirect if we AREN'T loading and there's no token
   useEffect(() => {
     const token = useCustomerAuthStore.getState().token;
@@ -98,15 +100,17 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
 
   // 2. Pre-fill Address Form when modal opens or customer loads
   useEffect(() => {
-    if (customer?.address) {
-      setAddressForm({
-        street: customer.address.street || "",
-        city: customer.address.city || "",
-        state: customer.address.state || "",
-        phone: customer.address.phone || "",
-      });
-    }
-  }, [customer]);
+  const addr = customer?.shippingAddress?.find((a) => a.isDefault) || customer?.shippingAddress?.[0];
+  if (addr) {
+    setAddressForm({
+      street: addr.street || "",
+      city: addr.city || "",
+      state: addr.state || "",
+      phone: addr.phone || "",
+      label: addr.label || "",
+    });
+  }
+}, [customer]);
 
   // 4. Fetch Cart once Store is validated
   useEffect(() => {
@@ -114,12 +118,70 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
       fetchCart(storeData._id);
     }
   }, [storeData?._id, customer, fetchCart]);
-  const hasAddress = customer?.shippingAddress?.some(
-    (address) => address.isDefault === true,
-  ); // Dependency on the specific object is more reliable
+  const defaultAddress =
+    customer?.shippingAddress?.find((address) => address.isDefault === true) ||
+    customer?.shippingAddress?.[0];
+  const hasAddress = !!defaultAddress;
 
-  // console.log(hasAddress)
+  const normalizeDeliveryOptions = (data) =>
+    data?.options || data?.deliveryOptions || data?.data || [];
 
+  const selectedDeliveryOption = useMemo(
+    () =>
+      deliveryOptions.find(
+        (option) =>
+          (option._id || option.id || option.zoneId || option.name) ===
+          selectedDeliveryId,
+      ),
+    [deliveryOptions, selectedDeliveryId],
+  );
+  const deliveryFee = Number(
+    selectedDeliveryOption?.fee || selectedDeliveryOption?.deliveryFee || 0,
+  );
+  const payableTotal = Number(cart?.cartTotal || 0) + deliveryFee;
+
+
+    // Fetch delivery profile (notes + settings)
+useEffect(() => {
+  const loadDeliveryOptions = async () => {
+    if (!storeData?._id || !defaultAddress?.state) {
+      setDeliveryOptions([]);
+      return;
+    }
+
+    setDeliveryLoading(true);
+    setDeliveryError("");
+
+    try {
+      const data = await calculateDeliveryOptions({
+        storeSlug,
+        storeId: storeData._id,
+        state: defaultAddress.state,
+        city: defaultAddress.city,
+        cartTotal: cart?.cartTotal || 0,
+      });
+
+      setDeliveryOptions(data.options || []);
+      setDeliveryNotes(data.deliveryNotes || "");
+      setDeliveryEnabled(data.deliveryEnabled ?? true);
+
+      // Auto select first option
+      if (data.options?.length > 0) {
+        setSelectedDeliveryId(
+          String(data.options[0].zoneId || data.options[0].id)
+        );
+      }
+    } catch (err) {
+      console.error("Delivery fetch error:", err);
+      setDeliveryError(err.message);
+      setDeliveryOptions([]);
+    } finally {
+      setDeliveryLoading(false);
+    }
+  };
+
+  loadDeliveryOptions();
+}, [storeData?._id, defaultAddress?.state, defaultAddress?.city, cart?.cartTotal]);
   const handleAddressSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
@@ -140,7 +202,6 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
       if (!res.ok)
         throw new Error(result.message || "Failed to update address");
 
-
       // We update 'shippingAddress' so the useMemo(hasAddress) sees the change
       await fetchCustomerMe(); // Refresh customer data to get updated address list
       toast.success("Address saved!", { containerId: "STOREFRONT" });
@@ -151,45 +212,67 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
       setIsSaving(false);
     }
   };
-  const handleCustomerCheckout = async () => {
-    if (!storeData?._id || !storeData?.paystack?.subaccountCode) {
-      toast.error("Checkout unavailable. Vendor setup incomplete.");
-      return;
-    }
+const handleCustomerCheckout = async () => {
+  if (!storeData?._id || !storeData?.paystack?.subaccountCode) {
+    toast.error("Checkout unavailable. Vendor setup incomplete.");
+    return;
+  }
 
-    setPayLoading(true);
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/paystack/customer-init`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "x-store-slug": storeSlug || getSubdomain(),
-          },
-          body: JSON.stringify({
-            email: customer.email,
-            amount: cart?.cartTotal || 0,
-            storeId: storeData._id,
-            subaccount: storeData.paystack.subaccountCode, // Directing funds to subaccount
-            storeName: storeData.name,
-            storeLogo: storeData.logo?.url,
-            origin: window.location.origin,
-          }),
+  if (!selectedDeliveryOption) {
+    toast.error("Please select a delivery option.", { containerId: "STOREFRONT" });
+    return;
+  }
+
+  setPayLoading(true);
+
+  try {
+    const res = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/paystack/customer-init`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "x-store-slug": storeSlug || getSubdomain(),
         },
-      );
+        body: JSON.stringify({
+          email: customer.email,
+          amount: cart.cartTotal,                    // ← Send subtotal only
+          deliveryFee: deliveryFee,                  // ← Send separately
+          storeId: storeData._id,
+          subaccount: storeData.paystack.subaccountCode,
+          storeName: storeData.name,
+          selectedDeliveryOption,
+          storeLogo: storeData.logo?.url,
+          shippingAddress: defaultAddress,
+          deliveryOption: {
+            method: selectedDeliveryOption.method || "local_delivery",
+            zoneName: selectedDeliveryOption.zoneName || selectedDeliveryOption.name || "",
+            state:
+              selectedDeliveryOption.states ||
+              selectedDeliveryOption.state ||
+              [],
+            cities: selectedDeliveryOption.city || "",
+            fee: deliveryFee,
+            estimatedDeliveryTime: selectedDeliveryOption.estimatedDeliveryTime || selectedDeliveryOption.eta || "",
+            zoneId: selectedDeliveryOption._id || selectedDeliveryOption.zoneId || null,
+          },
+        }),
+      }
+    );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      window.location.href = data.url;
-    } catch (err) {
-      toast.error(err.message, { containerId: "STOREFRONT" });
-    } finally {
-      setPayLoading(false);
-    }
-  };
+    const data = await res.json();
 
+    if (!res.ok) throw new Error(data.message || "Payment initialization failed");
+
+    // Redirect to Paystack
+    window.location.href = data.url;
+  } catch (err) {
+    toast.error(err.message, { containerId: "STOREFRONT" });
+  } finally {
+    setPayLoading(false);
+  }
+};
   // console.log(storeData)
 
   // console.log(cart)
@@ -391,7 +474,15 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
                               size="sm"
                               variant="outlined"
                               disabled={item.quantity <= 1 || loading}
-                              onClick={() => updateQuantity(storeData._id, item.product._id, item.quantity - 1, item.selectedColor, item.selectedSize)}
+                              onClick={() =>
+                                updateQuantity(
+                                  storeData._id,
+                                  item.product._id,
+                                  item.quantity - 1,
+                                  item.selectedColor,
+                                  item.selectedSize,
+                                )
+                              }
                             >
                               <Minus size={14} />
                             </IconButton>
@@ -402,7 +493,15 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
                               size="sm"
                               variant="outlined"
                               disabled={loading}
-                              onClick={() => updateQuantity(storeData._id, item.product._id, item.quantity + 1, item.selectedColor, item.selectedSize)}
+                              onClick={() =>
+                                updateQuantity(
+                                  storeData._id,
+                                  item.product._id,
+                                  item.quantity + 1,
+                                  item.selectedColor,
+                                  item.selectedSize,
+                                )
+                              }
                             >
                               <Plus size={14} />
                             </IconButton>
@@ -434,11 +533,94 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
                           ₦{cart.cartTotal?.toLocaleString()}
                         </Typography>
                       </Stack>
+                      <Box
+  sx={{
+    mt: 1,
+    p: 1.5,
+    borderRadius: "md",
+    border: "1px solid",
+    borderColor: "neutral.200",
+    bgcolor: "#f8fafc",
+  }}
+>
+  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+    <Truck size={16} />
+    <Typography level="title-sm">Delivery</Typography>
+  </Stack>
+
+  {hasAddress && (
+    <Typography level="body-xs" sx={{ mb: 1, display: "flex", gap: 0.5 }}>
+      <MapPin size={13} />
+      {defaultAddress.city}, {defaultAddress.state}
+    </Typography>
+  )}
+
+  {/* === DELIVERY NOTE (Always show if exists) === */}
+   {deliveryNotes && (
+    <Box
+      sx={{
+        mt: 1.5,
+        p: 1.5,
+        bgcolor: "neutral.softBg",
+        borderRadius: "md",
+        borderLeft: "4px solid",
+        borderColor: "primary.500",
+      }}
+    >
+      <Typography level="body-sm" sx={{ fontStyle: "italic", color: "neutral.700" }}>
+        "{deliveryNotes}"
+      </Typography>
+    </Box>
+  )}
+
+  {/* Delivery Options */}
+  {deliveryLoading ? (
+    <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+      <CircularProgress size="sm" />
+      <Typography level="body-xs">Finding delivery options...</Typography>
+    </Stack>
+  ) : deliveryOptions.length > 0 ? (
+    <Select
+      size="sm"
+      value={selectedDeliveryId || null}
+      onChange={(_, value) => setSelectedDeliveryId(value || "")}
+      sx={{ mt: 1 }}
+    >
+      {deliveryOptions.map((option, index) => {
+        const optionId = String(option._id || option.id || option.zoneId || option.name || index);
+        const fee = Number(option.fee || option.deliveryFee || 0);
+        return (
+          <Option key={optionId} value={optionId}>
+            {option.method
+              ?.replace(/_/g, " ")
+              ?.replace(/\btext\s*node\b/gi, "")
+              ?.replace(/\s+/g, " ")
+              ?.trim()
+              ?.replace(/\b\w/g, (char) => char.toUpperCase()) || ""} · {option.city || option.name || option.method} · ₦{fee.toLocaleString()} ·{" "}
+            {option.estimatedDeliveryTime || option.estimatedTime || option.eta}
+          </Option>
+        );
+      })}
+    </Select>
+  ) : (
+    <Typography level="body-xs" color={deliveryError ? "danger" : "neutral"} sx={{ mt: 1 }}>
+      {hasAddress
+        ? deliveryError || "No delivery option matched this address."
+        : "Add an address to see delivery options."}
+    </Typography>
+  )}
+</Box>
+                      <Stack direction="row" justifyContent="space-between">
+                        <Typography color="neutral">Delivery fee</Typography>
+                        <Typography fontWeight="bold">
+                          ₦{deliveryFee.toLocaleString()}
+                        </Typography>
+                      </Stack>
                       <Divider sx={{ my: 1 }} />
                       <Stack direction="row" justifyContent="space-between">
                         <Typography level="h4">Total</Typography>
                         <Typography level="h4">
-                          ₦{cart.cartTotal?.toLocaleString()}
+                          ₦{payableTotal.toLocaleString()}
                         </Typography>
                       </Stack>
                     </Stack>
@@ -477,14 +659,26 @@ const CartDashboard = ({ storeSlug, isStarter, storeData }) => {
                       fullWidth
                       size="lg"
                       loading={payLoading}
-                      disabled={!storeData?.paystack?.verified || !hasAddress}
+                      disabled={
+                        !storeData?.paystack?.verified ||
+                        !hasAddress ||
+                        deliveryLoading ||
+                        (deliveryOptions.length > 0 && !selectedDeliveryOption) // ✅ only block if options exist but none selected
+                      }
                       startDecorator={<CreditCard />}
                       sx={{ mt: 4, bgcolor: "neutral.900" }}
                       onClick={handleCustomerCheckout}
                     >
-                      {storeData?.paystack?.verified
-                        ? "Proceed to Checkout"
-                        : "Checkout Unavailable"}
+                      {!storeData?.paystack?.verified
+                        ? "Checkout Unavailable"
+                        : !hasAddress
+                          ? "Add Address to Continue"
+                          : deliveryLoading
+                            ? "Calculating delivery..."
+                            : deliveryOptions.length > 0 &&
+                                !selectedDeliveryOption
+                              ? "Select Delivery Option"
+                              : "Proceed to Checkout"}
                     </Button>
                   </Sheet>
                 </Box>

@@ -21,6 +21,8 @@ import {
   Printer,
   ChevronDown,
   Loader2,
+  MapPin,
+  Truck,
 } from "lucide-react";
 import StoreOwnerLayout from "./layout";
 import useOrderStore from "../../../services/orderService";
@@ -52,7 +54,7 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
   useEffect(() => {
     fetchVendorOrders();
   }, [fetchVendorOrders]);
-  // console.log(orders);
+  console.log(orders);
   const toggleAll = () => {
     if (selected.length === orders.length) {
       setSelected([]);
@@ -130,6 +132,26 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
     { id: "delivered", label: "Delivered" },
     { id: "cancelled", label: "Cancelled" },
   ];
+  
+
+  const getDeliverySnapshot = (order) =>
+    order?.deliveryOption || order?.delivery || order?.deliveryDetails || {};
+  const getDeliveryAddress = (order) =>
+    getDeliverySnapshot(order)?.address ||
+    order?.shippingAddress ||
+    order?.deliveryAddress ||
+    {};
+
+  const getDeliveryFee = (order) =>
+    Number(
+      getDeliverySnapshot(order)?.fee ||
+        getDeliverySnapshot(order)?.deliveryFee ||
+        0,
+    );
+
+  const getDeliveryTotal = (order) => Number(order?.totalAmount || 0);
+  const getItemsSubtotal = (order) =>
+    Math.max(getDeliveryTotal(order) - getDeliveryFee(order), 0);
 
   return (
     <StoreOwnerLayout isDark={isDark} toggleDarkMode={toggleDarkMode}>
@@ -323,6 +345,7 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
                       { label: "Date", width: "w-[120px]" },
                       { label: "Customer", width: "w-[200px]" },
                       { label: "Amount", width: "w-[130px]" },
+                      { label: "Delivery", width: "w-[220px]" },
                       { label: "Method", width: "w-[150px]" },
                       { label: "Status", width: "w-[100px]" },
                     ].map((head) => (
@@ -422,6 +445,37 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
                           className={`px-4 py-3 border-r font-bold ${isDark ? "border-slate-800 text-slate-200" : "border-slate-100 text-slate-900"}`}
                         >
                           {row.totalAmount}
+                        </td>
+
+                        <td
+                          className={`px-4 py-3 border-r ${isDark ? "border-slate-800 text-slate-400" : "border-slate-100 text-slate-600"}`}
+                        >
+                          {(() => {
+                            const delivery = getDeliverySnapshot(row);
+                            const address = getDeliveryAddress(row);
+                            return (
+                              <div className="flex flex-col gap-1">
+                                <span className="font-semibold text-slate-700 dark:text-slate-200">
+                                  {delivery.zoneName ||
+                                    delivery.name ||
+                                    "Delivery pending"}
+                                </span>
+                                <span className="text-[11px]">
+                                  {delivery.method || "Delivery"} · ₦
+                                  {getDeliveryFee(row).toLocaleString()} ·{" "}
+                                  {delivery.estimatedDeliveryTime ||
+                                    delivery.estimatedTime ||
+                                    delivery.eta ||
+                                    "ETA unavailable"}
+                                </span>
+                                <span className="text-[11px] truncate max-w-[190px]">
+                                  {[address.street, address.city, address.state]
+                                    .filter(Boolean)
+                                    .join(", ") || "No address captured"}
+                                </span>
+                              </div>
+                            );
+                          })()}
                         </td>
 
                         <td
@@ -792,6 +846,48 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
                 </div>
               </div>
 
+              <div className="p-6 border-b border-dashed border-slate-200 dark:border-slate-800">
+                {(() => {
+                  const delivery = getDeliverySnapshot(viewingOrder);
+                  const address = getDeliveryAddress(viewingOrder);
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1">
+                          <Truck size={12} /> Delivery Snapshot
+                        </p>
+                        <p className="font-semibold">
+                          {delivery.zoneName || delivery.name || "Delivery"}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                           {delivery.state || "Null"} · {delivery.method || "Delivery"} · ₦
+                          {getDeliveryFee(viewingOrder).toLocaleString()} ·{" "}
+                          {delivery.estimatedDeliveryTime ||
+                            delivery.estimatedTime ||
+                            delivery.eta ||
+                            "ETA unavailable"}
+                        </p>
+                      </div>
+                      <div className="sm:text-right">
+                        <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1 sm:justify-end">
+                          <MapPin size={12} /> Address
+                        </p>
+                        <p className="text-xs text-slate-600 dark:text-slate-300">
+                          {[address.street, address.city, address.state]
+                            .filter(Boolean)
+                            .join(", ") || "No address captured"}
+                        </p>
+                        {address.phone && (
+                          <p className="text-xs text-slate-500">
+                            Tel: {address.phone}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
               {/* Items Breakdown */}
               <div className="p-6">
                 <p className="text-[10px] uppercase font-bold text-slate-400 mb-3">
@@ -854,7 +950,13 @@ export default function OrdersPage({ isDark, toggleDarkMode }) {
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Subtotal</span>
                   <span className="font-mono">
-                    ₦{viewingOrder.totalAmount?.toLocaleString()}
+                    ₦{getItemsSubtotal(viewingOrder).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Delivery fee</span>
+                  <span className="font-mono">
+                    ₦{getDeliveryFee(viewingOrder).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm border-b border-slate-200 dark:border-[#E5E7EB] pb-2">

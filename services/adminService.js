@@ -332,7 +332,7 @@ export const useAdminStore = create(
 
         return { success: true, message: data.message };
       } catch (err) {
-        console.log("Delete Store Error:", err);
+        // console.log("Delete Store Error:", err);
         console.error("Delete Store Error:", err);
         return { success: false, message: err.message };
       }

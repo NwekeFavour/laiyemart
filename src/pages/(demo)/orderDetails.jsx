@@ -59,6 +59,13 @@ export default function OrderDetails({
     fetchOrder();
   }, [orderId]);
 
+  const deliverySnapshot =
+    order?.deliverySnapshot || order?.deliveryOption || order?.deliveryDetails || {};
+  const deliveryFee = Number(
+    deliverySnapshot.fee || deliverySnapshot.deliveryFee || 0,
+  );
+  const itemsSubtotal = Math.max(Number(order?.totalAmount || 0) - deliveryFee, 0);
+
 
   const handleConfirmDelivery = async () => {
   if (isConfirming) return; // Guard
@@ -327,9 +334,53 @@ useEffect(() => {
                   gap: 1,
                 }}
               >
+                <Truck size={18} /> Delivery Method
+              </Typography>
+              <Divider sx={{ my: 1 }} />
+              <Stack spacing={0.5} sx={{ mb: 2 }}>
+                <Typography level="body-sm" sx={{ fontWeight: 600 }}>
+                  {deliverySnapshot.zoneName ||
+                    deliverySnapshot.name ||
+                    "Delivery"}
+                </Typography>
+                <Typography level="body-sm">
+                  {deliverySnapshot.state || ""} · {deliverySnapshot.cities || ""} · {deliverySnapshot.method || "Delivery"} · ₦
+                  {deliveryFee.toLocaleString()}
+                </Typography>
+                <Typography level="body-xs" sx={{ color: "text.tertiary" }}>
+                  ETA:{" "}
+                  {deliverySnapshot.estimatedDeliveryTime ||
+                    deliverySnapshot.estimatedTime ||
+                    deliverySnapshot.eta ||
+                    "To be confirmed"}
+                </Typography>
+              </Stack>
+
+              <Typography
+                level="title-sm"
+                sx={{
+                  mt: 3,
+                  mb: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
                 <Calendar size={18} /> Order Summary
               </Typography>
               <Divider sx={{ my: 1 }} />
+              <Stack direction="row" justifyContent="space-between">
+                <Typography level="body-sm">Items</Typography>
+                <Typography level="body-sm">
+                  ₦{itemsSubtotal.toLocaleString()}
+                </Typography>
+              </Stack>
+              <Stack direction="row" justifyContent="space-between">
+                <Typography level="body-sm">Delivery</Typography>
+                <Typography level="body-sm">
+                  ₦{deliveryFee.toLocaleString()}
+                </Typography>
+              </Stack>
               <Stack direction="row" justifyContent="space-between">
                 <Typography level="body-sm">Total</Typography>
                 <Typography level="title-md" color="primary">

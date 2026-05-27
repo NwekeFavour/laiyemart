@@ -43,6 +43,10 @@ import {
   ShieldAlert,
   CheckCircleIcon,
   Download,
+  MapPin,
+  Plus,
+  Trash2,
+  Truck,
 } from "lucide-react";
 import StoreOwnerLayout from "./layout";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -58,6 +62,8 @@ import {
   Visibility,
   VisibilityOff,
 } from "@mui/icons-material";
+
+import DeliverySettingsSection from "../../components/delivery";
 
 export default function SettingsPage({ isDark, toggleDarkMode }) {
   const { updateStoreProfile, loading, resendStoreVerification } =
@@ -170,6 +176,10 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
 
     fetchBanks();
   }, []);
+
+
+
+ 
 
   const [resendTimer, setResendTimer] = useState(0);
 
@@ -382,6 +392,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     { id: "account", label: "Account Info", icon: <User size={18} /> },
     { id: "notifications", label: "Notifications", icon: <Bell size={18} /> },
     { id: "security", label: "Security", icon: <Shield size={18} /> },
+    { id: "delivery", label: "Delivery", icon: <Truck size={18} /> },
     {
       id: "st",
       label: "Bank Details",
@@ -645,7 +656,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
             bankCode: bankForm.bankCode,
             accountNumber: bankForm.accountNumber,
             verifiedName: verifiedInfo.name,
-            selectedSlug: bankForm.selectedSlug,            
+            selectedSlug: bankForm.selectedSlug,
           }),
         },
       );
@@ -1108,7 +1119,6 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   </Stack>
                 </FormControl>
                 {/* --- HERO TITLE SECTION --- */}
-                {/* --- HERO TITLE SECTION --- */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
                   <FormLabel
                     className={`${isDark ? "text-slate-400!" : ""}`}
@@ -1523,13 +1533,13 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                     </Option>
                     <Option
                       className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
-                      value="Beauty & Health"
+                      value="beauty & health"
                     >
                       Beauty & Health
                     </Option>
                     <Option
                       className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
-                      value="Digital Products"
+                      value="digital products"
                     >
                       Digital Products
                     </Option>
@@ -2609,7 +2619,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                       </Stack>
 
                       {/* STEP 2: BUSINESS INFO */}
-                      {validationStep === 2 &&
+                      {validationStep === 2  &&
                         (() => {
                           const raw = bankForm.businessName?.trim() || "";
                           const words = raw
@@ -2671,8 +2681,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                                   ? "success.800"
                                   : "success.main",
                               }}
-                            >                              
-
+                            >
                               {/* Store Name Input */}
                               <FormControl>
                                 <FormLabel
@@ -2913,6 +2922,11 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                 </Stack>
               )
             ) : null}
+
+            {activeSection === "delivery" && (
+              <DeliverySettingsSection isDark={isDark} />
+
+            )}
 
             {activeSection === "domain" && (
               <Stack gap={4}>

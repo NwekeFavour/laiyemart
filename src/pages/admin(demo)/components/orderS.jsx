@@ -17,6 +17,7 @@ import {
   ReceiptText,
   ExternalLink,
   Package,
+  Truck,
 } from "lucide-react";
 import { useStoreProfileStore } from "../../../store/useStoreProfile";
 import { useCustomerAuthStore } from "../../../store/useCustomerAuthStore";
@@ -47,7 +48,7 @@ const OrderSuccess = ({isStarter, storeSlug}) => {
         const res = await fetch(`${API_URL}/api/paystack/verify/${reference}`, {
           headers: {
             Authorization: `Bearer ${token}`,
-            "x-store-slug": subdomain,
+            "x-store-slug": subdomain || storeSlug,
           },
         });
         const data = await res.json();
@@ -64,9 +65,17 @@ const OrderSuccess = ({isStarter, storeSlug}) => {
     verifyPayment();
   }, [reference]);
 
-    const getStorePath = (path) => {
+  const getStorePath = (path) => {
     return isStarter ? `/${storeSlug}${path}` : path;
   };
+  const deliverySnapshot =
+    orderDetails?.deliverySnapshot ||
+    orderDetails?.delivery ||
+    orderDetails?.deliveryDetails ||
+    {};
+  const deliveryFee = Number(
+    deliverySnapshot.fee || deliverySnapshot.deliveryFee || 0,
+  );
   return (
     <Box
       sx={{
@@ -191,6 +200,44 @@ const OrderSuccess = ({isStarter, storeSlug}) => {
                         ₦{orderDetails?.totalAmount?.toLocaleString()}
                       </Typography>
                     </Box>
+                    {(deliverySnapshot.zoneName ||
+                      deliverySnapshot.name ||
+                      deliverySnapshot.method) && (
+                      <Box
+                        sx={{
+                          pt: 1,
+                          borderTop: "1px dashed #cbd5e1",
+                        }}
+                      >
+                        <Typography
+                          level="body-xs"
+                          sx={{
+                            fontWeight: 700,
+                            color: "#64748b",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                            mb: 0.5,
+                          }}
+                        >
+                          <Truck size={13} /> DELIVERY
+                        </Typography>
+                        <Typography level="body-xs">
+                          {deliverySnapshot.zoneName ||
+                            deliverySnapshot.name ||
+                            "Delivery"}{" "}
+                          · {deliverySnapshot.method || "Delivery"} · ₦
+                          {deliveryFee.toLocaleString()}
+                        </Typography>
+                        <Typography level="body-xs" sx={{ color: "#64748b" }}>
+                          ETA:{" "}
+                          {deliverySnapshot.estimatedDeliveryTime ||
+                            deliverySnapshot.estimatedTime ||
+                            deliverySnapshot.eta ||
+                            "To be confirmed"}
+                        </Typography>
+                      </Box>
+                    )}
                   </Stack>
                 </Box>
 

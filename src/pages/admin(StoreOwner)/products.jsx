@@ -146,7 +146,6 @@ const [variants, setVariants] = useState([]);
     setInventory(product.inventory);
     setCategory(product.category);
     setWarranty(product.warranty);
-    setDoorDelivery(product.delivery);
     setReturnPolicy(product.returnPolicy);
     setIsFeatured(!!product.isFeatured);
     setIsUnlimited(!!product.isUnlimited);
@@ -240,7 +239,6 @@ const [variants, setVariants] = useState([]);
       formData.append("variants", JSON.stringify(variants));
 
   formData.append("warranty", warranty);
-  formData.append("delivery", delivery)
       images.forEach((img) => {
         formData.append("images", img.file);
       });
@@ -268,13 +266,16 @@ const [variants, setVariants] = useState([]);
     } catch (err) {
       console.log("Full Error Object:", err);
       const errorMsg =
-        err.response?.data?.message || "Failed to create product";
-      // Extract the specific message: "Product limit reached"
-      const errorMessage =
         err.response?.data?.message ||
-        err.response?.data?.error || // Some APIs use 'error' key
-        err.message || // Axios default (e.g., "Network Error")
+        err.response?.data?.error ||
+        err.message ||
         "Failed to create product";
+      // Extract the specific message: "Product limit reached"
+        const errorMessage =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "Failed to create product";
 
       if (errorMsg.includes("limit")) {
         toast.error("🚀 Product limit reached! Please upgrade your plan.", {
@@ -284,7 +285,6 @@ const [variants, setVariants] = useState([]);
       } else {
         toast.error(errorMsg);
       }
-      setError(errorMessage);
 
       // If it's a limit issue, don't clear it too fast so they can read it
       const displayTime = errorMessage.includes("limit") ? 8000 : 7000;
@@ -316,7 +316,6 @@ const [variants, setVariants] = useState([]);
       formData.append("isFeatured", isFeatured);
       formData.append("isUnlimited", isUnlimited);
       formData.append("warranty", warranty);
-      formData.append("delivery", delivery);
       formData.append("variants", JSON.stringify(variants));
       formData.append("returnPolicy", returnPolicy);
       const keptImageIds = images
@@ -1567,29 +1566,7 @@ const [variants, setVariants] = useState([]);
                   </FormControl>
                 </Stack>
               </Stack>
-                           {/* --- RETURN POLICY --- */}
-          <FormControl>
-            <FormLabel
-              className={`${isDark ? "text-slate-400!" : ""}`}
-              sx={{ fontWeight: 600 }}
-            >
-              Return Policy
-            </FormLabel>
-            <Textarea
-              minRows={2}
-              value={returnPolicy}
-              onChange={(e) => setReturnPolicy(e.target.value)}
-              placeholder="e.g. Free return within 7 days of delivery."
-              variant="soft"
-              sx={{
-                bgcolor: isDark ? "transparent" : "",
-                border: isDark ? "1px solid #314158" : "none",
-                borderRadius: "lg",
-                "&::before": { display: "none" },
-                "&:focus-within": { border: "1px solid #314158" },
-              }}
-            />
-          </FormControl>
+ 
 
           {/* --- WARRANTY --- */}
           <FormControl className="my-4">
@@ -1614,28 +1591,6 @@ const [variants, setVariants] = useState([]);
             />
           </FormControl>
 
-          <FormControl>
-            <FormLabel
-              className={`${isDark ? "text-slate-400!" : ""}`}
-              sx={{ fontWeight: 600 }}
-            >
-              Door Delivery
-            </FormLabel>
-            <Textarea
-              minRows={2}
-              value={delivery}
-              onChange={(e) => setDoorDelivery(e.target.value)}
-              placeholder="e.g. Delivery ₦ 1,500. Arrives in 2-4 business days"
-              variant="soft"
-              sx={{
-                bgcolor: isDark ? "transparent" : "",
-                border: isDark ? "1px solid #314158" : "none",
-                borderRadius: "lg",
-                "&::before": { display: "none" },
-                "&:focus-within": { border: "1px solid #314158" },
-              }}
-            />
-          </FormControl>
             </Stack>
           </DialogContent>
 
@@ -2338,31 +2293,7 @@ const [variants, setVariants] = useState([]);
                   Unlimited Stock
                 </FormLabel>
               </FormControl>
-            </Box>
-                      {/* --- RETURN POLICY --- */}
-          <FormControl>
-            <FormLabel
-              className={`${isDark ? "text-slate-400!" : ""}`}
-              sx={{ fontWeight: 600 }}
-            >
-              Return Policy
-            </FormLabel>
-            <Textarea
-              minRows={2}
-              value={returnPolicy}
-              onChange={(e) => setReturnPolicy(e.target.value)}
-              placeholder="e.g. Free return within 7 days of delivery."
-              variant="soft"
-              sx={{
-                bgcolor: isDark ? "transparent" : "",
-                border: isDark ? "1px solid #314158" : "none",
-                borderRadius: "lg",
-                "&::before": { display: "none" },
-                "&:focus-within": { border: "1px solid #314158" },
-              }}
-            />
-          </FormControl>
-
+     </Box>
           {/* --- WARRANTY --- */}
           <FormControl className="my-4">
             <FormLabel
@@ -2375,29 +2306,6 @@ const [variants, setVariants] = useState([]);
               value={warranty}
               onChange={(e) => setWarranty(e.target.value)}
               placeholder="e.g. 12 Months Warranty service provided."
-              variant="soft"
-              sx={{
-                bgcolor: isDark ? "transparent" : "",
-                border: isDark ? "1px solid #314158" : "none",
-                borderRadius: "lg",
-                "&::before": { display: "none" },
-                "&:focus-within": { border: "1px solid #314158" },
-              }}
-            />
-          </FormControl>
-
-          <FormControl>
-            <FormLabel
-              className={`${isDark ? "text-slate-400!" : ""}`}
-              sx={{ fontWeight: 600 }}
-            >
-              Door Delivery
-            </FormLabel>
-            <Textarea
-              minRows={2}
-              value={delivery}
-              onChange={(e) => setDoorDelivery(e.target.value)}
-              placeholder="e.g. Delivery ₦ 1,500. Arrives in 2-4 business days"
               variant="soft"
               sx={{
                 bgcolor: isDark ? "transparent" : "",

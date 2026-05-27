@@ -37,27 +37,7 @@ export default function Header({
   const uniqueItemCount = cart?.items?.length || 0;
 
   const getStorePath = (path) => {
-    // 1. Clean the path to ensure it starts with / and has no double slashes
-    const cleanPath = path.startsWith("/") ? path : `/${path}`;
-
-    // 2. Determine if we are ALREADY on a subdomain
-    const hostname = window.location.hostname;
-    const isCurrentlySubdomain =
-      hostname.split(".").length > 2 ||
-      (hostname.includes("localhost") &&
-        hostname.split(".").length > 1 &&
-        !hostname.startsWith("localhost"));
-
-    // 3. If we are on a subdomain (Professional), NEVER use the slug in the path
-    if (isCurrentlySubdomain) {
-      return cleanPath;
-    }
-
-    // 4. If we are on the main domain (Starter), we MUST use the slug
-    // Handle the "Home" case where path is just "/"
-    if (cleanPath === "/") return `/${storeSlug}`;
-
-    return `/${storeSlug}${cleanPath}`;
+    return isStarter ? `/${storeSlug}${path}` : path;
   };
 
   const handleLogout = () => {

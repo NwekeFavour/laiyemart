@@ -1582,6 +1582,7 @@ const handleLogout = () => {
                 Powered by
               </Typography>
               <img
+                className={`${isDark ? " bg-[#fff]!" : ""}`}
                 src="https://res.cloudinary.com/dzrfqk1zk/image/upload/v1771239090/layemart-icon-removebg-preview_lh5vom.png"
                 alt="Layemart"
                 style={{ height: 16, width: "auto", objectFit: "contain" }}

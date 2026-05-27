@@ -17,6 +17,7 @@ const AllProductsSection = ({
   storeSlug,
   storeData,
   toggleWishlist,
+  config
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -28,7 +29,7 @@ const AllProductsSection = ({
   const getStorePath = (path) => {
     return isStarter ? `/${storeSlug}${path}` : path;
   };
-
+  // console.log(config)
   const getItemQty = (productId) => {
     const item = cart?.items?.find(
       (i) => i.product._id === productId || i.product === productId,
@@ -114,7 +115,7 @@ const AllProductsSection = ({
             All Products
           </h2>
           <p className="text-gray-500 mt-2">
-            Browse our full collection of premium clothing and accessories.
+            {config}
           </p>
         </div>
 
@@ -387,11 +388,11 @@ export default function AllProducts({
   storeData,
   wishlist,
   toggleWishlist,
+  config
 }) {
   const { fetchStoreProducts, setLocalProducts, products, loading } =
     useProductStore();
   const [displayProducts, setDisplayProducts] = useState([]);
-
   useEffect(() => {
     const initPage = async () => {
       const subdomain = getSubdomain();
@@ -431,6 +432,7 @@ export default function AllProducts({
       storeData={storeData}
       wishlist={wishlist}
       toggleWishlist={toggleWishlist}
+      config={config}
     />
   );
 }

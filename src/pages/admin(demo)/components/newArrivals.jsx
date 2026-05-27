@@ -25,6 +25,7 @@ const NewArrivalsGrid = ({
   isStarter,
   storeData,
   toggleWishlist,
+  config
 }) => {
   const { products, fetchStoreProducts, setLocalProducts, loading } =
     useProductStore();

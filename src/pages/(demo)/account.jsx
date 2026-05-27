@@ -115,6 +115,19 @@ export default function CustomerAccountPage({
     primary: "#ef4444",
     textMuted: isDark ? "#94a3b8" : "#64748b",
   };
+  const getDeliverySnapshot = (order) =>
+    order?.deliverySnapshot ||
+    order?.deliveryOption ||
+    order?.deliveryDetails ||
+    {};
+  const getDeliveryFee = (order) =>
+    Number(
+      getDeliverySnapshot(order)?.fee ||
+        getDeliverySnapshot(order)?.deliveryFee ||
+        0,
+    );
+  const getItemsSubtotal = (order) =>
+    Math.max(Number(order?.totalAmount || 0) - getDeliveryFee(order), 0);
   const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
 
   const menuItems = [
@@ -551,6 +564,47 @@ export default function CustomerAccountPage({
                 Total amount: ₦{order.totalAmount?.toLocaleString()}
               </Typography>
             </Card>
+
+            <Card
+              sx={{ p: 2, borderRadius: "4px", border: "1px solid #e5e5e5" }}
+            >
+              <Typography
+                level="title-sm"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  mb: 1.5,
+                  fontWeight: 700,
+                }}
+              >
+                <Truck size={16} /> DELIVERY METHOD
+              </Typography>
+              <Typography level="body-xs" sx={{ lineHeight: 1.6 }}>
+                {Array.isArray(getDeliverySnapshot(order).state)
+                  ? getDeliverySnapshot(order).state.join(", ")
+                  : getDeliverySnapshot(order).state ||
+                    getDeliverySnapshot(order).city ||
+                    ""}{" "}
+                ·{" "}
+                {getDeliverySnapshot(order).cities ||
+                  getDeliverySnapshot(order).cities ||
+                  ""}{" "}
+                ·{" "}
+                {getDeliverySnapshot(order).zoneName ||
+                  getDeliverySnapshot(order).name ||
+                  "Delivery"}
+                <br />
+                {getDeliverySnapshot(order).method || "Delivery"} · ₦
+                {getDeliveryFee(order).toLocaleString()}
+                <br />
+                ETA:{" "}
+                {getDeliverySnapshot(order).estimatedDeliveryTime ||
+                  getDeliverySnapshot(order).estimatedTime ||
+                  getDeliverySnapshot(order).eta ||
+                  "To be confirmed"}
+              </Typography>
+            </Card>
           </Box>
         </Stack>
 
@@ -651,8 +705,6 @@ export default function CustomerAccountPage({
                         Qty: {item.quantity}
                       </Typography>
                     </Box>
-
-                    
                   </Box>
 
                   {i < order.items.length - 1 && <Divider sx={{ mt: 1.5 }} />}
@@ -666,12 +718,14 @@ export default function CustomerAccountPage({
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography level="body-sm">Items total</Typography>
                 <Typography level="body-sm">
-                  ₦{order.totalAmount?.toLocaleString()}
+                  ₦{getItemsSubtotal(order).toLocaleString()}
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography level="body-sm">Delivery fees</Typography>
-                <Typography level="body-sm">₦0</Typography>
+                <Typography level="body-sm">
+                  ₦{getDeliveryFee(order).toLocaleString()}
+                </Typography>
               </Box>
               <Divider />
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>

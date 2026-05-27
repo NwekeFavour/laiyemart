@@ -22,16 +22,22 @@ const STORE_CONTENT_CONFIG = {
       "Street-Ready Essentials",
     ],
     arrivalSub: "Discover the latest ready-to-wear pieces.",
+    allProductsSub: "From runway to real life – shop the freshest styles.",
     emptyIcon: "👗",
   },
   Electronics: {
     phrases: ["Next-Gen Tech", "Power Your Future", "Innovation At Hand"],
     arrivalSub: "Upgrade your setup with our latest gadgets.",
+    allProductsSub: "Explore cutting-edge electronics for every need.",
     emptyIcon: "🔌",
   },
-  "Beauty & Health": {
-    phrases: ["Glow Naturally", "Self-Care Essentials", "Your Daily Ritual"],
+  "beauty & health": {
+    phrases: [
+      "Glow Naturally", 
+      "Self-Care Essentials", 
+      "Your Daily Ritual"],
     arrivalSub: "Discover curated beauty and wellness picks.",
+    allProductsSub: "From skincare to supplements – shop your wellness.",
     emptyIcon: "✨",
   },
   "Home & Garden": {
@@ -41,16 +47,19 @@ const STORE_CONTENT_CONFIG = {
       "Design Your Sanctuary",
     ],
     arrivalSub: "New pieces for a house that feels like home.",
+    allProductsSub: "Discover essentials for modern living and outdoor bliss.",
     emptyIcon: "🏡",
   },
   "Food & Groceries": {
     phrases: ["Freshly Sourced", "Organic & Healthy", "Farm to Table"],
     arrivalSub: "Stock your pantry with our newest arrivals.",
+    allProductsSub: "Discover fresh groceries and daily essentials.",
     emptyIcon: "🍎",
   },
   "Digital Products": {
     phrases: ["Instant Access", "Creative Assets", "Level Up Your Skills"],
     arrivalSub: "New tools to fuel your digital journey.",
+    allProductsSub: "Explore our collection of digital resources and tools.",
     emptyIcon: "💻",
   },
   "General Store": {
@@ -60,6 +69,7 @@ const STORE_CONTENT_CONFIG = {
       "Best Deals Daily",
     ],
     arrivalSub: "Explore our latest collection of essentials.",
+    allProductsSub: "Discover a wide range of quality products at great prices.",
     emptyIcon: "📦",
   },
 };
@@ -117,9 +127,12 @@ useEffect(() => {
 }, [storeSlug, window.location.hostname]);
  // It will also re-run if the component remounts on the new subdomain
   // 2. Determine content config based on storeType
+  const normalizedStoreType = storeData?.storeType?.trim();
+
   const config =
-    STORE_CONTENT_CONFIG[storeData?.storeType] ||
+    STORE_CONTENT_CONFIG[normalizedStoreType] ||
     STORE_CONTENT_CONFIG["General Store"];
+    // console.log("Selected Config for Store Type:", normalizedStoreType, config);
   const STORE_META_CONFIG = {
     Fashion: {
       description:
@@ -465,6 +478,7 @@ const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
           storeSlug={storeSlug}
           storeData={storeData}
           toggleWishlist={toggleStar}
+          config={config.allProductsSub}
         />
 
         {/* <NewsletterSignup storeType={storeData?.storeType} /> */}

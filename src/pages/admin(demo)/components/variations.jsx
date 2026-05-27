@@ -114,105 +114,244 @@ function VariantRow({ variant, onChange, onRemove, isDark }) {
   };
 
   return (
+  <Box
+    sx={{
+      p: 1,
+      borderRadius: "12px",
+      border: isDark ? "1px solid #1e293b" : "1px solid #e2e8f0",
+      bgcolor: isDark ? "rgba(15,23,42,0.35)" : "#fff",
+    }}
+  >
+    {/* MOBILE */}
     <Box
       sx={{
-        display: "grid",
-        // swatch | color name | size | price | stock | delete
+        display: { xs: "flex", md: "none" },
+        flexDirection: "column",
+        gap: 1,
+      }}
+    >
+      {/* top row */}
+      <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+        {/* swatch */}
+        <Box
+          sx={{
+            position: "relative",
+            width: 28,
+            height: 28,
+            borderRadius: "50%",
+            bgcolor: variant.hex || "#E2E8F0",
+            border: "2px solid",
+            borderColor: isDark ? "#334155" : "#e2e8f0",
+            overflow: "hidden",
+            flexShrink: 0,
+          }}
+        >
+          {variant.color && (
+            <input
+              type="color"
+              value={variant.hex || "#E2E8F0"}
+              onChange={(e) =>
+                onChange({ ...variant, hex: e.target.value })
+              }
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                opacity: 0,
+                cursor: "pointer",
+              }}
+            />
+          )}
+        </Box>
+
+        <Input
+          size="sm"
+          placeholder="Color"
+          value={variant.color || ""}
+          onChange={(e) =>
+            onChange({
+              ...variant,
+              color: e.target.value,
+              hex: variant.hex || toHex(e.target.value),
+            })
+          }
+          sx={{ ...inputSx, flex: 1 }}
+        />
+
+        <Input
+          size="sm"
+          placeholder="Size"
+          value={variant.size || ""}
+          onChange={(e) =>
+            onChange({ ...variant, size: e.target.value })
+          }
+          sx={{ ...inputSx, flex: 1 }}
+        />
+
+        <IconButton
+          size="sm"
+          variant="plain"
+          color="danger"
+          onClick={onRemove}
+        >
+          <Trash2 size={14} />
+        </IconButton>
+      </Box>
+
+      {/* bottom row */}
+      <Box sx={{ display: "flex", gap: 1 }}>
+        <Input
+          size="sm"
+          type="number"
+          placeholder="Price"
+          value={variant.price ?? ""}
+          onChange={(e) =>
+            onChange({
+              ...variant,
+              price:
+                e.target.value === ""
+                  ? ""
+                  : Number(e.target.value),
+            })
+          }
+          startDecorator="₦"
+          sx={{ ...inputSx, flex: 1 }}
+        />
+
+        <Input
+          size="sm"
+          type="number"
+          placeholder="Stock"
+          value={variant.stock ?? ""}
+          onChange={(e) =>
+            onChange({
+              ...variant,
+              stock:
+                e.target.value === ""
+                  ? ""
+                  : Number(e.target.value),
+            })
+          }
+          sx={{ ...inputSx, width: 110 }}
+        />
+      </Box>
+    </Box>
+
+    {/* DESKTOP */}
+    <Box
+      sx={{
+        display: { xs: "none", md: "grid" },
         gridTemplateColumns: "24px 1fr 1fr 110px 80px 28px",
         gap: 1,
         alignItems: "center",
-        py: 0.5,
       }}
     >
-      {/* Color swatch / picker */}
+      {/* Color swatch */}
       <Box
         sx={{
           position: "relative",
-          width: 24, height: 24, flexShrink: 0,
+          width: 24,
+          height: 24,
           borderRadius: "50%",
           bgcolor: variant.hex || "#E2E8F0",
           border: "2px solid",
           borderColor: isDark ? "#334155" : "#e2e8f0",
           overflow: "hidden",
-          cursor: variant.color ? "pointer" : "default",
         }}
       >
         {variant.color && (
           <input
             type="color"
             value={variant.hex || "#E2E8F0"}
-            onChange={(e) => onChange({ ...variant, hex: e.target.value })}
+            onChange={(e) =>
+              onChange({ ...variant, hex: e.target.value })
+            }
             style={{
-              position: "absolute", inset: 0,
-              width: "100%", height: "100%",
-              opacity: 0, cursor: "pointer",
-              border: "none", padding: 0,
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              opacity: 0,
+              cursor: "pointer",
             }}
           />
         )}
       </Box>
 
-      {/* Color name */}
       <Input
         size="sm"
-        placeholder="Color (optional)"
+        placeholder="Color"
         value={variant.color || ""}
-        onChange={(e) => onChange({
-          ...variant,
-          color: e.target.value,
-          hex: variant.hex || toHex(e.target.value),
-        })}
+        onChange={(e) =>
+          onChange({
+            ...variant,
+            color: e.target.value,
+            hex: variant.hex || toHex(e.target.value),
+          })
+        }
         variant="soft"
         sx={inputSx}
       />
 
-      {/* Size */}
       <Input
         size="sm"
-        placeholder="Size (optional)"
+        placeholder="Size"
         value={variant.size || ""}
-        onChange={(e) => onChange({ ...variant, size: e.target.value })}
+        onChange={(e) =>
+          onChange({ ...variant, size: e.target.value })
+        }
         variant="soft"
         sx={inputSx}
       />
 
-      {/* Price */}
       <Input
         size="sm"
         type="number"
         placeholder="Price"
         value={variant.price ?? ""}
         onChange={(e) =>
-          onChange({ ...variant, price: e.target.value === "" ? "" : Number(e.target.value) })
+          onChange({
+            ...variant,
+            price:
+              e.target.value === ""
+                ? ""
+                : Number(e.target.value),
+          })
         }
-        startDecorator={
-          <Typography sx={{ fontSize: "11px", color: "neutral.500", flexShrink: 0 }}>₦</Typography>
-        }
+        startDecorator="₦"
         variant="soft"
         sx={inputSx}
       />
 
-      {/* Stock */}
       <Input
         size="sm"
         type="number"
         placeholder="Stock"
         value={variant.stock ?? ""}
         onChange={(e) =>
-          onChange({ ...variant, stock: e.target.value === "" ? "" : Number(e.target.value) })
+          onChange({
+            ...variant,
+            stock:
+              e.target.value === ""
+                ? ""
+                : Number(e.target.value),
+          })
         }
         variant="soft"
         sx={inputSx}
       />
 
       <IconButton
-        size="sm" variant="plain" color="danger"
+        size="sm"
+        variant="plain"
+        color="danger"
         onClick={onRemove}
-        sx={{ minWidth: 28, minHeight: 28, p: 0 }}
       >
         <Trash2 size={13} />
       </IconButton>
     </Box>
+  </Box>
   );
 }
 
