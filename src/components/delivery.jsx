@@ -22,11 +22,11 @@ import {
   updateDeliveryZone,
   deleteDeliveryZone,
 } from "../../services/deliveryService";
+import { useAuthStore } from "../store/useAuthStore";
 
 const METHODS = [
   { value: "local_delivery", label: "Local Delivery" },
   { value: "pickup", label: "Store Pickup" },
-  { value: "customer_arranged_rider", label: "Customer Arranges Rider" },
   { value: "in_house_dispatch", label: "In-House Dispatch" },
   { value: "nationwide_courier", label: "Nationwide Courier" },
 ];
@@ -40,10 +40,19 @@ const emptyZone = {
   estimatedTime: "",
 };
 
+const formatAddress = (address) => {
+  if (!address) return "";
+  if (typeof address === "string") return address;
+  return [address.street, address.city, address.state, address.country]
+    .filter(Boolean)
+    .join(", ");
+};
+
 export default function DeliverySettingsSection({ isDark }) {
+  const { user, store, token, setStoreData } = useAuthStore();
   const [profile, setProfile] = useState({
-    deliveryEnabled: true,
-    pickupEnabled: false,
+    deliveryEnabled: false,
+    pickupEnabled: true,
     freeDeliveryThreshold: "",
     deliveryNotes: "",
     nationwideEnabled: false,
@@ -56,6 +65,17 @@ export default function DeliverySettingsSection({ isDark }) {
   const [savingZone, setSavingZone] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
+
+
+  useEffect(() => {
+    const pickupAddress = formatAddress(store?.address);
+    if (profile.pickupEnabled && pickupAddress) {
+      setProfile((prev) => ({
+        ...prev,
+        deliveryNotes: pickupAddress,
+      }));
+    }
+  }, [profile.pickupEnabled, store]);
   // ── Load on mount ──────────────────────────────────────────
   useEffect(() => {
     const load = async () => {
@@ -104,7 +124,7 @@ export default function DeliverySettingsSection({ isDark }) {
       zoneForm.fee !== null &&
       zoneForm.fee !== undefined;
 
-    if (!zoneForm.name?.trim() || !hasFee || !zoneForm.method) {
+    if (!zoneForm.name?.trim() || !zoneForm.city.trim()) {
       return toast.error("Zone name, fee and method are required");
     }
     setSavingZone(true);
@@ -131,6 +151,7 @@ export default function DeliverySettingsSection({ isDark }) {
   };
 
   const handleEditZone = (zone) => {
+    // console.log(zone.method);
     setZoneForm({
       name: zone.zoneName,
       state: zone.states?.[0] || "",
@@ -185,18 +206,18 @@ export default function DeliverySettingsSection({ isDark }) {
         {[
           {
             key: "deliveryEnabled",
-            label: "Home Delivery",
-            desc: "Offer delivery to customers' addresses",
+            label: "Local Delivery",
+            desc: "Deliver orders only to locations covered by your delivery zones and fees. Customers outside your configured zones cannot select this option.",
           },
           {
             key: "pickupEnabled",
             label: "Store Pickup",
-            desc: "Allow customers to pick up from your location",
+            desc: "Customers place orders online and collect them themselves from your store or pickup location.",
           },
           {
             key: "nationwideEnabled",
             label: "Nationwide Shipping",
-            desc: "Ship orders across Nigeria",
+            desc: "Allow orders from anywhere in Nigeria using courier or transport services, even if the customer's address is outside your local delivery zones.",
           },
         ].map(({ key, label, desc }) => (
           <Box
@@ -243,17 +264,21 @@ export default function DeliverySettingsSection({ isDark }) {
             : "Delivery Notes"}
         </FormLabel>
         <Input
-          placeholder={
-            profile.pickupEnabled
-              ? "e.g. 12 Adeola Street, Lekki Phase 1"
-              : "e.g. We deliver every weekday"
-          }
-          value={profile.deliveryNotes}
-          onChange={(e) =>
-            setProfile({ ...profile, deliveryNotes: e.target.value })
-          }
-          sx={inputSx}
-        />
+  placeholder={
+    profile.pickupEnabled
+      ? "Store pickup address"
+      : "e.g. We deliver every weekday"
+  }
+  value={profile.deliveryNotes}
+  onChange={(e) =>
+    setProfile({
+      ...profile,
+      deliveryNotes: e.target.value,
+    })
+  }
+  disabled={profile.pickupEnabled}   
+  sx={inputSx}
+/>
       </FormControl>
 
       {/* ── Free Delivery Threshold ── */}
@@ -350,14 +375,16 @@ export default function DeliverySettingsSection({ isDark }) {
                   sx={inputSx}
                 />
               </FormControl>
-              <FormControl>
+              <FormControl
+                className={zoneForm.method === "pickup" && "hidden!"}
+              >
                 <FormLabel className={isDark ? "text-slate-400!" : ""}>
                   Fee (₦) *
                 </FormLabel>
                 <Input
                   type="number"
                   placeholder="1500"
-                  disabled={zoneForm.method === "customer_arranged_rider"}
+                  disabled={zoneForm.method === "pickup"}
                   value={zoneForm.fee}
                   onChange={(e) =>
                     setZoneForm({ ...zoneForm, fee: e.target.value })
@@ -408,7 +435,8 @@ export default function DeliverySettingsSection({ isDark }) {
                     setZoneForm((prev) => ({
                       ...prev,
                       method: v,
-                      fee: v === "customer_arranged_rider" ? 0 : prev.fee,
+                      fee: v === "method" ? 0 : prev.fee,
+                      estimatedTime: v === "pickup" ? "" : prev.estimatedTime,
                     }));
                   }}
                   sx={{ ...inputSx, borderRadius: "lg" }}
@@ -420,19 +448,24 @@ export default function DeliverySettingsSection({ isDark }) {
                   ))}
                 </Select>
               </FormControl>
-              <FormControl>
-                <FormLabel className={isDark ? "text-slate-400!" : ""}>
-                  Estimated Time
-                </FormLabel>
-                <Input
-                  placeholder="e.g. Same Day"
-                  value={zoneForm.estimatedTime}
-                  onChange={(e) =>
-                    setZoneForm({ ...zoneForm, estimatedTime: e.target.value })
-                  }
-                  sx={inputSx}
-                />
-              </FormControl>
+              {zoneForm.method !== "pickup" && (
+                <FormControl>
+                  <FormLabel className={isDark ? "text-slate-400!" : ""}>
+                    Estimated Time
+                  </FormLabel>
+                  <Input
+                    placeholder="e.g. Same Day"
+                    value={zoneForm.estimatedTime}
+                    onChange={(e) =>
+                      setZoneForm({
+                        ...zoneForm,
+                        estimatedTime: e.target.value,
+                      })
+                    }
+                    sx={inputSx}
+                  />
+                </FormControl>
+              )}
             </Box>
             <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
               <Button

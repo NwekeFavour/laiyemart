@@ -144,59 +144,86 @@ export const useProductStore = create((set, get) => ({
     }
   },
   // store/useProductStore.js
-  toggleStar: async (productId, storeId) => {
-    const { products } = get();
-    const {customer } = useCustomerAuthStore.getState();
-    // 1. Capture the current state of this specific product
-    const targetProduct = products.find((p) => p._id === productId);
-    if (!targetProduct) return;
+toggleStar: async (productId, storeId) => {
+  const state = get();
 
+  const product = state.products.find((p) => p._id === productId);
+  const {customer } = useCustomerAuthStore.getState();
+  if (!product) return;
 
-    if(!customer) {
-      toast.error("You need to be logged in to add to your wishlist", {containerId: "STOREFRONT"})
+  // Prevent duplicate requests on same product
+  if (product.starLoading) return;
+
+  const previousStar = product.star;
+  const optimisticStar = !previousStar;
+
+  // Optimistic update
+  set((state) => ({
+    products: state.products.map((p) =>
+      p._id === productId
+        ? {
+            ...p,
+            star: optimisticStar,
+            starLoading: true,
+          }
+        : p
+    ),
+  }));
+
+  try {
+    const res = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/products/${productId}/star`,
+      {
+        method: "PATCH",
+        headers: state._getHeaders(),
+        body: JSON.stringify({ storeId }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Unable to update starred status.");
     }
-    // 2. OPTIMISTIC UPDATE: Use the current state to determine the next state
-    const nextStarState = !targetProduct.star;
 
-    set({
-      products: products.map((p) =>
-        p._id === productId ? { ...p, star: nextStarState } : p,
+    // Server wins
+    set((state) => ({
+      products: state.products.map((p) =>
+        p._id === productId
+          ? {
+              ...p,
+              star: data.star,
+              starLoading: false,
+            }
+          : p
       ),
+    }));
+
+    toast.success(data.message, {
+      containerId: "STOREFRONT",
     });
+  } catch (error) {
+    // Rollback
+    set((state) => ({
+      products: state.products.map((p) =>
+        p._id === productId
+          ? {
+              ...p,
+              star: previousStar,
+              starLoading: false,
+            }
+          : p
+      ),
+    }));
 
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/products/${productId}/star`,
-        {
-          method: "PATCH",
-          headers: get()._getHeaders(),
-          body: JSON.stringify({ storeId }),
-        },
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message);
-
-      // 3. RECONCILE: Use the EXACT value returned by the server
-      // This stops the "Always Add" loop if the server and client disagree
-      set({
-        products: get().products.map((p) =>
-          p._id === productId ? { ...p, star: data.star } : p,
-        ),
-      });
-
-      toast.success(data.message, {containerId: "STOREFRONT"});
-    } catch (err) {
-      // 4. ROLLBACK: If server fails, set it back to what it was before the click
-      set({
-        products: get().products.map((p) =>
-          p._id === productId ? { ...p, star: targetProduct.star } : p,
-        ),
-      });
-      toast.error(err.message, {containerId: "STOREFRONT"});
-    }
-  },
+    toast.error(
+      error.message || "Failed to update starred status.",
+      {
+        containerId: "STOREFRONT",
+      }
+    );
+  }
+},
 
   updateProduct: async (productId, formData, token) => {
     try {

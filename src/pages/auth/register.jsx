@@ -63,15 +63,15 @@ export default function SignUpPage() {
       id: "starter",
       name: "Starter Plan",
       price: { monthly: "Free", yearly: "Free" },
-      features: ["100 Products", "Basic Analytics", "Custom Domain"],
+      features: ["200 Products", "Basic Analytics", "Custom Domain"],
     },
-    {
-      id: "professional",
-      name: "Professional Plan",
-      price: { monthly: "₦15,000", yearly: "₦153,000" },
-      disabled: true, // Marked as unavailable
-      features: ["200 Products", "Advanced SEO", "Priority Support"],
-    },
+    // {
+    //   id: "professional",
+    //   name: "Professional Plan",
+    //   price: { monthly: "₦15,000", yearly: "₦153,000" },
+    //   disabled: true, // Marked as unavailable
+    //   features: ["200 Products", "Advanced SEO", "Priority Support"],
+    // },
   ];
   const handleResendOtp = async () => {
     if (resendTimer > 0) return;
@@ -637,7 +637,7 @@ export default function SignUpPage() {
               )}
 
               {/* Toggle Switch */}
-              <div className="flex items-center justify-center mb-5">
+              {/* <div className="flex items-center justify-center mb-5">
                 <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
                   <button
                     onClick={() => setBillingCycle("monthly")}
@@ -663,10 +663,10 @@ export default function SignUpPage() {
                     </span>
                   </button>
                 </div>
-              </div>
+              </div> */}
 
               {/* Plans List */}
-              <div className="space-y-3">
+              <div className="space-y-3 mt-5">
                 {plans.map((plan) => {
                   const isSelected = selectedPlan === plan.id;
                   return (

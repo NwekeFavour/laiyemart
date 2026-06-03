@@ -63,7 +63,7 @@ export default function VerifyStore() {
             <Button 
               size="lg"
               endDecorator={<ArrowRight size={18} />}
-              onClick={() => navigate("/dashboard/settings")}
+              onClick={() => navigate("/auth-sync")}
               sx={{ bgcolor: "#0f172a", borderRadius: "lg", width: "100%", mt: 2 }}
             >
               Go to Dashboard
@@ -82,7 +82,7 @@ export default function VerifyStore() {
               variant="outlined" 
               color="neutral" 
               component={Link} 
-              to="/dashboard/settings"
+              to="/auth/sign-in"
               sx={{ width: "100%", mt: 2 }}
             >
               Back to Settings

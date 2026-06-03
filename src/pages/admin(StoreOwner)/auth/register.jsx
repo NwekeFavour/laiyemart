@@ -90,12 +90,8 @@ const handleRegister = async (e) => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-5 px-6 shadow-xl shadow-slate-200/50 rounded-[24px] border border-slate-100">
           <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Create your account
-            </h2>
-
-            {/* Store Branding */}
-            <div onClick={() => navigate(getStorePath("/"))} className="flex items-center gap-3 justify-start w-full my-3 cursor-pointerodemon
+                        {/* Store Branding */}
+            <div onClick={() => navigate(getStorePath("/"))} className="flex items-center  gap-3 justify-center w-full my-3  cursor-pointer! 
             "> 
               {/* LOGO SECTION */}
               <div className="relative">
@@ -125,38 +121,12 @@ const handleRegister = async (e) => {
                 )}
               </div>
 
-              {/* NAME & PLAN SECTION */}
-              <div className="flex flex-col justify-start">
-                <Typography
-                  className="text-start!"
-                  sx={{
-                    fontWeight: 800,
-                    fontSize: { xs: "15px", lg: "18px" },
-                    color: "neutral.900",
-                    letterSpacing: "-0.03em",
-                    lineHeight: 1,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {storeData?.name || "My Store"}
-                </Typography>
-
-                <Typography
-                  className="text-start!"
-                  level="body-xs"
-                  sx={{
-                    mt: 0.5,
-                    fontWeight: 600,
-                    color: "neutral.500",
-                    fontSize: "10px",
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {storeData?.plan || "Starter"} Plan
-                </Typography>
-              </div>
             </div>
+            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+              Create your account
+            </h2>
+
+
           </div>
           <form className="space-y-5" onSubmit={handleRegister}>
             {error && (

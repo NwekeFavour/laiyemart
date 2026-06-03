@@ -850,6 +850,7 @@ useEffect(() => {
             storeId={storeData?._id}
             isStarter={storeData?.plan === "starter"}
             storeSlug={storeSlug}
+            storePhone={storeData?.phoneNumber}
           />
         </div>
       </div>

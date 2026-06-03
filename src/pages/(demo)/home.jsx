@@ -495,6 +495,7 @@ const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
           storeId={storeData?._id}
           isStarter={storeData?.plan === "starter"}
           storeSlug={storeSlug}
+          storePhone={storeData?.phoneNumber}
         />
       </div>
     </div>

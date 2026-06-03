@@ -37,7 +37,7 @@ import { toast } from "react-toastify";
 
 // --- CONTENT & THEME CONFIGURATION ---
 const STORE_CONTENT_CONFIG = {
-  Fashion: {
+  "fashion": {
     phrases: [
       "Wear Your Identity",
       "Bold Fits Only",
@@ -50,7 +50,7 @@ const STORE_CONTENT_CONFIG = {
     bg: "#ffffff",
     icon: <Sparkles size={18} />,
   },
-  "Digital Products": {
+  "digital products": {
     phrases: ["Instant Access", "Creative Assets", "Level Up Your Skills"],
     arrivalSub: "New tools to fuel your digital journey.",
     emptyIcon: "💻",
@@ -59,7 +59,7 @@ const STORE_CONTENT_CONFIG = {
     bg: "#f0f4f8",
     icon: <Laptop size={18} />,
   },
-  Electronics: {
+  "electronics": {
     phrases: ["Next-Gen Tech", "Power Your Future", "Innovation At Hand"],
     arrivalSub: "Upgrade your setup with our latest gadgets.",
     emptyIcon: "🔌",
@@ -68,7 +68,7 @@ const STORE_CONTENT_CONFIG = {
     bg: "#f8fafc",
     icon: <Zap size={18} />,
   },
-  "Beauty & Health": {
+  "beauty & health": {
     phrases: ["Glow Naturally", "Self-Care Essentials", "Your Daily Ritual"],
     arrivalSub: "Discover curated beauty and wellness picks.",
     emptyIcon: "✨",
@@ -77,7 +77,7 @@ const STORE_CONTENT_CONFIG = {
     bg: "#fffafa",
     icon: <Heart size={18} />,
   },
-  "Home & Garden": {
+  "home & garden": {
     phrases: [
       "Elevate Your Space",
       "Sustainable Living",
@@ -90,7 +90,7 @@ const STORE_CONTENT_CONFIG = {
     bg: "#fcfaf2",
     icon: <Home size={18} />,
   },
-  "Food & Groceries": {
+  "food & groceries": {
     phrases: ["Freshly Sourced", "Organic & Healthy", "Farm to Table"],
     arrivalSub: "Stock your pantry with our newest arrivals.",
     emptyIcon: "🍎",
@@ -99,7 +99,7 @@ const STORE_CONTENT_CONFIG = {
     bg: "#fffaf0",
     icon: <Utensils size={18} />,
   },
-  "General Store": {
+  "general store": {
     phrases: [
       "Quality Meets Value",
       "Your Daily Essentials",
@@ -192,9 +192,10 @@ function Products({ storeSlug, isStarter }) {
   }, [location.state]);
   // Determine current config based on store industry/type
   const config = useMemo(() => {
+    const normalizedType = storeData?.storeType?.toLowerCase()?.trim();
     return (
-      STORE_CONTENT_CONFIG[storeData?.storeType] ||
-      STORE_CONTENT_CONFIG["General Store"]
+      STORE_CONTENT_CONFIG[normalizedType] ||
+      STORE_CONTENT_CONFIG["general store"]
     );
   }, [storeData]);
 
@@ -265,17 +266,28 @@ function Products({ storeSlug, isStarter }) {
   }, [storeSlug]);
 
   const categories = useMemo(() => {
-    const names = products.map((p) => p.category?.name).filter(Boolean);
+    const names = products
+      .map((p) => p.category?.name || p.category)
+      .filter(Boolean);
     return ["All", ...new Set(names)];
   }, [products]);
 
+  useEffect(() => {
+    if (location.state?.selectedCategory !== undefined) {
+      setSelectedCategory(location.state.selectedCategory || "All");
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   const filteredProducts = useMemo(() => {
+    const categoryFilter = selectedCategory?.trim() || "All";
     return products.filter((p) => {
+      const productCategory = p.category?.name || p.category || "";
       const matchesSearch = p.name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
       const matchesCat =
-        selectedCategory === "All" || p.category?.name === selectedCategory;
+        categoryFilter === "All" || productCategory === categoryFilter;
       return matchesSearch && matchesCat;
     });
   }, [products, searchQuery, selectedCategory]);
@@ -485,7 +497,7 @@ function Products({ storeSlug, isStarter }) {
                   gap: 3,
                 }}
               >
-                {products.slice(0, 12).map((product) => {
+                {filteredProducts.map((product)=> {
                   const qty = getItemQty(product._id || product.id);
                   const mainImage =
                     product.images?.[0]?.url ||
@@ -572,14 +584,17 @@ function Products({ storeSlug, isStarter }) {
                             <Box>
                               <IconButton
                                 sx={{
-                                  color: product.star ? "#e11d48" : "#94a3b8",
+                                  color:
+                                    customer && product.star
+                                      ? "#e11d48"
+                                      : "#94a3b8",
                                 }}
                                 onClick={() =>
                                   toggleStar(product._id, storeData._id)
                                 }
                               >
                                 <Heart
-                                  fill={product.star ? "currentColor" : "none"}
+                                  fill={customer && product.star ? "currentColor" : "none"}
                                 />
                               </IconButton>
                             </Box>
@@ -644,7 +659,7 @@ function Products({ storeSlug, isStarter }) {
                                     >
                                       <Remove style={{ fontSize: 12 }} />
                                     </button>
-                                    <span className="text-[11px] font-black text-gray-800 min-w-[12px] text-center">
+                                    <span className="text-[11px] font-black text-gray-800 min-w-3 text-center">
                                       {qty}
                                     </span>
                                     <button
@@ -682,6 +697,7 @@ function Products({ storeSlug, isStarter }) {
         storeId={storeData?._id}
         isStarter={storeData?.plan === "starter"}
         storeSlug={storeSlug}
+        storePhone={storeData?.phoneNumber}
       />
     </div>
   );

@@ -41,6 +41,7 @@ const CustomerAccountLayout = ({
         storeId={storeData?._id}
         isStarter={storeData?.plan === "starter"}
         storeSlug={storeSlug}
+        storePhone={storeData?.phoneNumber}
       />
     </>
   );

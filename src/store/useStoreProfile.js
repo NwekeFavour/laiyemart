@@ -41,7 +41,7 @@ export const useStoreProfileStore = create((set, get) => ({
       if (storeType) formData.append("storeType", storeType);
       if (heroFile) formData.append("heroImage", heroFile); // Must match backend field name
       if (phoneNumber) formData.append("phoneNumber", phoneNumber);
-      if (address) formData.append("address", address);
+      if (address) formData.append("address", JSON.stringify(address));
 
       // Stringify the object so it can be transmitted via FormData
       if (socialLinks) {

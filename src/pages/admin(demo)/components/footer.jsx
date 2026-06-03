@@ -9,14 +9,25 @@ import {
   FaYoutube,
 } from "react-icons/fa";
 import { FaTiktok } from "react-icons/fa6";
+import Paystack from "../../../assets/img/paystack.png"
 import { Link } from "react-router-dom";
 import { useProductStore } from "../../../../services/productService";
+import { PhoneIcon } from "lucide-react";
+
+const formatAddress = (address) => {
+  if (!address) return "";
+  if (typeof address === "string") return address;
+  return [address.street, address.city, address.state, address.country]
+    .filter(Boolean)
+    .join(", ");
+};
 
 const Footer = ({
   storeName,
   storeLogo,
   storeDescription,
   storeEmail,
+  storePhone,
   storeId,
   storeSlug,
   isStarter,
@@ -29,6 +40,7 @@ const Footer = ({
   storeYoutube,
 }) => {
   const { products, fetchStoreProducts } = useProductStore();
+  const formattedStoreAddress = formatAddress(storeAddress);
 
   useEffect(() => {
     if (storeId) fetchStoreProducts(storeId);
@@ -92,12 +104,20 @@ const Footer = ({
           <h4 className="font-semibold text-white mb-3">Support</h4>
 
   {/* ADDRESS */}
-  {storeAddress && (
+  {formattedStoreAddress && (
     <p className="text-sm text-gray-400 mt-4">
-      📍 {storeAddress}
+      📍 {formattedStoreAddress}
     </p>
   )}
 
+  {storePhone && (
+    <p className="flex items-center gap-2 text-sm text-gray-400 mt-2">
+      <PhoneIcon className="h-4 w-4" />
+      <a href={`tel:${storePhone}`} className="hover:text-white transition">
+        {storePhone}
+      </a>
+    </p>
+  )}
   {/* EMAIL */}
   {storeEmail && (
     <p className="flex items-center gap-2 text-sm text-gray-400 mt-2">
@@ -147,17 +167,11 @@ const Footer = ({
             />
 
             {/* Paystack */}
-            <svg
-              className="h-5"
-              viewBox="0 0 157 28"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M22.32 2.663H1.306C.594 2.663 0 3.263 0 3.985v2.37c0 .74.594 1.324 1.307 1.324h21.012..."
-                fill="#00C3F7"
-              />
-            </svg>
+            <img
+              className="h-5 bg-white px-2 py-1 rounded"
+              src={Paystack}
+              alt="Paystack"
+            />
           </div>
         </div>
       </div>

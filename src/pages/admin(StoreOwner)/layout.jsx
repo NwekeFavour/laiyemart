@@ -988,7 +988,7 @@ const handleLogout = () => {
         >
           <Button
             variant="plain"
-            className={`${isDark && " text-white hover:text-slate-800/90!"}`}
+            className={`${isDark && " text-white bg-slate-50! hover:text-slate-800/90!"}`}
             color="danger"
             onClick={() => setIsLogoutModalOpen(true)}
             startDecorator={<LogOut size={20} />}
@@ -1397,7 +1397,7 @@ const handleLogout = () => {
           }}
           onClick={() => setProfileAnchor(null)}
         >
-          {(isStarter || isExpired || hasPaidBefore) && (
+          {/* {(isStarter || isExpired || hasPaidBefore) && (
             <Sheet
               className={`${config.bg} ${config.color} items-start flex! justify-between! flex-wrap! shadow-lg`}
               variant="solid"
@@ -1472,7 +1472,7 @@ const handleLogout = () => {
                 </Button>
               )}
             </Sheet>
-          )}
+          )} */}
 
           {!isExpired && !store.plan === "starter" && (
             <Sheet

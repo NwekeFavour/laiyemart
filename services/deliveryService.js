@@ -129,12 +129,13 @@ export const calculateDeliveryOptions = async ({
 
 export const getDeliveryProfile = async () => {
   // This should only be used in Store Owner Settings
-  const token = useAuthStore.getState().token; // Make sure you import useAuthStore
+  const { token } = useAuthStore.getState();
   const response = await fetch(`${API_URL}/api/delivery/profile`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
   });
+  
   return parseResponse(response);
 };

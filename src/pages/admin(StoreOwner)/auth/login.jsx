@@ -171,10 +171,7 @@ export default function AuthPage({ isDark, storeSlug, isStarter, storeData }) {
             alignItems: "center",
           }}
         >
-           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-3">
-              Welcome back!
-            </h2>
-          <div onClick={() => navigate(getStorePath("/"))} className="flex items-center gap-3 justify-start w-full cursor-pointer">
+                    <div onClick={() => navigate(getStorePath("/"))} className="flex items-center gap-3 justify-center w-full cursor-pointer">
             {/* LOGO SECTION */}
             <div  className="relative cursor-pointer">
               {storeData?.logo?.url ? (
@@ -202,37 +199,11 @@ export default function AuthPage({ isDark, storeSlug, isStarter, storeData }) {
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-[#0f172a] rounded-full" />
               )}
             </div>
-
-            {/* NAME & PLAN SECTION */}
-            <div className="flex flex-col justify-center">
-              <Typography
-                sx={{
-                  fontWeight: 800,
-                  fontSize: { xs: "15px", lg: "18px" },
-                  color: isDark ? "white" : "neutral.900",
-                  letterSpacing: "-0.03em",
-                  lineHeight: 1,
-                  textTransform: "uppercase",
-                }}
-              >
-                {storeData?.name || "My Store"}
-              </Typography>
-
-              <Typography
-                level="body-xs"
-                sx={{
-                  mt: 0.5,
-                  fontWeight: 600,
-                  color: "neutral.500",
-                  fontSize: "10px",
-                  letterSpacing: "0.05em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {storeData?.plan || "Starter"} Plan
-              </Typography>
-            </div>
-          </div>          
+          </div>  
+           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-3">
+              Welcome back!
+            </h2>
+        
         </Box>
 
         <Tabs defaultValue={0} sx={{ bgcolor: "transparent" }}>

@@ -65,9 +65,32 @@ import {
 
 import DeliverySettingsSection from "../../components/delivery";
 
+const cities = [
+  "Abuja",
+  "Lagos",
+  "Ibadan",
+  "Port Harcourt",
+  "Kano",
+  "Enugu",
+  "Benin City",
+];
+
+const emptyAddress = {
+  street: "",
+  city: "",
+  state: "",
+  country: "Nigeria",
+};
+
+const normalizeAddress = (address) => ({
+  ...emptyAddress,
+  ...(address && typeof address === "object" ? address : {}),
+});
+
 export default function SettingsPage({ isDark, toggleDarkMode }) {
   const { updateStoreProfile, loading, resendStoreVerification } =
     useStoreProfileStore();
+
   const [activeSection, setActiveSection] = useState("profile");
   const [heroFile, setHeroFile] = useState(null);
   const [heroPreviewUrl, setHeroPreviewUrl] = useState(null);
@@ -92,7 +115,10 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [formEmail, setFormEmail] = useState(store?.email);
   const [formPhone, setFormPhone] = useState(store?.phoneNumber || "");
-  const [formAddress, setFormAddress] = useState(store?.address || "");
+  const [formAddress, setFormAddress] = useState(
+    normalizeAddress(store?.address),
+  );
+  const [cityInput, setCityInput] = useState(store?.address?.city || "");
   const [billingCycle, setBillingCycle] = useState(
     store?.billingCycle || "monthly",
   );
@@ -107,6 +133,22 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     linkedin: store?.socialLinks?.linkedin || "", // Ensure these exist
   });
 
+  const [editingSocials, setEditingSocials] = useState({
+    instagram: false,
+    twitter: false,
+    facebook: false,
+  });
+
+  const [editingCategory, setEditingCategory] = useState(false);
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(false);
+
+  const [lockedSocials, setLockedSocials] = useState({
+    instagram: !!socialLinks.instagram,
+    twitter: !!socialLinks.twitter,
+    facebook: !!socialLinks.facebook,
+  });
+  const hasSocialValues = Object.values(socialLinks).some(Boolean);
   const isLocked = store?.identityLocked;
 
   const [formDescription, setFormDescription] = useState(store?.description);
@@ -176,10 +218,6 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
 
     fetchBanks();
   }, []);
-
-
-
- 
 
   const [resendTimer, setResendTimer] = useState(0);
 
@@ -390,8 +428,8 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
   const menuItems = [
     { id: "profile", label: "Store Profile", icon: <Store size={18} /> },
     { id: "account", label: "Account Info", icon: <User size={18} /> },
-    { id: "notifications", label: "Notifications", icon: <Bell size={18} /> },
-    { id: "security", label: "Security", icon: <Shield size={18} /> },
+    // { id: "notifications", label: "Notifications", icon: <Bell size={18} /> },
+    // { id: "security", label: "Security", icon: <Shield size={18} /> },
     { id: "delivery", label: "Delivery", icon: <Truck size={18} /> },
     {
       id: "st",
@@ -458,6 +496,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
       if (result && result.store) {
         // Synchronize your local display state immediately
         setStoreDits(result.store);
+        setStore(result.store);
 
         toast.success(
           formEmail !== store?.email
@@ -470,8 +509,11 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
         );
 
         setFormPhone(result.store.phoneNumber || "");
-        setFormAddress(result.store.address || "");
+        setFormAddress(normalizeAddress(result.store.address));
+        setCityInput(result.store.address?.city || "");
         setSocialLinks(result.store.socialLinks || {});
+        setLockedSocials(result.store.socialLinks || {});
+        // console.log(result.store.socialLinks)
 
         setLogoFile(null);
         setHeroFile(null);
@@ -498,6 +540,8 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
   useEffect(() => {
     if (store) {
       setStoreDits(store);
+      setFormAddress(normalizeAddress(store.address));
+      setCityInput(store.address?.city || "");
     }
   }, [store]);
 
@@ -1227,42 +1271,161 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   >
                     Phone Number
                   </FormLabel>
-                  <Input
-                    placeholder="e.g. +234 803 000 0000"
-                    value={formPhone}
-                    onChange={handlePhoneChange}
-                    sx={{
-                      flex: 1,
-                      maxWidth: 400,
-                      borderRadius: "lg",
-                      bgcolor: isDark ? "#0f172a" : "white",
-                      color: isDark ? "#f1f5f9" : "inherit",
-                      borderColor: isDark ? "#90a1b9" : "neutral.200",
-                    }}
-                  />
+
+                  <Stack spacing={1} sx={{ flex: 1, maxWidth: 400 }}>
+                    <Input
+                      disabled={!!formPhone && !editingPhone}
+                      placeholder="e.g. +234 803 000 0000"
+                      value={formPhone}
+                      onChange={handlePhoneChange}
+                      sx={{
+                        borderRadius: "lg",
+                        bgcolor: isDark ? "#0f172a" : "white",
+                        color: isDark ? "#f1f5f9" : "inherit",
+                        borderColor: isDark ? "#90a1b9" : "neutral.200",
+                      }}
+                    />
+
+                    {formPhone && (
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          size="sm"
+                          variant="soft"
+                          onClick={() => setEditingPhone(!editingPhone)}
+                        >
+                          {editingPhone ? "Done" : "Edit"}
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          color="danger"
+                          variant="soft"
+                          onClick={() => {
+                            setFormPhone("");
+                            setEditingPhone(false);
+                          }}
+                        >
+                          Clear
+                        </Button>
+                      </Stack>
+                    )}
+                  </Stack>
                 </FormControl>
 
                 {/* STORE ADDRESS SECTION */}
-                <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                <FormControl
+                  sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+                >
                   <FormLabel
                     className={`${isDark ? "text-slate-400!" : ""}`}
                     sx={{ minWidth: 140 }}
                   >
                     Store Address
                   </FormLabel>
+
                   <Box sx={{ flex: 1, maxWidth: 400 }}>
-                    <Textarea
-                      minRows={2}
-                      placeholder="Street address, City, State, Country"
-                      value={formAddress}
-                      onChange={(e) => setFormAddress(e.target.value)}
-                      sx={{
-                        borderRadius: "md",
-                        bgcolor: isDark ? "#0f172a" : "white",
-                        color: isDark ? "#f1f5f9" : "inherit",
-                        borderColor: isDark ? "#90a1b9" : "neutral.200",
-                      }}
-                    />
+                    <Stack spacing={2}>
+                      <Input
+                        disabled={!editingAddress}
+                        placeholder="Street address"
+                        value={formAddress.street}
+                        onChange={(e) =>
+                          setFormAddress((prev) => ({
+                            ...prev,
+                            street: e.target.value,
+                          }))
+                        }
+                        sx={{
+                          bgcolor: isDark ? "#0f172a" : "white",
+                          color: isDark ? "#f1f5f9" : "inherit",
+                        }}
+                      />
+
+                      <Autocomplete
+                        disabled={!editingAddress}
+                        options={cities}
+                        value={formAddress.city}
+                        onChange={(_, newValue) =>
+                          setFormAddress((prev) => ({
+                            ...prev,
+                            city: newValue || "",
+                          }))
+                        }
+                        inputValue={cityInput}
+                        onInputChange={(_, newInput) => {
+                          setCityInput(newInput);
+                          setFormAddress((prev) => ({
+                            ...prev,
+                            city: newInput,
+                          }));
+                        }}
+                        freeSolo
+                        renderInput={(params) => (
+                          <Input
+                            {...params}
+                            placeholder="City (type to search)"
+                            sx={{
+                              bgcolor: isDark ? "#0f172a" : "white",
+                              color: isDark ? "#f1f5f9" : "inherit",
+                            }}
+                          />
+                        )}
+                      />
+
+                      <Input
+                        disabled={!editingAddress}
+                        placeholder="State"
+                        value={formAddress.state}
+                        onChange={(e) =>
+                          setFormAddress((prev) => ({
+                            ...prev,
+                            state: e.target.value,
+                          }))
+                        }
+                        sx={{
+                          bgcolor: isDark ? "#0f172a" : "white",
+                        }}
+                      />
+
+                      <Select
+                        disabled={!editingAddress}
+                        value={formAddress.country || "Nigeria"}
+                        onChange={(_, newValue) =>
+                          setFormAddress((prev) => ({
+                            ...prev,
+                            country: newValue || "Nigeria",
+                          }))
+                        }
+                      >
+                        <Option value="Nigeria">Nigeria</Option>
+                        <Option value="Ghana">Ghana</Option>
+                        <Option value="Kenya">Kenya</Option>
+                      </Select>
+
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          size="sm"
+                          variant="soft"
+                          onClick={() => setEditingAddress(!editingAddress)}
+                        >
+                          {editingAddress ? "Done" : "Edit"}
+                        </Button>
+
+                        {editingAddress && (
+                          <Button
+                            size="sm"
+                            color="danger"
+                            variant="soft"
+                            onClick={() => {
+                              setFormAddress(emptyAddress);
+                              setCityInput("");
+                            }}
+                          >
+                            Clear
+                          </Button>
+                        )}
+                      </Stack>
+                    </Stack>
                   </Box>
                 </FormControl>
 
@@ -1281,6 +1444,9 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                     {/* Instagram - Wrap each in a simple Box or its own FormControl if needed */}
                     <Input
                       placeholder="Instagram URL"
+                      disabled={
+                        lockedSocials.instagram && !editingSocials.instagram
+                      }
                       value={socialLinks.instagram}
                       onChange={(e) =>
                         setSocialLinks((prev) => ({
@@ -1295,10 +1461,48 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                         color: isDark ? "#f1f5f9" : "inherit",
                       }}
                     />
+                    {socialLinks.instagram && (
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          size="sm"
+                          variant="soft"
+                          onClick={() =>
+                            setEditingSocials((prev) => ({
+                              ...prev,
+                              instagram: !prev.instagram,
+                            }))
+                          }
+                        >
+                          {editingSocials.instagram ? "Done" : "Edit"}
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          color="danger"
+                          variant="soft"
+                          onClick={() => {
+                            setSocialLinks((prev) => ({
+                              ...prev,
+                              instagram: "",
+                            }));
+
+                            setEditingSocials((prev) => ({
+                              ...prev,
+                              instagram: false,
+                            }));
+                          }}
+                        >
+                          Clear
+                        </Button>
+                      </Stack>
+                    )}
 
                     {/* Twitter/X */}
                     <Input
                       placeholder="Twitter / X URL"
+                      disabled={
+                        lockedSocials.twitter && !editingSocials.twitter
+                      }
                       value={socialLinks.twitter}
                       onChange={(e) =>
                         setSocialLinks((prev) => ({
@@ -1313,10 +1517,48 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                         color: isDark ? "#f1f5f9" : "inherit",
                       }}
                     />
+                    {socialLinks.twitter && (
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          size="sm"
+                          variant="soft"
+                          onClick={() =>
+                            setEditingSocials((prev) => ({
+                              ...prev,
+                              twitter: !prev.twitter,
+                            }))
+                          }
+                        >
+                          {editingSocials.twitter ? "Done" : "Edit"}
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          color="danger"
+                          variant="soft"
+                          onClick={() => {
+                            setSocialLinks((prev) => ({
+                              ...prev,
+                              twitter: "",
+                            }));
+
+                            setEditingSocials((prev) => ({
+                              ...prev,
+                              twitter: false,
+                            }));
+                          }}
+                        >
+                          Clear
+                        </Button>
+                      </Stack>
+                    )}
 
                     {/* Facebook */}
                     <Input
                       placeholder="Facebook URL"
+                      disabled={
+                        lockedSocials.facebook && !editingSocials.facebook
+                      }
                       value={socialLinks.facebook}
                       onChange={(e) =>
                         setSocialLinks((prev) => ({
@@ -1331,6 +1573,41 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                         color: isDark ? "#f1f5f9" : "inherit",
                       }}
                     />
+                    {socialLinks.facebook && (
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          size="sm"
+                          variant="soft"
+                          onClick={() =>
+                            setEditingSocials((prev) => ({
+                              ...prev,
+                              facebook: !prev.facebook,
+                            }))
+                          }
+                        >
+                          {editingSocials.facebook ? "Done" : "Edit"}
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          color="danger"
+                          variant="soft"
+                          onClick={() => {
+                            setSocialLinks((prev) => ({
+                              ...prev,
+                              facebook: "",
+                            }));
+
+                            setEditingSocials((prev) => ({
+                              ...prev,
+                              facebook: false,
+                            }));
+                          }}
+                        >
+                          Clear
+                        </Button>
+                      </Stack>
+                    )}
                   </Stack>
                 </Box>
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
@@ -1454,96 +1731,52 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   >
                     Store Category
                   </FormLabel>
-                  <Select
-                    className="capitalize! placeholder:capitalize!"
-                    value={formStoreType}
-                    onChange={(e, newValue) => setFormStoreType(newValue)}
-                    variant={isDark ? "soft" : "outlined"}
-                    sx={{
-                      flex: 1,
-                      maxWidth: 400,
-                      borderRadius: "lg",
-                      // ✅ Use specific Slate-900 for the button background
-                      bgcolor: isDark ? "#0f172a" : "white",
-                      color: isDark ? "#f1f5f9" : "inherit",
-                      borderColor: isDark ? "#90a1b9" : "neutral.200",
-                      "&:hover": {
-                        bgcolor: isDark ? "#1e293b" : "neutral.50", // Slate-800
-                        borderColor: isDark ? "#334155" : "neutral.400",
-                      },
-                      "&:focus-within": {
-                        borderColor: "primary.500",
-                        outline: isDark
-                          ? "2px solid rgba(14, 165, 233, 0.2)"
-                          : "none",
-                      },
-                      "& .MuiSelect-indicator": {
-                        color: isDark ? "#64748b" : "inherit", // Slate-500
-                      },
-                    }}
-                    slotProps={{
-                      listbox: {
-                        sx: {
-                          // ✅ Match the deep Slate-950/900 palette for the menu
-                          bgcolor: isDark ? "#020617" : "background.surface",
-                          borderColor: isDark ? "#90a1b9" : "neutral.200",
-                          boxShadow: isDark
-                            ? "0 20px 25px -5px rgba(0, 0, 0, 0.6)"
-                            : "md",
-                          color: isDark ? "#e2e8f0" : "inherit",
-                          p: 1,
-                          gap: 0.5,
-                          "& .MuiOption-root": {
-                            borderRadius: "md",
-                            transition: "all 0.2s",
-                            "&:hover": {
-                              bgcolor: isDark ? "#1e293b" : "neutral.100",
-                              color: isDark ? "#fff" : "inherit",
-                            },
-                            '&[aria-selected="true"]': {
-                              // High-contrast selection for dark mode
-                              bgcolor: isDark
-                                ? "rgba(14, 165, 233, 0.15)"
-                                : "primary.100",
-                              color: isDark ? "#38bdf8" : "primary.700", // Slate-400 blue
-                              fontWeight: 600,
-                            },
-                          },
-                        },
-                      },
-                    }}
-                  >
-                    <Option
-                      className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
-                      value="general store"
+
+                  <Stack spacing={1} sx={{ flex: 1, maxWidth: 400 }}>
+                    <Select
+                      disabled={!!formStoreType && !editingCategory}
+                      className="capitalize! placeholder:capitalize!"
+                      value={formStoreType}
+                      onChange={(e, newValue) => setFormStoreType(newValue)}
+                      variant={isDark ? "soft" : "outlined"}
+                      sx={{
+                        borderRadius: "lg",
+                        bgcolor: isDark ? "#0f172a" : "white",
+                        color: isDark ? "#f1f5f9" : "inherit",
+                        borderColor: isDark ? "#90a1b9" : "neutral.200",
+                      }}
                     >
-                      General Store
-                    </Option>
-                    <Option
-                      className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
-                      value="fashion"
-                    >
-                      Fashion
-                    </Option>
-                    <Option
-                      className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
-                      value="electronics"
-                    >
-                      electronics
-                    </Option>
-                    <Option
-                      className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
-                      value="beauty & health"
-                    >
-                      Beauty & Health
-                    </Option>
-                    <Option
-                      className={`${isDark ? "bg-slate-900! text-slate-200!" : ""}`}
-                      value="digital products"
-                    >
-                      Digital Products
-                    </Option>
-                  </Select>
+                      <Option value="general store">General Store</Option>
+                      <Option value="fashion">Fashion</Option>
+                      <Option value="electronics">Electronics</Option>
+                      <Option value="beauty & health">Beauty & Health</Option>
+                      <Option value="digital products">Digital Products</Option>
+                    </Select>
+
+                    {formStoreType && (
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          size="sm"
+                          variant="soft"
+                          onClick={() => setEditingCategory(!editingCategory)}
+                        >
+                          {editingCategory ? "Done" : "Edit"}
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          color="danger"
+                          variant="soft"
+                          onClick={() => {
+                            setFormStoreType("");
+                            setEditingCategory(false);
+                          }}
+                        >
+                          Clear
+                        </Button>
+                      </Stack>
+                    )}
+                  </Stack>
                 </FormControl>
                 {/* SUPPORT EMAIL SECTION */}
                 <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
@@ -1556,6 +1789,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   <Box sx={{ flex: 1, maxWidth: 400 }}>
                     <Input
                       value={formEmail || ""}
+                      disabled
                       onChange={(e) => setFormEmail(e.target.value)}
                       startDecorator={
                         <Mail
@@ -2619,7 +2853,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                       </Stack>
 
                       {/* STEP 2: BUSINESS INFO */}
-                      {validationStep === 2  &&
+                      {validationStep === 2 &&
                         (() => {
                           const raw = bankForm.businessName?.trim() || "";
                           const words = raw
@@ -2925,7 +3159,6 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
 
             {activeSection === "delivery" && (
               <DeliverySettingsSection isDark={isDark} />
-
             )}
 
             {activeSection === "domain" && (
@@ -2985,18 +3218,19 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                 {/* Current Active Domain Card */}
                 <Box sx={{ position: "relative" }}>
                   <Sheet
+                    className="items-center md:justify-between justify-end w-full"
                     variant="soft"
-                    className={`${isDark ? "bg-[#0f172b] text-slate-100!" : ""}`}
                     sx={{
                       p: 3,
                       borderRadius: "xl",
                       display: "flex",
                       flexDirection: { xs: "column", sm: "row" },
-                      alignItems: "center",
                       justifyContent: "space-between",
                       gap: 2,
                       border: "1px solid",
-                      borderColor: "primary.200",
+                      borderColor: isDark ? "#314158" : "primary.200",
+                      bgcolor: isDark ? "slate.950" : "background.body",
+                      color: isDark ? "slate.100" : "inherit",
                       filter:
                         !store?.paystack || store?.paystack.length === 0
                           ? "blur(4px)"
@@ -3012,7 +3246,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                       <Box
                         sx={{
                           p: 1,
-                          bgcolor: "white",
+                          bgcolor: isDark ? "slate.800" : "white",
                           borderRadius: "lg",
                           boxShadow: "sm",
                         }}
@@ -3020,7 +3254,10 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                         <Globe size={24} className="text-blue-600" />
                       </Box>
                       <Box>
-                        <Typography level="title-md" sx={{ fontWeight: 700 }}>
+                        <Typography
+                          level="title-md"
+                          sx={{ fontWeight: 700, color: isDark ? "slate.100" : "inherit" }}
+                        >
                           {store?.plan === "starter"
                             ? `layemart.com/${store?.subdomain}`
                             : `${store?.subdomain}.layemart.com`}
@@ -3042,7 +3279,9 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                     </Box>
 
                     <Button
-                      variant="white"
+                      className={` flex items-end  justify-end`}
+                      variant={isDark ? "soft" : "white"}
+                      color="primary"
                       size="sm"
                       onClick={() =>
                         window.open(
@@ -3085,46 +3324,74 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                 </Box>
 
                 {/* Custom Domain Input & Verify */}
-                <Box sx={{ opacity: store?.plan === "starter" ? 0.6 : 1 }}>
+                <Box sx={{ opacity: store?.plan === "starter" ? 1 : 1 }}>
                   <Typography
-                    className={isDark ? "text-white!" : "text-black!"}
+                    className={`${isDark ? "text-slate-200!" : ""}`}
                     level="title-md"
-                    sx={{ mb: 1, fontWeight: 700 }}
+                    sx={{
+                      mb: 1,
+                      fontWeight: 700,
+                    }}
                   >
                     External Custom Domain
                   </Typography>
                   <Typography
-                    className={`${isDark ? "text-slate-400!" : ""}`}
                     level="body-sm"
-                    sx={{ mb: 2, color: "text.secondary" }}
+                    sx={{
+                      mb: 2,
+                      color: isDark ? "text.tertiary" : "text.secondary",
+                    }}
                   >
                     Point your own domain to your LayeMart store.
-                    {store?.plan === "starter" &&
-                      " (Upgrade to Professional to enable)"}
+                    {/* {store?.plan === "starter" &&
+                      " (Upgrade to Professional to enable)"} */}
                   </Typography>
 
                   <Stack gap={2}>
-                    <Stack direction="row" gap={1} sx={{ maxWidth: 500 }}>
-                      <Input
-                        disabled={store?.plan === "starter"}
-                        placeholder="yourdomain.com"
-                        startDecorator="https://"
-                        value={domainInput}
-                        onChange={(e) => setDomainInput(e.target.value)}
-                        sx={{ flex: 1, borderRadius: "lg" }}
-                      />
-                      <Button
-                        disabled={store?.plan === "starter" || !domainInput}
-                        loading={verifying}
-                        onClick={handleVerify}
-                        sx={{ borderRadius: "lg", px: 3 }}
-                      >
-                        Verify & Connect
-                      </Button>
-                    </Stack>
+  <Stack
+  direction={{ xs: "column", sm: "row" }}
+  gap={1}
+  sx={{
+    maxWidth: 500,
+    width: "100%",
+  }}
+>
+  <Input
+    placeholder="yourdomain.com"
+    startDecorator="https://"
+    value={domainInput}
+    onChange={(e) => setDomainInput(e.target.value)}
+    sx={{
+      flex: 1,
+      width: "100%",
+      borderRadius: "lg",
+      bgcolor: isDark ? "slate.950" : "white",
+      borderColor: isDark ? "#314158" : "neutral.200",
+      color: isDark ? "slate.100" : "inherit",
+      "& input": {
+        color: isDark ? "slate.100" : "inherit",
+      },
+    }}
+  />
+
+  <Button
+    variant="solid"
+    color="primary"
+    loading={verifying}
+    onClick={handleVerify}
+    sx={{
+      borderRadius: "lg",
+      px: 3,
+      width: { xs: "100%", sm: "auto" },
+      whiteSpace: "nowrap",
+    }}
+  >
+    Verify & Connect
+  </Button>
+</Stack>
 
                     {/* Hostinger Helper Link */}
-                    {store?.plan !== "starter" && (
+                    {store?.plan === "starter" && (
                       <Typography
                         level="body-xs"
                         onClick={downloadHostingerConfig}
@@ -3147,8 +3414,9 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
 
                 {/* Result Message */}
                 {/* 4. Update the Alert to show the backend message + propagation note */}
-                {store?.plan !== "starter" && verifyMessage && (
+                {store?.plan === "starter" && verifyMessage && (
                   <Alert
+                    className={`${isDark ? "bg-slate-100!" : ""}`}
                     variant="soft"
                     color={isPointed ? "success" : "warning"}
                     startDecorator={
@@ -3192,18 +3460,18 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                       borderRadius: "xl",
                       border: "1px solid",
                       borderColor: isDark ? "#314158" : "neutral.200",
-                      bgcolor: isDark ? "#0f172a" : "#f8fafc",
+                      bgcolor: isDark ? "slate.950" : "#f8fafc",
                     }}
                   >
                     <Typography
                       level="title-sm"
-                      sx={{ fontWeight: 700, mb: 1 }}
+                      sx={{ fontWeight: 700, mb: 1, color: isDark ? "slate.100" : "inherit" }}
                     >
                       📋 How to point your domain
                     </Typography>
                     <Typography
                       level="body-xs"
-                      sx={{ color: "text.secondary", mb: 2 }}
+                      sx={{ color: isDark ? "text.tertiary" : "text.secondary", mb: 2 }}
                     >
                       In your domain registrar (Namecheap, GoDaddy, Hostinger
                       etc.), add these DNS records:
@@ -3225,7 +3493,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                           gridTemplateColumns: "1fr 1fr 2fr",
                           px: 2,
                           py: 1,
-                          bgcolor: isDark ? "#1e293b" : "neutral.100",
+                          bgcolor: isDark ? "slate.900" : "neutral.100",
                           borderBottom: "1px solid",
                           borderColor: isDark ? "#314158" : "neutral.200",
                         }}
@@ -3276,7 +3544,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                           </Typography>
                           <Typography
                             level="body-xs"
-                            sx={{ fontFamily: "monospace" }}
+                            sx={{ fontFamily: "monospace", color: isDark ? "slate.200" : "inherit" }}
                           >
                             {record.host}
                           </Typography>
