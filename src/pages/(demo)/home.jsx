@@ -32,10 +32,7 @@ const STORE_CONTENT_CONFIG = {
     emptyIcon: "🔌",
   },
   "beauty & health": {
-    phrases: [
-      "Glow Naturally", 
-      "Self-Care Essentials", 
-      "Your Daily Ritual"],
+    phrases: ["Glow Naturally", "Self-Care Essentials", "Your Daily Ritual"],
     arrivalSub: "Discover curated beauty and wellness picks.",
     allProductsSub: "From skincare to supplements – shop your wellness.",
     emptyIcon: "✨",
@@ -69,7 +66,8 @@ const STORE_CONTENT_CONFIG = {
       "Best Deals Daily",
     ],
     arrivalSub: "Explore our latest collection of essentials.",
-    allProductsSub: "Discover a wide range of quality products at great prices.",
+    allProductsSub:
+      "Discover a wide range of quality products at great prices.",
     emptyIcon: "📦",
   },
 };
@@ -78,61 +76,71 @@ function DemoHome({ storeSlug, resolverType }) {
   const [storeData, setStoreData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const {toggleStar} = useProductStore()
-useEffect(() => {
-  const fetchStoreDetails = async () => {
-    // 1. Logic check: Prioritize subdomain, then path slug
-    const sub = getSubdomain();
-    const identifier = sub || storeSlug;
+  const {
+    products,
+    fetchStoreProducts,
+    loading: productsLoading,
+    toggleStar,
+  } = useProductStore();
+  useEffect(() => {
+    const fetchStoreDetails = async () => {
+      // 1. Logic check: Prioritize subdomain, then path slug
+      const sub = getSubdomain();
+      const identifier = sub || storeSlug;
 
-    // 2. Guard against non-store identifiers
-    const reserved = ["www", "dashboard", "localhost", "admin", "auth"];
-    if (!identifier || reserved.includes(identifier.toLowerCase())) {
-      setLoading(false);
-      return;
-    }
-
-    // 3. CACHE GUARD: Don't re-fetch if we already have this store's data
-    if (storeData && (storeData.slug === identifier || storeData.subdomain === identifier)) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(false);
-      const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-
-      // 4. Fetch with specific fields to keep the response "Light"
-      const res = await fetch(`${API_URL}/api/stores/public/${identifier.toLowerCase()}`);
-      const result = await res.json();
-
-      if (res.ok && result.success) {
-        setStoreData(result.data);
-        // console.log(result)        
-      } else {
-        setError(true);
+      // 2. Guard against non-store identifiers
+      const reserved = ["www", "dashboard", "localhost", "admin", "auth"];
+      if (!identifier || reserved.includes(identifier.toLowerCase())) {
+        setLoading(false);
+        return;
       }
 
-    } catch (err) {
-      console.error("Fetch Error:", err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
+      // 3. CACHE GUARD: Don't re-fetch if we already have this store's data
+      if (
+        storeData &&
+        (storeData.slug === identifier || storeData.subdomain === identifier)
+      ) {
+        setLoading(false);
+        return;
+      }
 
-  fetchStoreDetails();
-  // 5. Watch BOTH storeSlug and the actual window host for subdomain changes
-}, [storeSlug, window.location.hostname]);
- // It will also re-run if the component remounts on the new subdomain
+      try {
+        setLoading(true);
+        setError(false);
+        const API_URL =
+          import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
+        // 4. Fetch with specific fields to keep the response "Light"
+        const res = await fetch(
+          `${API_URL}/api/stores/public/${identifier.toLowerCase()}`,
+        );
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+          setStoreData(result.data);
+          // console.log(result)
+        } else {
+          setError(true);
+        }
+      } catch (err) {
+        console.error("Fetch Error:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStoreDetails();
+    // 5. Watch BOTH storeSlug and the actual window host for subdomain changes
+  }, [storeSlug, window.location.hostname]);
+  // It will also re-run if the component remounts on the new subdomain
   // 2. Determine content config based on storeType
   const normalizedStoreType = storeData?.storeType?.trim();
 
   const config =
     STORE_CONTENT_CONFIG[normalizedStoreType] ||
     STORE_CONTENT_CONFIG["General Store"];
-    // console.log("Selected Config for Store Type:", normalizedStoreType, config);
+  // console.log("Selected Config for Store Type:", normalizedStoreType, config);
   const STORE_META_CONFIG = {
     Fashion: {
       description:
@@ -215,18 +223,18 @@ useEffect(() => {
   const metaConfig =
     STORE_META_CONFIG[storeData?.storeType] ||
     STORE_META_CONFIG["General Store"];
-const pageTitle = storeData?.name 
-  ? `${storeData.name} – ${storeData.storeType || 'Store'} | Layemart` 
-  : "Loading Store... | Layemart";
+  const pageTitle = storeData?.name
+    ? `${storeData.name} – ${storeData.storeType || "Store"} | Layemart`
+    : "Loading Store... | Layemart";
 
-const pageDescription = storeData?.description 
-  ? storeData.description 
-  : "Welcome to our store on Layemart. Discover amazing products at great prices.";
+  const pageDescription = storeData?.description
+    ? storeData.description
+    : "Welcome to our store on Layemart. Discover amazing products at great prices.";
 
-const pageUrl = window.location.href;
-const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
+  const pageUrl = window.location.href;
+  const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
 
-// console.log(storeData)
+  // console.log(storeData)
   if (error) return <StoreNotFound />;
 
   const UnderConstructionState = ({ storeName, storeLogo }) => (
@@ -424,16 +432,6 @@ const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
           storeHeroTitle={storeData?.heroSubtitle}
         />
 
-        {/* Dynamic New Arrivals Heading passed via props if Slider supports it */}
-        <NewArrivalsSlider
-          subtitle={config.arrivalSub}
-          storeId={storeData?._id}
-          storeSlug={storeSlug}
-          toggleWishlist={toggleStar}
-          isStarter={storeData?.plan === "starter"}
-          storeData={storeData}
-        />
-
         {/* Dynamic Marquee Section */}
         {/* <Box
           sx={{
@@ -464,24 +462,36 @@ const pageImage = storeData?.heroImage?.url || storeData?.logo?.url;
             ))}
           </motion.div>
         </Box> */}
-
-        <FeaturedPicksGrid
-          storeType={storeData?.storeType}
-          isStarter={storeData?.plan === "starter"}
-          storeSlug={storeSlug}
-          toggleWishlist={toggleStar}
-          storeData={storeData}
-        />
-
-        <AllProducts
-          isStarter={storeData?.plan === "starter"}
-          storeSlug={storeSlug}
-          storeData={storeData}
-          toggleWishlist={toggleStar}
-          config={config.allProductsSub}
-        />
+        {/* Dynamic New Arrivals Heading passed via props if Slider supports it */}
 
         {/* <NewsletterSignup storeType={storeData?.storeType} /> */}
+        {storeData && (
+          <>
+            <NewArrivalsSlider
+              subtitle={config.arrivalSub}
+              storeId={storeData?._id}
+              storeSlug={storeSlug}
+              toggleWishlist={toggleStar}
+              isStarter={storeData?.plan === "starter"}
+              storeData={storeData}
+            />
+            <FeaturedPicksGrid
+              storeType={storeData?.storeType}
+              isStarter={storeData?.plan === "starter"}
+              storeSlug={storeSlug}
+              toggleWishlist={toggleStar}
+              storeData={storeData}
+            />
+
+            <AllProducts
+              isStarter={storeData?.plan === "starter"}
+              storeSlug={storeSlug}
+              storeData={storeData}
+              toggleWishlist={toggleStar}
+              config={config.allProductsSub}
+            />
+          </>
+        )}
 
         <Footer
           storeName={storeData?.name}

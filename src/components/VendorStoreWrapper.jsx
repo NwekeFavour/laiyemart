@@ -46,9 +46,13 @@ const handleVerify = async (token) => {
         <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 max-w-md w-full text-center animate-in fade-in zoom-in duration-300">
           
           <div className="mb-6">
-            <div className="w-12 h-12 bg-blue-600 rounded-2xl rotate-12 flex items-center justify-center mx-auto shadow-lg shadow-blue-200">
-               <span className="text-white font-black text-xl -rotate-12">L</span>
-            </div>
+            <div className="flex items-center justify-center mx-auto">
+  <img 
+    src="https://res.cloudinary.com/dzrfqk1zk/image/upload/v1771239090/layemart-icon-removebg-preview_lh5vom.png" 
+    alt="Layemart Logo" 
+    className="h-30 w-30 object-contain"
+  />
+</div>
           </div>
 
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Security Check</h2>

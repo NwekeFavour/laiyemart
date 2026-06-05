@@ -37,37 +37,25 @@ const NewArrivalsGrid = ({
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const [processingId, setProcessingId] = useState(null);
 
-  useEffect(() => {
-    const initData = async () => {
-      if (localStorage.getItem("demo")) {
-        setLocalProducts(DUMMY_PRODUCTS);
-        return;
-      } else if (storeSlug) {
-        setLocalProducts([]);
-        await fetchStoreProducts(storeSlug);
-      }
-    };
-    initData();
-  }, [fetchStoreProducts, setLocalProducts, storeSlug]);
+useEffect(() => {
+  const initData = async () => {
+    if (localStorage.getItem("demo")) {
+      setLocalProducts(DUMMY_PRODUCTS);
+      return;
+    }
+    
+    if (!storeSlug) return;
+    
+    // ✅ Don't wipe products if we already have them — prevents flash
+    // Only fetch if products are empty or belong to a different store
+    await fetchStoreProducts(storeSlug);
+    // Remove setLocalProducts([]) entirely — let fetchStoreProducts handle state
+  };
+  initData();
+}, [storeSlug]);
 
   const getStorePath = (path) => {
-    const cleanPath = path.startsWith("/") ? path : `/${path}`;
-
-    // Check if we are physically on a subdomain right now
-    const hostname = window.location.hostname;
-    const isActuallySubdomain =
-      hostname.split(".").length > 2 ||
-      (hostname.includes("localhost") &&
-        hostname.split(".").length > 1 &&
-        !hostname.startsWith("localhost"));
-
-    // If we are on a subdomain (Professional), NEVER prepend the slug
-    if (isActuallySubdomain) {
-      return cleanPath;
-    }
-
-    // Only prepend if we are on the main domain (Starter)
-    return `/${storeSlug}${cleanPath}`;
+    return isStarter ? `/${storeSlug}${path}` : path;
   };
   const getItemQty = (productId) => {
     const item = cart?.items?.find(
