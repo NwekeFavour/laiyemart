@@ -1213,7 +1213,7 @@ html{
                         Phone
                       </h4>
                       <p className="text-muted-foreground whitespace-pre-line text-slate-600 ">
-                        +234 909 4337 227
+                        +234 909 999 2715
                       </p>
                     </div>
                   </div>
