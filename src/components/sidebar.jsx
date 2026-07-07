@@ -12,7 +12,7 @@ import {
   MonitorPlay,
   TicketPercent,
 } from "lucide-react";
-import Layemart from "../assets/img/layemart-icon.jpg"
+import Layemart from "/img/layemart-icon.jpg"
 import { Box, Typography, Button, IconButton } from "@mui/joy";
 import { useAuthStore } from "../store/useAuthStore";
 import { useNavigate, useLocation } from "react-router-dom";

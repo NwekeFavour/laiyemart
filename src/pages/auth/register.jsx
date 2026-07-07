@@ -19,7 +19,7 @@ import {
 } from "../../../services/authService"; // Ensure verifyOTP is exported from your service
 import { toast } from "react-toastify";
 import { useAuthStore } from "../../store/useAuthStore";
-import Layemart from '../../assets/img/layemart-icon.jpg'
+import Layemart from '/img/layemart-icon.jpg'
 import { Box } from "@mui/joy";
 import { encodeAuthForSync } from "../../utils/authSync";
 
@@ -800,7 +800,7 @@ export default function SignUpPage() {
                         "localhost",
                       )
                         ? "dashboard.localhost:5173"
-                        : "dashboard.layemart.com";
+                        : import.meta.env.VITE_DASHBOARD_URL || "dashboard.layemart.com";
 
                       window.location.href = `${protocol}//${base}/auth-sync?data=${encodedAuth}`;
                     }

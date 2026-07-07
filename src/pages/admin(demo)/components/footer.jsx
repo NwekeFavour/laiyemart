@@ -9,7 +9,7 @@ import {
   FaYoutube,
 } from "react-icons/fa";
 import { FaTiktok } from "react-icons/fa6";
-import Paystack from "../../../assets/img/paystack.png"
+import Paystack from "/img/paystack.png"
 import { Link } from "react-router-dom";
 import { useProductStore } from "../../../../services/productService";
 import { PhoneIcon } from "lucide-react";

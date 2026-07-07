@@ -2,7 +2,7 @@ import { CircularProgress } from "@mui/material";
 import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import Layemart from '../assets/img/layemart-icon.jpg'
+import Layemart from '/img/layemart-icon.jpg'
 
 // This component bridges the gap between domains
 export default function AuthSync() {

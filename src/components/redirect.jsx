@@ -58,9 +58,15 @@ export default function RoleRedirect() {
 
   const isLocal = window.location.hostname.includes("localhost");
   const protocol = window.location.protocol;
-  const dashboardBase = isLocal
-    ? "dashboard.localhost:5173"
-    : "dashboard.layemart.com";
+
+  const getDashboardBase = () => {
+    if (isLocal) return "dashboard.localhost:5173";
+
+    const hostname = window.location.hostname; // e.g. hadupad.com or layemart.com
+    const rootDomain = hostname.replace(/^www\./, "");
+    return `dashboard.${rootDomain}`;
+  };
+  const dashboardBase = getDashboardBase();
 
   const encodedAuth = encodeAuthForSync();
 

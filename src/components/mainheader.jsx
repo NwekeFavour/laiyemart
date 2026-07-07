@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
-import LogoLight13 from "../assets/img/logo-13-light.svg";
-import LogoDark13 from "../assets/img/logo-13-dark.svg";
-import Layemart from "../assets/img/layemart-icon.jpg"
+import LogoLight13 from "/img/logo-13-light.svg";
+import LogoDark13 from "/img/logo-13-dark.svg";
+import Layemart from "/img/layemart-icon.jpg"
 import { encodeAuthForSync } from "../utils/authSync";
 
 const navItems = [

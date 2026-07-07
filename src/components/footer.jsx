@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Twitter, Github, Linkedin } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { Facebook, Instagram, Telegram, X } from "@mui/icons-material";
-import Layemart from '../assets/img/layemart-icon.jpg'
+import Layemart from '/img/layemart-icon.jpg'
 
 export default function Footer() {
   const { isAuthenticated, user } = useAuthStore();

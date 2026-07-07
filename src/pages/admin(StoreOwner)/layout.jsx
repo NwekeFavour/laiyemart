@@ -268,7 +268,7 @@ const handleLogout = () => {
 
   const isLocal = window.location.hostname.includes("localhost");
   const protocol = window.location.protocol;
-  const mainBase = isLocal ? "localhost:5173" : "layemart.com";
+  const mainBase = isLocal ? "localhost:5173" : "layemart.com" ;
 
   // ✅ Redirect directly to layemart.com sign-in
   window.location.href = `${protocol}//${mainBase}/auth/sign-in`;

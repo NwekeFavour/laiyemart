@@ -24,7 +24,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { loginStoreOwner } from "../../../services/authService";
 import { toast } from "react-toastify";
 import { CircularProgress } from "@mui/material";
-import Layemart from "../../assets/img/layemart-icon.jpg";
+import Layemart from "/img/layemart-icon.jpg";
 import { encodeAuthForSync } from "../../utils/authSync";
 
 export default function LoginPage() {
@@ -163,7 +163,7 @@ useEffect(() => {
               const { protocol, hostname } = window.location;
               const base = hostname.includes("localhost")
                 ? "dashboard.localhost:5173"
-                : "dashboard.layemart.com";
+                : import.meta.env.VITE_DASHBOARD_URL || "dashboard.layemart.com";
 
               // 3. Set the target path based on role
               // If SUPER_ADMIN, go to admin dashboard. If OWNER, go to store dashboard.
@@ -340,7 +340,7 @@ useEffect(() => {
                   to={
                     window.location.hostname.includes("localhost")
                       ? "http://localhost:5173/auth/forgot-password" // Your main site local port
-                      : "https://layemart.com/auth/forgot-password"
+                      : import.meta.env.VITE_DASHBOARD_URL || "https://layemart.com/auth/forgot-password"
                   }
                 >
                   Forgot password?
@@ -386,7 +386,7 @@ useEffect(() => {
               href={
                 window.location.hostname.includes("localhost")
                   ? "http://localhost:5173/auth/sign-up" // Your main site local port
-                  : "https://layemart.com/auth/sign-up"
+                  : import.meta.env.VITE_DASHBOARD_URL || "https://layemart.com/auth/sign-up"
               }
               className="your-styling-classes"
             >

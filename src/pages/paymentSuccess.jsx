@@ -12,7 +12,7 @@ export default function PaymentSuccess({ isStarter, storeData }) {
   const encodedAuth = encodeAuthForSync();
   const dashboardBase = window.location.hostname.includes("localhost")
     ? "dashboard.localhost:5173"
-    : "dashboard.layemart.com";
+    : import.meta.env.VITE_DASHBOARD_URL || "dashboard.layemart.com";
   const dashboardUrl = encodedAuth
     ? `${window.location.protocol}//${dashboardBase}/auth-sync?data=${encodedAuth}`
     : "/auth/sign-in";

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Mail, ArrowRight, ShieldCheck } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import Layemart from "../../assets/img/layemart-icon.jpg";
+import Layemart from "/img/layemart-icon.jpg";
 
 export default function ResendOTPPage() {
   const navigate = useNavigate();
