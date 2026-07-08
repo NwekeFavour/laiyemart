@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { useAuthStore } from "../src/store/useAuthStore";
+import { fetchCustomerMe } from "./customerService";
 
 const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -9,6 +10,8 @@ export const useAdminStore = create(
     // ===== STATE =====
     stores: [],
     owners: [],
+    healthSummary: [],
+    webhookHistogram: [],
     transactions: [],
     platformWideStats: null,
     categoryStats: [],
@@ -35,19 +38,19 @@ export const useAdminStore = create(
 
     /* -------- FETCH SUBSCRIPTION EARNINGS -------- */
     fetchTransactions: async () => {
-      set({ loadingTransactions: true});
+      set({ loadingTransactions: true });
       try {
         const response = await fetch(`${VITE_BACKEND_URL}/api/transactions`, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             // Add Authorization header here if your admin routes are protected
             // 'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+          },
         });
 
-        if (!response.ok) throw new Error('Failed to fetch transactions');
-        
+        if (!response.ok) throw new Error("Failed to fetch transactions");
+
         const result = await response.json();
         set({ transactions: result.data, loadingTransactions: false });
       } catch (err) {
@@ -57,15 +60,18 @@ export const useAdminStore = create(
     },
     fetchPlatformWideStats: async () => {
       try {
-        const response = await fetch(`${VITE_BACKEND_URL}/api/transactions/stats/platform-wide`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-        
-        if (!response.ok) throw new Error('Failed to fetch earnings stats');
-        
+        const response = await fetch(
+          `${VITE_BACKEND_URL}/api/transactions/stats/platform-wide`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch earnings stats");
+
         const result = await response.json();
         // console.log("Platform-Wide Stats:", result);
         set({ platformWideStats: result.stats });
@@ -215,10 +221,10 @@ export const useAdminStore = create(
             // Mapping the new Mission Control metrics
             platformStats: {
               // Financials
-              platformRev: data.stats.platformRev,      // The "10% cut"
-              vendorPayouts: data.stats.vendorPayouts,  // Money split to subaccounts
+              platformRev: data.stats.platformRev, // The "10% cut"
+              vendorPayouts: data.stats.vendorPayouts, // Money split to subaccounts
               pendingReviews: data.stats.pendingReviews,
-              escrowBalance: data.stats.escrowBalance,  // Funds currently in escrow
+              escrowBalance: data.stats.escrowBalance, // Funds currently in escrow
               // Totals & Trends
               totalOrders: data.count,
               gmvTrend: data.stats.gmvTrend,
@@ -322,13 +328,17 @@ export const useAdminStore = create(
         }
 
         // Optimistically remove the store from local state
-        set((state) => ({
-          stores: {
-            ...state.stores,
-            count: (state.stores.count || 1) - 1,
-            data: state.stores.data?.filter((s) => s._id !== storeId) ?? [],
-          },
-        }));
+        set((state) => {
+          console.log(state.stores.data);
+
+          return {
+            stores: {
+              ...state.stores,
+              count: state.stores.count - 1,
+              data: state.stores.data.filter((s) => s._id !== storeId),
+            },
+          };
+        });
 
         return { success: true, message: data.message };
       } catch (err) {
@@ -340,28 +350,65 @@ export const useAdminStore = create(
 
     // Suspend toggle
     suspendStore: async (storeId, reason) => {
-      const res = await fetch(`${API_URL}/api/stores/${storeId}/suspend`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getAdminToken()}`,
+      const { token } = useAuthStore.getState();
+      const res = await fetch(
+        `${VITE_BACKEND_URL}/api/stores/${storeId}/suspend`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ reason }),
         },
-        body: JSON.stringify({ reason }),
-      });
+      );
       return res.json();
     },
 
     // Broadcast
     sendBroadcast: async ({ subject, message, targetPlan }) => {
-      const res = await fetch(`${API_URL}/api/admin/broadcast`, {
+      const { token } = useAuthStore.getState();
+      const res = await fetch(`${VITE_BACKEND_URL}/api/admin/broadcast`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${getAdminToken()}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ subject, message, targetPlan }),
       });
       return res.json();
+    },
+
+    fetchHealthSummary: async () => {
+      const { token } = useAuthStore.getState();
+      try {
+        const res = await fetch(
+          `${VITE_BACKEND_URL}/api/admin/health/summary`,
+          {
+            headers: {"Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          },
+        );
+        const data = await res.json();
+        if (data.success) set({ healthSummary: data });
+      } catch (err) {
+        console.error("fetchHealthSummary error:", err.message);
+      }
+    },
+
+    fetchWebhookHistogram: async () => {
+      const { token } = useAuthStore.getState();
+      try {
+        const res = await fetch(
+          `${VITE_BACKEND_URL}/api/admin/health/webhooks/histogram`,
+          {
+            headers: {"Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          },
+        );
+        const data = await res.json();
+        if (data.success) set({ webhookHistogram: data.histogram || [] });
+      } catch (err) {
+        console.error("fetchWebhookHistogram error:", err.message);
+      }
     },
 
     /* -------- RESET -------- */

@@ -1,8 +1,33 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { Box, Typography, Button, Sheet, Avatar, Chip, Input, Link, Modal, ModalDialog, ModalClose, Divider, Grid, Card, IconButton, Tooltip } from "@mui/joy";
-import { Search, Store as StoreIcon, Download, ShieldCheck, ShieldAlert, Trash2, AlertTriangle, Percent, Award, ExternalLink, Wallet, Users, ArrowUpRight, ShoppingBag, AlertCircle } from "lucide-react";
-import { useAdminStore } from '../../../services/adminService';
-import SuperAdminLayout from './layout';
+import React, { useEffect, useState, useMemo } from "react";
+import {
+  Box,
+  Typography,
+  Button,
+  Sheet,
+  Avatar,
+  Chip,
+  Input,
+  Modal,
+  ModalDialog,
+  Divider,
+  IconButton,
+  Tooltip,
+} from "@mui/joy";
+import {
+  Search,
+  Download,
+  ShieldCheck,
+  Trash2,
+  AlertTriangle,
+  Percent,
+  ExternalLink,
+  Wallet,
+  Users,
+  ShoppingBag,
+  AlertCircle,
+} from "lucide-react";
+import { useAdminStore } from "../../../services/adminService";
+import SuperAdminLayout from "./layout";
 
 // ─── Confirmation Modal ───────────────────────────────────────────────────────
 function DeleteStoreModal({ store, onConfirm, onCancel, isDeleting }) {
@@ -14,176 +39,167 @@ function DeleteStoreModal({ store, onConfirm, onCancel, isDeleting }) {
         variant="outlined"
         role="alertdialog"
         sx={{
-          maxWidth: 440,
-          borderRadius: '20px',
-          p: 0,
-          overflow: 'hidden',
-          border: '1px solid #fecaca',
+          maxWidth: 420,
+          borderRadius: "12px",
+          p: 3,
         }}
       >
-        {/* Red accent top bar */}
-        <Box sx={{ height: 5, bgcolor: '#ef4444', width: '100%' }} />
-
-        <Box sx={{ p: 3.5 }}>
-          {/* Icon + Title */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-            <Box
-              sx={{
-                width: 44,
-                height: 44,
-                borderRadius: '12px',
-                bgcolor: '#fef2f2',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <AlertTriangle size={22} color="#ef4444" />
-            </Box>
-            <Box>
-              <Typography level="title-lg" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                Delete Store
-              </Typography>
-              <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>
-                This action cannot be undone
-              </Typography>
-            </Box>
-          </Box>
-
-          <Divider sx={{ mb: 2.5 }} />
-
-          {/* Store preview */}
+        <Box
+          sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mb: 2 }}
+        >
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-              p: 2,
-              bgcolor: '#f8fafc',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
-              mb: 2.5,
+              width: 36,
+              height: 36,
+              borderRadius: "8px",
+              bgcolor: "#fef2f2",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
             }}
           >
-            <Avatar
-              src={store.logo?.url}
-              sx={{ borderRadius: '10px', width: 40, height: 40, flexShrink: 0 }}
-            >
-              {store.name?.charAt(0)}
-            </Avatar>
-            <Box>
-              <Typography level="title-sm" sx={{ fontWeight: 700 }}>
-                {store?.name}
-              </Typography>
-              <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>
-                {store?.owner?.email}
-              </Typography>
-            </Box>
+            <AlertTriangle size={18} color="#dc2626" />
           </Box>
-
-          <Typography level="body-sm" sx={{ color: '#475569', mb: 3, lineHeight: 1.7 }}>
-            You are about to permanently delete this store and all its associated data,
-            including orders and assets. This <strong>cannot be reversed</strong>.
-          </Typography>
-
-          {/* Actions */}
-          <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
-            <Button
-              variant="plain"
-              color="neutral"
-              onClick={onCancel}
-              disabled={isDeleting}
-              sx={{ borderRadius: '10px', fontWeight: 600 }}
+          <Box>
+            <Typography
+              level="title-md"
+              sx={{ fontWeight: 700, color: "#0f172a" }}
             >
-              Cancel
-            </Button>
-            <Button
-              className='md:block! hidden!'
-              color="danger"
-              onClick={onConfirm}
-              loading={isDeleting}
-              startDecorator={!isDeleting ? <Trash2 size={16} /> : null}
-              sx={{
-                borderRadius: '10px',
-                fontWeight: 700,
-                bgcolor: '#ef4444',
-                '&:hover': { bgcolor: '#dc2626' },
-              }}
-            >
-              {isDeleting ? 'Deleting...' : 'Yes, Delete Store'}
-            </Button>
-            <Button
-              className='md:hidden! flex!'
-              color="danger"
-              onClick={onConfirm}
-              loading={isDeleting}
-              startDecorator={!isDeleting ? <Trash2 size={16} /> : null}
-              sx={{
-                borderRadius: '10px',
-                fontWeight: 700,
-                bgcolor: '#ef4444',
-                '&:hover': { bgcolor: '#dc2626' },
-              }}
-            >
-              {isDeleting ? 'Deleting...' : 'Yes, Delete'}
-            </Button>
+              Delete store
+            </Typography>
+            <Typography level="body-sm" sx={{ color: "#64748b", mt: 0.25 }}>
+              This can't be undone.
+            </Typography>
           </Box>
+        </Box>
+
+        <Divider sx={{ mb: 2 }} />
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            p: 1.5,
+            bgcolor: "#f8fafc",
+            borderRadius: "8px",
+            border: "1px solid #e2e8f0",
+            mb: 2.5,
+          }}
+        >
+          <Avatar
+            src={store.logo?.url}
+            sx={{ borderRadius: "6px", width: 32, height: 32 }}
+          >
+            {store.name?.charAt(0)}
+          </Avatar>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography level="body-sm" sx={{ fontWeight: 600 }} noWrap>
+              {store?.name}
+            </Typography>
+            <Typography level="body-xs" sx={{ color: "#64748b" }} noWrap>
+              {store?.owner?.email}
+            </Typography>
+          </Box>
+        </Box>
+
+        <Typography level="body-sm" sx={{ color: "#475569", mb: 3 }}>
+          This permanently deletes the store and its orders and assets.
+        </Typography>
+
+        <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
+          <Button
+            variant="outlined"
+            color="neutral"
+            onClick={onCancel}
+            disabled={isDeleting}
+            sx={{ borderRadius: "8px", fontWeight: 600 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            color="danger"
+            onClick={onConfirm}
+            loading={isDeleting}
+            startDecorator={!isDeleting ? <Trash2 size={14} /> : null}
+            sx={{ borderRadius: "8px", fontWeight: 600 }}
+          >
+            Delete store
+          </Button>
         </Box>
       </ModalDialog>
     </Modal>
   );
 }
 
-const StatWidget = ({ title, value, subtext, icon: Icon, color, percentage, trend = 12 }) => (
-  <Card variant="soft" sx={{ bgcolor: 'white', borderRadius: '24px', border: '1px solid #f1f5f9', p: 2.5, flex: 1 }}>
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-      <Box
+// ─── Stat Card ─────────────────────────────────────────────────────────────
+const StatCard = ({ title, value, subtext, icon: Icon }) => (
+  <Sheet
+    variant="outlined"
+    sx={{
+      borderRadius: "10px",
+      p: 2,
+      flex: 1,
+      bgcolor: "white",
+      borderColor: "#e2e8f0",
+    }}
+  >
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+      <Icon size={15} color="#64748b" />
+      <Typography
+        level="body-xs"
         sx={{
-          p: 1.5,
-          borderRadius: '14px',
-          bgcolor: `${color}.50`,
-          color: `${color}.600`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
+          fontWeight: 600,
+          color: "#64748b",
+          textTransform: "uppercase",
+          letterSpacing: "0.03em",
         }}
       >
-        <Icon size={20} />
-      </Box>
-      {percentage !== undefined && (
-        <Chip 
-          size="sm" 
-          variant="soft" 
-          color={trend === "up" ? "success" : "neutral"} 
-          startDecorator={trend === "up" ? <ArrowUpRight size={12} /> : <Percent size={12} />}
-        >
-          {percentage}%
-        </Chip>
-      )}
-    </Box>
-    <Box sx={{ mt: 2 }}>
-      <Typography level="body-xs" sx={{ fontWeight: 700, textTransform: 'uppercase', tracking: '1px', color: 'text.tertiary' }}>
         {title}
       </Typography>
-      <Typography level="h3" sx={{ fontWeight: 800, mt: 0.5 }}>
-        {value}
-      </Typography>
-      <Typography level="body-xs" sx={{ color: 'text.tertiary', mt: 0.5 }}>
-        {subtext}
-      </Typography>
     </Box>
-  </Card>
+    <Typography level="h4" sx={{ fontWeight: 700, color: "#0f172a" }}>
+      {value}
+    </Typography>
+    <Typography level="body-xs" sx={{ color: "#94a3b8", mt: 0.25 }}>
+      {subtext}
+    </Typography>
+  </Sheet>
+);
+
+// ─── Status Badge ──────────────────────────────────────────────────────────
+const StatusBadge = ({ verified }) => (
+  <Chip
+    size="sm"
+    variant="soft"
+    color={verified ? "success" : "warning"}
+    startDecorator={
+      verified ? <ShieldCheck size={12} /> : <AlertCircle size={12} />
+    }
+    sx={{ fontWeight: 600, fontSize: "11px", borderRadius: "6px" }}
+  >
+    {verified ? "Verified" : "KYC pending"}
+  </Chip>
 );
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function StoreManagement() {
-  const { stores, fetchAllStores, loadingStores, deleteStore, fetchPlatformOrders, platformOrders, platformStats } = useAdminStore();
+  const {
+    stores,
+    fetchAllStores,
+    loadingStores,
+    deleteStore,
+    fetchPlatformOrders,
+    platformOrders,
+    platformStats,
+  } = useAdminStore();
   const [searchTerm, setSearchTerm] = useState("");
-  const [storeToDelete, setStoreToDelete] = useState(null); // store object to confirm
+  const [storeToDelete, setStoreToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [toast, setToast] = useState(null); // { type: 'success' | 'error', message: string }
-  const isDark = false;
+  const [toast, setToast] = useState(null);
+
+  const protocol = window.location.protocol;
 
   useEffect(() => {
     fetchAllStores();
@@ -195,12 +211,10 @@ export default function StoreManagement() {
     return stores.data.filter(
       (store) =>
         store.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        store.owner?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        store.owner?.email?.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [stores, searchTerm]);
 
-  // console.log(stores)
-  // ── Handlers ──
   const handleDeleteClick = (store) => setStoreToDelete(store);
   const handleCancelDelete = () => {
     if (!isDeleting) setStoreToDelete(null);
@@ -213,230 +227,376 @@ export default function StoreManagement() {
     const result = await deleteStore(storeToDelete._id);
 
     if (result.success) {
-      // Refresh the list so the deleted store vanishes immediately
-      await fetchAllStores(); 
+      await fetchAllStores();
     }
 
     setIsDeleting(false);
     setStoreToDelete(null);
 
     setToast({
-      type: result.success ? 'success' : 'error',
+      type: result.success ? "success" : "error",
       message: result.message,
     });
     setTimeout(() => setToast(null), 4000);
   };
-  // ── Styles ──
-  const thStyle = `px-4 py-3 font-semibold text-[13px] ${isDark ? "text-slate-200" : "text-gray-900"}`;
-  const tdStyle = `px-4 py-4 text-[13px] ${isDark ? "text-slate-300" : "text-gray-700"}`;
 
   return (
-<SuperAdminLayout>
-      <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: '1600px', mx: 'auto' }}>
-        
+    <SuperAdminLayout>
+      <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: "1440px", mx: "auto" }}>
         {/* ── Header ── */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 4 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 2,
+            mb: 3,
+          }}
+        >
           <Box>
-            <Typography level="h2" sx={{ fontWeight: 900, letterSpacing: '-1px' }}>Mission Control</Typography>
-            <Typography level="body-md" sx={{ color: 'text.tertiary' }}>
-              Monitoring <strong>{stores?.count || 0}</strong> active merchants and platform liquidity.
+            <Typography level="h3" sx={{ fontWeight: 700, color: "#0f172a" }}>
+              Stores
+            </Typography>
+            <Typography level="body-sm" sx={{ color: "#64748b", mt: 0.25 }}>
+              {stores?.count || 0} active merchants
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button variant="soft" color="neutral" startDecorator={<Download size={18} />} sx={{ borderRadius: '12px' }}>
-              Financial Report
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              variant="outlined"
+              color="neutral"
+              size="sm"
+              startDecorator={<Download size={15} />}
+              sx={{ borderRadius: "8px", fontWeight: 600 }}
+            >
+              Export
             </Button>
-            <Button variant="solid" sx={{ bgcolor: '#4f46e5', borderRadius: '12px', fontWeight: 700 }}>
-              Platform Settings
+            <Button
+              variant="solid"
+              size="sm"
+              sx={{
+                bgcolor: "#4f46e5",
+                borderRadius: "8px",
+                fontWeight: 600,
+                "&:hover": { bgcolor: "#4338ca" },
+              }}
+            >
+              Platform settings
             </Button>
           </Box>
         </Box>
 
-        {/* ── Analytics Grid ── */}
-        <Grid  className="grid! grid-cols-1! md:grid-cols-3! space-y-4 md:space-x-4 "  sx={{ mb: 5 }}>
-          <Grid  xs={12} md={3}>
-            <StatWidget 
-              title="Platform Rev" 
-              value={`₦${platformStats?.platformRev?.toLocaleString() || '0'}`} 
-              subtext="Total Commission Earned" 
-              icon={Percent} 
-              color="primary" 
-              percentage={platformStats?.totalRevenue > 0 
-                ? ((platformStats.platformRev / platformStats.totalRevenue) * 100).toFixed(1) 
-                : 0}
-              trend="up"
-            />
-          </Grid>
-          <Grid xs={12} md={3}>
-            <StatWidget 
-              title="Vendor Payouts" 
-              value={`₦${platformStats?.vendorPayouts?.toLocaleString() || '0'}`}
-              subtext="Successfully split to subaccounts" 
-              icon={Wallet} 
-              color="success"
-              percentage={platformStats?.totalRevenue > 0 
-                ? ((platformStats.vendorPayouts / platformStats.totalRevenue) * 100).toFixed(1) 
-                : 0}
-              trend="up"
-            />
-          </Grid>
-          <Grid xs={12} md={3}>
-            <StatWidget 
-              title="Escrow Balance" 
-              value={`₦${platformStats?.escrowBalance?.toLocaleString() || '0'}`} 
-              subtext="Funds held for active orders" 
-              icon={ShieldCheck} // Changed to represent security/holding
-              color="warning" 
-              percentage={platformStats?.totalRevenue > 0 
-                ? ((platformStats.escrowBalance / platformStats.totalRevenue) * 100).toFixed(1) 
-                : 0}
-              trend="neutral"
-            />
-          </Grid>      
-        </Grid>
-
-        {/* ── Main Table Sheet ── */}
-        <Sheet
+        {/* ── Stat Row ── */}
+        <Box
           sx={{
-            borderRadius: '28px',
-            border: '1px solid #e2e8f0',
-            bgcolor: 'white',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-            overflow: 'hidden',
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 2,
+            mb: 3,
           }}
         >
-          {/* Table Toolbar */}
-          <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#f8fafc' }}>
+          <StatCard
+            title="Platform revenue"
+            value={`₦${platformStats?.platformRev?.toLocaleString() || "0"}`}
+            subtext="Total commission earned"
+            icon={Percent}
+          />
+          <StatCard
+            title="Vendor payouts"
+            value={`₦${platformStats?.vendorPayouts?.toLocaleString() || "0"}`}
+            subtext="Split to subaccounts"
+            icon={Wallet}
+          />
+          <StatCard
+            title="Escrow balance"
+            value={`₦${platformStats?.escrowBalance?.toLocaleString() || "0"}`}
+            subtext="Held for active orders"
+            icon={ShieldCheck}
+          />
+        </Box>
+
+        {/* ── Table Card ── */}
+        <Sheet
+          variant="outlined"
+          sx={{
+            borderRadius: "10px",
+            borderColor: "#e2e8f0",
+            bgcolor: "white",
+            overflow: "hidden",
+          }}
+        >
+          {/* Toolbar */}
+          <Box
+            sx={{
+              p: 2,
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 1.5,
+              borderBottom: "1px solid #e2e8f0",
+            }}
+          >
             <Input
               variant="outlined"
-              placeholder="Search by merchant, email, or subaccount ID..."
-              startDecorator={<Search size={18} />}
+              placeholder="Search by name or email"
+              startDecorator={<Search size={16} color="#94a3b8" />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{ 
-                width: 400, 
-                borderRadius: '14px',
-                '--Input-focusedHighlight': '#4f46e5',
-                bgcolor: 'white'
-              }}
+              size="sm"
+              sx={{ width: 300, borderRadius: "8px" }}
             />
-            <Box sx={{ display: 'flex', gap: 1 }}>
-               <Chip variant="soft" color="primary" sx={{ fontWeight: 700 }}>Active: {stores?.count}</Chip>
-               <Chip variant="soft" color="danger" sx={{ fontWeight: 700 }}>Flagged: 2</Chip>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Chip
+                size="sm"
+                variant="soft"
+                color="neutral"
+                sx={{ fontWeight: 600 }}
+              >
+                {filteredStores.length} shown
+              </Chip>
             </Box>
           </Box>
 
-<Box sx={{ overflowX: 'auto', borderRadius: '16px', border: '1px solid', borderColor: 'divider' }}>
-  <table className="w-full text-left border-collapse">
-    <thead>
-      <tr className="bg-slate-50/80 border-b border-slate-100">
-        <th className="px-6 py-4 text-[11px] font-black uppercase text-slate-500 tracking-wider">Merchant & Subaccount</th>
-        <th className="px-6 py-4 text-[11px] font-black uppercase text-slate-500 tracking-wider">Financial Performance</th>
-        <th className="px-6 py-4 text-[11px] font-black uppercase text-slate-500 tracking-wider">Customer Reach</th>
-        <th className="px-6 py-4 text-[11px] font-black uppercase text-slate-500 tracking-wider">KYC & Plan</th>
-        <th className="px-6 py-4 text-[11px] font-black uppercase text-slate-500 tracking-wider text-center">Actions</th>
-      </tr>
-    </thead>
-    <tbody className="divide-y divide-slate-50">
-      {filteredStores.map((store) => (
-        <tr key={store._id} className="hover:bg-blue-50/20 transition-colors">
-          {/* COLUMN 1: Merchant Identity */}
-          <td className="px-6 py-4">
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar src={store.logo?.url} variant="rounded" sx={{ width: 44, height: 44, bgcolor: 'primary.softBg', color: 'primary.solidBg', fontWeight: 'bold' }}>
-                {store.name?.charAt(0)}
-              </Avatar>
-              <Box>
-                <Typography level="title-sm" sx={{ fontWeight: 800, mb: 0.5 }}>{store.name}</Typography>
-                <Typography level="body-xs" sx={{ fontFamily: 'monospace', bgcolor: 'primary.softBg', px: 0.8, py: 0.2, borderRadius: '4px', display: 'inline-block' }}>
-                  {store.paystack?.subaccount_code || 'PENDING_SUB'}
-                </Typography>
-              </Box>
-            </Box>
-          </td>
+          {/* Table */}
+          <Box sx={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
+                  {["Merchant", "Revenue", "Reach", "Status", ""].map(
+                    (h, i) => (
+                      <th
+                        key={h + i}
+                        style={{
+                          textAlign: i === 4 ? "right" : "left",
+                          padding: "10px 20px",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          color: "#64748b",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.03em",
+                        }}
+                      >
+                        {h}
+                      </th>
+                    ),
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {loadingStores && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      style={{
+                        padding: "32px",
+                        textAlign: "center",
+                        color: "#94a3b8",
+                        fontSize: "13px",
+                      }}
+                    >
+                      Loading stores…
+                    </td>
+                  </tr>
+                )}
 
-          {/* COLUMN 2: Performance (Real Data) */}
-          <td className="px-6 py-4">
-            <Box>
-              <Typography level="body-sm" sx={{ fontWeight: 700 }}>
-                ₦{store.totalRevenue?.toLocaleString()}
-              </Typography>
-              <Typography level="body-xs" sx={{ color: 'success.600', fontWeight: 600 }}>
-                Platform Cut ({store.activeRate}%): ₦{store.platformCut?.toLocaleString()}
-              </Typography>
-            </Box>
-          </td>
+                {!loadingStores && filteredStores.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      style={{
+                        padding: "32px",
+                        textAlign: "center",
+                        color: "#94a3b8",
+                        fontSize: "13px",
+                      }}
+                    >
+                      No stores match "{searchTerm}"
+                    </td>
+                  </tr>
+                )}
 
-          {/* COLUMN 3: Growth (Orders & Customers) */}
-          <td className="px-6 py-4">
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Tooltip title="Total Paid Orders" variant="soft">
-                <Chip size="sm" variant="soft" color="neutral" startDecorator={<ShoppingBag size={12} />}>
-                  {store.orderCount || 0}
-                </Chip>
-              </Tooltip>
-              <Tooltip title="Registered Customers" variant="soft">
-                <Chip size="sm" variant="soft" color="neutral" startDecorator={<Users size={12} />}>
-                  {store.totalCustomers || 0}
-                </Chip>
-              </Tooltip>
-            </Box>
-          </td>
+                {filteredStores.map((store) => (
+                  <tr
+                    key={store._id}
+                    style={{ borderBottom: "1px solid #f1f5f9" }}
+                    className="hover:bg-slate-50"
+                  >
+                    {/* Merchant */}
+                    <td style={{ padding: "12px 20px" }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
+                      >
+                        <Avatar
+                          src={store.logo?.url}
+                          variant="outlined"
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: "8px",
+                            fontWeight: 700,
+                          }}
+                        >
+                          {store.name?.charAt(0)}
+                        </Avatar>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography
+                            level="body-sm"
+                            sx={{ fontWeight: 600, color: "#0f172a" }}
+                            noWrap
+                          >
+                            {store.name}
+                          </Typography>
+                          <Typography
+                            className="capitalize"
+                            level="body-xs"
+                            sx={{ color: "#94a3b8", fontFamily: "monospace" }}
+                            noWrap
+                          >
+                            {store.paystack?.subaccount_code || "pending setup"}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </td>
 
-          {/* COLUMN 4: Status & Tier */}
-          <td className="px-6 py-4">
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Chip
-                variant="soft"
-                size="sm"
-                color={store.paystack?.verified ? "success" : "warning"}
-                startDecorator={store.paystack?.verified ? <ShieldCheck size={14} /> : <AlertCircle size={14} />}
-                sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '10px' }}
-              >
-                {store.paystack?.verified ? "Verified" : "KYC Pending"}
-              </Chip>
-              <Typography level="body-xs" sx={{ pl: 0.5, textTransform: 'capitalize', fontWeight: 600 }}>
-                Plan: {store.plan || 'Starter'}
-              </Typography>
-            </Box>
-          </td>
+                    {/* Revenue */}
+                    <td style={{ padding: "12px 20px" }}>
+                      <Typography
+                        level="body-sm"
+                        sx={{ fontWeight: 600, color: "#0f172a" }}
+                      >
+                        ₦{store.totalRevenue?.toLocaleString() || 0}
+                      </Typography>
+                      <Typography level="body-xs" sx={{ color: "#64748b" }}>
+                        Cut ({store.activeRate}%): ₦
+                        {store.platformCut?.toLocaleString() || 0}
+                      </Typography>
+                    </td>
 
-          {/* COLUMN 5: Controls */}
-          <td className="px-6 py-4">
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-              <Button 
-                size="sm" 
-                variant="outlined" 
-                color="neutral"
-                onClick={() => window.open(`${protocol}://${store.subdomain}.layemart.com`, '_blank')}
-                sx={{ borderRadius: '8px', fontWeight: 700 }}
-              >
-                Visit
-              </Button>
-              <IconButton  
-                variant="soft" 
-                color="danger" 
-                onClick={() => handleDeleteClick(store)}
-                sx={{ borderRadius: '8px' }}
-              >
-                <Trash2 size={16} />
-              </IconButton>
-            </Box>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</Box>
+                    {/* Reach */}
+                    <td style={{ padding: "12px 20px" }}>
+                      <Box sx={{ display: "flex", gap: 0.75 }}>
+                        <Tooltip title="Paid orders" size="sm">
+                          <Chip
+                            size="sm"
+                            variant="outlined"
+                            color="neutral"
+                            startDecorator={<ShoppingBag size={11} />}
+                            sx={{ borderRadius: "6px" }}
+                          >
+                            {store.orderCount || 0}
+                          </Chip>
+                        </Tooltip>
+                        <Tooltip title="Customers" size="sm">
+                          <Chip
+                            size="sm"
+                            variant="outlined"
+                            color="neutral"
+                            startDecorator={<Users size={11} />}
+                            sx={{ borderRadius: "6px" }}
+                          >
+                            {store.totalCustomers || 0}
+                          </Chip>
+                        </Tooltip>
+                      </Box>
+                    </td>
+
+                    {/* Status */}
+                    <td style={{ padding: "12px 20px" }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 0.5,
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <StatusBadge verified={store.paystack?.verified} />
+                        <Typography
+                          level="body-xs"
+                          sx={{ color: "#64748b", textTransform: "capitalize" }}
+                        >
+                          {store.plan || "Starter"} plan
+                        </Typography>
+                      </Box>
+                    </td>
+
+                    {/* Actions */}
+                    <td style={{ padding: "12px 20px" }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                          gap: 0.5,
+                        }}
+                      >
+                        {store?.subdomain && (
+                          <Tooltip title="Visit store">
+                            <IconButton
+                              size="sm"
+                              variant="plain"
+                              color="neutral"
+                              onClick={() => {
+                                const url =
+                                  store?.plan === "starter"
+                                    ? `http://localhost:5173/${store.slug}`
+                                    : `${protocol}://${store.subdomain}.layemart.com`;
+
+                                window.open(url, "_blank");
+                              }}
+                            >
+                              <ExternalLink size={15} />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        <Tooltip title="Delete store">
+                          <IconButton
+                            size="sm"
+                            variant="plain"
+                            color="danger"
+                            onClick={() => handleDeleteClick(store)}
+                          >
+                            <Trash2 size={15} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Box>
         </Sheet>
 
-        <DeleteStoreModal 
-        store={storeToDelete} 
-        onConfirm={handleConfirmDelete} 
-        onCancel={handleCancelDelete} 
-        isDeleting={isDeleting} 
-      />
+        <DeleteStoreModal
+          store={storeToDelete}
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+          isDeleting={isDeleting}
+        />
       </Box>
+
+      {toast && (
+        <Box
+          sx={{
+            position: "fixed",
+            bottom: 20,
+            right: 20,
+            zIndex: 9999,
+            bgcolor: toast.type === "success" ? "#16a34a" : "#dc2626",
+            color: "white",
+            px: 2.5,
+            py: 1.25,
+            borderRadius: "8px",
+            fontWeight: 600,
+            fontSize: "13px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          }}
+        >
+          {toast.type === "success" ? "✓" : "✕"} {toast.message}
+        </Box>
+      )}
     </SuperAdminLayout>
   );
 }

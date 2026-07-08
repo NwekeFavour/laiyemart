@@ -6,6 +6,7 @@ import {
   Info,
   Trash2,
   Loader2,
+  X,
 } from "lucide-react";
 import {
   Box,
@@ -19,40 +20,38 @@ import {
   Divider,
   Chip,
   Tooltip,
+  IconButton,
 } from "@mui/joy";
 import { toast } from "react-toastify";
 import SuperAdminLayout from "./layout";
-import { IconButton } from "@mui/material";
 
 const CouponPage = () => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const [selectedCoupon, setSelectedCoupon] = useState(null); // Stores the coupon object being viewed
-  const [usageDetails, setUsageDetails] = useState([]); // Stores the list of users
+  const [selectedCoupon, setSelectedCoupon] = useState(null);
+  const [usageDetails, setUsageDetails] = useState([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  const [open, setOpen] = useState(false); // Controls the Modal/Sheet
+  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     code: "",
     discountPercent: "",
     usageLimit: "",
   });
   const [deletingId, setDeletingId] = useState(null);
+
   const generateRandomCode = () => {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let result = "";
     for (let i = 0; i < 6; i++) {
-      result += characters.charAt(
-        Math.floor(Math.random() * characters.length),
-      );
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
     }
     setFormData({ ...formData, code: result });
   };
+
   const fetchCoupons = async () => {
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/coupon/`,
-      );
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/coupon/`);
       const data = await res.json();
       if (data.success) setCoupons(data.coupons);
     } catch (err) {
@@ -69,12 +68,10 @@ const CouponPage = () => {
     setSelectedCoupon(coupon);
     setLoadingDetails(true);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/coupon/usage/${coupon.code}`,
-      );
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/coupon/usage/${coupon.code}`);
       const data = await res.json();
       if (data.success) {
-        setUsageDetails(data.users); // Assuming your API returns a 'users' array
+        setUsageDetails(data.users);
       }
     } catch (err) {
       toast.error("Could not load usage data");
@@ -87,18 +84,15 @@ const CouponPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/coupon`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        },
-      );
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/coupon`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("Coupon Created Successfully!");
+        toast.success("Coupon created successfully");
         setFormData({ code: "", discountPercent: "", usageLimit: "" });
         fetchCoupons();
       } else {
@@ -114,15 +108,11 @@ const CouponPage = () => {
   const handleDelete = async (id) => {
     setDeletingId(id);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/coupon/${id}`,
-        { method: "DELETE" },
-      );
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/coupon/${id}`, { method: "DELETE" });
       const data = await res.json();
 
       if (data.success) {
         toast.success("Coupon deleted successfully");
-        // Update local state to remove the deleted coupon
         setCoupons(coupons.filter((c) => c._id !== id));
       } else {
         toast.error(data.message || "Failed to delete coupon");
@@ -130,48 +120,53 @@ const CouponPage = () => {
     } catch (err) {
       toast.error("Error connecting to server");
     } finally {
-      setDeletingId(null); // Stop loading
+      setDeletingId(null);
     }
   };
+
+  const closeDrawer = () => {
+    setOpen(false);
+    setSelectedCoupon(null);
+    setUsageDetails([]);
+  };
+
   return (
     <SuperAdminLayout>
-      <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: "1200px", mx: "auto" }}>
-        {/* Header Section */}
-        <Box
-          className="md:flex md:items-center! items-start!"
-          sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}
-        >
-          <Box sx={{ p: 1, bgcolor: "primary.100", borderRadius: "lg" }}>
-            <TicketPercent size={28} className="text-blue-600" />
+      <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: "1200px", mx: "auto" }}>
+        {/* Header */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
+          <Box
+            sx={{
+              p: 1.25,
+              bgcolor: "#eef2ff",
+              borderRadius: "8px",
+              color: "#4f46e5",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <TicketPercent size={20} />
           </Box>
           <Box>
-            <Typography level="h2" sx={{ fontSize: "1.5rem", mb: 0.5 }}>
-              Manage Coupons
+            <Typography level="h3" sx={{ fontWeight: 700, color: "#0f172a" }}>
+              Coupons
             </Typography>
-            <Typography level="body-sm">
-              Create and track 50% discount offers for your first 60 users.
+            <Typography level="body-sm" sx={{ color: "#64748b" }}>
+              Create and track discount offers
             </Typography>
           </Box>
         </Box>
 
-        {/* Create Coupon Form Card */}
+        {/* Create coupon form */}
         <Sheet
-          className="md:p-3! p-4!"
           variant="outlined"
-          sx={{
-            borderRadius: "xl",
-            bgcolor: "white",
-            boxShadow: "sm",
-            mb: 5,
-          }}
+          sx={{ borderRadius: "10px", borderColor: "#e2e8f0", bgcolor: "white", p: 2.5, mb: 3 }}
         >
-          <Typography
-            level="title-md"
-            sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}
-          >
-            <PlusCircle size={18} /> New Promotion
+          <Typography level="title-sm" sx={{ mb: 1.5, display: "flex", alignItems: "center", gap: 1, fontWeight: 700, color: "#0f172a" }}>
+            <PlusCircle size={16} /> New promotion
           </Typography>
-          <Divider sx={{ mb: 3 }} />
+          <Divider sx={{ mb: 2.5 }} />
 
           <form onSubmit={handleCreate}>
             <Box
@@ -183,221 +178,154 @@ const CouponPage = () => {
               }}
             >
               <FormControl required>
-                <FormLabel>Coupon Code (6 Digits)</FormLabel>
+                <FormLabel sx={{ fontWeight: 600, color: "#475569" }}>Coupon code</FormLabel>
                 <Input
                   placeholder="e.g. AB1234"
-                  slotProps={{
-                    input: {
-                      style: { textTransform: "uppercase" },
-                      maxLength: 6,
-                    },
-                  }}
+                  slotProps={{ input: { style: { textTransform: "uppercase" }, maxLength: 6 } }}
                   value={formData.code}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      code: e.target.value.toUpperCase(),
-                    })
-                  }
-                  // The magic button inside the input
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                  sx={{ borderRadius: "8px" }}
                   endDecorator={
                     <Button
-                      className="underline! text-green-700"
-                      variant="ghost"
+                      variant="plain"
                       color="neutral"
                       size="sm"
                       onClick={generateRandomCode}
-                      sx={{ px: 1 }}
+                      sx={{ px: 1, fontWeight: 600, textDecoration: "underline" }}
                     >
-                      Auto-Gen
+                      Auto-gen
                     </Button>
                   }
                 />
               </FormControl>
 
               <FormControl required>
-                <FormLabel>Discount (%)</FormLabel>
+                <FormLabel sx={{ fontWeight: 600, color: "#475569" }}>Discount (%)</FormLabel>
                 <Input
                   type="number"
                   placeholder="50"
                   value={formData.discountPercent}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      discountPercent: e.target.value,
-                    })
-                  }
+                  onChange={(e) => setFormData({ ...formData, discountPercent: e.target.value })}
+                  sx={{ borderRadius: "8px" }}
                 />
               </FormControl>
 
               <FormControl required>
-                <FormLabel>Usage Limit</FormLabel>
+                <FormLabel sx={{ fontWeight: 600, color: "#475569" }}>Usage limit</FormLabel>
                 <Input
                   type="number"
                   placeholder="60"
                   value={formData.usageLimit}
-                  onChange={(e) =>
-                    setFormData({ ...formData, usageLimit: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, usageLimit: e.target.value })}
+                  sx={{ borderRadius: "8px" }}
                 />
               </FormControl>
 
               <Button
-                className="bg-slate-800/90!"
                 type="submit"
                 loading={loading}
                 variant="solid"
-                color="primary"
-                sx={{ borderRadius: "md", height: "40px" }}
+                sx={{ borderRadius: "8px", height: "36px", fontWeight: 600, bgcolor: "#4f46e5", "&:hover": { bgcolor: "#4338ca" } }}
               >
-                Create Coupon
+                Create coupon
               </Button>
             </Box>
           </form>
         </Sheet>
 
-        {/* Table Section */}
-        <Typography
-          level="title-md"
-          sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}
-        >
-          <Users size={18} /> Existing Coupons
+        {/* Coupons table */}
+        <Typography level="title-sm" sx={{ mb: 1.5, display: "flex", alignItems: "center", gap: 1, fontWeight: 700, color: "#0f172a" }}>
+          <Users size={16} /> Existing coupons
         </Typography>
 
         <Sheet
           variant="outlined"
           sx={{
-            borderRadius: "xl",
+            borderRadius: "10px",
+            borderColor: "#e2e8f0",
             bgcolor: "white",
-            boxShadow: "sm",
-            // 1. Added horizontal scroll for mobile
             overflowX: "auto",
             width: "100%",
-            // Custom scrollbar styling to stay minimalist
             "&::-webkit-scrollbar": { height: 6 },
-            "&::-webkit-scrollbar-thumb": {
-              borderRadius: 10,
-              bgcolor: "rgba(45, 42, 112, 0.1)", // Subtle Indigo scrollbar
-            },
+            "&::-webkit-scrollbar-thumb": { borderRadius: 10, bgcolor: "#e2e8f0" },
           }}
         >
           <Table
-            className="bg-white!"
             sx={{
               "& tr > *": { p: 2 },
-              // 2. Ensures the table doesn't collapse too much on small screens
               minWidth: { xs: 650, md: "100%" },
               "--TableCell-height": "40px",
-              "--TableHeader-height": "50px",
+              "--TableHeader-height": "44px",
             }}
           >
             <thead>
-              <tr className="bg-slate-50/50">
-                <th style={{ width: "25%" }}>Coupon Code</th>
-                <th style={{ width: "15%" }}>Value</th>
-                <th style={{ width: "25%" }}>Usage</th>
-                <th style={{ width: "15%" }}>Status</th>
-                <th style={{ width: "20%", textAlign: "right" }}>Actions</th>
+              <tr style={{ background: "#f8fafc" }}>
+                <th style={{ width: "25%", fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.03em" }}>Code</th>
+                <th style={{ width: "15%", fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.03em" }}>Value</th>
+                <th style={{ width: "25%", fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.03em" }}>Usage</th>
+                <th style={{ width: "15%", fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.03em" }}>Status</th>
+                <th style={{ width: "20%", textAlign: "right", fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.03em" }}>Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white!">
+            <tbody>
               {coupons.length > 0 ? (
                 coupons.map((c) => (
-                  <tr key={c._id}>
+                  <tr key={c._id} style={{ borderBottom: "1px solid #f1f5f9" }}>
                     <td>
-                      <Typography
-                        level="title-sm"
-                        sx={{ color: "#2D2A70", fontWeight: 700 }} // Your Royal Indigo
-                      >
+                      <Typography level="title-sm" sx={{ color: "#0f172a", fontWeight: 700, fontFamily: "monospace" }}>
                         {c.code}
                       </Typography>
                     </td>
                     <td>
-                      <Chip
-                        variant="soft"
-                        color="success"
-                        size="sm"
-                        sx={{ fontWeight: 600 }}
-                      >
-                        {c.discountPercent}% OFF
+                      <Chip variant="soft" color="success" size="sm" sx={{ fontWeight: 600, borderRadius: "6px" }}>
+                        {c.discountPercent}% off
                       </Chip>
                     </td>
                     <td>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <Typography level="body-sm" sx={{ fontWeight: "bold" }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                        <Typography level="body-sm" sx={{ fontWeight: 700, color: "#0f172a" }}>
                           {c.usedCount}
                         </Typography>
-                        <Typography
-                          level="body-xs"
-                          sx={{ color: "text.tertiary" }}
-                        >
+                        <Typography level="body-xs" sx={{ color: "#94a3b8" }}>
                           / {c.usageLimit}
                         </Typography>
                       </Box>
-                      {/* Added a small progress bar for better UX */}
-                      <Box
-                        sx={{
-                          height: 4,
-                          width: "60px",
-                          bgcolor: "neutral.softBg",
-                          borderRadius: "xs",
-                          mt: 0.5,
-                          overflow: "hidden",
-                        }}
-                      >
+                      <Box sx={{ height: 4, width: "60px", bgcolor: "#f1f5f9", borderRadius: "4px", mt: 0.5, overflow: "hidden" }}>
                         <Box
                           sx={{
                             height: "100%",
                             width: `${Math.min((c.usedCount / c.usageLimit) * 100, 100)}%`,
-                            bgcolor: "#2D2A70",
+                            bgcolor: "#4f46e5",
                           }}
                         />
                       </Box>
                     </td>
                     <td>
                       <Chip
-                        variant="solid"
+                        variant="soft"
                         color={c.isActive ? "success" : "danger"}
                         size="sm"
-                        sx={{
-                          borderRadius: "xs",
-                          fontSize: "10px",
-                          fontWeight: 800,
-                          px: 1,
-                        }}
+                        sx={{ borderRadius: "6px", fontSize: "10px", fontWeight: 700 }}
                       >
-                        {c.isActive ? "ACTIVE" : "EXPIRED"}
+                        {c.isActive ? "Active" : "Expired"}
                       </Chip>
                     </td>
                     <td>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "flex-end",
-                          gap: 1,
-                        }}
-                      >
-                        <Tooltip title="Usage Analytics" variant="soft">
+                      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
+                        <Tooltip title="Usage analytics">
                           <IconButton onClick={() => fetchUsageDetails(c)} size="sm" variant="plain" color="neutral">
-                            <Info size={18} />
+                            <Info size={16} />
                           </IconButton>
                         </Tooltip>
-
-                        <Tooltip title="Delete" variant="soft" color="danger">
+                        <Tooltip title="Delete">
                           <IconButton
                             size="sm"
-                            variant="soft"
+                            variant="plain"
                             color="danger"
                             disabled={deletingId === c._id}
                             onClick={() => handleDelete(c._id)}
                           >
-                            {deletingId === c._id ? (
-                              <Loader2 size={18} className="animate-spin" />
-                            ) : (
-                              <Trash2 size={18} />
-                            )}
+                            {deletingId === c._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                           </IconButton>
                         </Tooltip>
                       </Box>
@@ -406,12 +334,9 @@ const CouponPage = () => {
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan={5}
-                    style={{ textAlign: "center", padding: "60px" }}
-                  >
-                    <Typography level="body-sm" sx={{ color: "text.tertiary" }}>
-                      No active coupons found.
+                  <td colSpan={5} style={{ textAlign: "center", padding: "48px" }}>
+                    <Typography level="body-sm" sx={{ color: "#94a3b8" }}>
+                      No coupons yet — create one above.
                     </Typography>
                   </td>
                 </tr>
@@ -419,70 +344,56 @@ const CouponPage = () => {
             </tbody>
           </Table>
         </Sheet>
-        <Sheet
-          sx={{
-            display: open ? "flex" : "none",
-            position: "fixed",
-            top: 0,
-            right: 0,
-            bottom: 0,
-            width: { xs: "100%", md: 400 },
-            bgcolor: "background.surface",
-            boxShadow: "lg",
-            p: 3,
-            zIndex: 1000,
-            flexDirection: "column",
-            borderLeft: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-            <Typography level="h4">Usage: {selectedCoupon?.code}</Typography>
-            <Button
-              variant="plain"
-              color="neutral"
-              onClick={() => setOpen(false)}
-            >
-              Close
-            </Button>
+
+        {/* Usage drawer */}
+        {open && (
+          <Box
+            sx={{ position: "fixed", inset: 0, bgcolor: "rgba(15,23,42,0.4)", zIndex: 1200, display: "flex", justifyContent: "flex-end" }}
+            onClick={(e) => { if (e.target === e.currentTarget) closeDrawer(); }}
+          >
+            <Sheet sx={{ width: { xs: "100%", sm: 400 }, height: "100%", p: 3, overflowY: "auto", borderLeft: "1px solid #e2e8f0" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2.5 }}>
+                <Typography level="title-md" sx={{ fontWeight: 700, color: "#0f172a" }}>
+                  Usage: {selectedCoupon?.code}
+                </Typography>
+                <IconButton variant="plain" color="neutral" size="sm" onClick={closeDrawer}>
+                  <X size={16} />
+                </IconButton>
+              </Box>
+
+              <Divider sx={{ mb: 2 }} />
+
+              {loadingDetails ? (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
+                  <Loader2 className="animate-spin" color="#94a3b8" />
+                </Box>
+              ) : usageDetails.length > 0 ? (
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  {usageDetails.map((user) => (
+                    <Box
+                      key={user._id}
+                      sx={{ display: "flex", justifyContent: "space-between", py: 1.25, borderBottom: "1px solid #f1f5f9" }}
+                    >
+                      <Typography level="body-sm" sx={{ color: "#0f172a" }} noWrap>
+                        {user.email}
+                      </Typography>
+                      <Typography level="body-xs" sx={{ color: "#94a3b8", flexShrink: 0, ml: 1 }}>
+                        {new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              ) : (
+                <Typography level="body-sm" sx={{ color: "#94a3b8", textAlign: "center", py: 4 }}>
+                  No users have redeemed this coupon yet.
+                </Typography>
+              )}
+            </Sheet>
           </Box>
-
-          <Divider sx={{ mb: 2 }} />
-
-          {loadingDetails ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
-              <Loader2 className="animate-spin" />
-            </Box>
-          ) : (
-            <Box sx={{ overflowY: "auto" }}>
-              <Table variant="plain">
-                <thead>
-                  <tr>
-                    <th>User Email</th>
-                    <th>Date Joined</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {usageDetails.length > 0 ? (
-                    usageDetails.map((user) => (
-                      <tr key={user._id}>
-                        <td>{user.email}</td>
-                        <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={2}>No users registered yet.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </Table>
-            </Box>
-          )}
-        </Sheet>
+        )}
       </Box>
     </SuperAdminLayout>
   );
-};
+}; 
 
 export default CouponPage;

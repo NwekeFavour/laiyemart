@@ -12,6 +12,47 @@ import SuperAdminLayout from "./layout";
 import { useAdminStore } from "../../../services/adminService";
 import { useAuthStore } from "../../store/useAuthStore";
 
+const PLAN_STYLES = {
+  professional: { bgcolor: "#eff6ff", color: "#2563eb", border: "1px solid #dbeafe" },
+  starter: { bgcolor: "#f8fafc", color: "#475569", border: "1px solid #e2e8f0" },
+  business: { bgcolor: "#f5f3ff", color: "#7c3aed", border: "1px solid #ddd6fe" },
+};
+
+function TableSkeleton() {
+  return (
+    <>
+      {[...Array(5)].map((_, i) => (
+        <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
+          <td style={{ padding: "14px 16px", textAlign: "center", borderRight: "1px solid #f1f5f9" }}>
+            <Box className="animate-pulse bg-slate-200 h-4 w-4 mx-auto rounded" />
+          </td>
+          <td style={{ padding: "14px 16px" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <Box className="animate-pulse bg-slate-200 h-9 w-9 rounded-lg" />
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                <Box className="animate-pulse bg-slate-200 h-3.5 w-28 rounded" />
+                <Box className="animate-pulse bg-slate-200 h-3 w-20 rounded" />
+              </Box>
+            </Box>
+          </td>
+          <td style={{ padding: "14px 16px" }}><Box className="animate-pulse bg-slate-200 h-5 w-16 rounded" /></td>
+          <td style={{ padding: "14px 16px" }}><Box className="animate-pulse bg-slate-200 h-5 w-20 rounded" /></td>
+          <td style={{ padding: "14px 16px" }}><Box className="animate-pulse bg-slate-200 h-5 w-16 rounded" /></td>
+          <td style={{ padding: "14px 16px" }}><Box className="animate-pulse bg-slate-200 h-3.5 w-20 rounded" /></td>
+          <td style={{ padding: "14px 16px" }}><Box className="animate-pulse bg-slate-200 h-7 w-7 mx-auto rounded" /></td>
+        </tr>
+      ))}
+    </>
+  );
+}
+
+const DetailRow = ({ label, value }) => (
+  <Box sx={{ display: "flex", justifyContent: "space-between", py: 1.25, borderBottom: "1px solid #f1f5f9" }}>
+    <Typography level="body-sm" sx={{ color: "#64748b" }}>{label}</Typography>
+    <Typography level="body-sm" sx={{ fontWeight: 600, color: "#0f172a" }}>{value || "N/A"}</Typography>
+  </Box>
+);
+
 export default function CustomerManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStore, setSelectedStore] = useState(null);
@@ -19,11 +60,11 @@ export default function CustomerManagement() {
   const [suspendModal, setSuspendModal] = useState(false);
   const [suspendReason, setSuspendReason] = useState("");
   const [suspending, setSuspending] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const { fetchStoreOwners, fetchAllStores, stores, loading } = useAdminStore();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
   const token = useAuthStore((state) => state.token);
-  const isDark = false;
 
   useEffect(() => {
     fetchStoreOwners();
@@ -70,158 +111,215 @@ export default function CustomerManagement() {
     }
   };
 
-  const thStyle = `px-4 py-3 font-semibold text-[13px] ${isDark ? "text-slate-200" : "text-gray-900"}`;
-  const tdStyle = `px-4 py-4 text-[13px] ${isDark ? "text-slate-300" : "text-gray-700"}`;
+  const escapeCsvValue = (value) => {
+    const str = value === null || value === undefined ? "" : String(value);
+    if (/[",\n]/.test(str)) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
 
-  const TableSkeleton = () => (
-    <>
-      {[...Array(5)].map((_, i) => (
-        <tr key={i} className="border-b border-slate-100">
-          <td className="px-4 py-4 text-center border-r border-slate-100">
-            <Box className="animate-pulse bg-slate-200 h-4 w-4 mx-auto rounded" />
-          </td>
-          <td className="px-4 py-4">
-            <div className="flex items-center gap-3">
-              <Box className="animate-pulse bg-slate-200 h-10 w-10 rounded-[10px]" />
-              <div className="flex flex-col gap-2">
-                <Box className="animate-pulse bg-slate-200 h-4 w-32 rounded" />
-                <Box className="animate-pulse bg-slate-200 h-3 w-24 rounded" />
-              </div>
-            </div>
-          </td>
-          <td className="px-4 py-4"><Box className="animate-pulse bg-slate-200 h-6 w-20 rounded-md" /></td>
-          <td className="px-4 py-4"><Box className="animate-pulse bg-slate-200 h-6 w-24 rounded-md" /></td>
-          <td className="px-4 py-4"><Box className="animate-pulse bg-slate-200 h-6 w-20 rounded-md" /></td>
-          <td className="px-4 py-4"><Box className="animate-pulse bg-slate-200 h-4 w-20 rounded" /></td>
-          <td className="px-4 py-4"><Box className="animate-pulse bg-slate-200 h-8 w-8 mx-auto rounded-full" /></td>
-        </tr>
-      ))}
-    </>
-  );
+  const handleExport = () => {
+    if (!filteredCustomers.length) {
+      toast.error("No stores to export");
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const headers = ["Name", "Email", "Status", "Plan", "Customers", "Category", "Slug", "Paystack", "Joined"];
+
+      const rows = filteredCustomers.map((store) => [
+        store.name,
+        store.email,
+        store.status,
+        store.plan || "Standard",
+        store.totalCustomers || 0,
+        store.storeType,
+        store.slug,
+        store.paystack?.verified ? "Verified" : "Unverified",
+        store.createdAt
+          ? new Date(store.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+          : "",
+      ]);
+
+      const csvContent = [headers, ...rows]
+        .map((row) => row.map(escapeCsvValue).join(","))
+        .join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const dateStamp = new Date().toISOString().split("T")[0];
+
+      link.href = url;
+      link.setAttribute("download", `layemart-stores-${dateStamp}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Exported ${filteredCustomers.length} store${filteredCustomers.length === 1 ? "" : "s"}`);
+    } catch (err) {
+      toast.error("Export failed. Please try again.");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <SuperAdminLayout>
-      <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: "1600px", mx: "auto" }}>
+      <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: "1440px", mx: "auto" }}>
 
-        {/* HEADER */}
-        <Box className="flex! flex-wrap!" sx={{ justifyContent: "space-between", alignItems: "center", mb: 4 }}>
+        {/* Header */}
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 2,
+            mb: 3,
+          }}
+        >
           <Box>
-            <Typography level="h3" sx={{ fontWeight: 800 }}>Platform Stores</Typography>
-            <Typography level="body-sm" sx={{ color: "text.tertiary" }}>
-              Manage all storefronts across the LAYEMART ecosystem.
+            <Typography level="h3" sx={{ fontWeight: 700, color: "#0f172a" }}>Stores</Typography>
+            <Typography level="body-sm" sx={{ color: "#64748b", mt: 0.25 }}>
+              Manage storefronts across the Layemart platform
             </Typography>
           </Box>
           <Button
-            className="md:mt-0! mt-3!"
-            startDecorator={<Download size={18} />}
+            size="sm"
+            startDecorator={!exporting ? <Download size={15} /> : null}
             variant="outlined"
             color="neutral"
-            sx={{ borderRadius: "12px" }}
+            loading={exporting}
+            onClick={handleExport}
+            sx={{ borderRadius: "8px", fontWeight: 600 }}
           >
-            Export List
+            Export list
           </Button>
         </Box>
 
-        {/* TABLE */}
+        {/* Table card */}
         <Sheet
-          sx={{
-            borderRadius: "24px",
-            border: "1px solid #e2e8f0",
-            bgcolor: "white",
-            overflow: "hidden",
-          }}
+          variant="outlined"
+          sx={{ borderRadius: "10px", borderColor: "#e2e8f0", bgcolor: "white", overflow: "hidden" }}
         >
-          <Box sx={{ p: 2, display: "flex", justifyContent: "space-between", gap: 2, borderBottom: "1px solid #f1f5f9" }}>
+          <Box
+            sx={{
+              p: 2,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 1.5,
+              borderBottom: "1px solid #e2e8f0",
+            }}
+          >
             <Input
-              variant="plain"
-              placeholder="Search by name or email..."
-              startDecorator={<Search size={18} />}
+              variant="outlined"
+              placeholder="Search by name or email"
+              startDecorator={<Search size={16} color="#94a3b8" />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{ flex: 1, maxWidth: 400 }}
+              size="sm"
+              sx={{ width: 300, borderRadius: "8px" }}
             />
-            <IconButton variant="soft" color="neutral" sx={{ borderRadius: "10px" }}>
-              <Filter size={18} />
+            <IconButton variant="outlined" color="neutral" size="sm" sx={{ borderRadius: "8px" }}>
+              <Filter size={15} />
             </IconButton>
           </Box>
 
-          <Box className="hide-scrollbar" sx={{ overflowX: "auto" }}>
-            <table className="w-full text-left border-collapse min-w-[900px]">
+          <Box sx={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 900 }}>
               <thead>
-                <tr className="text-[13px] border-b bg-gray-50/50 border-slate-100">
-                  <th className="px-4 py-3 w-12 text-center border-r border-slate-100">S/N</th>
-                  <th className={thStyle}>Store Info</th>
-                  <th className={thStyle}>Status</th>
-                  <th className={thStyle}>Total Customers</th>
-                  <th className={thStyle}>Plan</th>
-                  <th className={thStyle}>Joined Date</th>
-                  <th className="px-4 py-3 w-[80px] text-center"></th>
+                <tr style={{ borderBottom: "1px solid #e2e8f0", background: "#f8fafc" }}>
+                  {["", "Store", "Status", "Customers", "Plan", "Joined", ""].map((h, i) => (
+                    <th
+                      key={h + i}
+                      style={{
+                        padding: "10px 16px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        color: "#64748b",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.03em",
+                        textAlign: i === 0 || i === 6 ? "center" : "left",
+                        width: i === 0 ? 44 : i === 6 ? 60 : "auto",
+                        borderRight: i === 0 ? "1px solid #e2e8f0" : "none",
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody>
                 {loading ? (
                   <TableSkeleton />
                 ) : filteredCustomers.length > 0 ? (
                   filteredCustomers.map((store, i) => (
-                    <tr key={store._id} className="transition-colors hover:bg-gray-50/50">
-                      <td className="px-4 py-4 text-center border-r border-slate-100">{i + 1}</td>
-                      <td className={tdStyle}>
-                        <div className="flex items-center gap-3">
-                          <Avatar variant="soft" color="neutral" sx={{ borderRadius: "10px" }}>
+                    <tr key={store._id} style={{ borderBottom: "1px solid #f1f5f9" }} className="hover:bg-slate-50">
+                      <td style={{ padding: "12px 16px", textAlign: "center", color: "#94a3b8", fontSize: "13px", borderRight: "1px solid #f1f5f9" }}>
+                        {i + 1}
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                          <Avatar variant="outlined" sx={{ width: 36, height: 36, borderRadius: "8px", fontWeight: 700 }}>
                             {store?.name?.charAt(0) || "?"}
                           </Avatar>
-                          <div className="flex flex-col">
-                            <span className="font-bold">{store.name}</span>
-                            <span className="text-[11px] text-gray-500">{store.email}</span>
-                          </div>
-                        </div>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography level="body-sm" sx={{ fontWeight: 600, color: "#0f172a" }} noWrap>
+                              {store.name}
+                            </Typography>
+                            <Typography level="body-xs" sx={{ color: "#94a3b8" }} noWrap>
+                              {store.email}
+                            </Typography>
+                          </Box>
+                        </Box>
                       </td>
-                      <td className={tdStyle}>
+                      <td style={{ padding: "12px 16px" }}>
                         <Chip
                           size="sm"
                           variant="soft"
                           color={store.status === "ACTIVE" ? "success" : "danger"}
                           startDecorator={store.status === "ACTIVE" ? <UserCheck size={12} /> : null}
-                          sx={{ fontWeight: 700, fontSize: "10px", borderRadius: "6px" }}
+                          sx={{ fontWeight: 600, fontSize: "11px", borderRadius: "6px" }}
                         >
                           {store.status}
                         </Chip>
                       </td>
-                      <td className={tdStyle}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                          <Box sx={{ p: 1, borderRadius: "8px", bgcolor: "primary.50", color: "primary.600" }}>
-                            <Users size={16} />
-                          </Box>
-                          <Box>
-                            <Typography sx={{ fontWeight: 700, fontSize: "14px" }}>
-                              {(store?.totalCustomers || 0).toLocaleString()}
-                            </Typography>
-                            <Typography sx={{ fontSize: "11px", color: "text.tertiary" }}>Unique Buyers</Typography>
-                          </Box>
+                      <td style={{ padding: "12px 16px" }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Users size={14} color="#64748b" />
+                          <Typography level="body-sm" sx={{ fontWeight: 600, color: "#0f172a" }}>
+                            {(store?.totalCustomers || 0).toLocaleString()}
+                          </Typography>
                         </Box>
                       </td>
-                      <td className={tdStyle}>
+                      <td style={{ padding: "12px 16px" }}>
                         <Chip
                           variant="soft"
                           size="sm"
                           sx={{
-                            fontWeight: 700, fontSize: "10px", borderRadius: "6px",
-                            textTransform: "uppercase", letterSpacing: "0.5px",
-                            ...(store?.plan?.toLowerCase() === "professional" && { bgcolor: "#eff6ff", color: "#2563eb", border: "1px solid #dbeafe" }),
-                            ...(store?.plan?.toLowerCase() === "starter" && { bgcolor: "#f8fafc", color: "#475569", border: "1px solid #e2e8f0" }),
-                            ...(store?.plan?.toLowerCase() === "business" && { bgcolor: "#f5f3ff", color: "#7c3aed", border: "1px solid #ddd6fe" }),
+                            fontWeight: 600,
+                            fontSize: "11px",
+                            borderRadius: "6px",
+                            textTransform: "capitalize",
+                            ...(PLAN_STYLES[store?.plan?.toLowerCase()] || {}),
                           }}
                         >
                           {store?.plan || "Standard"}
                         </Chip>
                       </td>
-                      <td className={tdStyle}>
-                        {store.createdAt
-                          ? new Date(store.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-                          : "N/A"}
+                      <td style={{ padding: "12px 16px" }}>
+                        <Typography level="body-sm" sx={{ color: "#64748b" }}>
+                          {store.createdAt
+                            ? new Date(store.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                            : "N/A"}
+                        </Typography>
                       </td>
-                      <td className="px-4 py-4 text-center">
-                        {/* ✅ THIS NOW OPENS THE DRAWER */}
+                      <td style={{ padding: "12px 16px", textAlign: "center" }}>
                         <IconButton
                           variant="plain"
                           color="neutral"
@@ -231,15 +329,15 @@ export default function CustomerManagement() {
                             setDrawerOpen(true);
                           }}
                         >
-                          <MoreHorizontal size={18} />
+                          <MoreHorizontal size={16} />
                         </IconButton>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="py-20 text-center text-gray-400">
-                      No stores found matching your search.
+                    <td colSpan={7} style={{ padding: "48px", textAlign: "center", color: "#94a3b8", fontSize: "13px" }}>
+                      No stores match "{searchTerm}"
                     </td>
                   </tr>
                 )}
@@ -248,69 +346,54 @@ export default function CustomerManagement() {
           </Box>
         </Sheet>
 
-        {/* ✅ DRAWER — rendered here in the JSX tree */}
+        {/* Detail drawer */}
         {drawerOpen && selectedStore && (
           <Box
-            sx={{ position: "fixed", inset: 0, bgcolor: "rgba(0,0,0,0.4)", zIndex: 1200, display: "flex", justifyContent: "flex-end" }}
+            sx={{ position: "fixed", inset: 0, bgcolor: "rgba(15,23,42,0.4)", zIndex: 1200, display: "flex", justifyContent: "flex-end" }}
             onClick={(e) => { if (e.target === e.currentTarget) setDrawerOpen(false); }}
           >
             <Sheet sx={{ width: { xs: "100%", sm: 380 }, height: "100%", p: 3, overflowY: "auto", borderLeft: "1px solid #e2e8f0" }}>
-              
-              {/* Drawer header */}
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                <Typography level="title-lg" sx={{ fontWeight: 800 }}>{selectedStore.name}</Typography>
-                <IconButton variant="plain" color="neutral" onClick={() => setDrawerOpen(false)}>
-                  <X size={18} />
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2.5 }}>
+                <Typography level="title-md" sx={{ fontWeight: 700, color: "#0f172a" }}>{selectedStore.name}</Typography>
+                <IconButton variant="plain" color="neutral" size="sm" onClick={() => setDrawerOpen(false)}>
+                  <X size={16} />
                 </IconButton>
               </Box>
 
               <Box sx={{ display: "flex", gap: 1, mb: 3 }}>
-                <Chip size="sm" color={selectedStore.status === "ACTIVE" ? "success" : "danger"} variant="soft">
+                <Chip size="sm" color={selectedStore.status === "ACTIVE" ? "success" : "danger"} variant="soft" sx={{ borderRadius: "6px", fontWeight: 600 }}>
                   {selectedStore.status}
                 </Chip>
-                <Chip size="sm" variant="outlined" sx={{ textTransform: "uppercase" }}>
+                <Chip size="sm" variant="outlined" sx={{ borderRadius: "6px", textTransform: "capitalize" }}>
                   {selectedStore.plan}
                 </Chip>
               </Box>
 
-              {/* Store details */}
-              <Typography level="body-xs" sx={{ textTransform: "uppercase", fontWeight: 700, mb: 1.5, color: "neutral.500", letterSpacing: "0.5px" }}>
+              <Typography level="body-xs" sx={{ textTransform: "uppercase", fontWeight: 700, mb: 1, color: "#94a3b8", letterSpacing: "0.03em" }}>
                 Store info
               </Typography>
-              {[
-                ["Category", selectedStore.storeType],
-                ["Slug", selectedStore.slug],
-                ["Customers", (selectedStore.totalCustomers || 0).toLocaleString()],
-                ["Paystack", selectedStore.paystack?.verified ? "Verified" : "Unverified"],
-                ["Joined", new Date(selectedStore.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })],
-              ].map(([key, val]) => (
-                <Box key={key} sx={{ display: "flex", justifyContent: "space-between", py: 1.5, borderBottom: "0.5px solid #f1f5f9" }}>
-                  <Typography level="body-sm" sx={{ color: "text.tertiary" }}>{key}</Typography>
-                  <Typography level="body-sm" sx={{ fontWeight: 600 }}>{val || "N/A"}</Typography>
-                </Box>
-              ))}
+              <DetailRow label="Category" value={selectedStore.storeType} />
+              <DetailRow label="Slug" value={selectedStore.slug} />
+              <DetailRow label="Customers" value={(selectedStore.totalCustomers || 0).toLocaleString()} />
+              <DetailRow label="Paystack" value={selectedStore.paystack?.verified ? "Verified" : "Unverified"} />
+              <DetailRow
+                label="Joined"
+                value={new Date(selectedStore.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              />
 
-              {/* Owner details */}
-              <Typography level="body-xs" sx={{ textTransform: "uppercase", fontWeight: 700, mt: 3, mb: 1.5, color: "neutral.500", letterSpacing: "0.5px" }}>
+              <Typography level="body-xs" sx={{ textTransform: "uppercase", fontWeight: 700, mt: 3, mb: 1, color: "#94a3b8", letterSpacing: "0.03em" }}>
                 Owner
               </Typography>
-              {[
-                ["Name", selectedStore.owner?.name],
-                ["Email", selectedStore.owner?.email],
-              ].map(([key, val]) => (
-                <Box key={key} sx={{ display: "flex", justifyContent: "space-between", py: 1.5, borderBottom: "0.5px solid #f1f5f9" }}>
-                  <Typography level="body-sm" sx={{ color: "text.tertiary" }}>{key}</Typography>
-                  <Typography level="body-sm" sx={{ fontWeight: 600 }}>{val || "N/A"}</Typography>
-                </Box>
-              ))}
+              <DetailRow label="Name" value={selectedStore.owner?.name} />
+              <DetailRow label="Email" value={selectedStore.owner?.email} />
 
-              {/* Actions */}
-              <Box sx={{ mt: 4, display: "flex", gap: 1.5 }}>
+              <Box sx={{ mt: 3 }}>
                 <Button
                   fullWidth
                   variant="outlined"
                   color={selectedStore.status === "ACTIVE" ? "danger" : "success"}
                   onClick={() => setSuspendModal(true)}
+                  sx={{ borderRadius: "8px", fontWeight: 600 }}
                 >
                   {selectedStore.status === "ACTIVE" ? "Suspend store" : "Reactivate store"}
                 </Button>
@@ -319,21 +402,21 @@ export default function CustomerManagement() {
           </Box>
         )}
 
-        {/* ✅ SUSPEND CONFIRM MODAL */}
+        {/* Suspend confirm modal */}
         {suspendModal && (
-          <Box sx={{ position: "fixed", inset: 0, bgcolor: "rgba(0,0,0,0.5)", zIndex: 1300, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Sheet sx={{ width: 360, p: 3, borderRadius: "16px", border: "1px solid #e2e8f0" }}>
-              <Typography level="title-md" sx={{ mb: 1 }}>
+          <Box sx={{ position: "fixed", inset: 0, bgcolor: "rgba(15,23,42,0.5)", zIndex: 1300, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Sheet sx={{ width: 360, p: 3, borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+              <Typography level="title-md" sx={{ fontWeight: 700, color: "#0f172a", mb: 0.5 }}>
                 {selectedStore?.status === "ACTIVE" ? `Suspend "${selectedStore?.name}"?` : `Reactivate "${selectedStore?.name}"?`}
               </Typography>
-              <Typography level="body-sm" sx={{ color: "text.tertiary", mb: 2 }}>
+              <Typography level="body-sm" sx={{ color: "#64748b", mb: 2 }}>
                 {selectedStore?.status === "ACTIVE"
-                  ? "This will block the store from accepting orders. The owner will be notified."
-                  : "This will allow the store to accept orders again."}
+                  ? "This blocks the store from accepting orders. The owner is notified."
+                  : "This allows the store to accept orders again."}
               </Typography>
               {selectedStore?.status === "ACTIVE" && (
                 <Box sx={{ mb: 2 }}>
-                  <Typography level="body-xs" sx={{ mb: 0.5, color: "text.secondary" }}>Reason (optional)</Typography>
+                  <Typography level="body-xs" sx={{ mb: 0.5, color: "#64748b" }}>Reason (optional)</Typography>
                   <input
                     style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "13px", fontFamily: "inherit" }}
                     placeholder="e.g. Policy violation"
@@ -342,12 +425,15 @@ export default function CustomerManagement() {
                   />
                 </Box>
               )}
-              <Box sx={{ display: "flex", gap: 1.5, justifyContent: "flex-end" }}>
-                <Button variant="plain" color="neutral" onClick={() => setSuspendModal(false)}>Cancel</Button>
+              <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
+                <Button variant="outlined" color="neutral" onClick={() => setSuspendModal(false)} sx={{ borderRadius: "8px", fontWeight: 600 }}>
+                  Cancel
+                </Button>
                 <Button
                   color={selectedStore?.status === "ACTIVE" ? "danger" : "success"}
                   loading={suspending}
                   onClick={handleSuspendToggle}
+                  sx={{ borderRadius: "8px", fontWeight: 600 }}
                 >
                   Confirm
                 </Button>

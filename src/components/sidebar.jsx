@@ -51,7 +51,7 @@ export default function Sidebar({
     // REPLACED: Simple list of all registered customers (the buyers)
     {
       id: "us",
-      label: "Customers",
+      label: "Store Customers",
       path: "/admin/customers",
       icon: <Users size={20} />,
     },

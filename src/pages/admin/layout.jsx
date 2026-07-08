@@ -85,6 +85,7 @@ export default function SuperAdminLayout({ children, isDark }) {
     />
   );
 
+  // const toggleDarkMo
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
       {/* --- GLOBAL CSS TO HIDE SCROLLBARS --- */}
