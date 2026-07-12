@@ -25,7 +25,7 @@ import { encodeAuthForSync } from "../../utils/authSync";
 
 export default function SignUpPage() {
   // 1. New State Management
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(3);
   const [otp, setOtp] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("starter");
   const [showPassword, setShowPassword] = useState(false);
@@ -63,7 +63,7 @@ export default function SignUpPage() {
       id: "starter",
       name: "Starter Plan",
       price: { monthly: "Free", yearly: "Free" },
-      features: ["200 Products", "Basic Analytics", "Custom Domain"],
+      features: ["200 Products", "Basic Analytics", "Custom Domain", "Order Management", "Inventory", "Intuitive Dashboard"],
     },
     // {
     //   id: "professional",
@@ -245,10 +245,12 @@ export default function SignUpPage() {
             today.
           </h2>
 
-          <div className="space-y-6">
+          <div className="space-y-3">
             {[
               "Set up your store in less than 5 minutes",
               "Integrated local payment gateways",
+              "No Monthly Subscription",
+              "User Friendly Dashboard"
             ].map((text, i) => (
               <div key={i} className="flex items-center gap-3">
                 <CheckCircle2 className="text-emerald-400" size={20} />
@@ -616,7 +618,7 @@ export default function SignUpPage() {
                 </p>
               </div>
 
-              {latestDiscount && (
+              {/* {latestDiscount && (
                 <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-3 animate-pulse">
                   <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shrink-0">
                     <ShieldCheck size={24} />
@@ -634,7 +636,7 @@ export default function SignUpPage() {
                     </p>
                   </div>
                 </div>
-              )}
+              )} */}
 
               {/* Toggle Switch */}
               {/* <div className="flex items-center justify-center mb-5">
