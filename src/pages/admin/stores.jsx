@@ -271,19 +271,7 @@ export default function StoreManagement() {
               sx={{ borderRadius: "8px", fontWeight: 600 }}
             >
               Export
-            </Button>
-            <Button
-              variant="solid"
-              size="sm"
-              sx={{
-                bgcolor: "#4f46e5",
-                borderRadius: "8px",
-                fontWeight: 600,
-                "&:hover": { bgcolor: "#4338ca" },
-              }}
-            >
-              Platform settings
-            </Button>
+            </Button>            
           </Box>
         </Box>
 
@@ -454,7 +442,7 @@ export default function StoreManagement() {
                             sx={{ color: "#94a3b8", fontFamily: "monospace" }}
                             noWrap
                           >
-                            {store.paystack?.subaccount_code || "pending setup"}
+                            {store?.paystack?.status || "pending setup"}
                           </Typography>
                         </Box>
                       </Box>

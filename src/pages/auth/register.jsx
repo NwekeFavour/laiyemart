@@ -10,6 +10,7 @@ import {
   EyeOff,
   ShieldCheck,
   ArrowLeft,
+  Phone,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -22,6 +23,10 @@ import { useAuthStore } from "../../store/useAuthStore";
 import Layemart from '../../assets/img/layemart-icon.jpg'
 import { Box } from "@mui/joy";
 import { encodeAuthForSync } from "../../utils/authSync";
+
+// Centralize the support number so it's easy to update in one place
+const SUPPORT_PHONE_NUMBER = "+234 909 999 2715";
+const SUPPORT_PHONE_TEL = "+2349099992715"; // digits-only version for tel: links
 
 export default function SignUpPage() {
   // 1. New State Management
@@ -257,6 +262,29 @@ export default function SignUpPage() {
                 <p className="text-slate-300 font-medium">{text}</p>
               </div>
             ))}
+          </div>
+
+          {/* --- SUPPORT PHONE NUMBER SECTION --- */}
+          <div className="mt-10 pt-6 border-t border-slate-700/60">
+            <p className="text-[11px] uppercase tracking-wider text-slate-400 font-bold mb-2">
+              Need help signing up?
+            </p>
+            <a
+              href={`tel:${SUPPORT_PHONE_TEL}`}
+              className="flex items-center gap-3 group w-fit"
+            >
+              <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-slate-700 transition-colors">
+                <Phone size={16} className="text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-white font-semibold text-sm group-hover:underline">
+                  {SUPPORT_PHONE_NUMBER}
+                </p>
+                <p className="text-slate-400 text-[11px]">
+                  Our support team is here for you
+                </p>
+              </div>
+            </a>
           </div>
         </div>
 
@@ -840,6 +868,15 @@ export default function SignUpPage() {
             </span>
             .
           </p>
+
+          {/* --- MOBILE SUPPORT PHONE NUMBER (left panel is hidden below md) --- */}
+          <a
+            href={`tel:${SUPPORT_PHONE_TEL}`}
+            className="md:hidden flex items-center sm:justify-center gap-2 text-xs text-slate-500 mt-3 hover:text-slate-700"
+          >
+            <Phone size={13} />
+            Need help? Call {SUPPORT_PHONE_NUMBER}
+          </a>
         </div>
       </div>
     </div>
