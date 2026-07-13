@@ -25,9 +25,200 @@ import {
   Users,
   ShoppingBag,
   AlertCircle,
+  Eye,
+  Mail,
+  Phone,
+  MapPin,
 } from "lucide-react";
 import { useAdminStore } from "../../../services/adminService";
 import SuperAdminLayout from "./layout";
+
+// ─── Store Details Modal ───────────────────────────────────────────────────
+function DetailRow({ icon: Icon, label, value }) {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 1,
+        p: 1.25,
+        borderRadius: "10px",
+        bgcolor: "#fff",
+        border: "1px solid #e2e8f0",
+      }}
+    >
+      <Box sx={{ color: "#64748b", mt: 0.2 }}>
+        <Icon size={15} />
+      </Box>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography
+          level="body-xs"
+          sx={{
+            color: "#64748b",
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.03em",
+          }}
+        >
+          {label}
+        </Typography>
+        <Typography
+          level="body-sm"
+          sx={{ fontWeight: 600, color: "#0f172a", whiteSpace: "pre-wrap" }}
+        >
+          {value || "Not provided"}
+        </Typography>
+      </Box>
+    </Box>
+  );
+}
+
+function StoreDetailsModal({ store, onClose }) {
+  if (!store) return null;
+
+  const ownerName =
+    store?.owner?.name ||
+    store?.owner?.fullName ||
+    store?.owner?.email ||
+    "Pending owner";
+  const ownerEmail = store?.owner?.email || store?.email || "Not provided";
+  const ownerPhone = store?.owner?.phone || store?.phone || "Not provided";
+  const ownerAddress =
+    typeof store?.owner?.address === "string"
+      ? store.owner.address
+      : [
+          store?.owner?.address?.street,
+          store?.owner?.address?.city,
+          store?.owner?.address?.state,
+          store?.owner?.address?.country,
+        ]
+          .filter(Boolean)
+          .join(", ") || "Not provided";
+
+  return (
+    <Modal open={!!store} onClose={onClose}>
+      <ModalDialog
+        variant="outlined"
+        role="dialog"
+        aria-labelledby="store-details-title"
+        sx={{
+          maxWidth: 560,
+          width: { xs: "92vw", sm: 560 },
+          borderRadius: "16px",
+          p: { xs: 2.25, sm: 3 },
+          boxShadow: "0 20px 45px rgba(15,23,42,0.16)",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 2,
+            mb: 2,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Avatar
+              src={store.logo?.url}
+              sx={{
+                width: 46,
+                height: 46,
+                borderRadius: "10px",
+                fontWeight: 700,
+                bgcolor: "#e2e8f0",
+              }}
+            >
+              {store.name?.charAt(0)}
+            </Avatar>
+            <Box>
+              <Typography
+                id="store-details-title"
+                level="title-md"
+                sx={{ fontWeight: 700, color: "#0f172a" }}
+              >
+                {store.name}
+              </Typography>
+              <Typography level="body-sm" sx={{ color: "#64748b" }}>
+                {store.plan || "Starter"} plan • {store.subdomain ? "Live store" : "Setup in progress"}
+              </Typography>
+            </Box>
+          </Box>
+          <Button
+            variant="outlined"
+            color="neutral"
+            size="sm"
+            onClick={onClose}
+            sx={{ borderRadius: "999px" }}
+          >
+            Close
+          </Button>
+        </Box>
+
+        <Divider sx={{ mb: 2 }} />
+
+        <Box sx={{ display: "grid", gap: 1.25 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              p: 1.25,
+              borderRadius: "10px",
+              bgcolor: "#f8fafc",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: "8px",
+                bgcolor: "#e0f2fe",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Users size={15} color="#0f766e" />
+            </Box>
+            <Box>
+              <Typography
+                level="body-xs"
+                sx={{
+                  color: "#64748b",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.03em",
+                }}
+              >
+                Store owner
+              </Typography>
+              <Typography level="body-sm" sx={{ fontWeight: 700, color: "#0f172a" }}>
+                {ownerName}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box
+            sx={{
+              display: "grid",
+              gap: 1,
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+            }}
+          >
+            <DetailRow icon={Mail} label="Email" value={ownerEmail} />
+            <DetailRow icon={Phone} label="Phone" value={ownerPhone} />
+          </Box>
+
+          <DetailRow icon={MapPin} label="Address" value={ownerAddress} />
+          <DetailRow icon={ShoppingBag} label="Store slug" value={store.slug || "Not assigned"} />
+          <DetailRow icon={Wallet} label="Plan" value={store.plan || "Starter"} />
+        </Box>
+      </ModalDialog>
+    </Modal>
+  );
+}
 
 // ─── Confirmation Modal ───────────────────────────────────────────────────────
 function DeleteStoreModal({ store, onConfirm, onCancel, isDeleting }) {
@@ -196,6 +387,7 @@ export default function StoreManagement() {
   } = useAdminStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [storeToDelete, setStoreToDelete] = useState(null);
+  const [selectedStoreDetails, setSelectedStoreDetails] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -208,14 +400,21 @@ export default function StoreManagement() {
 
   const filteredStores = useMemo(() => {
     if (!stores?.data) return [];
-    return stores.data.filter(
-      (store) =>
-        store.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        store.owner?.email?.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+    const term = searchTerm.toLowerCase();
+    return stores.data.filter((store) => {
+      const ownerName = `${store.owner?.name || ""} ${store.owner?.fullName || ""}`.toLowerCase();
+      return (
+        store.name?.toLowerCase().includes(term) ||
+        store.owner?.email?.toLowerCase().includes(term) ||
+        ownerName.includes(term) ||
+        store?.email?.toLowerCase().includes(term)
+      );
+    });
   }, [stores, searchTerm]);
 
   const handleDeleteClick = (store) => setStoreToDelete(store);
+  const handleOpenDetails = (store) => setSelectedStoreDetails(store);
+  const handleCloseDetails = () => setSelectedStoreDetails(null);
   const handleCancelDelete = () => {
     if (!isDeleting) setStoreToDelete(null);
   };
@@ -352,7 +551,7 @@ export default function StoreManagement() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-                  {["Merchant", "Revenue", "Reach", "Status", ""].map(
+                  {["S/N", "Merchant", "Revenue", "Reach", "Status", ""].map(
                     (h, i) => (
                       <th
                         key={h + i}
@@ -405,12 +604,16 @@ export default function StoreManagement() {
                   </tr>
                 )}
 
-                {filteredStores.map((store) => (
+                {filteredStores.map((store, index) => (
                   <tr
                     key={store._id}
                     style={{ borderBottom: "1px solid #f1f5f9" }}
                     className="hover:bg-slate-50"
                   >
+                    {/* S/N */}
+                    <td style={{ padding: "12px 20px" }}>
+                      {index + 1}
+                    </td>
                     {/* Merchant */}
                     <td style={{ padding: "12px 20px" }}>
                       <Box
@@ -437,12 +640,18 @@ export default function StoreManagement() {
                             {store.name}
                           </Typography>
                           <Typography
-                            className="capitalize"
+                            level="body-xs"
+                            sx={{ color: "#0f766e", fontWeight: 600 }}
+                            noWrap
+                          >
+                            {store?.name || store?.owner?.fullName || "Pending owner"}
+                          </Typography>
+                          <Typography
                             level="body-xs"
                             sx={{ color: "#94a3b8", fontFamily: "monospace" }}
                             noWrap
                           >
-                            {store?.paystack?.status || "pending setup"}
+                            {store?.owner?.email || store?.email || "pending setup"}
                           </Typography>
                         </Box>
                       </Box>
@@ -501,12 +710,12 @@ export default function StoreManagement() {
                         }}
                       >
                         <StatusBadge verified={store.paystack?.verified} />
-                        <Typography
+                        {/* <Typography
                           level="body-xs"
                           sx={{ color: "#64748b", textTransform: "capitalize" }}
                         >
                           {store.plan || "Starter"} plan
-                        </Typography>
+                        </Typography> */}
                       </Box>
                     </td>
 
@@ -538,6 +747,16 @@ export default function StoreManagement() {
                             </IconButton>
                           </Tooltip>
                         )}
+                        <Tooltip title="View details">
+                          <IconButton
+                            size="sm"
+                            variant="plain"
+                            color="neutral"
+                            onClick={() => handleOpenDetails(store)}
+                          >
+                            <Eye size={15} />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip title="Delete store">
                           <IconButton
                             size="sm"
@@ -556,6 +775,11 @@ export default function StoreManagement() {
             </table>
           </Box>
         </Sheet>
+
+        <StoreDetailsModal
+          store={selectedStoreDetails}
+          onClose={handleCloseDetails}
+        />
 
         <DeleteStoreModal
           store={storeToDelete}

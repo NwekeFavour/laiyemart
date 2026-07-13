@@ -384,7 +384,7 @@ export default function CustomerManagement() {
               <Typography level="body-xs" sx={{ textTransform: "uppercase", fontWeight: 700, mt: 3, mb: 1, color: "#94a3b8", letterSpacing: "0.03em" }}>
                 Owner
               </Typography>
-              <DetailRow label="Name" value={selectedStore.owner?.name} />
+              <DetailRow label="Name" value={selectedStore.owner?.name || selectedStore.name || "Pending owner"} />
               <DetailRow label="Email" value={selectedStore.owner?.email} />
 
               <Box sx={{ mt: 3 }}>
