@@ -25,7 +25,7 @@ import { encodeAuthForSync } from "../../utils/authSync";
 
 export default function SignUpPage() {
   // 1. New State Management
-  const [step, setStep] = useState(3);
+  const [step, setStep] = useState(1);
   const [otp, setOtp] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("starter");
   const [showPassword, setShowPassword] = useState(false);
