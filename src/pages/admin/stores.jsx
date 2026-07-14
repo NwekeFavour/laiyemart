@@ -737,7 +737,7 @@ export default function StoreManagement() {
                               onClick={() => {
                                 const url =
                                   store?.plan === "starter"
-                                    ? `http://localhost:5173/${store.slug}`
+                                    ? `${import.meta.env.VITE_FRONTEND_URL}/${store.slug}`
                                     : `${protocol}://${store.subdomain}.layemart.com`;
 
                                 window.open(url, "_blank");
