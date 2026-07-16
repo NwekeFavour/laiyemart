@@ -46,12 +46,26 @@ export const registerStoreOwner = async ({
   password,
   billingCycle,
   plan,
-  couponCode
+  couponCode,
+  phoneNumber,
+  fullName,
+  storeName,
+  subdomain,
 }) => {
   const res = await fetch(`${VITE_BACKEND_URL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, billingCycle, plan , couponCode}),
+    body: JSON.stringify({
+      email,
+      password,
+      billingCycle,
+      plan,
+      couponCode,
+      phoneNumber,
+      fullName,
+      storeName,
+      subdomain,
+    }),
   });
 
   const data = await res.json();

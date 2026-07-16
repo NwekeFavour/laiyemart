@@ -37,6 +37,7 @@ export default function SignUpPage() {
   const [fullName, setFullName] = useState("");
   const [storeName, setStoreName] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(0);
@@ -318,6 +319,7 @@ export default function SignUpPage() {
                       password,
                       fullName: fullName || "", // Fallback to empty string
                       storeName: storeName || "My Store", // Fallback to a default name
+                      phoneNumber: phoneNumber.trim(),
                       // Only generate subdomain if storeName exists, otherwise empty string
                       subdomain: storeName
                         ? storeName.toLowerCase().trim().replace(/\s+/g, "-")
@@ -420,6 +422,25 @@ export default function SignUpPage() {
                       placeholder="name@company.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      className="w-full py-3 pl-11 pr-4 border border-slate-200 rounded-xl outline-none focus:border-slate-500 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[13px] font-semibold text-slate-600 ml-0.5">
+                    Phone Number
+                  </label>
+                  <div className="relative group">
+                    <Phone
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                      size={18}
+                    />
+                    <input
+                      type="tel"
+                      placeholder="+234 805 000 0000"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
                       className="w-full py-3 pl-11 pr-4 border border-slate-200 rounded-xl outline-none focus:border-slate-500 transition-all"
                     />
                   </div>
