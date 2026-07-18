@@ -217,6 +217,7 @@ html{
         "Payment integration",
         "10% Service fee",
         "Email support",
+        "Custom Domain Name Integration (T&Cs apply) ",
       ],
     },
     // {
@@ -929,45 +930,7 @@ html{
                 <h2 className="text-[26px]! text-white! pt-10! md:text-[38px]! lg:text-[46px]! font-bold! mb-4">
                   Scalable and Affordable Prices
                 </h2>
-
-                {/* Billing Toggle */}
-                <div className="flex flex-col items-center gap-4 mt-8 px-4 w-full">
-                  {/* Segmented Control Container */}
-                  <div className="group relative flex p-1 bg-gray-200/50 backdrop-blur-md rounded-full w-full max-w-[320px] sm:max-w-[350px] border border-gray-300/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]">
-                    {/* Sliding Background Pill */}
-                    <div
-                      className={`absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) ${
-                        billing === "yearly"
-                          ? "translate-x-full"
-                          : "translate-x-0"
-                      }`}
-                    />
-
-                    {/* Monthly Button */}
-                    <button
-                      onClick={() => setBilling("monthly")}
-                      className={`relative z-10 flex-1 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-wider transition-colors duration-300 ${
-                        billing === "monthly"
-                          ? "text-indigo-600"
-                          : "text-gray-100 hover:text-gray-800"
-                      }`}
-                    >
-                      Monthly
-                    </button>
-
-                    {/* Yearly Button */}
-                    <button
-                      onClick={() => setBilling("yearly")}
-                      className={`relative z-10 flex-1 py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-wider transition-colors duration-300 ${
-                        billing === "yearly"
-                          ? "text-indigo-600"
-                          : "text-gray-100 hover:text-gray-800"
-                      }`}
-                    >
-                      Yearly
-                    </button>
-                  </div>
-                </div>
+            
               </div>
 
               {/* Pricing Grid */}
@@ -1477,13 +1440,13 @@ const PricingCard = ({
             >
               {billing === "monthly" ? monthly : yearly}
             </span>
-            {title !== "Enterprise" && (
+            {/* {title !== "Enterprise" && (
               <span
                 className={` text-sm ${title === "Professional" ? "text-neutral-100!" : "text-gray-500!"} `}
               >
-                /{billing === "monthly" ? "mo" : "yr"}
+                /{billing === "monthly" ? "mo" : ""}
               </span>
-            )}
+            )} */}
           </div>
         </div>
 
