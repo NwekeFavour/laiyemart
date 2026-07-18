@@ -416,7 +416,7 @@ html{
                       className="section-inner panel vstack border rounded-3 overflow-hidden bg-[#fef1e7]! dark:bg-opacity-15"
                       data-anime="onview: -200; translateY: [48, 0]; opacity: [0, 1]; easing: easeOutCubic; duration: 500; delay: 200;"
                     >
-                      <div className="row grid! md:grid-cols-2! grid-cols-1! lg:grid-cols-4! justify-center col-match g-4 sep ">
+                      <div className="row grid! grid-cols-1! lg:grid-cols-3! justify-center col-match g-4 sep ">
                         {steps.map((item, index) => {
                           // Handling both Image strings or Component Icons
                           const IconContent = item.icon;
