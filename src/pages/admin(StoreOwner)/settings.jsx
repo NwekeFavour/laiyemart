@@ -2638,7 +2638,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                         <FormLabel
                           sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
                         >
-                          Verified Name
+                          Account Name
                         </FormLabel>
                         <Input
                           disabled
