@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+﻿import React, { useState, useMemo, useEffect } from "react";
 import HeroSection from "../components/hero";
 import ValuePropsSection from "../components/card";
 import MarqueeSection from "../components/marq";
@@ -187,20 +187,13 @@ html{
     },
     {
       step: "02",
-      title: "Choose Your Plan",
-      description:
-        "Select Starter or Professional. Pay for Professional (Monthly/Yearly) via Paystack.",
-      icon: HomeStep02,
-    },
-    {
-      step: "03",
       title: "Access & Verify",
       description:
         "Access your dashboard, verify your identity and add your bank account details.",
       icon: HomeStep03,
     },
     {
-      step: "04",
+      step: "03",
       title: "Launch & handoff",
       description:
         "Your Store link is ready on the dashboard to share with customers and start earning.",
@@ -226,26 +219,26 @@ html{
         "Email support",
       ],
     },
-    {
-      title: "Professional",
-      description: "For growing online stores",
-      monthly: "₦15,000",
-      yearly: "₦153,000",
-      storeUrl: {
-        label: "Store URL",
-        example: "mystore.layemart.com",
-      },
-      features: [
-        "Up to 200 products",
-        "Advanced templates & layouts",
-        "Marketing tools & SEO",
-        "3% Service fee",
-        "Domain Name Integration (T&Cs apply) ",
-        "Payment integration",
-        "Priority email support",
-      ],
-      mostPopular: true,
-    },
+    // {
+    //   title: "Professional",
+    //   description: "For growing online stores",
+    //   monthly: "₦15,000",
+    //   yearly: "₦153,000",
+    //   storeUrl: {
+    //     label: "Store URL",
+    //     example: "mystore.layemart.com",
+    //   },
+    //   features: [
+    //     "Up to 200 products",
+    //     "Advanced templates & layouts",
+    //     "Marketing tools & SEO",
+    //     "3% Service fee",
+    //     "Domain Name Integration (T&Cs apply) ",
+    //     "Payment integration",
+    //     "Priority email support",
+    //   ],
+    //   mostPopular: true,
+    // },
     {
       title: "Enterprise",
       description: "For large businesses",
@@ -978,7 +971,7 @@ html{
               </div>
 
               {/* Pricing Grid */}
-              <div className="grid! lg:space-y-0 space-y-5! grid-cols-1! lg:grid-cols-3! mb-8! gap-8! lg:max-w-6xl! mx-auto!">
+              <div className="grid! lg:space-y-0 justify-center space-y-5! grid-cols-1! lg:grid-cols-[400px_400px]! mb-8! gap-8! lg:max-w-6xl! mx-auto!">
                 {pricingData.map((plan, index) => (
                   <PricingCard key={index} {...plan} billing={billing} />
                 ))}

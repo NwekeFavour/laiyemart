@@ -65,7 +65,7 @@ function PageHeader() {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex flex-grow justify-center">
+            <div className="hidden xl:flex flex-grow justify-center">
               <ul className="flex items-center gap-6 xl:gap-10 font-medium mb-0">
                 {navItems.map((item) => (
                   <li key={item.label}>
@@ -84,7 +84,7 @@ function PageHeader() {
                   <a href="/auth/sign-in" className="hidden lg:flex px-6 py-2.5 text-sm font-semibold rounded-full bg-slate-900 text-white! hover:opacity-90 transition-opacity">
                     Login
                   </a>
-                  <a href="/auth/sign-up" className="hidden lg:flex items-center px-6 py-2.5 text-sm font-semibold rounded-full bg-[#4F46E5] text-white! hover:bg-[#4F46E5]/90 transition-colors">
+                  <a href="/auth/sign-up" className="hidden xl:flex items-center px-6 py-2.5 text-sm font-semibold rounded-full bg-[#4F46E5] text-white! hover:bg-[#4F46E5]/90 transition-colors">
                     Start Free Store
                   </a>
                 </>
