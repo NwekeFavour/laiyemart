@@ -17,7 +17,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/layemart-icon.jpg'],
+      includeAssets: [
+        'icons/apple-touch-icon.png',
+        'icons/favicon-96x96.png',
+        'icons/layemart-icon.ico',
+      ],
       manifest: {
         name: 'LayeMart',
         short_name: 'LayeMart',
@@ -28,9 +32,8 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+          { src: '/icons/web-app-manifest-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icons/web-app-manifest-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ]
       },
       devOptions: {
