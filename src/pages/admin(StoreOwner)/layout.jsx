@@ -64,7 +64,7 @@ export default function StoreOwnerLayout({ isDark, toggleDarkMode, children }) {
   const isStarter = store?.plan;
   const isExpired =
     store?.trialEndsAt &&
-    new Date(store.trialEndsAt).getTime() < new Date().getTime();
+    new Date(store?.trialEndsAt).getTime() < new Date().getTime();
 
   const getFirstName = (fullName) => {
     if (!fullName || typeof fullName !== "string") return "Vendor";
@@ -1474,7 +1474,7 @@ const handleLogout = () => {
             </Sheet>
           )} */}
 
-          {!isExpired && !store.plan === "starter" && (
+          {!isExpired && !store?.plan === "starter" && (
             <Sheet
               className={`${!isExpired && "hidden!"} ${
                 isExpired

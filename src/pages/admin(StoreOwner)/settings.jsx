@@ -203,6 +203,38 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     selectedSlug: "",
   });
 
+  const lockedBank =
+    banks.find(
+      (bank) =>
+        bank.code ===
+        (store?.paystack?.bankCode || bankForm.bankCode || ""),
+    ) || null;
+  const lockedBusinessName =
+    store?.paystack?.businessName || store?.name || bankForm.businessName || "";
+  const lockedVerifiedName =
+    store?.paystack?.accountName || verifiedInfo.name || user?.fullName || "";
+  const lockedAccountNumber =
+    store?.paystack?.accountNumber || bankForm.accountNumber || "";
+  const lockedSelectedSlug =
+    store?.paystack?.selectedSlug ||
+    store?.slug ||
+    bankForm.selectedSlug ||
+    "";
+  const lockedStoreUrl = (() => {
+    const cleanSlug = `${lockedSelectedSlug || ""}`
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    if (!cleanSlug) return "";
+
+    return store?.plan === "starter"
+      ? `https://layemart.com/${cleanSlug}`
+      : `https://${cleanSlug}.layemart.com`;
+  })();
+
   useEffect(() => {
     const fetchBanks = async () => {
       try {
@@ -2487,37 +2519,223 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
 
             {activeSection === "st" ? (
               isLocked ? (
-                <Box
-                  sx={{
-                    p: 4,
-                    textAlign: "center",
-                    borderRadius: "md",
-                    border: "1px dashed",
-                    borderColor: isDark ? "neutral.700" : "neutral.300",
-                    bgcolor: isDark ? "rgba(255,255,255,0.02)" : "neutral.50",
-                  }}
-                >
-                  <Typography fontSize={40}>🔒</Typography>
-
-                  <Typography level="title-md" sx={{ mt: 1 }}>
-                    Identity Locked
-                  </Typography>
-
-                  <Typography
-                    level="body-sm"
-                    sx={{ mt: 1, maxWidth: 360, mx: "auto" }}
+                <Stack gap={3}>
+                  <Box
+                    sx={{
+                      p: 4,
+                      textAlign: "center",
+                      borderRadius: "md",
+                      border: "1px dashed",
+                      borderColor: isDark ? "neutral.700" : "neutral.300",
+                      bgcolor: isDark
+                        ? "rgba(255,255,255,0.02)"
+                        : "neutral.50",
+                    }}
                   >
-                    Your financial and identity details have been verified and
-                    locked. To make changes, contact support:
-                  </Typography>
+                    <Typography fontSize={40}>🔒</Typography>
 
-                  <Typography
-                    level="title-sm"
-                    sx={{ mt: 2, color: "primary.500" }}
+                    <Typography level="title-md" sx={{ mt: 1 }}>
+                      Identity Locked
+                    </Typography>
+
+                    <Typography
+                      level="body-sm"
+                      sx={{ mt: 1, maxWidth: 360, mx: "auto" }}
+                    >
+                      Your financial and identity details have been verified and
+                      locked. To make changes, contact support:
+                    </Typography>
+
+                    <Typography
+                      level="title-sm"
+                      sx={{ mt: 2, color: "primary.500" }}
+                    >
+                      info@layemart.com
+                    </Typography>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      p: 3,
+                      borderRadius: "md",
+                      border: "1px solid",
+                      borderColor: isDark ? "neutral.700" : "neutral.200",
+                      bgcolor: isDark ? "rgba(255,255,255,0.03)" : "white",
+                    }}
                   >
-                    info@layemart.com
-                  </Typography>
-                </Box>
+                    <Typography
+                      level="title-sm"
+                      sx={{ mb: 2, color: isDark ? "neutral.100" : "neutral.900" }}
+                    >
+                      Submitted Bank Details
+                    </Typography>
+
+                    <Stack gap={2}>
+                      <FormControl>
+                        <FormLabel
+                          sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
+                        >
+                          Bank
+                        </FormLabel>
+                        <Autocomplete
+                          disabled
+                          options={banks}
+                          getOptionLabel={(option) => option.name}
+                          value={lockedBank}
+                          variant={isDark ? "soft" : "outlined"}
+                          sx={{
+                            borderRadius: "lg",
+                            bgcolor: isDark ? "#0f172b" : "neutral.50",
+                            borderColor: isDark ? "#90a1b9" : "neutral.200",
+                            "& .MuiAutocomplete-input": {
+                              color: isDark ? "#f8fafc" : "neutral.900",
+                            },
+                            "&.Mui-disabled": {
+                              bgcolor: isDark
+                                ? "rgba(15, 23, 42, 0.5)"
+                                : "neutral.50",
+                              "& .MuiAutocomplete-input": {
+                                WebkitTextFillColor: isDark
+                                  ? "#475569"
+                                  : "#94a3b8",
+                              },
+                            },
+                          }}
+                        />
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel
+                          sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
+                        >
+                          Account Number
+                        </FormLabel>
+                        <Input
+                          disabled
+                          value={lockedAccountNumber}
+                          variant={isDark ? "soft" : "outlined"}
+                          sx={{
+                            borderRadius: "lg",
+                            bgcolor: isDark ? "#0f172b" : "neutral.50",
+                            borderColor: isDark ? "#90a1b9" : "neutral.200",
+                            color: isDark ? "#90a1b9" : "neutral.600",
+                            "&.Mui-disabled": {
+                              bgcolor: isDark
+                                ? "rgba(15, 23, 42, 0.5)"
+                                : "neutral.50",
+                              color: isDark ? "#62748e" : "neutral.500",
+                              borderColor: isDark ? "#90a1b9" : "neutral.200",
+                              cursor: "not-allowed",
+                              "& input": {
+                                WebkitTextFillColor: isDark
+                                  ? "#64748b"
+                                  : "#64748b",
+                              },
+                            },
+                          }}
+                        />
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel
+                          sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
+                        >
+                          Verified Name
+                        </FormLabel>
+                        <Input
+                          disabled
+                          value={lockedVerifiedName}
+                          variant={isDark ? "soft" : "outlined"}
+                          sx={{
+                            borderRadius: "lg",
+                            bgcolor: isDark ? "#0f172b" : "neutral.50",
+                            borderColor: isDark ? "#90a1b9" : "neutral.200",
+                            color: isDark ? "#90a1b9" : "neutral.600",
+                            "&.Mui-disabled": {
+                              bgcolor: isDark
+                                ? "rgba(15, 23, 42, 0.5)"
+                                : "neutral.50",
+                              color: isDark ? "#62748e" : "neutral.500",
+                              borderColor: isDark ? "#90a1b9" : "neutral.200",
+                              cursor: "not-allowed",
+                              "& input": {
+                                WebkitTextFillColor: isDark
+                                  ? "#64748b"
+                                  : "#64748b",
+                              },
+                            },
+                          }}
+                        />
+                      </FormControl>
+
+                      <FormControl>
+                        <FormLabel
+                          sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
+                        >
+                          Registered Store Name
+                        </FormLabel>
+                        <Input
+                          disabled
+                          value={lockedBusinessName}
+                          variant={isDark ? "soft" : "outlined"}
+                          sx={{
+                            borderRadius: "lg",
+                            bgcolor: isDark ? "#0f172b" : "neutral.50",
+                            borderColor: isDark ? "#90a1b9" : "neutral.200",
+                            color: isDark ? "#90a1b9" : "neutral.600",
+                            "&.Mui-disabled": {
+                              bgcolor: isDark
+                                ? "rgba(15, 23, 42, 0.5)"
+                                : "neutral.50",
+                              color: isDark ? "#62748e" : "neutral.500",
+                              borderColor: isDark ? "#90a1b9" : "neutral.200",
+                              cursor: "not-allowed",
+                              "& input": {
+                                WebkitTextFillColor: isDark
+                                  ? "#64748b"
+                                  : "#64748b",
+                              },
+                            },
+                          }}
+                        />
+                      </FormControl>
+
+                      {lockedStoreUrl && (
+                        <FormControl>
+                          <FormLabel
+                            sx={{ color: isDark ? "neutral.300" : "neutral.700" }}
+                          >
+                            Store Link
+                          </FormLabel>
+                          <Input
+                            disabled
+                            value={lockedStoreUrl}
+                            variant={isDark ? "soft" : "outlined"}
+                            sx={{
+                              borderRadius: "lg",
+                              bgcolor: isDark ? "#0f172b" : "neutral.50",
+                              borderColor: isDark ? "#90a1b9" : "neutral.200",
+                              color: isDark ? "#90a1b9" : "neutral.600",
+                              "&.Mui-disabled": {
+                                bgcolor: isDark
+                                  ? "rgba(15, 23, 42, 0.5)"
+                                  : "neutral.50",
+                                color: isDark ? "#62748e" : "neutral.500",
+                                borderColor: isDark ? "#90a1b9" : "neutral.200",
+                                cursor: "not-allowed",
+                                "& input": {
+                                  WebkitTextFillColor: isDark
+                                    ? "#64748b"
+                                    : "#64748b",
+                                },
+                              },
+                            }}
+                          />
+                        </FormControl>
+                      )}
+                    </Stack>
+                  </Box>
+                </Stack>
               ) : (
                 <Stack gap={3}>
                   <Box>
