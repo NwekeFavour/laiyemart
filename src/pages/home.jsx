@@ -212,7 +212,7 @@ html{
         example: "layemart.com/mystore",
       },
       features: [
-        "Up to 100 products",
+        "Up to 200 products",
         "Basic store templates",
         "Payment integration",
         "10% Service fee",

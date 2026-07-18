@@ -67,9 +67,8 @@ export default function SignUpPage() {
   const plans = [
     {
       id: "starter",
-      name: "Starter Plan",
       price: { monthly: "Free", yearly: "Free" },
-      features: ["200 Products", "Basic Analytics", "Custom Domain", "Order Management", "Inventory", "Intuitive Dashboard"],
+      features: ["400 Products", "Analytics", "Custom Domain", "Order Management", "Inventory", "Intuitive Dashboard", "10% Service Fee", "Email Support"],
     },
     // {
     //   id: "professional",
@@ -743,7 +742,7 @@ export default function SignUpPage() {
                         <div>
                           {/* 1. Plan Name */}
                           <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                            {plan.name}
+                            {plan.name || ""}
                             {appliedDiscount > 0 && plan.id !== "starter" && (
                               <span className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">
                                 {appliedDiscount}% Off
