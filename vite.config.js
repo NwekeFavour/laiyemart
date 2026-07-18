@@ -28,24 +28,18 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         icons: [
-          {
-            src: '/icons/layemart-icon.jpg',
-            sizes: '192x192',
-            type: 'image/jpeg',
-            purpose: 'any'
-          },
-          {
-            src: '/icons/layemart-icon.jpg',
-            sizes: '512x512',
-            type: 'image/jpeg',
-            purpose: 'maskable'
-          }
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       },
       devOptions: {
         enabled: true,
         navigateFallback: 'index.html'
-      }
+      },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
     })
   ]
 })

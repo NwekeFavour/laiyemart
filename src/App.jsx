@@ -64,6 +64,7 @@ import VendorStoreWrapper from "./components/VendorStoreWrapper";
 import TransactionsPage from "./pages/admin/transaction";
 import DebugPage from "./pages/admin(StoreOwner)/debug";
 import ResendOTPPage from "./pages/auth/resend";
+import InstallPwaBanner from "./components/InstallPwaBanner";
 
 function App() {
   const isDashboard = isDashboardSubdomain();
@@ -282,6 +283,7 @@ function App() {
   }
   return (
     <div className="hide-scrollbar">
+      <InstallPwaBanner />
       <Routes>
         {/* --- SHARED SYSTEM ROUTES --- */}
         <Route path="/auth-sync" element={<AuthSync />} />
