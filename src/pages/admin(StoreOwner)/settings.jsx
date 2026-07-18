@@ -1420,7 +1420,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                       />
 
                       <Select
-                        disabled={!editingAddress}
+                        disabled={false}
                         value={formAddress.country || "Nigeria"}
                         onChange={(_, newValue) =>
                           setFormAddress((prev) => ({
@@ -1430,8 +1430,6 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                         }
                       >
                         <Option value="Nigeria">Nigeria</Option>
-                        <Option value="Ghana">Ghana</Option>
-                        <Option value="Kenya">Kenya</Option>
                       </Select>
 
                       <Stack direction="row" spacing={1}>
@@ -2279,7 +2277,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   />
                 </FormControl>
 
-                <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
+                {/* <FormControl sx={{ display: { sm: "flex-row" }, gap: 2 }}>
                   <FormLabel
                     className={`${isDark ? "text-slate-400!" : ""}`}
                     sx={{ minWidth: 140 }}
@@ -2314,7 +2312,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   >
                     Update
                   </Button>
-                </FormControl>
+                </FormControl> */}
 
                 <Divider />
 
