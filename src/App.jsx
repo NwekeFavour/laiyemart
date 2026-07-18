@@ -623,7 +623,7 @@ function App() {
 }
 
 const LoadingScreen = () => (
-  <div className="flex flex-col items-center justify-center h-screen bg-[#fafafa] text-slate-900 overflow-hidden">
+  <div className="flex flex-col items-center justify-center h-screen bg-[#fafafa] text-slate-900 overflow-hidden px-6">
     {/* Top Progress Bar - Royal Indigo */}
     <motion.div
       initial={{ width: 0 }}
@@ -632,7 +632,7 @@ const LoadingScreen = () => (
       className="fixed top-0 left-0 h-1 bg-[#2D2A70] z-50 shadow-[0_0_10px_rgba(45,42,112,0.3)]"
     />
 
-    <div className="flex flex-col items-center gap-8">
+    <div className="flex flex-col items-center gap-6 sm:gap-8">
       {/* Logo Container */}
       <div className="relative flex items-center justify-center">
         
@@ -643,7 +643,7 @@ const LoadingScreen = () => (
             opacity: [0.05, 0.15, 0.05] 
           }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute h-32 w-32 bg-[#2D2A70] rounded-full blur-3xl"
+          className="absolute h-40 w-40 sm:h-48 sm:w-48 bg-[#2D2A70] rounded-full blur-3xl"
         />
 
         {/* Logo Reveal Animation */}
@@ -651,19 +651,19 @@ const LoadingScreen = () => (
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="relative bg-white p-6 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-50 flex items-center justify-center"
+          className="relative bg-white p-8 sm:p-9 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-slate-50 flex items-center justify-center"
         >
           <img 
             src="https://res.cloudinary.com/dzrfqk1zk/image/upload/v1771239090/layemart-icon-removebg-preview_lh5vom.png" 
             alt="Layemart Logo" 
-            className="h-16 w-auto object-contain"
+            className="h-24 sm:h-28 w-auto object-contain"
           />
           
           {/* Animated Orbit Ring */}
           <motion.div 
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-2 border-[1.5px] border-transparent border-t-[#2D2A70] rounded-[2rem] opacity-40"
+            className="absolute inset-2 border-[2px] border-transparent border-t-[#2D2A70] rounded-[2rem] opacity-40"
           />
         </motion.div>
       </div>
@@ -675,7 +675,7 @@ const LoadingScreen = () => (
         transition={{ delay: 0.4 }}
         className="text-center"
       >
-        <h2 className="text-lg font-black tracking-[0.3em] text-[#2D2A70] uppercase">
+        <h2 className="text-xl sm:text-lg font-black tracking-[0.3em] text-[#2D2A70] uppercase">
           LAYE<span className="text-slate-400 font-light">MART</span>
         </h2>
         <div className="flex justify-center gap-1 mt-3">
@@ -684,7 +684,7 @@ const LoadingScreen = () => (
               key={i}
               animate={{ opacity: [0.3, 1, 0.3] }}
               transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-              className="h-1 w-1 rounded-full bg-[#2D2A70]"
+              className="h-1.5 w-1.5 rounded-full bg-[#2D2A70]"
             />
           ))}
         </div>
@@ -696,7 +696,7 @@ const LoadingScreen = () => (
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 1 }}
-      className="absolute bottom-12 flex flex-col items-center gap-2"
+      className="absolute bottom-10 sm:bottom-12 flex flex-col items-center gap-2"
     >
       <span className="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase">
         Layemart Engine
