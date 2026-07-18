@@ -3401,7 +3401,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                       Manage how customers access your store online.
                     </Typography>
                   </Box>
-                  <Typography
+                  {/* <Typography
                     level="body-xs"
                     sx={{
                       display: "flex",
@@ -3426,7 +3426,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                       }}
                     />
                     {store?.plan} Plan
-                  </Typography>
+                  </Typography> */}
                 </Box>
 
                 <Divider />
@@ -3621,7 +3621,7 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                           "&:hover": { textDecoration: "underline" },
                         }}
                       >
-                        <Download size={14} /> Download Hostinger DNS Zone File
+                        <Download size={14} /> Download DNS Zone File
                         (.txt)
                       </Typography>
                     )}
