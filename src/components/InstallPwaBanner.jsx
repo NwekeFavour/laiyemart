@@ -66,6 +66,10 @@ export default function InstallPwaBanner() {
     );
   };
 
+  const handleHide = () => {
+    setShowInstall(false);
+  };
+
   return (
     <Box
       sx={{
@@ -79,22 +83,43 @@ export default function InstallPwaBanner() {
         gap: 1,
       }}
     >
-      <Button
-        variant="contained"
-        onClick={handleInstall}
-        sx={{
-          backgroundColor: "#0f172a",
-          color: "#fff",
-          borderRadius: 999,
-          px: 2,
-          py: 1,
-          textTransform: "none",
-          boxShadow: 3,
-          "&:hover": { backgroundColor: "#111827" },
-        }}
-      >
-        {isIOS ? "Add to Home Screen" : "Install LayeMart"}
-      </Button>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Button
+          variant="contained"
+          onClick={handleInstall}
+          sx={{
+            backgroundColor: "#0f172a",
+            color: "#fff",
+            borderRadius: 999,
+            px: 2,
+            py: 1,
+            textTransform: "none",
+            boxShadow: 3,
+            "&:hover": { backgroundColor: "#111827" },
+          }}
+        >
+          {isIOS ? "Add to Home Screen" : "Install LayeMart"}
+        </Button>
+        <Button
+          className="text-[17px]!"
+          variant="text"
+          onClick={handleHide}
+          aria-label="Hide install banner"
+          sx={{
+            minWidth: "auto",
+            color: "#0f172a",
+            backgroundColor: "rgba(255,255,255,0.95)",
+            borderRadius: "50%",
+            width: 34,
+            height: 34,
+            p: 0,
+            boxShadow: 1,
+            "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
+          }}
+        >
+          ×
+        </Button>
+      </Box>
       {isIOS && (
         <Typography
           sx={{

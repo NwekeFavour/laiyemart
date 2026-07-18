@@ -873,8 +873,7 @@ const handleLogout = () => {
                 >
                   {store?.name
                     ? store?.name.toUpperCase()
-                    : user?.fullName || "MY"}{" "}
-                  STORE
+                    : user?.fullName || "MY"}{" "}                  
                 </Typography>
                 <Typography
                   className={`${isDark ? "text-emerald-400!" : ""}`}
