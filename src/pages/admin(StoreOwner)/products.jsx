@@ -504,7 +504,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
             </Typography>
             <Button
               size="sm"
-              className="text-[11px] text-start"
+              className="text-[11px]! text-start"
               variant="plain"
               color="neutral"
               onClick={() => setIsUploadGuideOpen(true)}
