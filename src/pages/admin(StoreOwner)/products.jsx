@@ -43,6 +43,11 @@ import {
   UploadCloud,
   X,
   AlertCircle,
+  RefreshCw,
+  Store,
+  PackageCheck,
+  ImagePlus,
+  Layers,
 } from "lucide-react";
 import StoreOwnerLayout from "./layout";
 import { useProductStore } from "../../../services/productService";
@@ -63,7 +68,7 @@ export default function ProductsPage({ isDark, toggleDarkMode }) {
     deleteProduct,
   } = useProductStore();
   const { categories, getCategories, createCategory } = useCategoryStore();
-const [variants, setVariants] = useState([]);
+  const [variants, setVariants] = useState([]);
   const [error, setError] = useState(null);
   const { store } = useAuthStore();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -87,14 +92,40 @@ const [variants, setVariants] = useState([]);
   const [inventory, setInventory] = useState("");
   const [price, setPrice] = useState("");
   const [name, setName] = useState("");
-  const [returnPolicy, setReturnPolicy] = useState("")
-  const [warranty, setWarranty] = useState("")
-  const [delivery, setDoorDelivery] = useState("")
+  const [returnPolicy, setReturnPolicy] = useState("");
+  const [warranty, setWarranty] = useState("");
+  const [delivery, setDoorDelivery] = useState("");
   const handleSort = (key, direction) => {
     setSortConfig({ key, direction });
     // You can trigger your API fetch here or sort 'products' locally
   };
 
+  const guideSteps = [
+    {
+      icon: <Store size={18} />,
+      color: "#2563eb",
+      title: "Make sure your store profile is fully ready",
+      body: "Add your store address, phone number, support email, description, and logo. A complete profile makes your listings look trustworthy and helps customers reach you easily.",
+    },
+    {
+      icon: <PackageCheck size={18} />,
+      color: "#16a34a",
+      title: "Prepare the product information",
+      body: 'Include a name, price, category, and a clear description. Add stock info too — or turn on "Unlimited Stock" if that applies.',
+    },
+    {
+      icon: <ImagePlus size={18} />,
+      color: "#d97706",
+      title: "Add at least one cover image",
+      body: "Upload a clear product image so shoppers can see what you're selling. More images build trust and improve conversion.",
+    },
+    {
+      icon: <Layers size={18} />,
+      color: "#7c3aed",
+      title: "Use variants if your product has options",
+      body: "Useful when one product comes in different sizes, colors, or versions — like a shirt in S/M/L, or a case in black/blue. Only add variants when options need separate stock or pricing.",
+    },
+  ];
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -115,6 +146,7 @@ const [variants, setVariants] = useState([]);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isUploadGuideOpen, setIsUploadGuideOpen] = useState(false);
 
   const handleQuickCategorySubmit = async () => {
     if (!newCatName.trim()) return toast.error("Enter a category name");
@@ -238,7 +270,7 @@ const [variants, setVariants] = useState([]);
       formData.append("returnPolicy", returnPolicy);
       formData.append("variants", JSON.stringify(variants));
 
-  formData.append("warranty", warranty);
+      formData.append("warranty", warranty);
       images.forEach((img) => {
         formData.append("images", img.file);
       });
@@ -256,9 +288,9 @@ const [variants, setVariants] = useState([]);
       setCategory("");
       setImages([]);
       setInventory("");
-      setReturnPolicy("")
-      setWarranty("")
-      setDoorDelivery("")
+      setReturnPolicy("");
+      setWarranty("");
+      setDoorDelivery("");
       setVariants([]);
       setIsFeatured(false);
       setIsUnlimited(false);
@@ -271,11 +303,11 @@ const [variants, setVariants] = useState([]);
         err.message ||
         "Failed to create product";
       // Extract the specific message: "Product limit reached"
-        const errorMessage =
-          err.response?.data?.message ||
-          err.response?.data?.error ||
-          err.message ||
-          "Failed to create product";
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Failed to create product";
 
       if (errorMsg.includes("limit")) {
         toast.error("🚀 Product limit reached! Please upgrade your plan.", {
@@ -470,6 +502,23 @@ const [variants, setVariants] = useState([]);
             >
               Manage your inventory and product listings
             </Typography>
+            <Button
+              size="sm"
+              variant="plain"
+              color="neutral"
+              onClick={() => setIsUploadGuideOpen(true)}
+              sx={{
+                mt: 0.75,
+                px: 0,
+                justifyContent: "flex-start",
+                color: isDark ? "#93c5fd" : "#2563eb",
+                textDecoration: "underline",
+                textDecorationColor: isDark ? "#93c5fd" : "#2563eb",
+                fontWeight: 600,
+              }}
+            >
+              Need to Know how to Upload Your Products?
+            </Button>
           </Box>
         </Box>
 
@@ -517,7 +566,32 @@ const [variants, setVariants] = useState([]);
                 />
               </Box>
               <Button
-                className="md:mt-0! mt-3! md:px-3! px-2! md:text-[15px]! text-[14px]!  hover:bg-slate-800/90!"
+                size="sm"
+                variant="outlined"
+                color="neutral"
+                disabled={loading}
+                onClick={() => {
+                  setError(null);
+                  setPage(1);
+                  fetchMyProducts().catch((err) => {
+                    setError(err.message || "Failed to refresh products");
+                  });
+                }}
+                startDecorator={<RefreshCw size={16} />}
+                sx={{
+                  borderColor: isDark ? "#314158" : "#cbd5e1",
+                  color: isDark ? "#e2e8f0" : "#334155",
+                  bgcolor: isDark ? "#020618" : "transparent",
+                  px: 2,
+                  "&:hover": {
+                    bgcolor: isDark ? "#0f172a" : "#f8fafc",
+                  },
+                }}
+              >
+                Refresh
+              </Button>
+              <Button
+                className="md:mt-0! md:px-3! px-2! md:text-[15px]! text-[14px]!  hover:bg-slate-800/90!"
                 onClick={() => {
                   resetProductForm();
                   setIsDrawerOpen(true);
@@ -1479,7 +1553,11 @@ const [variants, setVariants] = useState([]);
                 </FormControl>
                 {/* Add this after the Inventory FormControl inside the Stack */}
 
-                <VariantsSection variants={variants} setVariants={setVariants} isDark={isDark} />
+                <VariantsSection
+                  variants={variants}
+                  setVariants={setVariants}
+                  isDark={isDark}
+                />
 
                 <Stack direction="row" spacing={3} sx={{ mt: 1 }}>
                   {/* FEATURED TOGGLE */}
@@ -1566,31 +1644,29 @@ const [variants, setVariants] = useState([]);
                   </FormControl>
                 </Stack>
               </Stack>
- 
 
-          {/* --- WARRANTY --- */}
-          <FormControl className="my-4">
-            <FormLabel
-              className={`${isDark ? "text-slate-400!" : ""}`}
-              sx={{ fontWeight: 600 }}
-            >
-              Warranty Info
-            </FormLabel>
-            <Input
-              value={warranty}
-              onChange={(e) => setWarranty(e.target.value)}
-              placeholder="e.g. 12 Months Warranty service provided."
-              variant="soft"
-              sx={{
-                bgcolor: isDark ? "transparent" : "",
-                border: isDark ? "1px solid #314158" : "none",
-                borderRadius: "lg",
-                "&::before": { display: "none" },
-                "&:focus-within": { border: "1px solid #314158" },
-              }}
-            />
-          </FormControl>
-
+              {/* --- WARRANTY --- */}
+              <FormControl className="my-4">
+                <FormLabel
+                  className={`${isDark ? "text-slate-400!" : ""}`}
+                  sx={{ fontWeight: 600 }}
+                >
+                  Warranty Info
+                </FormLabel>
+                <Input
+                  value={warranty}
+                  onChange={(e) => setWarranty(e.target.value)}
+                  placeholder="e.g. 12 Months Warranty service provided."
+                  variant="soft"
+                  sx={{
+                    bgcolor: isDark ? "transparent" : "",
+                    border: isDark ? "1px solid #314158" : "none",
+                    borderRadius: "lg",
+                    "&::before": { display: "none" },
+                    "&:focus-within": { border: "1px solid #314158" },
+                  }}
+                />
+              </FormControl>
             </Stack>
           </DialogContent>
 
@@ -1615,6 +1691,182 @@ const [variants, setVariants] = useState([]);
           </Box>
         </Box>
       </Drawer>
+      <Modal
+        open={isUploadGuideOpen}
+        onClose={() => setIsUploadGuideOpen(false)}
+      >
+        <ModalDialog
+          variant="outlined"
+          role="dialog"
+          sx={{
+            borderRadius: "xl",
+            maxWidth: 720,
+            width: "min(92vw, 720px)",
+            maxHeight: "90vh",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+            p: 0,
+          }}
+        >
+          {/* Header */}
+          <Box
+            sx={{
+              px: { xs: 2.5, sm: 3 },
+              pt: { xs: 2.5, sm: 3 },
+              pb: { xs: 1.5, sm: 2 },
+              position: "relative",
+            }}
+          >
+            <ModalClose
+              sx={{ top: { xs: 12, sm: 16 }, right: { xs: 12, sm: 16 } }}
+              onClick={() => setIsUploadGuideOpen(false)}
+            />
+            <Typography
+              level="h4"
+              sx={{
+                fontWeight: 800,
+                mb: 0.5,
+                pr: 4,
+                fontSize: { xs: "1.15rem", sm: "1.4rem" },
+              }}
+            >
+              How to upload products successfully
+            </Typography>
+            <Typography
+              level="body-sm"
+              sx={{
+                color: "neutral.600",
+                fontSize: { xs: "0.85rem", sm: "0.9rem" },
+              }}
+            >
+              Four quick steps to get your listing published cleanly.
+            </Typography>
+          </Box>
+
+          <Divider />
+
+          {/* Body */}
+          <Box
+            sx={{
+              px: { xs: 2.5, sm: 3 },
+              py: { xs: 2, sm: 2.5 },
+              overflowY: "auto",
+              flex: 1,
+            }}
+          >
+            <Stack spacing={{ xs: 2.5, sm: 3 }}>
+              {guideSteps.map((step, i) => (
+                <Box
+                  key={i}
+                  sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}
+                >
+                  {/* Icon badge with connecting line */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        bgcolor: `${step.color}1a`,
+                        color: step.color,
+                      }}
+                    >
+                      {step.icon}
+                    </Box>
+                    {i < guideSteps.length - 1 && (
+                      <Box
+                        sx={{
+                          width: "2px",
+                          flex: 1,
+                          minHeight: 20,
+                          bgcolor: "neutral.200",
+                          mt: 0.5,
+                        }}
+                      />
+                    )}
+                  </Box>
+
+                  <Box sx={{ pt: 0.25 }}>
+                    <Typography
+                      level="title-sm"
+                      sx={{
+                        fontWeight: 700,
+                        mb: 0.5,
+                        fontSize: { xs: "0.9rem", sm: "0.95rem" },
+                      }}
+                    >
+                      {step.title}
+                    </Typography>
+                    <Typography
+                      level="body-sm"
+                      sx={{
+                        color: "neutral.600",
+                        lineHeight: 1.6,
+                        fontSize: { xs: "0.83rem", sm: "0.875rem" },
+                      }}
+                    >
+                      {step.body}
+                    </Typography>
+                  </Box>
+                </Box>
+              ))}
+            </Stack>
+
+            {/* Tip callout */}
+            <Box
+              sx={{
+                mt: 3,
+                p: 1.5,
+                borderRadius: "md",
+                bgcolor: "primary.softBg",
+                borderLeft: "3px solid",
+                borderColor: "primary.500",
+              }}
+            >
+              <Typography
+                level="body-xs"
+                sx={{ color: "neutral.700", lineHeight: 1.5 }}
+              >
+                💡 <strong>Tip:</strong> Listings with a complete profile, a
+                clear cover image, and accurate stock info tend to get approved
+                and trusted faster.
+              </Typography>
+            </Box>
+          </Box>
+
+          <Divider />
+
+          {/* Footer */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              px: { xs: 2.5, sm: 3 },
+              py: { xs: 2, sm: 2.25 },
+            }}
+          >
+            <Button
+              variant="solid"
+              onClick={() => setIsUploadGuideOpen(false)}
+              sx={{ width: { xs: "100%", sm: "auto" } }}
+            >
+              Got it
+            </Button>
+          </Box>
+        </ModalDialog>
+      </Modal>
+
       <Modal
         open={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
@@ -2229,15 +2481,18 @@ const [variants, setVariants] = useState([]);
               </FormControl>
             </Stack>
 
-
-                <VariantsSection variants={variants} setVariants={setVariants} isDark={isDark} />
+            <VariantsSection
+              variants={variants}
+              setVariants={setVariants}
+              isDark={isDark}
+            />
 
             {/* --- NEW: FEATURED & UNLIMITED CONTROLS --- */}
             <Box
               sx={{
                 display: "flex",
                 gap: 3,
-                mb:3,
+                mb: 3,
                 p: 2,
                 mt: 3,
                 borderRadius: "lg",
@@ -2270,7 +2525,7 @@ const [variants, setVariants] = useState([]);
 
               <FormControl
                 orientation="horizontal"
-                sx={{ alignItems: "center", gap: 1,}}
+                sx={{ alignItems: "center", gap: 1 }}
               >
                 <Checkbox
                   variant="soft"
@@ -2293,31 +2548,30 @@ const [variants, setVariants] = useState([]);
                   Unlimited Stock
                 </FormLabel>
               </FormControl>
-     </Box>
-          {/* --- WARRANTY --- */}
-          <FormControl className="my-4">
-            <FormLabel
-              className={`${isDark ? "text-slate-400!" : ""}`}
-              sx={{ fontWeight: 600 }}
-            >
-              Warranty Info
-            </FormLabel>
-            <Input
-              value={warranty}
-              onChange={(e) => setWarranty(e.target.value)}
-              placeholder="e.g. 12 Months Warranty service provided."
-              variant="soft"
-              sx={{
-                bgcolor: isDark ? "transparent" : "",
-                border: isDark ? "1px solid #314158" : "none",
-                borderRadius: "lg",
-                "&::before": { display: "none" },
-                "&:focus-within": { border: "1px solid #314158" },
-              }}
-            />
-          </FormControl>
+            </Box>
+            {/* --- WARRANTY --- */}
+            <FormControl className="my-4">
+              <FormLabel
+                className={`${isDark ? "text-slate-400!" : ""}`}
+                sx={{ fontWeight: 600 }}
+              >
+                Warranty Info
+              </FormLabel>
+              <Input
+                value={warranty}
+                onChange={(e) => setWarranty(e.target.value)}
+                placeholder="e.g. 12 Months Warranty service provided."
+                variant="soft"
+                sx={{
+                  bgcolor: isDark ? "transparent" : "",
+                  border: isDark ? "1px solid #314158" : "none",
+                  borderRadius: "lg",
+                  "&::before": { display: "none" },
+                  "&:focus-within": { border: "1px solid #314158" },
+                }}
+              />
+            </FormControl>
           </DialogContent>
-
 
           <Box
             sx={{

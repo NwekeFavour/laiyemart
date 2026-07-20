@@ -67,14 +67,46 @@ import DeliverySettingsSection from "../../components/delivery";
 import PayoutVerificationSection from "../../components/paymentVerification";
 
 const cities = [
-  "Abuja",
-  "Lagos",
-  "Ibadan",
   "Port Harcourt",
   "Kano",
   "Enugu",
   "Benin City",
+  "Aba",
+  "Ado-Ekiti",
+  "Akure",
+  "Awka",
+  "Bauchi",
+  "Benin City",
+  "Bida",
+  "Birnin Kebbi",
+  "Calabar",
+  "Damaturu",
+  "Dutse",
+  "Gombe",
+  "Ife",
+  "Ilorin",
+  "Jalingo",
+  "Jos",
+  "Kaduna",
+  "Katsina",
+  "Keffi",
+  "Kontagora",
+  "Kuru",
+  "Makurdi",
+  "Minna",
+  "Mubi",
+  "Nnewi",
+  "Ogbomosho",
+  "Onitsha",
+  "Osogbo",
+  "Owerri",
+  "Sokoto",
+  "Uyo",
+  "Warri",
+  "Yola",
+  "Zaria",
 ];
+const cityOptions = [...cities, "Other"];
 
 const emptyAddress = {
   street: "",
@@ -91,7 +123,6 @@ const normalizeAddress = (address) => ({
 export default function SettingsPage({ isDark, toggleDarkMode }) {
   const { updateStoreProfile, loading, resendStoreVerification } =
     useStoreProfileStore();
-
 
   const [activeSection, setActiveSection] = useState("profile");
   const [heroFile, setHeroFile] = useState(null);
@@ -125,6 +156,9 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
     store?.billingCycle || "monthly",
   );
 
+  const [isCustomCity, setIsCustomCity] = useState(
+    !!formAddress.city && !cities.includes(formAddress.city),
+  );
   // Social Links initialized as an object
   const [socialLinks, setSocialLinks] = useState({
     instagram: store?.socialLinks?.instagram || "",
@@ -239,7 +273,6 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
       ? `https://layemart.com/${cleanSlug}`
       : `https://${cleanSlug}.layemart.com`;
   })();
-
 
   useEffect(() => {
     const fetchBanks = async () => {
@@ -1393,36 +1426,64 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                         }}
                       />
 
+                      <FormLabel
+                        className={`${isDark ? "text-slate-400!" : ""}`}
+                        sx={{ minWidth: 140 }}
+                      >
+                        City
+                      </FormLabel>
+
                       <Autocomplete
                         disabled={!editingAddress}
-                        options={cities}
-                        value={formAddress.city}
-                        onChange={(_, newValue) =>
-                          setFormAddress((prev) => ({
-                            ...prev,
-                            city: newValue || "",
-                          }))
+                        options={[...cities, "Other"]}
+                        value={
+                          isCustomCity ? "Other" : formAddress.city || null
                         }
-                        inputValue={cityInput}
-                        onInputChange={(_, newInput) => {
-                          setCityInput(newInput);
-                          setFormAddress((prev) => ({
-                            ...prev,
-                            city: newInput,
-                          }));
+                        onChange={(_, newValue) => {
+                          if (newValue === "Other") {
+                            setIsCustomCity(true);
+                            setFormAddress((prev) => ({ ...prev, city: "" }));
+                          } else {
+                            setIsCustomCity(false);
+                            setFormAddress((prev) => ({
+                              ...prev,
+                              city: newValue || "",
+                            }));
+                          }
                         }}
-                        freeSolo
-                        renderInput={(params) => (
-                          <Input
-                            {...params}
-                            placeholder="City (type to search)"
-                            sx={{
-                              bgcolor: isDark ? "#0f172a" : "white",
-                              color: isDark ? "#f1f5f9" : "inherit",
-                            }}
-                          />
-                        )}
+                        sx={{
+                          bgcolor: isDark ? "#0f172a" : "white",
+                          color: isDark ? "#f1f5f9" : "inherit",
+                        }}
                       />
+
+                      {isCustomCity && (
+                        <Input
+                          disabled={!editingAddress}
+                          autoFocus
+                          placeholder="Type your city name"
+                          value={formAddress.city}
+                          onChange={(e) =>
+                            setFormAddress((prev) => ({
+                              ...prev,
+                              city: e.target.value,
+                            }))
+                          }
+                          sx={{
+                            mt: 1,
+                            bgcolor: isDark ? "#0f172a" : "white",
+                            color: isDark ? "#f1f5f9" : "inherit",
+                          }}
+                        />
+                      )}
+
+                      <FormLabel
+                        className={`${isDark ? "text-slate-400!" : ""}`}
+                        sx={{ minWidth: 140 }}
+                      >
+                        State
+                      </FormLabel>
+
 
                       <Input
                         disabled={!editingAddress}
@@ -1438,6 +1499,14 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                           bgcolor: isDark ? "#0f172a" : "white",
                         }}
                       />
+
+                      <FormLabel
+                        className={`${isDark ? "text-slate-400!" : ""}`}
+                        sx={{ minWidth: 140 }}
+                      >
+                        Country
+                      </FormLabel>
+
 
                       <Select
                         disabled={false}
@@ -2536,27 +2605,27 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
             )}
 
             <PayoutVerificationSection
-  activeSection={activeSection}
-  isLocked={isLocked}
-  isDark={isDark}
-  banks={banks}
-  store={store}
-  bankForm={bankForm}
-  setBankForm={setBankForm}
-  validationStep={validationStep}
-  isUpdating={isUpdating}
-  showBVN={showBVN}
-  setShowBVN={setShowBVN}
-  is2FAEnabled={is2FAEnabled}
-  setActiveSection={setActiveSection}
-  openIdentityConfirmation={openIdentityConfirmation}
-  handleSaveBankDetails={handleSaveBankDetails}
-  lockedBank={lockedBank}
-  lockedAccountNumber={lockedAccountNumber}
-  lockedVerifiedName={lockedVerifiedName}
-  lockedBusinessName={lockedBusinessName}
-  lockedStoreUrl={lockedStoreUrl}
-/>
+              activeSection={activeSection}
+              isLocked={isLocked}
+              isDark={isDark}
+              banks={banks}
+              store={store}
+              bankForm={bankForm}
+              setBankForm={setBankForm}
+              validationStep={validationStep}
+              isUpdating={isUpdating}
+              showBVN={showBVN}
+              setShowBVN={setShowBVN}
+              is2FAEnabled={is2FAEnabled}
+              setActiveSection={setActiveSection}
+              openIdentityConfirmation={openIdentityConfirmation}
+              handleSaveBankDetails={handleSaveBankDetails}
+              lockedBank={lockedBank}
+              lockedAccountNumber={lockedAccountNumber}
+              lockedVerifiedName={lockedVerifiedName}
+              lockedBusinessName={lockedBusinessName}
+              lockedStoreUrl={lockedStoreUrl}
+            />
 
             <Modal
               open={isBankConfirmationOpen}
@@ -2579,7 +2648,6 @@ export default function SettingsPage({ isDark, toggleDarkMode }) {
                   Please review the details below before validating your
                   identity.
                 </Typography>
-
 
                 <Stack
                   direction="row"
