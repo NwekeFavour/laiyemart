@@ -852,7 +852,7 @@ export default function SignUpPage() {
                         ? "dashboard.localhost:5173"
                         : "dashboard.layemart.com";
 
-                      window.location.href = `${protocol}//${base}/auth-sync?data=${encodedAuth}`;
+                      window.location.href = `${protocol}//${base}/auth-sync?data=${encodedAuth}&redirect=/setup-store`;
                     }
                   } catch (err) {
                     setError("Could not save plan. Please try again.");

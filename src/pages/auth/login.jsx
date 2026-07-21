@@ -167,9 +167,17 @@ useEffect(() => {
 
               // 3. Set the target path based on role
               // If SUPER_ADMIN, go to admin dashboard. If OWNER, go to store dashboard.
-              // Inside onSubmit
               const targetPath =
                 data?.user?.role === "SUPER_ADMIN" ? "/admin/dashboard" : "/";
+              const isStoreOwner = data?.user?.role === "OWNER";
+              const needsStoreSetup =
+                isStoreOwner &&
+                (!data?.store?.address?.street ||
+                  !data?.store?.address?.city ||
+                  !data?.store?.address?.state);
+              const nextPath = needsStoreSetup
+                ? `/setup-store?redirect=${encodeURIComponent(targetPath)}`
+                : targetPath;
 
               // Ensure the redirect is used
 
@@ -180,7 +188,7 @@ useEffect(() => {
               );
 
               // 4. Perform the redirect with the 'redirect' param explicitly set
-              window.location.href = `${protocol}//${base}/auth-sync?data=${encodedAuth}&redirect=${targetPath}`;
+              window.location.href = `${protocol}//${base}/auth-sync?data=${encodedAuth}&redirect=${nextPath}`;
             } catch (err) {
               let message = "Something went wrong. Please try again.";
 

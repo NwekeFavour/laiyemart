@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Eye,
   UserX,
@@ -59,6 +59,7 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
+  const reminderShownRef = useRef(false);
   const { products, fetchMyProducts, createProduct } = useProductStore();
   const { totalCustomers, setTotalCustomers, fetchTotalCustomers } =
     useStoreProfileStore();
@@ -184,6 +185,38 @@ export default function StoreOwnerTrialDashboard({ isDark, toggleDarkMode }) {
 
     loadUser();
   }, []);
+
+  const hasStoreAddress = Boolean(
+    store?.address?.street && store?.address?.city && store?.address?.state,
+  );
+  const hasBankDetails = Boolean(
+    store?.bankAccountNumber ||
+      store?.paystack?.accountNumber ||
+      store?.paystack?.bankCode,
+  );
+
+  useEffect(() => {
+    if (!store || reminderShownRef.current) return;
+
+    const missingItems = [];
+    if (!hasStoreAddress) missingItems.push("your store address");
+    if (!hasBankDetails) missingItems.push("your bank details");
+
+    if (missingItems.length === 0) return;
+
+    const message =
+      missingItems.length === 2
+        ? "Reminder: please add your store address and bank details to complete your setup."
+        : missingItems[0] === "your store address"
+          ? "Reminder: please add your store address to complete your setup."
+          : "Reminder: please add your bank details to complete your setup.";
+
+    toast.info(message, {
+      position: "top-right",
+      autoClose: 8000,
+    });
+    reminderShownRef.current = true;
+  }, [store, hasStoreAddress, hasBankDetails]);
 
   const StatSkeleton = ({ isDark }) => (
     <Sheet

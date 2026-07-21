@@ -65,6 +65,7 @@ import TransactionsPage from "./pages/admin/transaction";
 import DebugPage from "./pages/admin(StoreOwner)/debug";
 import ResendOTPPage from "./pages/auth/resend";
 import InstallPwaBanner from "./components/InstallPwaBanner";
+import StoreSetupWizard from "./components/StoreSetupWizard";
 
 function App() {
   const isDashboard = isDashboardSubdomain();
@@ -288,6 +289,7 @@ function App() {
         {/* --- SHARED SYSTEM ROUTES --- */}
         <Route path="/auth-sync" element={<AuthSync />} />
         <Route path="/debug" element={<DebugPage />} />
+        <Route path="/setup-store" element={<StoreSetupWizard />} />
         {/* --- CASE 1: DASHBOARD SUBDOMAIN (dashboard.layemart.com) --- */}
         {isDashboard && (
           <>
