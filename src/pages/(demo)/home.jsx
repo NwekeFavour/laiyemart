@@ -82,6 +82,14 @@ function DemoHome({ storeSlug, resolverType }) {
     loading: productsLoading,
     toggleStar,
   } = useProductStore();
+
+  useEffect(() => {
+  const sub = getSubdomain();
+  const identifier = sub || storeSlug;
+  if (identifier && storeData) {
+    fetchStoreProducts(identifier);
+  }
+}, [storeData?._id, storeSlug]);
   useEffect(() => {
     const fetchStoreDetails = async () => {
       // 1. Logic check: Prioritize subdomain, then path slug

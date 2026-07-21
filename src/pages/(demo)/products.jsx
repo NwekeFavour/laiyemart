@@ -420,8 +420,7 @@ function Products({ storeSlug, isStarter }) {
                     {storeData?.name}
                   </h1>
                   <p className="text-slate-500 text-sm md:text-base mt-2">
-                    {config.arrivalSub} Guaranteed by{" "}
-                    <span className="font-bold text-slate-700">Layemart.</span>
+                    {config.arrivalSub}
                   </p>
                 </div>
               </div>

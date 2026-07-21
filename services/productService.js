@@ -124,8 +124,7 @@ export const useProductStore = create((set, get) => ({
     }
   },
 
-  fetchStoreProducts: async (subdomain) => {
-    set({ loading: true, error: null });
+  fetchStoreProducts: async (subdomain) => {    
     try {
       // Note: No token needed for public view
       const response = await fetch(
