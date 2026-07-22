@@ -25,7 +25,7 @@ const NewArrivalsGrid = ({
   isStarter,
   storeData,
   toggleWishlist,
-  config
+  config,
 }) => {
   const { products, fetchStoreProducts, setLocalProducts, loading } =
     useProductStore();
@@ -37,22 +37,22 @@ const NewArrivalsGrid = ({
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const [processingId, setProcessingId] = useState(null);
 
-useEffect(() => {
-  const initData = async () => {
-    if (localStorage.getItem("demo")) {
-      setLocalProducts(DUMMY_PRODUCTS);
-      return;
-    }
-    
-    if (!storeSlug) return;
-    
-    // ✅ Don't wipe products if we already have them — prevents flash
-    // Only fetch if products are empty or belong to a different store
-    await fetchStoreProducts(storeSlug);
-    // Remove setLocalProducts([]) entirely — let fetchStoreProducts handle state
-  };
-  initData();
-}, [storeSlug]);
+  useEffect(() => {
+    const initData = async () => {
+      if (localStorage.getItem("demo")) {
+        setLocalProducts(DUMMY_PRODUCTS);
+        return;
+      }
+
+      if (!storeSlug) return;
+
+      // ✅ Don't wipe products if we already have them — prevents flash
+      // Only fetch if products are empty or belong to a different store
+      await fetchStoreProducts(storeSlug);
+      // Remove setLocalProducts([]) entirely — let fetchStoreProducts handle state
+    };
+    initData();
+  }, [storeSlug]);
 
   const getStorePath = (path) => {
     return isStarter ? `/${storeSlug}${path}` : path;
@@ -116,12 +116,10 @@ useEffect(() => {
     }
   };
 
-  if (loading)
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", p: 10 }}>
-        <CircularProgress color="inherit" />
-      </Box>
-    );
+  const displayProducts =
+    loading && products.length === 0
+      ? Array(4).fill(null) // show 4 skeleton cards
+      : products.slice(0, 12);
 
   return (
     <Box sx={{ maxWidth: "1440px", mx: "auto", p: { xs: 2, md: 4 } }}>
@@ -145,7 +143,52 @@ useEffect(() => {
           gap: 3,
         }}
       >
-        {products.slice(0, 12).map((product) => {
+        {displayProducts.map((product, index) => {
+          // Skeleton card when loading and no products yet
+          if (!product) {
+            return (
+              <div
+                key={`skeleton-${index}`}
+                style={{
+                  borderRadius: "1.2rem",
+                  overflow: "hidden",
+                  border: "1px solid #f2f2f2",
+                  padding: "9.6px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "100%",
+                    height: "180px",
+                    borderRadius: "1rem",
+                    background:
+                      "linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)",
+                    backgroundSize: "200% 100%",
+                    animation: "shimmer 1.5s infinite",
+                  }}
+                />
+                <div style={{ marginTop: "12px", padding: "0 2px" }}>
+                  <div
+                    style={{
+                      height: "14px",
+                      background: "#f0f0f0",
+                      borderRadius: "4px",
+                      marginBottom: "8px",
+                      width: "80%",
+                    }}
+                  />
+                  <div
+                    style={{
+                      height: "14px",
+                      background: "#f0f0f0",
+                      borderRadius: "4px",
+                      width: "50%",
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          }
           return (
             <motion.div
               key={product._id || product.id}

@@ -124,22 +124,27 @@ export const useProductStore = create((set, get) => ({
     }
   },
 
-  fetchStoreProducts: async (subdomain) => {    
+  fetchStoreProducts: async (subdomain) => {
+    // ✅ Only show loading spinner if we have no products yet
+    // If products already exist, fetch silently in background
+    const hasProducts = get().products?.length > 0;
+    if (!hasProducts) {
+      set({ loading: true, error: null });
+    }
+
     try {
-      // Note: No token needed for public view
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/products/public/${subdomain}`,
       );
       const data = await response.json();
-      // console.log(data)
       if (response.ok) {
         set({ products: data.products, loading: false });
-        // console.log(data)
       } else {
         throw new Error(data.message || "Failed to fetch");
       }
     } catch (err) {
-      set({ error: err.message, loading: false, products: [] });
+      set({ error: err.message, loading: false });
+      // ✅ Don't wipe products on error — keep showing what we have
     }
   },
   // store/useProductStore.js
