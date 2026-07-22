@@ -438,6 +438,8 @@ function DemoHome({ storeSlug, resolverType }) {
           storeHero={storeData?.heroImage?.url}
           storeHeroSubtitle={storeData?.heroTitle}
           storeHeroTitle={storeData?.heroSubtitle}
+          isStarter={storeData?.plan === "starter"}
+          storeSlug={storeSlug}
         />
 
         {/* Dynamic Marquee Section */}

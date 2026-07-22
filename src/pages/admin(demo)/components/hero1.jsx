@@ -48,8 +48,11 @@ const HERO_CONTENT = {
   },
 };
 
-export default function Hero({ storeName, storeLogo, storeType, storeHero, storeHeroTitle, storeHeroSubtitle }) {
+export default function Hero({ isStarter, storeName, storeLogo, storeType, storeHero, storeHeroTitle, storeHeroSubtitle, storeSlug }) {
   const navigate = useNavigate()
+     getStorePath = (path) => {
+    return isStarter ? `/${storeSlug}${path}` : path;
+  };
   const currentType = storeType 
     ? storeType.charAt(0).toUpperCase() + storeType.slice(1) 
     : "General Store";
@@ -134,7 +137,7 @@ export default function Hero({ storeName, storeLogo, storeType, storeHero, store
 
           <div className="mt-12">
             <Button
-              onClick={()=> navigate("/shop")}
+              onClick={()=> navigate(getStorePath("/shop"))}
               size="lg"
               sx={{
                 borderRadius: 0, // Sharp edges = High Fashion
