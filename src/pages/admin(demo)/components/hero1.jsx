@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "@mui/joy";
+import { useNavigate } from "react-router-dom";
 
 // 1. Content Configuration for Hero
 const HERO_CONTENT = {
@@ -47,7 +48,8 @@ const HERO_CONTENT = {
   },
 };
 
-export default function Hero({ onCreateStore, storeName, storeLogo, storeType, storeHero, storeHeroTitle, storeHeroSubtitle }) {
+export default function Hero({ storeName, storeLogo, storeType, storeHero, storeHeroTitle, storeHeroSubtitle }) {
+  const navigate = useNavigate()
   const currentType = storeType 
     ? storeType.charAt(0).toUpperCase() + storeType.slice(1) 
     : "General Store";
@@ -132,7 +134,7 @@ export default function Hero({ onCreateStore, storeName, storeLogo, storeType, s
 
           <div className="mt-12">
             <Button
-              onClick={onCreateStore}
+              onClick={()=> navigate("/shop")}
               size="lg"
               sx={{
                 borderRadius: 0, // Sharp edges = High Fashion
